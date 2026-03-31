@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Test API Response</h1>
+    <button onclick="testLogin()">1. Login as 'dere'</button>
+    <button onclick="testGetReels()">2. Get Reels</button>
+    <button onclick="testUpload()">3. Upload Test Video</button>
+    <pre id="output"></pre>
+
+    <script>
+        let token = null;
+        const API_BASE = 'http://localhost:8000/api';
+
+        function log(msg) {
+            document.getElementById('output').textContent += msg + '\n\n';
+            console.log(msg);
+        }
+
+        async function testLogin() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'dere', password: 'dere2010' })
+                });
+                const data = await response.json();
+                token = data.token;
+                log('LOGIN SUCCESS:\n' + JSON.stringify(data, null, 2));
+                localStorage.setItem('authToken', token);
+            } catch (error) {
+                log('LOGIN ERROR: ' + error);
+            }
+        }
+
+        async function testGetReels() {
+            try {
+                const response = await fetch(`${API_BASE}/reels/`, {
+                    headers: token ? { 'Authorization': `Token ${token}` } : {}
+                });
+                const data = await response.json();
+                log('REELS RESPONSE:\n' + JSON.stringify(data.slice(0, 2), null, 2));
+            } catch (error) {
+                log('REELS ERROR: ' + error);
+            }
+        }
+
+        async function testUpload() {
+            if (!token) {
+                log('ERROR: Login first!');
+                return;
+            }
+            
+            // Create a test blob
+            const blob = new Blob(['test video content'], { type: 'video/webm' });
+            const formData = new FormData();
+            formData.append('file', blob, 'test.webm');
+            formData.append('caption', 'Test upload from API test');
+            
+            try {
+                const response = await fetch(`${API_BASE}/posts/create/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Token ${token}` },
+                    body: formData
+                });
+                const data = await response.json();
+                log('UPLOAD RESPONSE:\n' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log('UPLOAD ERROR: ' + error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Access Test</title>
+</head>
+<body>
+    <h1>Video Access Test</h1>
+    <div id="status"></div>
+    
+    <h2>Test 1: Direct URL</h2>
+    <video id="video1" controls width="400" style="border: 2px solid blue;">
+        <source src="http://localhost:8000/media/reels/Download_23_xnZ7q0g.mp4" type="video/mp4">
+    </video>
+    
+    <h2>Test 2: Fetch API</h2>
+    <button onclick="testFetch()">Test Fetch</button>
+    <pre id="fetchResult"></pre>
+    
+    <h2>Test 3: Get Latest Reel from API</h2>
+    <button onclick="testAPI()">Get Latest Reel</button>
+    <pre id="apiResult"></pre>
+    <video id="video2" controls width="400" style="border: 2px solid green;"></video>
+
+    <script>
+        const video1 = document.getElementById('video1');
+        
+        video1.addEventListener('loadeddata', () => {
+            document.getElementById('status').innerHTML += '<p style="color: green;">✅ Video 1 loaded successfully!</p>';
+        });
+        
+        video1.addEventListener('error', (e) => {
+            document.getElementById('status').innerHTML += '<p style="color: red;">❌ Video 1 error: ' + e.target.error?.message + '</p>';
+            console.error('Video error:', e.target.error);
+        });
+
+        async function testFetch() {
+            try {
+                const response = await fetch('http://localhost:8000/media/reels/Download_23_xnZ7q0g.mp4');
+                document.getElementById('fetchResult').textContent = 
+                    'Status: ' + response.status + '\n' +
+                    'Content-Type: ' + response.headers.get('Content-Type') + '\n' +
+                    'Content-Length: ' + response.headers.get('Content-Length');
+            } catch (error) {
+                document.getElementById('fetchResult').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testAPI() {
+            try {
+                const response = await fetch('http://localhost:8000/api/reels/');
+                const data = await response.json();
+                const latest = data[0];
+                
+                document.getElementById('apiResult').textContent = JSON.stringify(latest, null, 2);
+                
+                const videoUrl = latest.media || latest.image;
+                if (videoUrl) {
+                    document.getElementById('video2').src = videoUrl;
+                    document.getElementById('status').innerHTML += '<p style="color: blue;">🎬 Loading video from API: ' + videoUrl + '</p>';
+                }
+            } catch (error) {
+                document.getElementById('apiResult').textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

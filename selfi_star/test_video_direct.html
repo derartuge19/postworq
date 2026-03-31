@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Video Test</title>
+</head>
+<body>
+    <h1>Direct Video Test</h1>
+    
+    <h2>Test 1: Direct MP4</h2>
+    <video controls width="600" style="border: 2px solid blue;">
+        <source src="http://localhost:8000/media/reels/Download_23_xnZ7q0g.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    
+    <h2>Test 2: Check Response Headers</h2>
+    <button onclick="checkHeaders()">Check Headers</button>
+    <pre id="headers"></pre>
+    
+    <h2>Test 3: Try Different Path</h2>
+    <video controls width="600" style="border: 2px solid green;">
+        <source src="http://localhost:8000/media/reels/demo_video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <script>
+        async function checkHeaders() {
+            try {
+                const response = await fetch('http://localhost:8000/media/reels/Download_23_xnZ7q0g.mp4', {
+                    method: 'HEAD'
+                });
+                
+                let headers = 'Status: ' + response.status + '\n';
+                for (let [key, value] of response.headers.entries()) {
+                    headers += key + ': ' + value + '\n';
+                }
+                
+                document.getElementById('headers').textContent = headers;
+            } catch (error) {
+                document.getElementById('headers').textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        // Auto-check on load
+        window.onload = checkHeaders;
+    </script>
+</body>
+</html>
