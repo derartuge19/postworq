@@ -2,14 +2,15 @@
 const getApiConfig = () => {
   const isDevelopment = process.env.NODE_ENV === 'development';
   
-  // Check if we're on Vercel or localhost
+  // Check if we're on Vercel, Render, or localhost
   const hostname = window.location.hostname;
   const isVercel = hostname.includes('vercel.app');
+  const isRender = hostname.includes('onrender.com');
   const isLocalhost = hostname.includes('localhost') || hostname.includes('127.0.0.1');
   
-  if (isVercel) {
+  if (isVercel || isRender) {
     return {
-      API_BASE_URL: 'https://selfi-star-backend.railway.app/api', // Update after backend deployment
+      API_BASE_URL: 'https://selfi-star-backend.onrender.com/api', // Update after backend deployment
       ENVIRONMENT: 'production'
     };
   } else if (isLocalhost) {
@@ -19,7 +20,7 @@ const getApiConfig = () => {
     };
   } else {
     return {
-      API_BASE_URL: 'https://selfi-star-backend.railway.app/api', // Fallback
+      API_BASE_URL: 'https://selfi-star-backend.onrender.com/api', // Fallback
       ENVIRONMENT: 'production'
     };
   }
