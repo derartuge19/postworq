@@ -1,0 +1,22 @@
+# Ignore zip files
+*.zip
+
+# Ignore node modules
+node_modules/
+
+# Ignore build files
+dist/
+build/
+
+# Ignore environment files
+.env
+.env.local
+.env.production
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
