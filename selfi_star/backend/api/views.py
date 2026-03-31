@@ -106,23 +106,30 @@ def create_post(request):
             # For videos, upload directly to Cloudinary with resource_type='video'
             print("📹 Uploading video to Cloudinary...")
             try:
+                import cloudinary
                 import cloudinary.uploader
+                # Verify cloudinary config
+                print(f"Cloudinary config - cloud_name: {cloudinary.config().cloud_name}")
+                print(f"Cloudinary config - api_key: {cloudinary.config().api_key}")
+                print(f"Cloudinary config - api_secret present: {bool(cloudinary.config().api_secret)}")
+                
                 upload_result = cloudinary.uploader.upload(
                     file,
                     resource_type='video',
                     folder='reels'
                 )
                 print(f"✅ Video uploaded: {upload_result.get('secure_url')}")
+                print(f"Public ID: {upload_result.get('public_id')}")
                 
-                # Create reel with Cloudinary URL stored as a string in media field
+                # Create reel with public_id stored in media field (not full URL)
                 from django.core.files.base import ContentFile
                 reel = Reel(
                     user=request.user,
                     caption=caption,
                     hashtags=hashtags
                 )
-                # Save the Cloudinary URL to the media field
-                reel.media.name = upload_result.get('secure_url')
+                # Store just the public_id path (e.g., 'reels/abc123')
+                reel.media.name = upload_result.get('public_id')
                 reel.save()
             except Exception as video_error:
                 print(f"❌ Video upload failed: {type(video_error).__name__}: {str(video_error)}")
