@@ -5,7 +5,7 @@ services:
     env: python
     plan: free
     buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements_py314.txt
-    startCommand: cd backend && python run_migrations.py && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: cd backend && python manage.py migrate --verbosity=2 && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
     healthCheckPath: /api/
     envVars:
       - key: DB_ENGINE
@@ -25,7 +25,7 @@ services:
       - key: DEBUG
         value: false
       - key: ALLOWED_HOSTS
-        value: .onrender.com,localhost,127.0.0.1
+        value: postworq.onrender.com,.onrender.com,localhost,127.0.0.1
       - key: CORS_ALLOWED_ORIGINS
         value: https://postworqq.vercel.app,https://postworq.onrender.com,https://your-frontend-domain.onrender.com,https://your-frontend-domain.vercel.app,http://localhost:3000,http://localhost:5173
 
