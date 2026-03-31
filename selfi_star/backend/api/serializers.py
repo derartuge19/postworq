@@ -66,6 +66,16 @@ class ReelSerializer(serializers.ModelSerializer):
     
     def get_media(self, obj):
         if obj.media:
+            # For Cloudinary videos, build the URL manually with resource_type=video
+            if obj.media.name and not obj.media.name.startswith('http'):
+                # It's a public_id, build Cloudinary video URL
+                from django.conf import settings
+                cloudinary_storage = getattr(settings, 'CLOUDINARY_STORAGE', None)
+                if cloudinary_storage:
+                    cloud_name = cloudinary_storage.get('CLOUD_NAME')
+                    # Build video URL: https://res.cloudinary.com/{cloud_name}/video/upload/{public_id}
+                    return f"https://res.cloudinary.com/{cloud_name}/video/upload/{obj.media.name}"
+            # Fallback to storage backend URL (for old full URLs)
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.media.url)
