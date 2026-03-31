@@ -65,12 +65,24 @@ def login(request):
 @permission_classes([IsAuthenticated])
 def create_post(request):
     try:
+        from django.conf import settings
         print("=== CREATE POST DEBUG ===")
         print(f"Authenticated user: {request.user}")
         print(f"User ID: {request.user.id}")
         print(f"Username: {request.user.username}")
         print(f"Is authenticated: {request.user.is_authenticated}")
         print(f"Auth header: {request.META.get('HTTP_AUTHORIZATION', 'None')}")
+        
+        # Check Cloudinary config
+        cloudinary_storage = getattr(settings, 'CLOUDINARY_STORAGE', None)
+        default_storage = getattr(settings, 'DEFAULT_FILE_STORAGE', None)
+        print(f"DEFAULT_FILE_STORAGE: {default_storage}")
+        print(f"CLOUDINARY_STORAGE configured: {bool(cloudinary_storage)}")
+        if cloudinary_storage:
+            print(f"CLOUDINARY_STORAGE keys: {list(cloudinary_storage.keys())}")
+            print(f"Cloud name present: {bool(cloudinary_storage.get('CLOUD_NAME'))}")
+            print(f"API key present: {bool(cloudinary_storage.get('API_KEY'))}")
+            print(f"API secret present: {bool(cloudinary_storage.get('API_SECRET'))}")
         
         caption = request.data.get('caption', '')
         hashtags = request.data.get('hashtags', '')
