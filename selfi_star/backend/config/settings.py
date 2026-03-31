@@ -6,7 +6,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-key')
 DEBUG = config('DEBUG', default=True, cast=bool)
+
+# Render-specific ALLOWED_HOSTS fallback
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+if 'postworq.onrender.com' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('postworq.onrender.com')
+if '.onrender.com' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('.onrender.com')
+if 'localhost' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('localhost')
+if '127.0.0.1' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('127.0.0.1')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
