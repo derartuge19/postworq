@@ -1,9 +1,11 @@
+import traceback
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.models import User
+from django.db.models import F
 from django.utils import timezone
 from datetime import timedelta
 
@@ -103,10 +105,8 @@ def create_post(request):
                 hashtags=hashtags
             )
         
-        # Award XP for posting
-        profile = request.user.profile
-        profile.xp += 25
-        profile.save()
+        # Award XP for posting (use update() to avoid triggering ImageField re-upload)
+        UserProfile.objects.filter(user=request.user).update(xp=F('xp') + 25)
         
         print(f"Created reel ID: {reel.id}")
         print(f"Reel user: {reel.user.username}")
@@ -120,7 +120,8 @@ def create_post(request):
         return Response(response_data, status=status.HTTP_201_CREATED)
         
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print(f"CREATE POST ERROR [{type(e).__name__}]: {traceback.format_exc()}")
+        return Response({'error': str(e), 'type': type(e).__name__}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
