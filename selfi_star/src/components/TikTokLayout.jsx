@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, Share2, Bookmark, MoreVertical, Flag, Info, UserPlus, UserCheck } from "lucide-react";
 import api from "../api";
+import config from "../config";
 import { ModernCommentSection } from "./ModernCommentSection";
 import { WinnersSection } from "./WinnersSection";
 import { LikeButton } from "./LikeButton";
@@ -681,11 +682,13 @@ export function TikTokLayout({ user, activeTab: propActiveTab, onLogout, onRequi
                         console.error('❌ Video load error:', errorDetails);
                         console.error('Error codes: 1=ABORTED, 2=NETWORK, 3=DECODE, 4=SRC_NOT_SUPPORTED');
                         e.target.style.display = "none";
-                        e.target.nextElementSibling.style.display = "flex";
+                        if (e.target.nextElementSibling) {
+                          e.target.nextElementSibling.style.display = "flex";
+                        }
                       }}
                     >
                       <source 
-                        src={video.imageUrl.startsWith('http') ? video.imageUrl : `http://localhost:8000${video.imageUrl}`}
+                        src={video.imageUrl.startsWith('http') ? video.imageUrl : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`}
                         type={video.imageUrl.endsWith('.webm') ? 'video/webm' : 'video/mp4'}
                       />
                       Your browser does not support the video tag.

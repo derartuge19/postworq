@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical } from "lucide-react";
 import api from "../api";
+import config from "../config";
 import { getRelativeTime } from "../utils/timeUtils";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -473,7 +474,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             {post.media || post.image ? (
               (post.media || post.image).match(/\.(mp4|webm|ogg|mov)$/i) ? (
                 <video
-                  src={(post.media || post.image).startsWith('http') ? (post.media || post.image) : `http://localhost:8000${post.media || post.image}`}
+                  src={(post.media || post.image).startsWith('http') ? (post.media || post.image) : `${config.API_BASE_URL.replace('/api', '')}${post.media || post.image}`}
                   style={{
                     width: "100%",
                     height: "100%",
@@ -497,7 +498,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 />
               ) : (
                 <img
-                  src={(post.media || post.image).startsWith('http') ? (post.media || post.image) : `http://localhost:8000${post.media || post.image}`}
+                  src={(post.media || post.image).startsWith('http') ? (post.media || post.image) : `${config.API_BASE_URL.replace('/api', '')}${post.media || post.image}`}
                   alt={post.caption}
                   style={{
                     width: "100%",
