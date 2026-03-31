@@ -103,13 +103,32 @@ def create_post(request):
         
         # Create the reel with appropriate field
         if is_video:
-            reel = Reel.objects.create(
-                user=request.user,
-                media=file,
-                caption=caption,
-                hashtags=hashtags
-            )
+            # For videos, upload directly to Cloudinary with resource_type='video'
+            print("📹 Uploading video to Cloudinary...")
+            try:
+                import cloudinary.uploader
+                upload_result = cloudinary.uploader.upload(
+                    file,
+                    resource_type='video',
+                    folder='reels'
+                )
+                print(f"✅ Video uploaded: {upload_result.get('secure_url')}")
+                
+                # Create reel with Cloudinary URL stored as a string in media field
+                from django.core.files.base import ContentFile
+                reel = Reel(
+                    user=request.user,
+                    caption=caption,
+                    hashtags=hashtags
+                )
+                # Save the Cloudinary URL to the media field
+                reel.media.name = upload_result.get('secure_url')
+                reel.save()
+            except Exception as video_error:
+                print(f"❌ Video upload failed: {type(video_error).__name__}: {str(video_error)}")
+                raise
         else:
+            # Images work fine with the storage backend
             reel = Reel.objects.create(
                 user=request.user,
                 image=file,
