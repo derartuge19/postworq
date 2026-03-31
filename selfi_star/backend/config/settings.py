@@ -104,6 +104,13 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     try:
         import cloudinary
         import cloudinary_storage  # noqa
+        # django-cloudinary-storage reads from CLOUDINARY_STORAGE dict
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+            'API_KEY': CLOUDINARY_API_KEY,
+            'API_SECRET': CLOUDINARY_API_SECRET,
+            'SECURE': True,
+        }
         cloudinary.config(
             cloud_name=CLOUDINARY_CLOUD_NAME,
             api_key=CLOUDINARY_API_KEY,
