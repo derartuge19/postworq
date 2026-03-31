@@ -4,8 +4,7 @@ services:
     name: selfi-star-backend
     env: python
     plan: free
-    runtime: python-3.11
-    buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements.txt
+    buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements_py314.txt
     startCommand: cd backend && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
     healthCheckPath: /api/
     envVars:
@@ -29,8 +28,6 @@ services:
         value: .onrender.com,localhost,127.0.0.1
       - key: CORS_ALLOWED_ORIGINS
         value: https://your-frontend-domain.onrender.com,https://your-frontend-domain.vercel.app,http://localhost:3000,http://localhost:5173
-      - key: PYTHON_VERSION
-        value: 3.11.0
 
 databases:
   # We're using external Neon database, so no Render database needed
