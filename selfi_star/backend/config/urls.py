@@ -9,6 +9,5 @@ urlpatterns = [
     path('api/', include('api.urls')),
 ]
 
-if settings.DEBUG:
-    # Serve media files with Django's static serving
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Always serve media files (Render has no separate web server for media)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
