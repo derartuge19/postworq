@@ -318,6 +318,7 @@ export default function WerqRoot() {
             onShowPostPage={handleShowPostPage}
             onShowProfile={handleShowProfile}
             onShowSettings={handleShowSettings}
+            onShowNotifications={handleShowNotifications}
           />
         )}
         </Suspense>

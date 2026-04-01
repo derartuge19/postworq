@@ -5,9 +5,6 @@ import {
   PlusSquare,
   MessageCircle,
   User,
-  Menu,
-  X,
-  Bell,
   Settings,
   Trophy,
   LogOut,
@@ -30,7 +27,6 @@ export function AppShell({
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 1024);
@@ -96,13 +92,12 @@ export function AppShell({
           }
         }
         @media (min-width: 1025px) {
-          .appshell-mobile-header {
-            display: none !important;
-          }
           .appshell-mobile-nav {
             display: none !important;
           }
         }
+        .appshell-main::-webkit-scrollbar { display: none; }
+        .appshell-main { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
       {/* 1. Desktop Sidebar */}
       {!isMobile && (
@@ -190,47 +185,16 @@ export function AppShell({
         </aside>
       )}
 
-      {/* 2. Mobile Main Header */}
-      {isMobile && (
-        <header
-          className="appshell-mobile-header"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 60,
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(20px)',
-            borderBottom: `1px solid ${T.border}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 16px',
-            zIndex: 1000,
-          }}
-        >
-          <button
-            onClick={() => setIsDrawerOpen(true)}
-            style={{ background: 'transparent', border: 'none', color: T.txt }}
-          >
-            <Menu size={28} />
-          </button>
-          <div style={{ fontSize: 18, fontWeight: 800, color: T.pri }}>
-            WorqPost
-          </div>
-          <div style={{ width: 28 }} /> {/* Spacer */}
-        </header>
-      )}
 
       {/* 3. Main Content Area */}
       <main
+        className="appshell-main"
         style={{
           flex: 1,
           position: 'relative',
           height: isMobile ? '100dvh' : '100%',
           overflowY: 'auto',
-          paddingTop: isMobile ? 60 : 0,
+          paddingTop: 0,
           paddingBottom: isMobile ? 70 : 0,
           boxSizing: 'border-box',
           WebkitOverflowScrolling: 'touch',
@@ -288,114 +252,6 @@ export function AppShell({
         </nav>
       )}
 
-      {/* 5. Mobile Drawer Menu */}
-      {isMobile && (
-        <>
-          <div
-            onClick={() => setIsDrawerOpen(false)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0,0,0,0.5)',
-              zIndex: 1100,
-              opacity: isDrawerOpen ? 1 : 0,
-              visibility: isDrawerOpen ? 'visible' : 'hidden',
-              transition: '0.3s',
-            }}
-          />
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              bottom: 0,
-              width: 280,
-              background: T.cardBg,
-              zIndex: 1200,
-              transform: `translateX(${isDrawerOpen ? '0' : '-100%'})`,
-              transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              padding: '24px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: 32,
-              }}
-            >
-              <div style={{ fontSize: 24, fontWeight: 900, color: T.pri }}>
-                WorqPost
-              </div>
-              <button
-                onClick={() => setIsDrawerOpen(false)}
-                style={{ background: 'transparent', border: 'none' }}
-              >
-                <X size={24} color={T.txt} />
-              </button>
-            </div>
-
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleItemClick(item)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 16,
-                      padding: '16px',
-                      border: 'none',
-                      background: 'transparent',
-                      color: T.txt,
-                      fontSize: 16,
-                      fontWeight: 600,
-                    }}
-                  >
-                    <Icon size={22} />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-
-            {user && (
-              <div
-                style={{
-                  marginTop: 'auto',
-                  padding: '16px 0',
-                  borderTop: `1px solid ${T.border}`,
-                }}
-              >
-                <button
-                  onClick={onLogout}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 16,
-                    width: '100%',
-                    padding: '16px',
-                    border: 'none',
-                    background: 'transparent',
-                    color: T.red || '#ef4444',
-                    fontWeight: 700,
-                  }}
-                >
-                  <LogOut size={22} />
-                  <span>{t('logout')}</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </>
-      )}
     </div>
   );
 }

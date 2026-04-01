@@ -8,10 +8,9 @@ import {
   Info,
   UserPlus,
   UserCheck,
-  Menu,
-  X,
   Volume,
   VolumeX,
+  Bell,
 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -35,6 +34,7 @@ export function TikTokLayout({
   onShowProfile,
   onShowSettings,
   onShowCampaigns,
+  onShowNotifications,
 }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
@@ -743,6 +743,54 @@ export function TikTokLayout({
                     marginBottom: isMobile ? 0 : 20,
                   }}
                 >
+                  {/* Mobile top overlay: Bell (left) + MoreVertical (right) */}
+                  {isMobile && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 20,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '12px 14px',
+                        paddingTop: 'max(12px, env(safe-area-inset-top))',
+                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      <button
+                        onClick={() => {
+                          if (!user) { onRequireAuth(); return; }
+                          onShowNotifications?.();
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: 6,
+                          pointerEvents: 'all',
+                        }}
+                      >
+                        <Bell size={26} color="#fff" strokeWidth={2} />
+                      </button>
+                      <button
+                        onClick={() => setShowMenu(showMenu === video.id ? null : video.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: 6,
+                          pointerEvents: 'all',
+                        }}
+                      >
+                        <MoreVertical size={26} color="#fff" strokeWidth={2} />
+                      </button>
+                    </div>
+                  )}
+
                   {/* Video/Image Background */}
                   {video.imageUrl ? (
                     video.imageUrl.includes('.mp4') ||
