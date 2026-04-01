@@ -8,6 +8,8 @@ import {
   Info,
   UserPlus,
   UserCheck,
+  Menu,
+  X,
 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -76,6 +78,7 @@ export function TikTokLayout({
   const [showMenu, setShowMenu] = useState(null);
   const [followingUsers, setFollowingUsers] = useState({});
   const [showReportModal, setShowReportModal] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const videoRefs = useRef({});
   const videoContainerRefs = useRef({});
 
