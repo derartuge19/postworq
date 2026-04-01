@@ -67,6 +67,9 @@ export function TikTokLayout({
 
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
   const [showMenu, setShowMenu] = useState(null);
   const [showReportModal, setShowReportModal] = useState(null);
   const [showComments, setShowComments] = useState(null);
@@ -96,25 +99,32 @@ export function TikTokLayout({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fetch videos based on active tab
-  const fetchVideos = async () => {
-    setLoading(true);
+  // Fetch videos based on active tab with pagination
+  const fetchVideos = async (pageNum = 1, append = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+    
     try {
       let reelsData = [];
+      const limit = 10; // Load 10 videos at a time
+      const offset = (pageNum - 1) * limit;
 
       // Fetch different content based on active tab
       if (activeTab === 'following') {
         // Fetch reels from followed users
-        reelsData = await api.request('/reels/following/');
+        reelsData = await api.request(`/reels/following/?limit=${limit}&offset=${offset}`);
       } else if (activeTab === 'bookmarks') {
         // Fetch saved/bookmarked reels
-        reelsData = await api.request('/reels/saved/');
+        reelsData = await api.request(`/reels/saved/?limit=${limit}&offset=${offset}`);
       } else if (activeTab === 'explore') {
         // Fetch trending/popular reels
-        reelsData = await api.request('/reels/trending/');
+        reelsData = await api.request(`/reels/trending/?limit=${limit}&offset=${offset}`);
       } else {
-        // Default: For You feed
-        reelsData = await api.getReels();
+        // Default: fetch all reels (For You page)
+        reelsData = await api.request(`/reels/?limit=${limit}&offset=${offset}`);
       }
 
       console.log('API response:', reelsData);
@@ -123,6 +133,10 @@ export function TikTokLayout({
       const reelsList = Array.isArray(reelsData)
         ? reelsData
         : reelsData.results || [];
+      
+      // Check if there are more videos to load
+      const hasMoreVideos = reelsList.length === limit;
+      setHasMore(hasMoreVideos);
 
       // Transform backend data to match frontend format
       const formattedVideos = reelsList.map((reel) => {
@@ -160,19 +174,64 @@ export function TikTokLayout({
         };
       });
       console.log('Formatted videos:', formattedVideos);
-      setVideos(formattedVideos);
+      
+      if (append) {
+        setVideos(prev => [...prev, ...formattedVideos]);
+      } else {
+        setVideos(formattedVideos);
+      }
     } catch (error) {
       console.error('Failed to fetch videos:', error);
       // Don't use fallback data - show error instead
-      setVideos([]);
+      if (!append) {
+        setVideos([]);
+      }
     } finally {
-      setLoading(false);
+      if (append) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Load more videos function
+  const loadMoreVideos = () => {
+    if (!loadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchVideos(nextPage, true);
     }
   };
 
   useEffect(() => {
-    fetchVideos();
+    setPage(1);
+    setHasMore(true);
+    fetchVideos(1, false);
   }, [activeTab]);
+
+  // Scroll listener for infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollContainer = document.querySelector('.video-feed-container');
+      if (!scrollContainer) return;
+
+      const scrollTop = scrollContainer.scrollTop;
+      const scrollHeight = scrollContainer.scrollHeight;
+      const clientHeight = scrollContainer.clientHeight;
+
+      // Load more when user is 300px from bottom
+      if (scrollHeight - scrollTop - clientHeight < 300) {
+        loadMoreVideos();
+      }
+    };
+
+    const scrollContainer = document.querySelector('.video-feed-container');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [loadingMore, hasMore, page]);
 
   // IntersectionObserver to control video playback - only play visible video
   useEffect(() => {
@@ -1188,6 +1247,36 @@ export function TikTokLayout({
                   </div>
                 </div>
               ))
+            )}
+            
+            {/* Loading more indicator */}
+            {loadingMore && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '40px 0',
+                  color: '#000',
+                }}
+              >
+                <div style={{ fontSize: 14 }}>Loading more videos...</div>
+              </div>
+            )}
+            
+            {/* No more videos indicator */}
+            {!hasMore && videos.length > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '40px 0',
+                  color: '#666',
+                }}
+              >
+                <div style={{ fontSize: 14 }}>You've reached the end</div>
+              </div>
             )}
           </div>
         )}

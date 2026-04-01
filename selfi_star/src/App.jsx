@@ -1,21 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { ModernLoginScreen } from './components/ModernLoginScreen';
 import { ModernRegisterScreen } from './components/ModernRegisterScreen';
 import { LandingPage } from './components/LandingPage';
 import { AppShell } from './components/AppShell';
 import { TikTokLayout } from './components/TikTokLayout';
-import { ResponsiveTikTokLayout } from './components/ResponsiveTikTokLayout';
-import { EnhancedPostPage } from './components/EnhancedPostPage';
-import { ModernSidebar } from './components/ModernSidebar';
-import { ProfilePage } from './components/ProfilePage';
-import { EditProfilePage } from './components/EditProfilePage';
-import { FollowersListPage } from './components/FollowersListPage';
-import { SettingsPage } from './components/SettingsPage';
-import { NotificationsPage } from './components/NotificationsPage';
-import { CampaignsPage } from './pages/CampaignsPage';
-import { CampaignDetailPage } from './pages/CampaignDetailPage';
-import { AdminApp } from './admin/AdminApp';
 import api from './api';
+
+// Lazy load heavy components
+const EnhancedPostPage = lazy(() => import('./components/EnhancedPostPage').then(m => ({ default: m.EnhancedPostPage })));
+const ProfilePage = lazy(() => import('./components/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const EditProfilePage = lazy(() => import('./components/EditProfilePage').then(m => ({ default: m.EditProfilePage })));
+const FollowersListPage = lazy(() => import('./components/FollowersListPage').then(m => ({ default: m.FollowersListPage })));
+const SettingsPage = lazy(() => import('./components/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const NotificationsPage = lazy(() => import('./components/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const CampaignsPage = lazy(() => import('./pages/CampaignsPage').then(m => ({ default: m.CampaignsPage })));
+const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage').then(m => ({ default: m.CampaignDetailPage })));
+const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
 
 export default function WerqRoot() {
   // Check if accessing admin panel
@@ -23,7 +23,11 @@ export default function WerqRoot() {
     window.location.pathname === '/admin' ||
     window.location.hash === '#/admin'
   ) {
-    return <AdminApp />;
+    return (
+      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading Admin...</div>}>
+        <AdminApp />
+      </Suspense>
+    );
   }
 
   const [screen, setScreen] = useState('app');
@@ -198,6 +202,7 @@ export default function WerqRoot() {
         onShowNotifications={handleShowNotifications}
         onShowCampaigns={handleShowCampaigns}
       >
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>}>
         {showSettings ? (
           <SettingsPage
             user={authUser}
@@ -315,6 +320,7 @@ export default function WerqRoot() {
             onShowSettings={handleShowSettings}
           />
         )}
+        </Suspense>
       </AppShell>
       {showLogin && (
         <div
