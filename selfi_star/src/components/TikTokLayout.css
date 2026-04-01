@@ -22,10 +22,8 @@
   }
   .video-card-snap {
     scroll-snap-align: start;
-    height: 100% !important;
     width: 100vw !important;
     max-width: 100vw !important;
-    max-height: none !important;
     border-radius: 0 !important;
     margin: 0 !important;
   }
