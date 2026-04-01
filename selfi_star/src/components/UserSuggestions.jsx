@@ -16,7 +16,8 @@ export function UserSuggestions({ onUserClick }) {
   const fetchSuggestions = async () => {
     try {
       setLoading(true);
-      const data = await api.getUserSuggestions();
+      const raw = await api.getUserSuggestions();
+      const data = Array.isArray(raw) ? raw : (raw.results || []);
       setSuggestions(data);
       
       // Initialize following states
@@ -26,12 +27,7 @@ export function UserSuggestions({ onUserClick }) {
       });
       setFollowingStates(states);
     } catch (error) {
-      // If user is not authenticated, just show empty state
-      if (error.message && error.message.includes('Authentication')) {
-        setSuggestions([]);
-      } else {
-        console.error("Failed to fetch suggestions:", error);
-      }
+      setSuggestions([]);
     } finally {
       setLoading(false);
     }

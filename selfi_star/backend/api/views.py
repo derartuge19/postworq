@@ -443,6 +443,11 @@ class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
     permission_classes = [IsAuthenticated]
     
+    def get_permissions(self):
+        if self.action == 'suggestions':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
     def get_queryset(self):
         return Follow.objects.filter(follower=self.request.user)
     
@@ -473,9 +478,11 @@ class FollowViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def suggestions(self, request):
-        # Get users the current user is not following
-        following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
-        suggestions = User.objects.exclude(id__in=following_ids).exclude(id=request.user.id)[:10]
+        if request.user.is_authenticated:
+            following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
+            suggestions = User.objects.exclude(id__in=following_ids).exclude(id=request.user.id)[:10]
+        else:
+            suggestions = User.objects.all()[:10]
         serializer = UserSerializer(suggestions, many=True, context={'request': request})
         return Response(serializer.data)
 
