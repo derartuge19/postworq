@@ -818,9 +818,12 @@ export function TikTokLayout({
                         }
                         data-video-id={video.id}
                         style={{
-                          position: 'relative',
-                          width: '100%',
-                          height: '100%',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: '#000',
                         }}
                       >
                         <video
@@ -836,7 +839,8 @@ export function TikTokLayout({
                           style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: 'cover',
+                            objectFit: isMobile ? 'contain' : 'cover',
+                            display: 'block',
                           }}
                           onClick={() => toggleVideoPlayback(video.id)}
                         >
@@ -1021,9 +1025,14 @@ export function TikTokLayout({
                         }
                         alt={video.caption}
                         style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
                           width: '100%',
                           height: '100%',
-                          objectFit: 'cover',
+                          objectFit: isMobile ? 'contain' : 'cover',
+                          background: '#000',
+                          display: 'block',
                         }}
                         onError={(e) => {
                           e.target.style.display = 'none';
