@@ -327,8 +327,9 @@ export function TikTokLayout({
     }
 
     try {
-      const response = await api.request(`/users/${userId}/follow/`, {
+      const response = await api.request('/follows/toggle/', {
         method: 'POST',
+        body: JSON.stringify({ following_id: userId }),
       });
 
       if (response.following !== undefined) {
