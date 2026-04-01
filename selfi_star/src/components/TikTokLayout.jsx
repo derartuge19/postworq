@@ -567,7 +567,7 @@ export function TikTokLayout({
               </div>
             </div>
           ) : (
-            /* Videos Feed */
+            {/* Videos Feed */}
             <div
               className="video-list-container"
               style={{
