@@ -167,7 +167,17 @@ export function TikTokLayout({
           likes: reel.votes || 0,
           comments: reel.comment_count || 0,
           shares: 0,
-          imageUrl: reel.media || reel.image,
+          imageUrl: (() => {
+            const url = reel.media || reel.image;
+            if (!url) return null;
+            if (
+              url.includes('/video/upload/') &&
+              !url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i)
+            ) {
+              return url + '.mp4';
+            }
+            return url;
+          })(),
           liked: reel.is_liked || false,
           saved: reel.is_saved || false,
           created_at: reel.created_at,
