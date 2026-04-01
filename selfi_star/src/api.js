@@ -2,12 +2,19 @@ import config from './config.js';
 
 const API_BASE_URL = config.API_BASE_URL;
 
-let authToken = localStorage.getItem('authToken') || localStorage.getItem('adminToken');
-console.log('🔑 Initial authToken loaded:', authToken ? authToken.substring(0, 10) + '...' : 'NONE');
+let authToken =
+  localStorage.getItem('authToken') || localStorage.getItem('adminToken');
+console.log(
+  '🔑 Initial authToken loaded:',
+  authToken ? authToken.substring(0, 10) + '...' : 'NONE',
+);
 
 const api = {
   setAuthToken: (token) => {
-    console.log('🔑 setAuthToken called with:', token ? token.substring(0, 10) + '...' : 'NULL');
+    console.log(
+      '🔑 setAuthToken called with:',
+      token ? token.substring(0, 10) + '...' : 'NULL',
+    );
     authToken = token;
     if (token) {
       localStorage.setItem('authToken', token);
@@ -20,7 +27,10 @@ const api = {
 
   getToken: () => {
     const currentToken = authToken || localStorage.getItem('authToken');
-    console.log('🔍 getToken returning:', currentToken ? currentToken.substring(0, 10) + '...' : 'NONE');
+    console.log(
+      '🔍 getToken returning:',
+      currentToken ? currentToken.substring(0, 10) + '...' : 'NONE',
+    );
     return currentToken;
   },
 
@@ -44,12 +54,17 @@ const api = {
     const currentToken = authToken || localStorage.getItem('authToken');
     if (currentToken && !endpoint.includes('/auth/')) {
       headers['Authorization'] = `Token ${currentToken}`;
-      console.log(`🔐 Using token for request: ${currentToken.substring(0, 10)}...`);
+      console.log(
+        `🔐 Using token for request: ${currentToken.substring(0, 10)}...`,
+      );
     } else {
       console.log('⚠️ No token available for request');
     }
 
-    console.log(`📡 API Request: ${options.method || 'GET'} ${endpoint}`, { headers, isFormData: options.isFormData });
+    console.log(`📡 API Request: ${options.method || 'GET'} ${endpoint}`, {
+      headers,
+      isFormData: options.isFormData,
+    });
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
@@ -74,16 +89,30 @@ const api = {
   },
 
   // Generic HTTP methods for admin panel
-  get: (endpoint) => api.request(endpoint, { method: 'GET' }).then(data => ({ data })),
-  post: (endpoint, body) => api.request(endpoint, { method: 'POST', body: JSON.stringify(body) }).then(data => ({ data })),
-  patch: (endpoint, body) => api.request(endpoint, { method: 'PATCH', body: JSON.stringify(body) }).then(data => ({ data })),
-  delete: (endpoint) => api.request(endpoint, { method: 'DELETE' }).then(data => ({ data })),
+  get: (endpoint) =>
+    api.request(endpoint, { method: 'GET' }).then((data) => ({ data })),
+  post: (endpoint, body) =>
+    api
+      .request(endpoint, { method: 'POST', body: JSON.stringify(body) })
+      .then((data) => ({ data })),
+  patch: (endpoint, body) =>
+    api
+      .request(endpoint, { method: 'PATCH', body: JSON.stringify(body) })
+      .then((data) => ({ data })),
+  delete: (endpoint) =>
+    api.request(endpoint, { method: 'DELETE' }).then((data) => ({ data })),
 
   // Auth
   register: (username, email, password, firstName = '', lastName = '') =>
     api.request('/auth/register/', {
       method: 'POST',
-      body: JSON.stringify({ username, email, password, first_name: firstName, last_name: lastName }),
+      body: JSON.stringify({
+        username,
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      }),
     }),
 
   login: (username, password) =>
@@ -119,41 +148,44 @@ const api = {
     fetch(`${API_BASE_URL}/reels/`, {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${authToken}`,
+        Authorization: `Token ${authToken}`,
       },
       body: formData,
-    }).then(r => r.json()),
+    }).then((r) => r.json()),
 
   createPost: (formData) => {
     const currentToken = authToken || localStorage.getItem('authToken');
-    console.log("📤 createPost called with FormData:");
-    console.log("FormData entries:");
+    console.log('📤 createPost called with FormData:');
+    console.log('FormData entries:');
     for (let [key, value] of formData.entries()) {
       console.log(key, value);
     }
-    console.log("🔑 Using token:", currentToken ? currentToken.substring(0, 10) + '...' : 'NONE');
-    
+    console.log(
+      '🔑 Using token:',
+      currentToken ? currentToken.substring(0, 10) + '...' : 'NONE',
+    );
+
     if (!currentToken) {
       console.error('❌ NO TOKEN AVAILABLE FOR POST CREATION!');
       return Promise.reject({ error: 'Not authenticated' });
     }
-    
+
     return fetch(`${API_BASE_URL}/posts/create/`, {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${currentToken}`,
+        Authorization: `Token ${currentToken}`,
       },
       body: formData,
-    }).then(r => {
-      console.log("API response status:", r.status);
+    }).then((r) => {
+      console.log('API response status:', r.status);
       if (!r.ok) {
-        return r.json().then(err => {
-          console.error("API error response:", err);
+        return r.json().then((err) => {
+          console.error('API error response:', err);
           return Promise.reject(err);
         });
       }
       return r.json();
-    })
+    });
   },
 
   // Competitions
@@ -190,8 +222,7 @@ const api = {
       body: JSON.stringify({ text }),
     }),
 
-  getComments: (reelId) =>
-    api.request(`/comments/?reel=${reelId}`),
+  getComments: (reelId) => api.request(`/comments/?reel=${reelId}`),
 
   followUser: (userId) =>
     api.request('/follows/toggle/', {
@@ -223,7 +254,7 @@ const api = {
     }),
 
   getUserNotifications: () =>
-    api.request('/notifications/list/', {
+    api.request('/notifications/', {
       method: 'GET',
     }),
 
@@ -307,64 +338,65 @@ const api = {
 
   // Get user by ID or username
   getUser: (userId) => api.request(`/profile/${userId}/`),
-  
+
   // Comments with likes and replies
   getComments: (reelId) => api.request(`/comments/?reel=${reelId}`),
-  
+
   likeComment: (commentId) =>
     api.request(`/comments/${commentId}/like/`, {
       method: 'POST',
     }),
-  
+
   replyToComment: (commentId, text) =>
     api.request(`/comments/${commentId}/reply/`, {
       method: 'POST',
       body: JSON.stringify({ text }),
     }),
-  
+
   // Saved posts
   getSavedPosts: () => api.request('/saved/'),
-  
+
   toggleSavePost: (reelId) =>
     api.request('/saved/toggle/', {
       method: 'POST',
       body: JSON.stringify({ reel_id: reelId }),
     }),
-  
+
   // Profile photo upload
   uploadProfilePhoto: (photoFile) => {
     const formData = new FormData();
     formData.append('photo', photoFile);
-    
+
     return fetch(`${API_BASE_URL}/profile-photo/upload/`, {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${authToken}`,
+        Authorization: `Token ${authToken}`,
       },
       body: formData,
-    }).then(r => r.json());
+    }).then((r) => r.json());
   },
-  
+
   // Update profile with bio and name
   updateUserProfile: (data) => {
     const formData = new FormData();
     if (data.first_name) formData.append('first_name', data.first_name);
     if (data.last_name) formData.append('last_name', data.last_name);
     if (data.bio) formData.append('bio', data.bio);
-    if (data.profile_photo) formData.append('profile_photo', data.profile_photo);
-    
+    if (data.profile_photo)
+      formData.append('profile_photo', data.profile_photo);
+
     return fetch(`${API_BASE_URL}/profile/update_profile/`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Token ${authToken}`,
+        Authorization: `Token ${authToken}`,
       },
       body: formData,
-    }).then(r => r.json());
+    }).then((r) => r.json());
   },
-  
+
   // Get user's posts
   getUserPosts: (userId) => api.request(`/reels/?user=${userId}`),
-  
+
   // Get saved posts
   getSavedPosts: () => api.request('/reels/?saved=true'),
   getUserSavedPosts: () => api.request('/reels/?saved=true'),
