@@ -132,7 +132,7 @@ export function TikTokLayout({
           media: reel.media,
           image: reel.image,
           finalUrl: videoUrl,
-          isVideo: /\.(mp4|webm|ogg|mov)$/i.test(videoUrl),
+          isVideo: videoUrl && (videoUrl.includes('.mp4') || videoUrl.includes('.webm') || videoUrl.includes('.ogg') || videoUrl.includes('.mov')),
           caption: reel.caption,
         });
 
@@ -621,7 +621,7 @@ export function TikTokLayout({
                   >
                     {/* Video/Image Background */}
                     {video.imageUrl ? (
-                      /\.(mp4|webm|ogg|mov)$/i.test(video.imageUrl) ||
+                      (video.imageUrl.includes('.mp4') || video.imageUrl.includes('.webm') || video.imageUrl.includes('.ogg') || video.imageUrl.includes('.mov')) ||
                       video.imageUrl.includes('video') ? (
                         <div
                           ref={(el) =>
