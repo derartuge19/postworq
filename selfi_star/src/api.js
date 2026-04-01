@@ -222,7 +222,7 @@ const api = {
       body: JSON.stringify({ text }),
     }),
 
-  getComments: (reelId) => api.request(`/comments/?reel=${reelId}`),
+  getComments: (reelId) => api.request(`/reels/${reelId}/comments/`),
 
   followUser: (userId) =>
     api.request('/follows/toggle/', {
@@ -340,7 +340,7 @@ const api = {
   getUser: (userId) => api.request(`/profile/${userId}/`),
 
   // Comments with likes and replies
-  getComments: (reelId) => api.request(`/comments/?reel=${reelId}`),
+  getComments: (reelId) => api.request(`/reels/${reelId}/comments/`),
 
   likeComment: (commentId) =>
     api.request(`/comments/${commentId}/like/`, {
