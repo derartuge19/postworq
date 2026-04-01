@@ -1,10 +1,11 @@
 # Generated migration to create UserProfile for existing users
 
 from django.db import migrations
-from django.contrib.auth.models import User
-from api.models import UserProfile
 
 def create_missing_user_profiles(apps, schema_editor):
+    User = apps.get_model('auth', 'User')
+    UserProfile = apps.get_model('api', 'UserProfile')
+    
     for user in User.objects.all():
         UserProfile.objects.get_or_create(user=user)
 
