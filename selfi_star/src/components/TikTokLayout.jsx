@@ -1089,7 +1089,13 @@ export function TikTokLayout({
                       }}
                     >
                       <button
-                        onClick={() => setShowComments(video.id)}
+                        onClick={() => {
+                          if (!user) {
+                            onRequireAuth();
+                            return;
+                          }
+                          setShowComments(video.id);
+                        }}
                         style={{
                           background: 'none',
                           border: 'none',

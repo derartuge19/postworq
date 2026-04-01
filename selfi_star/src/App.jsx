@@ -105,6 +105,10 @@ export default function WerqRoot() {
   };
 
   const handleShowPostPage = () => {
+    if (!authUser) {
+      setShowLogin(true);
+      return;
+    }
     setShowPostPage(true);
     setShowProfile(false);
     setShowEditProfile(false);
@@ -130,11 +134,16 @@ export default function WerqRoot() {
   };
 
   const handleShowSettings = () => {
+    if (!authUser) {
+      setShowLogin(true);
+      return;
+    }
     setShowSettings(true);
     setShowProfile(false);
     setShowPostPage(false);
     setShowEditProfile(false);
     setShowFollowersList(false);
+    setShowNotifications(false);
     setShowCampaigns(false);
     setShowCampaignDetail(false);
   };
@@ -151,6 +160,10 @@ export default function WerqRoot() {
   };
 
   const handleShowNotifications = () => {
+    if (!authUser) {
+      setShowLogin(true);
+      return;
+    }
     setShowNotifications(true);
     setShowProfile(false);
     setShowPostPage(false);
@@ -284,12 +297,6 @@ export default function WerqRoot() {
           <EnhancedPostPage
             user={authUser}
             onBack={() => setShowPostPage(false)}
-          />
-        ) : !authUser ? (
-          <LandingPage
-            onLogin={() => setShowLogin(true)}
-            onRegister={() => setShowRegister(true)}
-            onShowCampaigns={handleShowCampaigns}
           />
         ) : screen === 'landing' ? (
           <LandingPage
