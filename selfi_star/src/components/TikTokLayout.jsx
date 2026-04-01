@@ -745,7 +745,7 @@ export function TikTokLayout({
                   key={video.id}
                   className="video-card-snap"
                   style={{
-                    background: '#000',
+                    background: isMobile ? '#fff' : '#000',
                     borderRadius: isMobile ? 0 : 12,
                     overflow: 'hidden',
                     aspectRatio: isMobile ? undefined : '9/16',
@@ -833,7 +833,6 @@ export function TikTokLayout({
                           left: 0,
                           right: 0,
                           bottom: 0,
-                          background: '#000',
                         }}
                       >
                         <video
@@ -849,7 +848,7 @@ export function TikTokLayout({
                           style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: isMobile ? 'contain' : 'cover',
+                            objectFit: 'cover',
                             display: 'block',
                           }}
                           onClick={() => toggleVideoPlayback(video.id)}
@@ -1040,8 +1039,7 @@ export function TikTokLayout({
                           left: 0,
                           width: '100%',
                           height: '100%',
-                          objectFit: isMobile ? 'contain' : 'cover',
-                          background: '#000',
+                          objectFit: 'cover',
                           display: 'block',
                         }}
                         onError={(e) => {
