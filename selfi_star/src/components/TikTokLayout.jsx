@@ -10,6 +10,8 @@ import {
   UserCheck,
   Menu,
   X,
+  Volume,
+  VolumeX,
 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -71,7 +73,7 @@ export function TikTokLayout({
   const [playingVideos, setPlayingVideos] = useState({});
   const [showPauseIcon, setShowPauseIcon] = useState({});
   const [isMobile, setIsMobile] = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
   const [alertModal, setAlertModal] = useState({
     isOpen: false,
     title: '',
@@ -228,6 +230,16 @@ export function TikTokLayout({
           : video,
       ),
     );
+  };
+
+  const toggleAudio = () => {
+    setAudioEnabled(!audioEnabled);
+    // Update all video elements
+    Object.values(videoRefs.current).forEach(video => {
+      if (video) {
+        video.muted = audioEnabled;
+      }
+    });
   };
 
   const toggleVideoPlayback = (videoId) => {
@@ -1029,6 +1041,42 @@ export function TikTokLayout({
                         onLike={() => handleLike(video.id)}
                         size={32}
                       />
+                    </div>
+
+                    {/* Volume Button */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <button
+                        onClick={toggleAudio}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: 0,
+                        }}
+                      >
+                        {audioEnabled ? (
+                          <Volume size={32} color="#fff" fill="#fff" />
+                        ) : (
+                          <VolumeX size={32} color="#fff" />
+                        )}
+                      </button>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: '#fff',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {audioEnabled ? 'On' : 'Off'}
+                      </div>
                     </div>
 
                     {/* Comment Button */}
