@@ -308,6 +308,17 @@ class ReelViewSet(viewsets.ModelViewSet):
             reel.save()
             return Response({'voted': False, 'votes': reel.votes})
     
+    @action(detail=True, methods=['post'])
+    def save(self, request, pk=None):
+        reel = self.get_object()
+        saved_post, created = SavedPost.objects.get_or_create(user=request.user, reel=reel)
+        
+        if created:
+            return Response({'saved': True, 'message': 'Post saved'})
+        else:
+            saved_post.delete()
+            return Response({'saved': False, 'message': 'Post unsaved'})
+    
     @action(detail=True, methods=['get', 'post'])
     def comments(self, request, pk=None):
         reel = self.get_object()

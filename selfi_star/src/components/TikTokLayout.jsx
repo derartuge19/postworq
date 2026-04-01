@@ -1135,13 +1135,13 @@ export function TikTokLayout({
                           onClick={() => handleFollow(video.user?.id)}
                           style={{
                             background: video.user?.is_following
-                              ? '#e74c3c'
-                              : '#fff',
-                            color: video.user?.is_following ? '#fff' : '#000',
-                            border: 'none',
+                              ? 'transparent'
+                              : '#DA9B2A',
+                            color: video.user?.is_following ? '#fff' : '#fff',
+                            border: video.user?.is_following ? '1px solid rgba(255,255,255,0.5)' : 'none',
                             borderRadius: 4,
-                            padding: '4px 12px',
-                            fontSize: 12,
+                            padding: '3px 10px',
+                            fontSize: 11,
                             fontWeight: 600,
                             cursor: 'pointer',
                           }}
