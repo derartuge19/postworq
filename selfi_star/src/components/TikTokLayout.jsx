@@ -1529,6 +1529,5 @@ export function TikTokLayout({
           showCancel={alertModal.showCancel}
         />
       </div>
-    </div>
   );
 }
