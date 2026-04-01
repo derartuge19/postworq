@@ -65,11 +65,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 if config('DATABASE_URL', default=None):
-    from dj_database_url import config as dj_config
+    import dj_database_url
     DATABASES = {
-        'default': dj_config(
+        'default': dj_database_url.config(
             default=config('DATABASE_URL'),
             conn_max_age=600,
+            conn_health_checks=True,
             ssl_require=True
         )
     }
@@ -84,6 +85,7 @@ else:
             'PORT': config('DB_PORT', default='5432'),
             'OPTIONS': {
                 'sslmode': 'require',
+                'connect_timeout': 10,
             },
         }
     }
