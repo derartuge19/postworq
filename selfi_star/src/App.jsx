@@ -248,6 +248,7 @@ export default function WerqRoot() {
             userId={profileUserId}
             onBack={() => setShowProfile(false)}
             onEditProfile={handleShowEditProfile}
+            onShowSettings={handleShowSettings}
             onShowFollowers={(userId) =>
               handleShowFollowers(userId, 'followers')
             }

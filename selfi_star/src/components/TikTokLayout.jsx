@@ -597,6 +597,7 @@ export function TikTokLayout({
           background: '#fff',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
+          ...(isMobile ? { scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch' } : {}),
         }}
       >
         {/* Feed Header */}
@@ -737,15 +738,18 @@ export function TikTokLayout({
                     background: '#000',
                     borderRadius: isMobile ? 0 : 12,
                     overflow: 'hidden',
-                    aspectRatio: isMobile ? '9/16' : '9/16',
-                    maxHeight: isMobile ? '100vh' : 750,
-                    height: isMobile ? '100vh' : 'auto',
+                    aspectRatio: isMobile ? undefined : '9/16',
+                    maxHeight: isMobile ? 'calc(100dvh - 70px)' : 750,
+                    height: isMobile ? 'calc(100dvh - 70px)' : 'auto',
+                    minHeight: isMobile ? 'calc(100dvh - 70px)' : undefined,
                     width: isMobile ? '100vw' : '100%',
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: isMobile ? 0 : 20,
+                    scrollSnapAlign: isMobile ? 'start' : undefined,
+                    flexShrink: isMobile ? 0 : undefined,
                   }}
                 >
                   {/* Mobile top overlay: Bell (left) + MoreVertical (right) */}

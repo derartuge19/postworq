@@ -6,7 +6,7 @@ import { getRelativeTime } from "../utils/timeUtils";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 
-export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing }) {
+export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const [profileUser, setProfileUser] = useState(null);
@@ -215,6 +215,22 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             {posts.length} posts
           </div>
         </div>
+        {isOwnProfile && (
+          <button
+            onClick={onShowSettings}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 8,
+              display: 'flex',
+              alignItems: 'center',
+              color: T.txt,
+            }}
+          >
+            <Settings size={24} />
+          </button>
+        )}
       </div>
 
       {/* Profile Info */}
