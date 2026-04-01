@@ -117,10 +117,10 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         } else if (activeTab === "reels") {
           const raw = await api.getUserPosts(targetUserId);
           data = Array.isArray(raw) ? raw : (raw.results || []);
-          data = data.filter(post => 
-            post.media?.match(/\.(mp4|webm|ogg)$/i) || 
-            post.media?.includes('video')
-          );
+          data = data.filter(post => {
+            const url = post.media || post.image || '';
+            return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
+          });
         } else {
           const raw = await api.getUserPosts(targetUserId);
           data = Array.isArray(raw) ? raw : (raw.results || []);
@@ -491,34 +491,67 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               </div>
             )}
             
-            {post.media || post.image ? (
-              (post.media || post.image).match(/\.(mp4|webm|ogg|mov)$/i) ? (
-                <video
-                  src={(post.media || post.image).startsWith('http') ? (post.media || post.image) : `${config.API_BASE_URL.replace('/api', '')}${post.media || post.image}`}
-                  style={{
+            {(() => {
+              const mediaUrl = post.media || post.image || '';
+              const fullUrl = mediaUrl.startsWith('http') ? mediaUrl : `${config.API_BASE_URL.replace('/api', '')}${mediaUrl}`;
+              const isVideo = mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i) || mediaUrl.includes('video');
+              
+              if (!mediaUrl) {
+                return (
+                  <div style={{
                     width: "100%",
                     height: "100%",
-                    objectFit: "cover",
-                  }}
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  onMouseEnter={(e) => e.target.play()}
-                  onMouseLeave={(e) => e.target.pause()}
-                  onLoadedData={(e) => {
-                    console.log('✅ Profile video loaded:', post.media || post.image);
-                  }}
-                  onError={(e) => {
-                    console.error('❌ Profile video error:', {
-                      url: post.media || post.image,
-                      error: e.target.error
-                    });
-                  }}
-                />
-              ) : (
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: T.sub,
+                  }}>
+                    No media
+                  </div>
+                );
+              }
+              
+              if (isVideo) {
+                // Append .mp4 if Cloudinary video URL missing extension
+                const videoUrl = (fullUrl.includes('cloudinary') && !fullUrl.match(/\.(mp4|webm|ogg|mov)$/i))
+                  ? fullUrl + '.mp4'
+                  : fullUrl;
+                return (
+                  <>
+                    <video
+                      src={videoUrl}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                      onMouseEnter={(e) => e.target.play()}
+                      onMouseLeave={(e) => e.target.pause()}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: 8,
+                      left: 8,
+                      background: 'rgba(0,0,0,0.5)',
+                      borderRadius: 4,
+                      padding: '3px 6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}>
+                      <Film size={12} color="#fff" />
+                    </div>
+                  </>
+                );
+              }
+              
+              return (
                 <img
-                  src={(post.media || post.image).startsWith('http') ? (post.media || post.image) : `${config.API_BASE_URL.replace('/api', '')}${post.media || post.image}`}
+                  src={fullUrl}
                   alt={post.caption}
                   style={{
                     width: "100%",
@@ -526,19 +559,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                     objectFit: "cover",
                   }}
                 />
-              )
-            ) : (
-              <div style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: T.sub,
-              }}>
-                No media
-              </div>
-            )}
+              );
+            })()}
             <div style={{
               position: "absolute",
               top: 8,
