@@ -655,7 +655,7 @@ export function TikTokLayout({
                   >
                     {/* Video/Image Background */}
                     {video.imageUrl ? (
-                      video.imageUrl.match(/\.(mp4|webm|ogg|mov)$/i) ||
+                      /\.(mp4|webm|ogg|mov)$/i.test(video.imageUrl) ||
                       video.imageUrl.includes('video') ? (
                         <div
                           ref={(el) =>
