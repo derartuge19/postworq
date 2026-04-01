@@ -440,7 +440,7 @@ export function TikTokLayout({
   ];
 
   return (
-    <>
+    <div style={{ display: 'flex', width: '100%', height: '100%', position: 'relative' }}>
       <style>{`
         @keyframes fadeInOut {
           0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
@@ -448,260 +448,40 @@ export function TikTokLayout({
           80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
           100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
         }
+
+        /* Snap Scrolling for Mobile Feed */
+        @media (max-width: 1024px) {
+          .video-feed-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100dvh !important;
+            width: 100vw !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .video-card-snap {
+            scroll-snap-align: start;
+            height: 100dvh !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+          }
+        }
       `}</style>
+
+      {/* CENTER - Video Feed */}
       <div
-        className="main-content"
-        style={{ display: 'flex', height: '100vh', background: T.bg }}
+        className="video-feed video-feed-container"
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          background: '#000',
+        }}
       >
-        {/* LEFT SIDEBAR - Navigation */}
-        <div
-          className="left-sidebar"
-          style={{
-            width: 250,
-            borderRight: `1px solid ${T.border}`,
-            padding: '20px 0',
-            overflowY: 'auto',
-            position: 'fixed',
-            left: 0,
-            top: 0,
-            height: '100vh',
-            background: T.cardBg,
-          }}
-        >
-          {/* Logo */}
-          <div style={{ padding: '0 20px', marginBottom: 30 }}>
-            <div style={{ fontSize: 32, fontWeight: 900, color: T.pri }}>
-              ⭐
-            </div>
-            <div
-              style={{
-                fontSize: 16,
-                fontWeight: 800,
-                color: T.txt,
-                marginTop: 4,
-              }}
-            >
-              Selfie Star
-            </div>
-          </div>
-
-          {/* Navigation Items */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {[
-              { id: 'foryou', icon: '🏠', label: t('forYou') },
-              { id: 'explore', icon: '🔍', label: t('explore') },
-              { id: 'following', icon: '👥', label: t('following') },
-              { id: 'inbox', icon: '💬', label: t('inbox') },
-              { id: 'bookmarks', icon: '🔖', label: t('bookmarks') },
-              {
-                id: 'settings',
-                icon: '⚙️',
-                label: t('settings'),
-                action: 'settings',
-              },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (item.action === 'settings') {
-                    if (!user) {
-                      onRequireAuth();
-                    } else {
-                      onShowSettings();
-                    }
-                  } else {
-                    setActiveTab(item.id);
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px 20px',
-                  background:
-                    activeTab === item.id ? T.pri + '15' : 'transparent',
-                  border: 'none',
-                  borderLeft:
-                    activeTab === item.id
-                      ? `3px solid ${T.pri}`
-                      : '3px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  fontSize: 15,
-                  fontWeight: activeTab === item.id ? 700 : 500,
-                  color: T.txt,
-                  transition: 'all .2s',
-                }}
-              >
-                <span style={{ fontSize: 20 }}>{item.icon}</span>
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Create Button */}
-          <div
-            style={{
-              padding: '20px',
-              marginTop: 20,
-              borderTop: `1px solid ${T.border}`,
-            }}
-          >
-            <button
-              onClick={() => {
-                if (!user) {
-                  onRequireAuth();
-                } else {
-                  onShowPostPage();
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: `linear-gradient(135deg, ${T.pri}, #B8821E)`,
-                border: 'none',
-                borderRadius: 8,
-                color: '#fff',
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              📹 {t('post')}
-            </button>
-          </div>
-
-          {/* User Profile or Login */}
-          <div
-            style={{
-              padding: '20px',
-              borderTop: `1px solid ${T.border}`,
-              marginTop: 20,
-            }}
-          >
-            {user ? (
-              <>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    marginBottom: 12,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '50%',
-                      background: T.pri + '30',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 20,
-                    }}
-                  >
-                    👤
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: T.txt,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {user?.username || user?.name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: T.sub,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {user?.email}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={onLogout}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    background: '#FEE2E2',
-                    border: 'none',
-                    borderRadius: 6,
-                    color: '#EF4444',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {t('logout')}
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={onRequireAuth}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: T.pri,
-                    border: 'none',
-                    borderRadius: 8,
-                    color: '#fff',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    marginBottom: 8,
-                  }}
-                >
-                  {t('login')}
-                </button>
-                <button
-                  onClick={onRequireAuth}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: 'transparent',
-                    border: `2px solid ${T.pri}`,
-                    borderRadius: 8,
-                    color: T.pri,
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {t('signUp')}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* CENTER - Video Feed */}
-        <div
-          className="video-feed"
-          style={{
-            marginLeft: 250,
-            marginRight: 320,
-            flex: 1,
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '20px 0',
-            background: '#fff',
-          }}
-        >
           {/* Feed Header */}
           <div
             style={{
@@ -772,6 +552,7 @@ export function TikTokLayout({
           ) : (
             /* Videos Feed */
             <div
+              className="video-list-container"
               style={{
                 width: '100%',
                 maxWidth: 600,
@@ -839,6 +620,7 @@ export function TikTokLayout({
                 videos.map((video) => (
                   <div
                     key={video.id}
+                    className="video-card-snap"
                     style={{
                       background: '#000',
                       borderRadius: 12,
@@ -849,6 +631,7 @@ export function TikTokLayout({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      marginBottom: 20,
                     }}
                   >
                     {/* Video/Image Background */}
@@ -1524,52 +1307,49 @@ export function TikTokLayout({
           )}
         </div>
 
-        {/* RIGHT SIDEBAR - Recommendations */}
-        <div
-          className="right-sidebar"
-          style={{
-            width: 320,
-            borderLeft: `1px solid ${T.border}`,
-            padding: '20px',
-            overflowY: 'auto',
-            position: 'fixed',
-            right: 0,
-            top: 0,
-            height: '100vh',
-            background: '#fff',
-          }}
-        >
-          {/* User Suggestions */}
-          <div>
-            <UserSuggestions
-              onUserClick={(user) => {
-                setSelectedUser(user);
-                onShowProfile?.(user.id);
-              }}
-            />
-          </div>
-
-          {/* Winners Section */}
+        {/* RIGHT SIDEBAR - Recommendations (Desktop Only) */}
+        {!window.matchMedia('(max-width: 1024px)').matches && (
           <div
+            className="right-sidebar"
             style={{
-              marginTop: 30,
-              paddingTop: 20,
-              borderTop: `1px solid ${T.border}`,
+              width: 320,
+              borderLeft: `1px solid ${T.border}`,
+              padding: '20px',
+              overflowY: 'auto',
+              position: 'fixed',
+              right: 0,
+              top: 0,
+              height: '100vh',
+              background: '#fff',
             }}
           >
-            <WinnersSection />
-          </div>
+            {/* User Suggestions */}
+            <div>
+              <UserSuggestions
+                onUserClick={(user) => {
+                  setSelectedUser(user);
+                  onShowProfile?.(user.id);
+                }}
+              />
+            </div>
 
-          {/* Footer Links */}
-          <div
-            style={{
-              marginTop: 30,
-              paddingTop: 20,
-              borderTop: `1px solid ${T.border}`,
-            }}
-          >
+            {/* Winners Section */}
             <div
               style={{
+                marginTop: 30,
+                paddingTop: 20,
+                borderTop: `1px solid ${T.border}`,
+              }}
+            >
+              <WinnersSection />
+            </div>
+
+            {/* Footer Links */}
+            <div
+              style={{
+                marginTop: 30,
+                paddingTop: 20,
+                borderTop: `1px solid ${T.border}`,
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: 8,
@@ -1600,7 +1380,7 @@ export function TikTokLayout({
               © 2024 WorqPost (ወorqPost)
             </div>
           </div>
-        </div>
+        )}
 
         {/* Comments Modal */}
         {showComments && (
@@ -1731,6 +1511,6 @@ export function TikTokLayout({
           showCancel={alertModal.showCancel}
         />
       </div>
-    </>
+    </div>
   );
 }

@@ -516,10 +516,35 @@ def search(request):
 @permission_classes([IsAuthenticated])
 def get_user_notifications(request):
     """Get all notifications for the authenticated user"""
-    notifications = CampaignNotification.objects.filter(user=request.user).order_by('-created_at')
+    # Get general notifications (likes, comments, follows)
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+    
+    # Get campaign notifications
+    campaign_notifications = CampaignNotification.objects.filter(user=request.user).order_by('-created_at')
     
     result = []
+    
+    # Add general notifications
     for notif in notifications:
+        result.append({
+            'id': notif.id,
+            'type': 'general',
+            'sender': {
+                'id': notif.sender.id,
+                'username': notif.sender.username,
+                'first_name': notif.sender.first_name,
+                'last_name': notif.sender.last_name
+            },
+            'notification_type': notif.notification_type,
+            'message': notif.message,
+            'read': notif.is_read,
+            'timestamp': notif.created_at,
+            'reel_id': notif.reel.id if notif.reel else None,
+            'comment_id': notif.comment.id if notif.comment else None,
+        })
+    
+    # Add campaign notifications
+    for notif in campaign_notifications:
         result.append({
             'id': notif.id,
             'type': 'campaign',
@@ -530,7 +555,27 @@ def get_user_notifications(request):
             'campaign_id': notif.campaign.id if notif.campaign else None,
         })
     
+    # Sort all notifications by timestamp
+    result.sort(key=lambda x: x['timestamp'], reverse=True)
+    
     return Response(result)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_notifications_read(request):
+    """Mark notifications as read"""
+    notification_ids = request.data.get('notification_ids', [])
+    if notification_ids:
+        # Mark specific notifications as read
+        Notification.objects.filter(
+            id__in=notification_ids,
+            recipient=request.user
+        ).update(is_read=True)
+    else:
+        # Mark all notifications as read
+        Notification.objects.filter(recipient=request.user).update(is_read=True)
+    
+    return Response({'message': 'Notifications marked as read'})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

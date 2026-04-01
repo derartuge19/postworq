@@ -7,7 +7,7 @@ from django.urls import path
 from django.shortcuts import render
 from django.utils import timezone
 from datetime import timedelta
-from .models import UserProfile, Reel, Comment, CommentLike, CommentReply, SavedPost, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, Report
+from .models import UserProfile, Reel, Comment, CommentLike, CommentReply, SavedPost, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, Report, Notification
 from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
 
 # Custom Admin Site Configuration
@@ -479,6 +479,16 @@ class CampaignWinnerAdmin(admin.ModelAdmin):
 @admin.register(CampaignNotification, site=admin_site)
 class CampaignNotificationAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(Notification, site=admin_site)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['recipient', 'sender', 'notification_type', 'message', 'is_read', 'created_at']
+    list_filter = ['notification_type', 'is_read', 'created_at']
+    search_fields = ['recipient__username', 'sender__username', 'message']
+    readonly_fields = ['created_at']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('recipient', 'sender', 'reel', 'comment')
 
 # Register User with custom admin
 admin_site.register(User, CustomUserAdmin)

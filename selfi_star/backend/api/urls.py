@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     register, login, create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
-    get_user_notifications, create_report, admin_reports_list, admin_report_detail, admin_reports_stats
+    get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail, admin_reports_stats
 )
 from .views_extended import CommentViewSet, SavedPostViewSet, ProfilePhotoViewSet
 from .views_admin import (
@@ -42,7 +42,8 @@ urlpatterns = [
     path('auth/register/', register, name='auth-register'),
     path('auth/login/', login, name='auth-login'),
     path('posts/create/', create_post, name='create-post'),
-    path('notifications/list/', get_user_notifications, name='user-notifications'),
+    path('notifications/', get_user_notifications, name='user-notifications'),
+    path('notifications/read/', mark_notifications_read, name='mark-notifications-read'),
     path('search/', search, name='search'),
     # Report endpoints
     path('reports/create/', create_report, name='create-report'),
