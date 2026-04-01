@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { FeedPage } from "./FeedPage";
 
@@ -6,6 +6,14 @@ const T = { bg:"#FAFAF7" };
 
 export function MainLayout({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState("feed");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <div style={{
@@ -13,7 +21,7 @@ export function MainLayout({ user, onLogout }) {
       height: "100vh",
       background: T.bg,
     }}>
-      {/* Sidebar */}
+      {/* Sidebar - handles mobile hamburger internally */}
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -23,7 +31,8 @@ export function MainLayout({ user, onLogout }) {
 
       {/* Main Content */}
       <div style={{
-        marginLeft: 280,
+        marginLeft: isMobile ? 0 : 280,
+        marginTop: isMobile ? 56 : 0,
         flex: 1,
         display: "flex",
         flexDirection: "column",
