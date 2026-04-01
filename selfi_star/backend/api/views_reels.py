@@ -11,6 +11,10 @@ def reels_following(request):
     """Get reels from users that the current user follows"""
     user = request.user
     
+    # Return empty list for anonymous users
+    if not user or not user.is_authenticated:
+        return Response([])
+    
     # Get users that current user follows
     following_users = Follow.objects.filter(follower=user).values_list('following', flat=True)
     

@@ -89,9 +89,25 @@ export function AppShell({
         position: 'relative',
       }}
     >
+      <style>{`
+        @media (max-width: 1024px) {
+          .appshell-desktop-sidebar {
+            display: none !important;
+          }
+        }
+        @media (min-width: 1025px) {
+          .appshell-mobile-header {
+            display: none !important;
+          }
+          .appshell-mobile-nav {
+            display: none !important;
+          }
+        }
+      `}</style>
       {/* 1. Desktop Sidebar */}
       {!isMobile && (
         <aside
+          className="appshell-desktop-sidebar"
           style={{
             width: 260,
             borderRight: `1px solid ${T.border}`,
@@ -177,6 +193,7 @@ export function AppShell({
       {/* 2. Mobile Main Header */}
       {isMobile && (
         <header
+          className="appshell-mobile-header"
           style={{
             position: 'fixed',
             top: 0,
