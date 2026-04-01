@@ -454,16 +454,23 @@ export function TikTokLayout({
           .video-feed-container {
             scroll-snap-type: y mandatory;
             overflow-y: scroll;
-            height: 100dvh !important;
-            width: 100vw !important;
+            height: 100% !important;
+            width: 100% !important;
             padding: 0 !important;
             margin: 0 !important;
           }
-          .video-card-snap {
-            scroll-snap-align: start;
-            height: 100dvh !important;
+          .video-list-container {
             width: 100vw !important;
             max-width: 100vw !important;
+            padding: 0 !important;
+            gap: 0 !important;
+          }
+          .video-card-snap {
+            scroll-snap-align: start;
+            height: 100% !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            max-height: none !important;
             border-radius: 0 !important;
             margin: 0 !important;
           }

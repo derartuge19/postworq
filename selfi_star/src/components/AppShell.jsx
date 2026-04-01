@@ -211,10 +211,11 @@ export function AppShell({
         style={{
           flex: 1,
           position: 'relative',
-          height: '100%',
+          height: isMobile ? '100dvh' : '100%',
           overflowY: 'auto',
-          marginTop: isMobile ? 60 : 0,
+          paddingTop: isMobile ? 60 : 0,
           paddingBottom: isMobile ? 70 : 0,
+          boxSizing: 'border-box',
           WebkitOverflowScrolling: 'touch',
         }}
       >
