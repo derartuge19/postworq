@@ -67,18 +67,29 @@ WSGI_APPLICATION = 'config.wsgi.application'
 if config('DATABASE_URL', default=None):
     import dj_database_url
     import socket
+    from urllib.parse import urlparse
+    db_url = config('DATABASE_URL')
     db_config = dj_database_url.config(
-        default=config('DATABASE_URL'),
+        default=db_url,
         conn_max_age=600,
         conn_health_checks=True,
         ssl_require=True
     )
     # Force IPv4 to avoid Render IPv6 connectivity issues
     try:
-        # Resolve hostname to IPv4 address
-        ipv4_addr = socket.getaddrinfo(db_config['HOST'], db_config['PORT'], socket.AF_INET, socket.SOCK_STREAM)[0][4][0]
-        db_config['OPTIONS'] = db_config.get('OPTIONS', {})
-        db_config['OPTIONS']['hostaddr'] = ipv4_addr
+        parsed = urlparse(db_url)
+        hostname = parsed.hostname or db_config.get('HOST')
+        port = parsed.port or db_config.get('PORT')
+        if hostname:
+            ipv4_addr = socket.getaddrinfo(
+                hostname,
+                port,
+                socket.AF_INET,
+                socket.SOCK_STREAM
+            )[0][4][0]
+            db_config['HOST'] = ipv4_addr
+            db_config['OPTIONS'] = db_config.get('OPTIONS', {})
+            db_config['OPTIONS']['hostaddr'] = ipv4_addr
     except Exception:
         pass  # Fallback to default if resolution fails
     DATABASES = {'default': db_config}

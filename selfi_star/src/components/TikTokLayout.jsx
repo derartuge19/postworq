@@ -79,8 +79,19 @@ export function TikTokLayout({
   const [followingUsers, setFollowingUsers] = useState({});
   const [showReportModal, setShowReportModal] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const videoRefs = useRef({});
   const videoContainerRefs = useRef({});
+
+  // Mobile detection - runs once on mount and on resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const fetchVideos = async () => {
     try {
@@ -630,15 +641,17 @@ export function TikTokLayout({
                     className="video-card-snap"
                     style={{
                       background: '#000',
-                      borderRadius: 12,
+                      borderRadius: isMobile ? 0 : 12,
                       overflow: 'hidden',
-                      aspectRatio: '9/16',
-                      maxHeight: 750,
+                      aspectRatio: isMobile ? '9/16' : '9/16',
+                      maxHeight: isMobile ? '100vh' : 750,
+                      height: isMobile ? '100vh' : 'auto',
+                      width: isMobile ? '100vw' : '100%',
                       position: 'relative',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginBottom: 20,
+                      marginBottom: isMobile ? 0 : 20,
                     }}
                   >
                     {/* Video/Image Background */}
@@ -930,13 +943,13 @@ export function TikTokLayout({
                     <div
                       style={{
                         position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
+                        bottom: isMobile ? 20 : 0,
+                        left: isMobile ? 12 : 0,
+                        right: isMobile ? 80 : 0,
                         background:
                           'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
-                        padding: '20px',
-                        paddingBottom: '24px',
+                        padding: isMobile ? '16px' : '20px',
+                        paddingBottom: isMobile ? '80px' : '24px',
                         color: '#fff',
                       }}
                     >
@@ -945,7 +958,7 @@ export function TikTokLayout({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          marginBottom: 16,
+                          marginBottom: isMobile ? 12 : 16,
                         }}
                       >
                         <div
@@ -1114,11 +1127,11 @@ export function TikTokLayout({
                     <div
                       style={{
                         position: 'absolute',
-                        right: 16,
-                        bottom: 100,
+                        right: isMobile ? 12 : 16,
+                        bottom: isMobile ? 120 : 100,
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 24,
+                        gap: isMobile ? 16 : 24,
                         zIndex: 10,
                       }}
                     >
@@ -1315,19 +1328,18 @@ export function TikTokLayout({
         </div>
 
         {/* RIGHT SIDEBAR - Recommendations (Desktop Only) */}
-        {!window.matchMedia('(max-width: 1024px)').matches && (
+        {!isMobile && (
           <div
-            className="right-sidebar"
+            className="right-sidebar-container"
             style={{
               width: 320,
+              minWidth: 320,
               borderLeft: `1px solid ${T.border}`,
               padding: '20px',
               overflowY: 'auto',
-              position: 'fixed',
-              right: 0,
-              top: 0,
               height: '100vh',
               background: '#fff',
+              flexShrink: 0,
             }}
           >
             {/* User Suggestions */}
