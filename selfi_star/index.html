@@ -10,6 +10,24 @@
     />
     <title>WorqPost</title>
     <style>
+      /* AGGRESSIVE MOBILE HIDE - Must be first */
+      @media (max-width: 1024px) {
+        /* Hide any element that looks like a sidebar */
+        [class*="sidebar"],
+        [class*="Sidebar"],
+        div[style*="position: fixed"][style*="left: 0"],
+        aside,
+        nav[style*="position: fixed"],
+        div[style*="width: 280px"],
+        div[style*="width: 260px"],
+        div[style*="width: 240px"] {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      }
+      
       * {
         box-sizing: border-box;
         margin: 0;
