@@ -928,19 +928,17 @@ export function TikTokLayout({
                           <button
                             onClick={() => setShowMenu(video.id)}
                             style={{
-                              background: 'rgba(0,0,0,0.5)',
+                              background: 'none',
                               border: 'none',
-                              borderRadius: '50%',
-                              width: 40,
-                              height: 40,
-                              display: 'flex',
+                              display: isMobile ? 'none' : 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               cursor: 'pointer',
+                              padding: 6,
                               color: '#fff',
                             }}
                           >
-                            <MoreVertical size={20} />
+                            <MoreVertical size={24} strokeWidth={2} />
                           </button>
 
                           {/* Dropdown Menu */}
