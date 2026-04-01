@@ -691,6 +691,11 @@ export function TikTokLayout({
                       >
                         <video
                           ref={(el) => (videoRefs.current[video.id] = el)}
+                          src={
+                            video.imageUrl.startsWith('http')
+                              ? video.imageUrl
+                              : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
+                          }
                           loop
                           playsInline
                           muted={!audioEnabled}
@@ -701,18 +706,6 @@ export function TikTokLayout({
                           }}
                           onClick={() => toggleVideoPlayback(video.id)}
                         >
-                          <source
-                            src={
-                              video.imageUrl.startsWith('http')
-                                ? video.imageUrl
-                                : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
-                            }
-                            type={
-                              video.imageUrl.endsWith('.webm')
-                                ? 'video/webm'
-                                : 'video/mp4'
-                            }
-                          />
                           Your browser does not support the video tag.
                         </video>
 
@@ -1031,28 +1024,10 @@ export function TikTokLayout({
                       }}
                     >
                       <LikeButton
-                        reelId={video.id}
-                        isLiked={video.liked}
-                        likesCount={video.likes}
-                        user={user}
-                        onLikeSuccess={(newLikes) => {
-                          setVideos((prev) =>
-                            prev.map((v) =>
-                              v.id === video.id
-                                ? { ...v, likes: newLikes, liked: true }
-                                : v,
-                            ),
-                          );
-                        }}
-                        onUnlikeSuccess={(newLikes) => {
-                          setVideos((prev) =>
-                            prev.map((v) =>
-                              v.id === video.id
-                                ? { ...v, likes: newLikes, liked: false }
-                                : v,
-                            ),
-                          );
-                        }}
+                        liked={video.liked}
+                        count={video.likes}
+                        onLike={() => handleLike(video.id)}
+                        size={32}
                       />
                     </div>
 
