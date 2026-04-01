@@ -8,6 +8,13 @@ export function SettingsPage({ user, onClose, onLogout }) {
   const { darkMode, toggleDarkMode, colors: T } = useTheme();
   const { language, changeLanguage, t } = useLanguage();
   const [activeSection, setActiveSection] = useState("account");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('notifications');
     return saved ? JSON.parse(saved) : {
@@ -160,31 +167,32 @@ export function SettingsPage({ user, onClose, onLogout }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "100%",
-          maxWidth: 900,
-          maxHeight: "90vh",
+          width: isMobile ? "100%" : "100%",
+          maxWidth: isMobile ? "100%" : 900,
+          height: isMobile ? "100vh" : "auto",
+          maxHeight: isMobile ? "100vh" : "90vh",
           background: "#fff",
-          borderRadius: 20,
+          borderRadius: isMobile ? 0 : 20,
           display: "flex",
           overflow: "hidden",
         }}
       >
         {/* Sidebar */}
         <div style={{
-          width: 280,
+          width: isMobile ? 80 : 280,
           background: T.bg,
           borderRight: `1px solid ${T.border}`,
           display: "flex",
           flexDirection: "column",
         }}>
           <div style={{
-            padding: "20px",
+            padding: isMobile ? "16px 8px" : "20px",
             borderBottom: `1px solid ${T.border}`,
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: isMobile ? "center" : "space-between",
           }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: T.txt }}>Settings</div>
+            {!isMobile && <div style={{ fontSize: 20, fontWeight: 700, color: T.txt }}>Settings</div>}
             <button
               onClick={onClose}
               style={{
@@ -210,42 +218,46 @@ export function SettingsPage({ user, onClose, onLogout }) {
                   onClick={() => setActiveSection(section.id)}
                   style={{
                     width: "100%",
-                    padding: "14px 20px",
+                    padding: isMobile ? "12px 8px" : "14px 20px",
                     border: "none",
                     background: isActive ? "#fff" : "transparent",
                     cursor: "pointer",
                     display: "flex",
+                    flexDirection: isMobile ? "column" : "row",
                     alignItems: "center",
-                    gap: 12,
+                    justifyContent: "center",
+                    gap: isMobile ? 4 : 12,
                     color: isActive ? T.pri : T.txt,
                     fontWeight: isActive ? 600 : 500,
                     borderLeft: isActive ? `3px solid ${T.pri}` : "3px solid transparent",
                   }}
                 >
-                  <Icon size={20} />
-                  <span style={{ flex: 1, textAlign: "left" }}>{section.label}</span>
-                  <ChevronRight size={16} style={{ opacity: 0.5 }} />
+                  <Icon size={isMobile ? 22 : 20} />
+                  {!isMobile && <span style={{ flex: 1, textAlign: "left" }}>{section.label}</span>}
+                  {isMobile && <span style={{ fontSize: 10, textAlign: "center" }}>{section.label}</span>}
+                  {!isMobile && <ChevronRight size={16} style={{ opacity: 0.5 }} />}
                 </button>
               );
             })}
           </div>
 
-          <div style={{ padding: 20, borderTop: `1px solid ${T.border}` }}>
+          <div style={{ padding: isMobile ? 8 : 20, borderTop: `1px solid ${T.border}` }}>
             <button
               onClick={onLogout}
               style={{
                 width: "100%",
-                padding: "12px 16px",
+                padding: isMobile ? "10px 8px" : "12px 16px",
                 background: "#EF4444",
                 color: "#fff",
                 border: "none",
                 borderRadius: 8,
                 cursor: "pointer",
                 display: "flex",
+                flexDirection: isMobile ? "column" : "row",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 8,
-                fontSize: 14,
+                gap: isMobile ? 4 : 8,
+                fontSize: isMobile ? 10 : 14,
                 fontWeight: 600,
               }}
             >
