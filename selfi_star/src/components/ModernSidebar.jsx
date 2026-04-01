@@ -35,20 +35,21 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
   return (
     <>
       {/* Desktop Sidebar */}
-      <div style={{
-        width: 240,
-        height: "100vh",
-        position: "fixed",
-        left: 0,
-        top: 0,
-        background: T.cardBg,
-        borderRight: `1px solid ${T.border}`,
-        display: "flex",
-        flexDirection: "column",
-        padding: "20px 12px",
-        zIndex: 100,
-      }}
-      className="desktop-sidebar"
+      <div 
+        className="modern-desktop-sidebar"
+        style={{
+          width: 240,
+          height: "100vh",
+          position: "fixed",
+          left: 0,
+          top: 0,
+          background: T.cardBg,
+          borderRight: `1px solid ${T.border}`,
+          display: "flex",
+          flexDirection: "column",
+          padding: "20px 12px",
+          zIndex: 100,
+        }}
       >
         {/* Logo */}
         <div style={{
@@ -185,21 +186,22 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 60,
-        background: T.cardBg,
-        borderTop: `1px solid ${T.border}`,
-        display: "none",
-        alignItems: "center",
-        justifyContent: "space-around",
-        padding: "0 20px",
-        zIndex: 100,
-      }}
-      className="mobile-nav"
+      <div 
+        className="modern-mobile-nav"
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 60,
+          background: T.cardBg,
+          borderTop: `1px solid ${T.border}`,
+          display: "none",
+          alignItems: "center",
+          justifyContent: "space-around",
+          padding: "0 20px",
+          zIndex: 100,
+        }}
       >
         {[menuItems[0], menuItems[1], menuItems[6], menuItems[4], menuItems[7]].map(item => {
           const Icon = item.icon;
@@ -239,17 +241,17 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
       </div>
 
       <style>{`
-        @media (max-width: 768px) {
-          .desktop-sidebar {
+        @media (max-width: 1024px) {
+          .modern-desktop-sidebar {
             display: none !important;
           }
-          .mobile-nav {
+          .modern-mobile-nav {
             display: flex !important;
           }
         }
         
-        @media (min-width: 769px) {
-          .mobile-nav {
+        @media (min-width: 1025px) {
+          .modern-mobile-nav {
             display: none !important;
           }
         }

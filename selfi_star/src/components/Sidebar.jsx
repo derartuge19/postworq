@@ -22,18 +22,26 @@ export function Sidebar({ activeTab, onTabChange, user, onLogout, onRequireAuth,
   ];
 
   return (
-    <div style={{
-      width: 280,
-      background: "#fff",
-      borderRight: `1px solid ${T.border}`,
-      display: "flex",
-      flexDirection: "column",
-      height: "100vh",
-      overflowY: "auto",
-      position: "fixed",
-      left: 0,
-      top: 0,
-    }}>
+    <>
+      <style>{`
+        @media (max-width: 1024px) {
+          .selfie-sidebar {
+            display: none !important;
+          }
+        }
+      `}</style>
+      <div className="selfie-sidebar" style={{
+        width: 280,
+        background: "#fff",
+        borderRight: `1px solid ${T.border}`,
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflowY: "auto",
+        position: "fixed",
+        left: 0,
+        top: 0,
+      }}>
       {/* Logo */}
       <div style={{ padding: "20px 16px", borderBottom: `1px solid ${T.border}` }}>
         <div style={{ fontSize: 28, fontWeight: 900, color: T.pri }}>⭐</div>
@@ -165,6 +173,6 @@ export function Sidebar({ activeTab, onTabChange, user, onLogout, onRequireAuth,
           Logout
         </button>
       </div>
-    </div>
+    </>
   );
 }
