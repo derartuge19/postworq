@@ -8,7 +8,7 @@ import {
   Info,
   UserPlus,
   UserCheck,
-  Volume,
+  Volume2,
   VolumeX,
   Bell,
 } from 'lucide-react';
@@ -77,6 +77,8 @@ export function TikTokLayout({
   const [showPauseIcon, setShowPauseIcon] = useState({});
   const [isMobile, setIsMobile] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [likeAnimations, setLikeAnimations] = useState({});
+  const [doubleTapLike, setDoubleTapLike] = useState({});
   const [alertModal, setAlertModal] = useState({
     isOpen: false,
     title: '',
@@ -311,6 +313,22 @@ export function TikTokLayout({
     });
   };
 
+  const handleDoubleTap = (videoId) => {
+    if (!user) {
+      onRequireAuth();
+      return;
+    }
+    
+    // Trigger like
+    handleLike(videoId);
+    
+    // Show double-tap heart animation
+    setDoubleTapLike((prev) => ({ ...prev, [videoId]: true }));
+    setTimeout(() => {
+      setDoubleTapLike((prev) => ({ ...prev, [videoId]: false }));
+    }, 1000);
+  };
+
   const toggleVideoPlayback = (videoId) => {
     const videoElement = videoRefs.current[videoId];
     if (!videoElement) return;
@@ -342,6 +360,9 @@ export function TikTokLayout({
       onRequireAuth();
       return;
     }
+
+    // Show heart animation
+    setLikeAnimations((prev) => ({ ...prev, [videoId]: Date.now() }));
 
     try {
       const response = await api.request(`/reels/${videoId}/vote/`, {
@@ -852,9 +873,29 @@ export function TikTokLayout({
                             display: 'block',
                           }}
                           onClick={() => toggleVideoPlayback(video.id)}
+                          onDoubleClick={() => handleDoubleTap(video.id)}
                         >
                           Your browser does not support the video tag.
                         </video>
+
+                        {/* Double-tap heart animation */}
+                        {doubleTapLike[video.id] && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              fontSize: 120,
+                              color: '#ff2e63',
+                              animation: 'heartPop 1s ease-out',
+                              pointerEvents: 'none',
+                              zIndex: 100,
+                            }}
+                          >
+                            ❤️
+                          </div>
+                        )}
 
                         {/* Pause/Play Animation - TikTok Style */}
                         {showPauseIcon[video.id] && (
@@ -1201,9 +1242,9 @@ export function TikTokLayout({
                         }}
                       >
                         {audioEnabled ? (
-                          <Volume size={32} color="#fff" fill="#fff" />
+                          <Volume2 size={32} color="#fff" strokeWidth={2} />
                         ) : (
-                          <VolumeX size={32} color="#fff" />
+                          <VolumeX size={32} color="#fff" strokeWidth={2} />
                         )}
                       </button>
                       <div
