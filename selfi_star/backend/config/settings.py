@@ -64,19 +64,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': config('DB_NAME', default='neondb'),
-        'USER': config('DB_USER', default='neondb_owner'),
-        'PASSWORD': config('DB_PASSWORD', default='npg_gQpuHj7IBoC1'),
-        'HOST': config('DB_HOST', default='flat-thunder-79099653.aws.neon.tech'),
-        'PORT': config('DB_PORT', default='5432'),
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
+if config('DATABASE_URL', default=None):
+    from dj_database_url import config as dj_config
+    DATABASES = {
+        'default': dj_config(
+            default=config('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+            'NAME': config('DB_NAME', default='neondb'),
+            'USER': config('DB_USER', default='neondb_owner'),
+            'PASSWORD': config('DB_PASSWORD', default='npg_gQpuHj7IBoC1'),
+            'HOST': config('DB_HOST', default='ep-flat-thunder-a5790996.us-east-2.aws.neon.tech'),
+            'PORT': config('DB_PORT', default='5432'),
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
