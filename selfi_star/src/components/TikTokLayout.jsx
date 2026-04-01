@@ -71,6 +71,7 @@ export function TikTokLayout({
   const [playingVideos, setPlayingVideos] = useState({});
   const [showPauseIcon, setShowPauseIcon] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const [alertModal, setAlertModal] = useState({
     isOpen: false,
     title: '',
@@ -232,6 +233,13 @@ export function TikTokLayout({
   const toggleVideoPlayback = (videoId) => {
     const videoElement = videoRefs.current[videoId];
     if (!videoElement) return;
+
+    if (!audioEnabled) {
+      setAudioEnabled(true);
+    }
+
+    videoElement.muted = false;
+    videoElement.volume = 1;
 
     if (videoElement.paused) {
       videoElement.play();
@@ -685,7 +693,7 @@ export function TikTokLayout({
                           ref={(el) => (videoRefs.current[video.id] = el)}
                           loop
                           playsInline
-                          muted
+                          muted={!audioEnabled}
                           style={{
                             width: '100%',
                             height: '100%',
