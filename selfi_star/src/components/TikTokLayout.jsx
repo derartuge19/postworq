@@ -582,7 +582,10 @@ export function TikTokLayout({
         position: 'relative',
       }}
     >
-      {/* CENTER - Video Feed */}
+      <style>{`
+        .video-feed-container::-webkit-scrollbar { display: none; }
+        .right-sidebar-container::-webkit-scrollbar { display: none; }
+      `}</style>
       <div
         className="video-feed video-feed-container"
         style={{
@@ -592,6 +595,8 @@ export function TikTokLayout({
           flexDirection: 'column',
           alignItems: 'center',
           background: '#fff',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
         }}
       >
         {/* Feed Header */}
@@ -779,14 +784,19 @@ export function TikTokLayout({
                       <button
                         onClick={() => setShowMenu(showMenu === video.id ? null : video.id)}
                         style={{
-                          background: 'none',
+                          background: 'rgba(0,0,0,0.35)',
                           border: 'none',
+                          borderRadius: '50%',
                           cursor: 'pointer',
-                          padding: 6,
+                          width: 38,
+                          height: 38,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           pointerEvents: 'all',
                         }}
                       >
-                        <MoreVertical size={26} color="#fff" strokeWidth={2} />
+                        <MoreVertical size={22} color="#fff" strokeWidth={2.5} />
                       </button>
                     </div>
                   )}
@@ -1342,6 +1352,8 @@ export function TikTokLayout({
             overflowY: 'auto',
             height: '100vh',
             flexShrink: 0,
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
           }}
         >
           {/* User Suggestions */}

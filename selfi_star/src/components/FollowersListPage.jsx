@@ -18,10 +18,11 @@ export function FollowersListPage({ userId, type = "followers", onBack, onUserCl
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = type === "followers" 
+      const raw = type === "followers" 
         ? await api.getFollowers(userId)
         : await api.getFollowing(userId);
       
+      const data = Array.isArray(raw) ? raw : (raw.results || []);
       setUsers(data);
       
       // Initialize following states

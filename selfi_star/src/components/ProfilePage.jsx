@@ -43,13 +43,15 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
 
   const fetchFollowCounts = async (targetUserId) => {
     try {
-      const followers = await api.getFollowers(targetUserId);
-      const following = await api.getFollowing(targetUserId);
+      const followersRaw = await api.getFollowers(targetUserId);
+      const followingRaw = await api.getFollowing(targetUserId);
+      const followers = Array.isArray(followersRaw) ? followersRaw : (followersRaw.results || []);
+      const following = Array.isArray(followingRaw) ? followingRaw : (followingRaw.results || []);
       setFollowersCount(followers.length);
       setFollowingCount(following.length);
       
       if (!isOwnProfile && user) {
-        const isFollowingUser = followers.some(f => f.follower.id === user.id);
+        const isFollowingUser = followers.some(f => f.follower?.id === user.id);
         setIsFollowing(isFollowingUser);
       }
     } catch (error) {
@@ -110,16 +112,18 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       try {
         let data;
         if (activeTab === "saved") {
-          data = await api.getSavedPosts();
+          const raw = await api.getSavedPosts();
+          data = Array.isArray(raw) ? raw : (raw.results || []);
         } else if (activeTab === "reels") {
-          data = await api.getUserPosts(targetUserId);
-          // Filter only videos (reels)
+          const raw = await api.getUserPosts(targetUserId);
+          data = Array.isArray(raw) ? raw : (raw.results || []);
           data = data.filter(post => 
             post.media?.match(/\.(mp4|webm|ogg)$/i) || 
             post.media?.includes('video')
           );
         } else {
-          data = await api.getUserPosts(targetUserId);
+          const raw = await api.getUserPosts(targetUserId);
+          data = Array.isArray(raw) ? raw : (raw.results || []);
         }
         setPosts(data || []);
       } catch (error) {
