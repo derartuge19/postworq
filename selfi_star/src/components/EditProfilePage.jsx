@@ -53,17 +53,11 @@ export function EditProfilePage({ user, onBack, onSave }) {
       if (formData.bio) formDataToSend.append('bio', formData.bio);
       if (profilePhoto) formDataToSend.append('profile_photo', profilePhoto);
       
-      const response = await api.request('/profile/update_profile/', {
+      const data = await api.request('/profile/update_profile/', {
         method: 'PATCH',
         body: formDataToSend,
         isFormData: true,
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
-      }
-      
-      const data = await response.json();
       
       // Update localStorage with new user data
       // Ensure profile_photo has full URL

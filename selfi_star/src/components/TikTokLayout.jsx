@@ -797,7 +797,7 @@ export function TikTokLayout({
                         alignItems: 'center',
                         padding: '12px 14px',
                         paddingTop: 'max(12px, env(safe-area-inset-top))',
-                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)',
+                        background: 'none',
                         pointerEvents: 'none',
                       }}
                     >
@@ -819,19 +819,14 @@ export function TikTokLayout({
                       <button
                         onClick={() => setShowMenu(showMenu === video.id ? null : video.id)}
                         style={{
-                          background: 'rgba(0,0,0,0.35)',
+                          background: 'none',
                           border: 'none',
-                          borderRadius: '50%',
                           cursor: 'pointer',
-                          width: 38,
-                          height: 38,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                          padding: 6,
                           pointerEvents: 'all',
                         }}
                       >
-                        <MoreVertical size={22} color="#fff" strokeWidth={2.5} />
+                        <MoreVertical size={26} color="#fff" strokeWidth={2} />
                       </button>
                     </div>
                   )}
