@@ -5,6 +5,7 @@ import {
   PlusSquare,
   MessageCircle,
   User,
+  Bell,
   Settings,
   Trophy,
   LogOut,
@@ -66,7 +67,6 @@ export function AppShell({
   ];
 
   const handleItemClick = (item) => {
-    setIsDrawerOpen(false);
     if (item.action) {
       item.action();
     } else {
