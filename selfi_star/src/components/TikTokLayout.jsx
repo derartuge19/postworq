@@ -131,7 +131,7 @@ export function TikTokLayout({
           media: reel.media,
           image: reel.image,
           finalUrl: videoUrl,
-          isVideo: videoUrl?.match(/\.(mp4|webm|ogg|mov)$/i) ? true : false,
+          isVideo: /\.(mp4|webm|ogg|mov)$/i.test(videoUrl),
           caption: reel.caption,
         });
 
