@@ -22,6 +22,7 @@ import { AlertModal } from './AlertModal';
 import { getRelativeTime } from '../utils/timeUtils';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import './TikTokLayout.css';
 
 export function TikTokLayout({
   user,
@@ -452,41 +453,6 @@ export function TikTokLayout({
 
   return (
     <div style={{ display: 'flex', width: '100%', height: '100%', position: 'relative' }}>
-      <style>{`
-        @keyframes fadeInOut {
-          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-          20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-        }
-
-        @media (max-width: 1024px) {
-          .video-feed-container {
-            scroll-snap-type: y mandatory;
-            overflow-y: scroll;
-            height: 100% !important;
-            width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          .video-list-container {
-            width: 100vw !important;
-            max-width: 100vw !important;
-            padding: 0 !important;
-            gap: 0 !important;
-          }
-          .video-card-snap {
-            scroll-snap-align: start;
-            height: 100% !important;
-            width: 100vw !important;
-            max-width: 100vw !important;
-            max-height: none !important;
-            border-radius: 0 !important;
-            margin: 0 !important;
-          }
-        }
-      `}</style>
-
       {/* CENTER - Video Feed */}
       <div
         className="video-feed video-feed-container"
