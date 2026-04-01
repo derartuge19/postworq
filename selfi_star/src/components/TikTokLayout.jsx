@@ -130,7 +130,12 @@ export function TikTokLayout({
           media: reel.media,
           image: reel.image,
           finalUrl: videoUrl,
-          isVideo: videoUrl && (videoUrl.includes('.mp4') || videoUrl.includes('.webm') || videoUrl.includes('.ogg') || videoUrl.includes('.mov')),
+          isVideo:
+            videoUrl &&
+            (videoUrl.includes('.mp4') ||
+              videoUrl.includes('.webm') ||
+              videoUrl.includes('.ogg') ||
+              videoUrl.includes('.mov')),
           caption: reel.caption,
         });
 
@@ -261,9 +266,7 @@ export function TikTokLayout({
               ? {
                   ...video,
                   liked: response.liked,
-                  likes: response.liked
-                    ? video.likes + 1
-                    : video.likes - 1,
+                  likes: response.liked ? video.likes + 1 : video.likes - 1,
                 }
               : video,
           ),
@@ -288,9 +291,7 @@ export function TikTokLayout({
       if (response.saved !== undefined) {
         setVideos((prev) =>
           prev.map((video) =>
-            video.id === videoId
-              ? { ...video, saved: response.saved }
-              : video,
+            video.id === videoId ? { ...video, saved: response.saved } : video,
           ),
         );
       }
@@ -411,7 +412,7 @@ export function TikTokLayout({
     try {
       const response = await api.request(`/reels/hashtag/${hashtag}/`);
       const results = response.results || response || [];
-      
+
       const formattedVideos = results.map((reel) => ({
         id: reel.id,
         user: reel.user,
@@ -493,7 +494,14 @@ export function TikTokLayout({
   ];
 
   return (
-    <div style={{ display: 'flex', width: '100%', height: '100%', position: 'relative' }}>
+    <div
+      style={{
+        display: 'flex',
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+      }}
+    >
       {/* CENTER - Video Feed */}
       <div
         className="video-feed video-feed-container"
@@ -573,7 +581,6 @@ export function TikTokLayout({
             </div>
           </div>
         ) : (
-          {/* Videos Feed */}
           <div
             className="video-list-container"
             style={{
@@ -621,7 +628,8 @@ export function TikTokLayout({
                     marginBottom: 8,
                   }}
                 >
-                  {activeTab === 'following' && 'No posts from followed users yet'}
+                  {activeTab === 'following' &&
+                    'No posts from followed users yet'}
                   {activeTab === 'bookmarks' && 'No saved posts yet'}
                   {activeTab === 'explore' && 'No trending posts'}
                   {activeTab === 'foryou' && 'No videos yet'}
@@ -629,8 +637,7 @@ export function TikTokLayout({
                 <p style={{ fontSize: 14, color: T.sub, margin: 0 }}>
                   {activeTab === 'following' &&
                     'Follow creators to see their posts here'}
-                  {activeTab === 'bookmarks' &&
-                    'Save posts to see them here'}
+                  {activeTab === 'bookmarks' && 'Save posts to see them here'}
                   {activeTab === 'explore' &&
                     'Check back soon for trending content'}
                   {activeTab === 'foryou' && 'Be the first to post!'}
@@ -658,21 +665,35 @@ export function TikTokLayout({
                 >
                   {/* Video/Image Background */}
                   {video.imageUrl ? (
-                    (video.imageUrl.includes('.mp4') || video.imageUrl.includes('.webm') || video.imageUrl.includes('.ogg') || video.imageUrl.includes('.mov')) ||
-                      video.imageUrl.includes('video') ? (
-                        <div
-                          ref={(el) =>
-                            (videoContainerRefs.current[video.id] = el)
-                          }
-                          data-video-id={video.id}
+                    video.imageUrl.includes('.mp4') ||
+                    video.imageUrl.includes('.webm') ||
+                    video.imageUrl.includes('.ogg') ||
+                    video.imageUrl.includes('.mov') ||
+                    video.imageUrl.includes('video') ? (
+                      <div
+                        ref={(el) =>
+                          (videoContainerRefs.current[video.id] = el)
+                        }
+                        data-video-id={video.id}
+                        style={{
+                          position: 'relative',
+                          width: '100%',
+                          height: '100%',
+                        }}
+                      >
+                        <video
+                          ref={(el) => (videoRefs.current[video.id] = el)}
+                          loop
+                          playsInline
+                          muted
                           style={{
-                            position: 'relative',
                             width: '100%',
                             height: '100%',
+                            objectFit: 'cover',
                           }}
+                          onClick={() => toggleVideoPlayback(video.id)}
                         >
-                          <video
-                            ref={(el) => (videoRefs.current[video.id] = el)}
+                          <source
                             src={
                               video.imageUrl.startsWith('http')
                                 ? video.imageUrl
@@ -683,15 +704,6 @@ export function TikTokLayout({
                                 ? 'video/webm'
                                 : 'video/mp4'
                             }
-                            loop
-                            playsInline
-                            muted
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                            }}
-                            onClick={() => toggleVideoPlayback(video.id)}
                           />
                           Your browser does not support the video tag.
                         </video>
@@ -1020,8 +1032,8 @@ export function TikTokLayout({
                             prev.map((v) =>
                               v.id === video.id
                                 ? { ...v, likes: newLikes, liked: true }
-                                : v
-                            )
+                                : v,
+                            ),
                           );
                         }}
                         onUnlikeSuccess={(newLikes) => {
@@ -1029,8 +1041,8 @@ export function TikTokLayout({
                             prev.map((v) =>
                               v.id === video.id
                                 ? { ...v, likes: newLikes, liked: false }
-                                : v
-                            )
+                                : v,
+                            ),
                           );
                         }}
                       />
@@ -1054,11 +1066,7 @@ export function TikTokLayout({
                           padding: 0,
                         }}
                       >
-                        <MessageCircle
-                          size={32}
-                          color="#fff"
-                          fill="#fff"
-                        />
+                        <MessageCircle size={32} color="#fff" fill="#fff" />
                       </button>
                       <div
                         style={{
@@ -1291,7 +1299,11 @@ export function TikTokLayout({
             >
               {[
                 { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
-                { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
+                {
+                  id: 'inappropriate',
+                  label: 'Inappropriate Content',
+                  icon: '😢',
+                },
                 { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
                 { id: 'hate', label: 'Hate Speech', icon: '🚫' },
                 { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
@@ -1315,12 +1327,8 @@ export function TikTokLayout({
                     color: T.txt,
                     transition: 'background 0.2s',
                   }}
-                  onMouseEnter={(e) =>
-                    (e.target.style.background = '#f5f5f5')
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.background = '#fff')
-                  }
+                  onMouseEnter={(e) => (e.target.style.background = '#f5f5f5')}
+                  onMouseLeave={(e) => (e.target.style.background = '#fff')}
                 >
                   <span style={{ fontSize: 20 }}>{category.icon}</span>
                   <span style={{ fontWeight: 500 }}>{category.label}</span>
