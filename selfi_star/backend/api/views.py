@@ -442,39 +442,45 @@ class WinnerViewSet(viewsets.ReadOnlyModelViewSet):
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
     permission_classes = [IsAuthenticated]
-    
+    pagination_class = None
+
     def get_permissions(self):
         if self.action == 'suggestions':
             return [AllowAny()]
         return [IsAuthenticated()]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Follow.objects.none()
         return Follow.objects.filter(follower=self.request.user)
     
     @action(detail=False, methods=['post'])
     def toggle(self, request):
-        following_id = request.data.get('following_id')
-        if not following_id:
-            return Response({'error': 'following_id required'}, status=status.HTTP_400_BAD_REQUEST)
-        
         try:
-            following_user = User.objects.get(id=following_id)
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        
-        if following_user == request.user:
-            return Response({'error': 'Cannot follow yourself'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        follow, created = Follow.objects.get_or_create(
-            follower=request.user,
-            following=following_user
-        )
-        
-        if not created:
-            follow.delete()
-            return Response({'following': False, 'message': 'Unfollowed'})
-        
-        return Response({'following': True, 'message': 'Followed'})
+            following_id = request.data.get('following_id')
+            if not following_id:
+                return Response({'error': 'following_id required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                following_user = User.objects.get(id=following_id)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            if following_user == request.user:
+                return Response({'error': 'Cannot follow yourself'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            follow, created = Follow.objects.get_or_create(
+                follower=request.user,
+                following=following_user
+            )
+            
+            if not created:
+                follow.delete()
+                return Response({'following': False, 'message': 'Unfollowed'})
+            
+            return Response({'following': True, 'message': 'Followed'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=False, methods=['get'])
     def suggestions(self, request):
