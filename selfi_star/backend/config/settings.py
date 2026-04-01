@@ -66,6 +66,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 if config('DATABASE_URL', default=None):
     import dj_database_url
+    import socket
     db_config = dj_database_url.config(
         default=config('DATABASE_URL'),
         conn_max_age=600,
@@ -73,8 +74,13 @@ if config('DATABASE_URL', default=None):
         ssl_require=True
     )
     # Force IPv4 to avoid Render IPv6 connectivity issues
-    db_config['OPTIONS'] = db_config.get('OPTIONS', {})
-    db_config['OPTIONS']['family'] = 2  # socket.AF_INET for IPv4
+    try:
+        # Resolve hostname to IPv4 address
+        ipv4_addr = socket.getaddrinfo(db_config['HOST'], db_config['PORT'], socket.AF_INET, socket.SOCK_STREAM)[0][4][0]
+        db_config['OPTIONS'] = db_config.get('OPTIONS', {})
+        db_config['OPTIONS']['hostaddr'] = ipv4_addr
+    except Exception:
+        pass  # Fallback to default if resolution fails
     DATABASES = {'default': db_config}
 else:
     DATABASES = {
@@ -88,7 +94,6 @@ else:
             'OPTIONS': {
                 'sslmode': 'require',
                 'connect_timeout': 10,
-                'family': 2,  # Force IPv4
             },
         }
     }
