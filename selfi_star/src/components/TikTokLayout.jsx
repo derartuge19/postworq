@@ -279,14 +279,14 @@ export function TikTokLayout({
         method: 'POST',
       });
 
-      if (response.liked !== undefined) {
+      if (response.voted !== undefined) {
         setVideos((prev) =>
           prev.map((video) =>
             video.id === videoId
               ? {
                   ...video,
-                  liked: response.liked,
-                  likes: response.liked ? video.likes + 1 : video.likes - 1,
+                  liked: response.voted,
+                  likes: response.votes || video.likes,
                 }
               : video,
           ),
@@ -531,7 +531,7 @@ export function TikTokLayout({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          background: '#000',
+          background: '#fff',
         }}
       >
         {/* Feed Header */}
@@ -550,7 +550,7 @@ export function TikTokLayout({
             style={{
               fontSize: 24,
               fontWeight: 700,
-              color: '#fff',
+              color: '#000',
             }}
           >
             {activeTab === 'foryou' && 'For You'}
@@ -619,7 +619,7 @@ export function TikTokLayout({
                   justifyContent: 'center',
                   alignItems: 'center',
                   height: 200,
-                  color: '#fff',
+                  color: '#000',
                 }}
               >
                 Loading videos...
