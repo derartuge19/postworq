@@ -460,7 +460,6 @@ export function TikTokLayout({
           100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
         }
 
-        /* Snap Scrolling for Mobile Feed */
         @media (max-width: 1024px) {
           .video-feed-container {
             scroll-snap-type: y mandatory;
