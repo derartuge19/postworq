@@ -129,13 +129,13 @@ export function TikTokLayout({
 
       console.log('API response:', reelsData);
 
-      // Handle different response formats
+      // Handle different response formats (DRF pagination returns {count, next, previous, results})
       const reelsList = Array.isArray(reelsData)
         ? reelsData
         : reelsData.results || [];
       
-      // Check if there are more videos to load
-      const hasMoreVideos = reelsList.length === limit;
+      // Check if there are more videos to load using DRF pagination
+      const hasMoreVideos = reelsData.next ? true : (reelsList.length === limit);
       setHasMore(hasMoreVideos);
 
       // Transform backend data to match frontend format
