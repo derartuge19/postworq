@@ -66,14 +66,16 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 if config('DATABASE_URL', default=None):
     import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-            ssl_require=True
-        )
-    }
+    db_config = dj_database_url.config(
+        default=config('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True
+    )
+    # Force IPv4 to avoid Render IPv6 connectivity issues
+    db_config['OPTIONS'] = db_config.get('OPTIONS', {})
+    db_config['OPTIONS']['family'] = 2  # socket.AF_INET for IPv4
+    DATABASES = {'default': db_config}
 else:
     DATABASES = {
         'default': {
@@ -86,6 +88,7 @@ else:
             'OPTIONS': {
                 'sslmode': 'require',
                 'connect_timeout': 10,
+                'family': 2,  # Force IPv4
             },
         }
     }
