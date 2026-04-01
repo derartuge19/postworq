@@ -285,6 +285,12 @@ export default function WerqRoot() {
             user={authUser}
             onBack={() => setShowPostPage(false)}
           />
+        ) : !authUser ? (
+          <LandingPage
+            onLogin={() => setShowLogin(true)}
+            onRegister={() => setShowRegister(true)}
+            onShowCampaigns={handleShowCampaigns}
+          />
         ) : screen === 'landing' ? (
           <LandingPage
             onLogin={() => setShowLogin(true)}
