@@ -4,6 +4,7 @@ import api from "../api";
 import { getRelativeTime } from "../utils/timeUtils";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import config from "../config";
 
 export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
   const { colors: T } = useTheme();
@@ -311,12 +312,12 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
                     <div style={{ aspectRatio: "1", background: "#000", position: "relative" }}>
                       {(post.media?.match(/\.(mp4|webm|ogg)$/i) || post.media?.includes('video')) ? (
                         <video
-                          src={post.media?.startsWith('http') ? post.media : `http://localhost:8000${post.media}`}
+                          src={post.media?.startsWith('http') ? post.media : `${config.API_BASE_URL.replace('/api', '')}${post.media}`}
                           style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />
                       ) : (
                         <img
-                          src={(post.media || post.image)?.startsWith('http') ? (post.media || post.image) : `http://localhost:8000${post.media || post.image}`}
+                          src={(post.media || post.image)?.startsWith('http') ? (post.media || post.image) : `${config.API_BASE_URL.replace('/api', '')}${post.media || post.image}`}
                           alt={post.caption}
                           style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />

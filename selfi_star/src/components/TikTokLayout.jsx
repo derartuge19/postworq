@@ -896,7 +896,7 @@ export function TikTokLayout({
                         src={
                           video.imageUrl.startsWith('http')
                             ? video.imageUrl
-                            : `http://localhost:8000${video.imageUrl}`
+                            : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
                         }
                         alt={video.caption}
                         style={{

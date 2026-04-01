@@ -1,6 +1,7 @@
 import { Home, Search, Compass, Film, MessageCircle, Heart, PlusSquare, User, Menu, Trophy, Bell, Settings } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import config from "../config";
 
 export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, onLogout, onShowProfile, onShowSettings, onShowCampaigns, onShowNotifications }) {
   const { colors: T } = useTheme();
@@ -126,7 +127,7 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               {user.profile_photo ? (
                 <img
-                  src={user.profile_photo.startsWith('http') ? user.profile_photo : `http://localhost:8000${user.profile_photo}`}
+                  src={user.profile_photo.startsWith('http') ? user.profile_photo : `${config.API_BASE_URL.replace('/api', '')}${user.profile_photo}`}
                   alt="Profile"
                   style={{
                     width: 32,

@@ -3,6 +3,7 @@ import { ArrowLeft, Camera, Save } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import config from "../config";
 
 export function EditProfilePage({ user, onBack, onSave }) {
   const { colors: T } = useTheme();
@@ -52,12 +53,10 @@ export function EditProfilePage({ user, onBack, onSave }) {
       if (formData.bio) formDataToSend.append('bio', formData.bio);
       if (profilePhoto) formDataToSend.append('profile_photo', profilePhoto);
       
-      const response = await fetch(`http://localhost:8000/api/profile/update_profile/`, {
+      const response = await api.request('/profile/update_profile/', {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Token ${localStorage.getItem('authToken')}`,
-        },
         body: formDataToSend,
+        isFormData: true,
       });
       
       if (!response.ok) {
@@ -70,7 +69,7 @@ export function EditProfilePage({ user, onBack, onSave }) {
       // Ensure profile_photo has full URL
       let profilePhotoUrl = data.profile_photo;
       if (profilePhotoUrl && !profilePhotoUrl.startsWith('http')) {
-        profilePhotoUrl = `http://localhost:8000${profilePhotoUrl}`;
+        profilePhotoUrl = `${config.API_BASE_URL.replace('/api', '')}${profilePhotoUrl}`;
       }
       
       const updatedUser = { 

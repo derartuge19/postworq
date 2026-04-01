@@ -385,13 +385,11 @@ const api = {
     if (data.profile_photo)
       formData.append('profile_photo', data.profile_photo);
 
-    return fetch(`${API_BASE_URL}/profile/update_profile/`, {
+    return api.request('/profile/update_profile/', {
       method: 'PATCH',
-      headers: {
-        Authorization: `Token ${authToken}`,
-      },
       body: formData,
-    }).then((r) => r.json());
+      isFormData: true,
+    });
   },
 
   // Get user's posts

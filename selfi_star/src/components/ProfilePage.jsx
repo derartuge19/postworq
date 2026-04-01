@@ -219,7 +219,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           <div style={{ position: "relative", flexShrink: 0 }}>
             {profileUser?.profile_photo ? (
               <img
-                src={profileUser.profile_photo.startsWith('http') ? profileUser.profile_photo : `http://localhost:8000${profileUser.profile_photo}`}
+                src={profileUser.profile_photo.startsWith('http') ? profileUser.profile_photo : `${config.API_BASE_URL.replace('/api', '')}${profileUser.profile_photo}`}
                 alt="Profile"
                 style={{
                   width: 80,
