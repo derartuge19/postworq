@@ -554,55 +554,65 @@ def search(request):
 @permission_classes([IsAuthenticated])
 def get_user_notifications(request):
     """Get all notifications for the authenticated user"""
-    # Get general notifications (likes, comments, follows) - with select_related to avoid N+1
-    notifications = Notification.objects.filter(
-        recipient=request.user
-    ).select_related(
-        'sender', 'reel', 'comment'
-    ).order_by('-created_at')[:50]
-    
-    # Get campaign notifications
-    campaign_notifications = CampaignNotification.objects.filter(
-        user=request.user
-    ).select_related('campaign').order_by('-created_at')[:50]
-    
-    result = []
-    
-    # Add general notifications
-    for notif in notifications:
-        result.append({
-            'id': notif.id,
-            'type': 'general',
-            'sender': {
-                'id': notif.sender.id,
-                'username': notif.sender.username,
-                'first_name': notif.sender.first_name,
-                'last_name': notif.sender.last_name
-            },
-            'notification_type': notif.notification_type,
-            'message': notif.message,
-            'read': notif.is_read,
-            'timestamp': notif.created_at,
-            'reel_id': notif.reel.id if notif.reel else None,
-            'comment_id': notif.comment.id if notif.comment else None,
-        })
-    
-    # Add campaign notifications
-    for notif in campaign_notifications:
-        result.append({
-            'id': notif.id,
-            'type': 'campaign',
-            'message': notif.message,
-            'notification_type': notif.notification_type,
-            'read': notif.is_read,
-            'timestamp': notif.created_at,
-            'campaign_id': notif.campaign.id if notif.campaign else None,
-        })
-    
-    # Sort all notifications by timestamp
-    result.sort(key=lambda x: x['timestamp'], reverse=True)
-    
-    return Response(result)
+    try:
+        # Get general notifications (likes, comments, follows) - with select_related to avoid N+1
+        notifications = Notification.objects.filter(
+            recipient=request.user
+        ).select_related(
+            'sender', 'reel', 'comment'
+        ).order_by('-created_at')[:50]
+        
+        # Get campaign notifications
+        campaign_notifications = CampaignNotification.objects.filter(
+            user=request.user
+        ).select_related('campaign').order_by('-created_at')[:50]
+        
+        result = []
+        
+        # Add general notifications
+        for notif in notifications:
+            sender_data = None
+            if notif.sender:
+                sender_data = {
+                    'id': notif.sender.id,
+                    'username': notif.sender.username,
+                    'first_name': notif.sender.first_name,
+                    'last_name': notif.sender.last_name
+                }
+            
+            result.append({
+                'id': notif.id,
+                'type': 'general',
+                'sender': sender_data,
+                'notification_type': notif.notification_type,
+                'message': notif.message,
+                'read': notif.is_read,
+                'timestamp': notif.created_at.isoformat() if notif.created_at else None,
+                'reel_id': notif.reel.id if notif.reel else None,
+                'comment_id': notif.comment.id if notif.comment else None,
+            })
+        
+        # Add campaign notifications
+        for notif in campaign_notifications:
+            result.append({
+                'id': notif.id,
+                'type': 'campaign',
+                'message': notif.message,
+                'notification_type': notif.notification_type,
+                'read': notif.is_read,
+                'timestamp': notif.created_at.isoformat() if notif.created_at else None,
+                'campaign_id': notif.campaign.id if notif.campaign else None,
+            })
+        
+        # Sort all notifications by timestamp
+        result.sort(key=lambda x: x['timestamp'] or '', reverse=True)
+        
+        return Response(result)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching notifications: {str(e)}", exc_info=True)
+        return Response({'error': str(e)}, status=500)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
