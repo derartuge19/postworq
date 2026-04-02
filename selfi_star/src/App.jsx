@@ -98,6 +98,50 @@ export default function WerqRoot() {
   const [showSettings, setShowSettings] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCampaigns, setShowCampaigns] = useState(false);
+
+  // Browser history support
+  useEffect(() => {
+    const handlePopState = (event) => {
+      const state = event.state || {};
+      // Restore state from history
+      setShowLogin(state.showLogin || false);
+      setShowRegister(state.showRegister || false);
+      setShowPostPage(state.showPostPage || false);
+      setShowProfile(state.showProfile || false);
+      setProfileUserId(state.profileUserId || null);
+      setActiveTab(state.activeTab || 'home');
+      setShowEditProfile(state.showEditProfile || false);
+      setShowFollowersList(state.showFollowersList || false);
+      setFollowersListType(state.followersListType || 'followers');
+      setFollowersListUserId(state.followersListUserId || null);
+      setShowSettings(state.showSettings || false);
+      setShowNotifications(state.showNotifications || false);
+      setShowCampaigns(state.showCampaigns || false);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Push state to history whenever navigation state changes
+  const pushHistoryState = (newState) => {
+    const state = {
+      showLogin: newState.showLogin !== undefined ? newState.showLogin : showLogin,
+      showRegister: newState.showRegister !== undefined ? newState.showRegister : showRegister,
+      showPostPage: newState.showPostPage !== undefined ? newState.showPostPage : showPostPage,
+      showProfile: newState.showProfile !== undefined ? newState.showProfile : showProfile,
+      profileUserId: newState.profileUserId !== undefined ? newState.profileUserId : profileUserId,
+      activeTab: newState.activeTab !== undefined ? newState.activeTab : activeTab,
+      showEditProfile: newState.showEditProfile !== undefined ? newState.showEditProfile : showEditProfile,
+      showFollowersList: newState.showFollowersList !== undefined ? newState.showFollowersList : showFollowersList,
+      followersListType: newState.followersListType !== undefined ? newState.followersListType : followersListType,
+      followersListUserId: newState.followersListUserId !== undefined ? newState.followersListUserId : followersListUserId,
+      showSettings: newState.showSettings !== undefined ? newState.showSettings : showSettings,
+      showNotifications: newState.showNotifications !== undefined ? newState.showNotifications : showNotifications,
+      showCampaigns: newState.showCampaigns !== undefined ? newState.showCampaigns : showCampaigns,
+    };
+    window.history.pushState(state, '');
+  };
   const [showCampaignDetail, setShowCampaignDetail] = useState(false);
   const [campaignId, setCampaignId] = useState(null);
 
@@ -165,6 +209,7 @@ export default function WerqRoot() {
     setShowPostPage(false);
     setShowEditProfile(false);
     setShowFollowersList(false);
+    pushHistoryState({ showProfile: true, profileUserId: userId, showPostPage: false, showEditProfile: false, showFollowersList: false });
   };
 
   const handleShowPostPage = () => {
@@ -176,6 +221,7 @@ export default function WerqRoot() {
     setShowProfile(false);
     setShowEditProfile(false);
     setShowFollowersList(false);
+    pushHistoryState({ showPostPage: true, showProfile: false, showEditProfile: false, showFollowersList: false });
   };
 
   const handleShowEditProfile = () => {
@@ -184,6 +230,7 @@ export default function WerqRoot() {
     setShowPostPage(false);
     setShowFollowersList(false);
     setShowSettings(false);
+    pushHistoryState({ showEditProfile: true, showProfile: false, showPostPage: false, showFollowersList: false, showSettings: false });
   };
 
   const handleShowFollowers = (userId, type = 'followers') => {
@@ -194,6 +241,7 @@ export default function WerqRoot() {
     setShowPostPage(false);
     setShowEditProfile(false);
     setShowSettings(false);
+    pushHistoryState({ showFollowersList: true, followersListUserId: userId, followersListType: type, showProfile: false, showPostPage: false, showEditProfile: false, showSettings: false });
   };
 
   const handleShowSettings = () => {
@@ -208,6 +256,7 @@ export default function WerqRoot() {
     setShowFollowersList(false);
     setShowNotifications(false);
     setShowCampaigns(false);
+    pushHistoryState({ showSettings: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showNotifications: false, showCampaigns: false });
     setShowCampaignDetail(false);
   };
 
@@ -220,6 +269,7 @@ export default function WerqRoot() {
     setShowSettings(false);
     setShowNotifications(false);
     setShowCampaignDetail(false);
+    pushHistoryState({ showCampaigns: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showNotifications: false, showCampaignDetail: false });
   };
 
   const handleShowNotifications = () => {
@@ -235,6 +285,7 @@ export default function WerqRoot() {
     setShowSettings(false);
     setShowCampaigns(false);
     setShowCampaignDetail(false);
+    pushHistoryState({ showNotifications: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showCampaigns: false, showCampaignDetail: false });
   };
 
   const handleProfileSaved = (updatedUser) => {
