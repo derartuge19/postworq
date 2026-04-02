@@ -157,54 +157,6 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
     }
   };
 
-  if (loading) {
-    return (
-      <div style={{
-        position: "fixed",
-        top: 0, left: 0, right: 0, bottom: 0,
-        background: "#fff",
-        zIndex: 200,
-        overflowY: "auto",
-      }}>
-        {/* Skeleton header */}
-        <div style={{
-          padding: "12px 20px",
-          borderBottom: `1px solid ${T.border}`,
-          display: "flex", alignItems: "center", gap: 16,
-        }}>
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f0f0f0" }} />
-          <div style={{ width: 120, height: 16, background: "#f0f0f0", borderRadius: 8 }} />
-        </div>
-        {/* Skeleton profile info */}
-        <div style={{ padding: "24px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-          <div style={{
-            width: 90, height: 90, borderRadius: "50%",
-            background: "linear-gradient(135deg, #f0f0f0, #e0e0e0)",
-            animation: "shimmer-profile 1.5s ease infinite alternate",
-          }} />
-          <div style={{ width: 140, height: 16, background: "#f0f0f0", borderRadius: 8 }} />
-          <div style={{ width: 100, height: 12, background: "#f5f5f5", borderRadius: 6 }} />
-          <div style={{ display: "flex", gap: 32, marginTop: 8 }}>
-            {[0,1,2].map(i => (
-              <div key={i} style={{ textAlign: "center" }}>
-                <div style={{ width: 36, height: 16, background: "#f0f0f0", borderRadius: 8, margin: "0 auto 4px" }} />
-                <div style={{ width: 50, height: 10, background: "#f5f5f5", borderRadius: 5 }} />
-              </div>
-            ))}
-          </div>
-          <div style={{ width: 160, height: 36, background: "#f0f0f0", borderRadius: 20, marginTop: 8 }} />
-        </div>
-        {/* Skeleton grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2, padding: "0 2px" }}>
-          {[0,1,2,3,4,5].map(i => (
-            <div key={i} style={{ aspectRatio: "1", background: "#f5f5f5" }} />
-          ))}
-        </div>
-        <style>{`@keyframes shimmer-profile{0%{opacity:0.6}100%{opacity:1}}`}</style>
-      </div>
-    );
-  }
-
   return (
     <div style={{
       position: "fixed",
@@ -216,7 +168,45 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       overflowY: "auto",
       zIndex: 200,
     }}>
-      {/* Header */}
+      {loading ? (
+        <>
+          {/* Skeleton header */}
+          <div style={{
+            padding: "12px 20px",
+            borderBottom: `1px solid ${T.border}`,
+            display: "flex", alignItems: "center", gap: 16,
+          }}>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f0f0f0" }} />
+            <div style={{ width: 120, height: 16, background: "#f0f0f0", borderRadius: 8 }} />
+          </div>
+          {/* Skeleton profile info */}
+          <div style={{ padding: "24px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+            <div style={{
+              width: 90, height: 90, borderRadius: "50%",
+              background: "linear-gradient(135deg, #f0f0f0, #e0e0e0)",
+            }} />
+            <div style={{ width: 140, height: 16, background: "#f0f0f0", borderRadius: 8 }} />
+            <div style={{ width: 100, height: 12, background: "#f5f5f5", borderRadius: 6 }} />
+            <div style={{ display: "flex", gap: 32, marginTop: 8 }}>
+              {[0,1,2].map(i => (
+                <div key={i} style={{ textAlign: "center" }}>
+                  <div style={{ width: 36, height: 16, background: "#f0f0f0", borderRadius: 8, margin: "0 auto 4px" }} />
+                  <div style={{ width: 50, height: 10, background: "#f5f5f5", borderRadius: 5 }} />
+                </div>
+              ))}
+            </div>
+            <div style={{ width: 160, height: 36, background: "#f0f0f0", borderRadius: 20, marginTop: 8 }} />
+          </div>
+          {/* Skeleton grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2, padding: "0 2px" }}>
+            {[0,1,2,3,4,5].map(i => (
+              <div key={i} style={{ aspectRatio: "1", background: "#f5f5f5" }} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Header */}
       <div style={{
         position: "sticky",
         top: 0,
@@ -863,6 +853,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
