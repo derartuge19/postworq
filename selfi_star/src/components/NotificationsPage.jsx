@@ -153,12 +153,19 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
 
           {/* Notifications List */}
           {loading ? (
-            <div style={{
-              textAlign: "center",
-              padding: 40,
-              color: T.sub,
-            }}>
-              {t('loading')}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {[0,1,2,3,4].map(i => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '14px 20px', background: i < 2 ? '#fefbf3' : '#fff',
+                }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#f0f0f0', flexShrink: 0 }} />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ width: `${70 - i * 8}%`, height: 13, background: '#f0f0f0', borderRadius: 6 }} />
+                    <div style={{ width: '40%', height: 10, background: '#f5f5f5', borderRadius: 5 }} />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredNotifications.length === 0 ? (
             <div style={{

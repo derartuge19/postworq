@@ -65,22 +65,24 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         setLoading(true);
         const targetUserId = userId || user?.id;
         
+        // Set profile user immediately from cache for own profile
         if (isOwnProfile) {
-          // Always get fresh user data from localStorage for own profile
           const storedUser = localStorage.getItem('user');
           if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            setProfileUser(parsedUser);
+            setProfileUser(JSON.parse(storedUser));
           } else {
             setProfileUser(user);
           }
-        } else {
-          const userData = await api.getUser(userId);
-          setProfileUser(userData);
         }
         
-        // Get follower/following counts
-        await fetchFollowCounts(targetUserId);
+        // Parallelize: fetch user data + follow counts simultaneously
+        const promises = [];
+        if (!isOwnProfile) {
+          promises.push(api.getUser(userId).then(data => setProfileUser(data)));
+        }
+        promises.push(fetchFollowCounts(targetUserId));
+        
+        await Promise.all(promises);
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       } finally {
@@ -155,17 +157,46 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
     return (
       <div style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: 0, left: 0, right: 0, bottom: 0,
         background: "#fff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
         zIndex: 200,
+        overflowY: "auto",
       }}>
-        <div style={{ fontSize: 14, color: T.sub }}>Loading profile...</div>
+        {/* Skeleton header */}
+        <div style={{
+          padding: "12px 20px",
+          borderBottom: `1px solid ${T.border}`,
+          display: "flex", alignItems: "center", gap: 16,
+        }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f0f0f0" }} />
+          <div style={{ width: 120, height: 16, background: "#f0f0f0", borderRadius: 8 }} />
+        </div>
+        {/* Skeleton profile info */}
+        <div style={{ padding: "24px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+          <div style={{
+            width: 90, height: 90, borderRadius: "50%",
+            background: "linear-gradient(135deg, #f0f0f0, #e0e0e0)",
+            animation: "shimmer-profile 1.5s ease infinite alternate",
+          }} />
+          <div style={{ width: 140, height: 16, background: "#f0f0f0", borderRadius: 8 }} />
+          <div style={{ width: 100, height: 12, background: "#f5f5f5", borderRadius: 6 }} />
+          <div style={{ display: "flex", gap: 32, marginTop: 8 }}>
+            {[0,1,2].map(i => (
+              <div key={i} style={{ textAlign: "center" }}>
+                <div style={{ width: 36, height: 16, background: "#f0f0f0", borderRadius: 8, margin: "0 auto 4px" }} />
+                <div style={{ width: 50, height: 10, background: "#f5f5f5", borderRadius: 5 }} />
+              </div>
+            ))}
+          </div>
+          <div style={{ width: 160, height: 36, background: "#f0f0f0", borderRadius: 20, marginTop: 8 }} />
+        </div>
+        {/* Skeleton grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2, padding: "0 2px" }}>
+          {[0,1,2,3,4,5].map(i => (
+            <div key={i} style={{ aspectRatio: "1", background: "#f5f5f5" }} />
+          ))}
+        </div>
+        <style>{`@keyframes shimmer-profile{0%{opacity:0.6}100%{opacity:1}}`}</style>
       </div>
     );
   }

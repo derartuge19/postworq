@@ -17,6 +17,59 @@ const CampaignsPage = lazy(() => import('./pages/CampaignsPage').then(m => ({ de
 const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage').then(m => ({ default: m.CampaignDetailPage })));
 const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
 
+// Prefetch all lazy chunks after initial load so navigation is instant
+const prefetchComponents = () => {
+  import('./components/ProfilePage');
+  import('./components/EditProfilePage');
+  import('./components/SettingsPage');
+  import('./components/NotificationsPage');
+  import('./components/EnhancedPostPage');
+  import('./components/FollowersListPage');
+  import('./components/ModernLoginScreen');
+  import('./components/ModernRegisterScreen');
+};
+
+// Page skeleton for navigation transitions
+function PageSkeleton() {
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: '#fff', display: 'flex', flexDirection: 'column',
+      zIndex: 200,
+    }}>
+      <div style={{
+        padding: '16px 20px', borderBottom: '1px solid #E7E5E4',
+        display: 'flex', alignItems: 'center', gap: 16,
+      }}>
+        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#f0f0f0' }} />
+        <div style={{ width: 120, height: 16, background: '#f0f0f0', borderRadius: 8 }} />
+      </div>
+      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#f5f5f5' }} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ width: '60%', height: 14, background: '#f0f0f0', borderRadius: 7 }} />
+            <div style={{ width: '40%', height: 12, background: '#f5f5f5', borderRadius: 6 }} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 20, justifyContent: 'center' }}>
+          {[0,1,2].map(i => (
+            <div key={i} style={{ textAlign: 'center' }}>
+              <div style={{ width: 40, height: 14, background: '#f0f0f0', borderRadius: 7, margin: '0 auto 4px' }} />
+              <div style={{ width: 50, height: 10, background: '#f5f5f5', borderRadius: 5, margin: '0 auto' }} />
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2, marginTop: 16 }}>
+          {[0,1,2,3,4,5].map(i => (
+            <div key={i} style={{ aspectRatio: '1', background: '#f5f5f5', borderRadius: 2 }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WerqRoot() {
   // Check if accessing admin panel
   if (
@@ -60,13 +113,19 @@ export default function WerqRoot() {
     setShowCampaignDetail(false);
   };
 
-  // Load user from localStorage on mount
+  // Load user from localStorage on mount + prefetch lazy components
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     const savedUser = localStorage.getItem('user');
     if (token && savedUser) {
       api.setAuthToken(token);
       setAuthUser(JSON.parse(savedUser));
+    }
+    // Prefetch lazy components after app is idle
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(prefetchComponents);
+    } else {
+      setTimeout(prefetchComponents, 2000);
     }
   }, []);
 
@@ -202,7 +261,7 @@ export default function WerqRoot() {
         onShowNotifications={handleShowNotifications}
         onShowCampaigns={handleShowCampaigns}
       >
-        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>}>
+        <Suspense fallback={<PageSkeleton />}>
         {showSettings ? (
           <SettingsPage
             user={authUser}
