@@ -211,7 +211,7 @@ export function AppShell({
             bottom: 0,
             left: 0,
             right: 0,
-            height: 70,
+            height: 60,
             background: 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(20px)',
             borderTop: `1px solid ${T.border}`,
@@ -219,7 +219,7 @@ export function AppShell({
             alignItems: 'center',
             justifyContent: 'space-around',
             zIndex: 1000,
-            paddingBottom: 10,
+            padding: '8px 0',
           }}
         >
           {[
