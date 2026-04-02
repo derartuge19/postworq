@@ -299,7 +299,12 @@ export default function WerqRoot() {
               setShowFollowersList(false);
               setShowProfile(true);
             }}
-            onUserClick={(user) => handleShowProfile(user.id)}
+            onUserClick={(userId) => {
+              // Note: the component passes the full user object, but handleShowProfile expects an ID
+              const id = typeof userId === 'object' ? userId.id : userId;
+              setShowFollowersList(false);
+              handleShowProfile(id);
+            }}
           />
         ) : showProfile ? (
           <ProfilePage
