@@ -114,11 +114,13 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
         style={{
           width: "100%",
           maxWidth: 600,
-          maxHeight: "80vh",
+          height: "min(90vh, 90dvh)",
+          maxHeight: "min(90vh, 90dvh)",
           background: "#fff",
           borderRadius: "20px 20px 0 0",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
         }}
       >
         {/* Header */}
@@ -319,13 +321,17 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
           )}
         </div>
 
-        {/* Input */}
+        {/* Input - always visible at bottom */}
         <div style={{
-          padding: "16px 20px",
+          flexShrink: 0,
+          padding: "12px 16px",
+          paddingBottom: "max(12px, env(safe-area-inset-bottom))",
           borderTop: `1px solid ${T.border}`,
           display: "flex",
-          gap: 12,
+          gap: 10,
           alignItems: "center",
+          background: "#fff",
+          boxSizing: "border-box",
         }}>
           <div style={{
             width: 36,
@@ -347,11 +353,13 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
             placeholder="Add a comment..."
             style={{
               flex: 1,
-              padding: "10px 16px",
+              padding: "10px 14px",
               border: `1px solid ${T.border}`,
-              borderRadius: 24,
+              borderRadius: 22,
               fontSize: 14,
               outline: "none",
+              boxSizing: "border-box",
+              minWidth: 0,
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter" && !posting) {
@@ -366,16 +374,18 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
               background: posting || !newComment.trim() ? T.sub : T.pri,
               border: "none",
               borderRadius: "50%",
-              width: 40,
-              height: 40,
+              width: 38,
+              height: 38,
+              minWidth: 38,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: posting || !newComment.trim() ? "not-allowed" : "pointer",
               color: "#fff",
+              flexShrink: 0,
             }}
           >
-            {posting ? <Loader size={20} style={{ animation: "spin 1s linear infinite" }} /> : <Send size={20} />}
+            {posting ? <Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> : <Send size={18} />}
           </button>
         </div>
       </div>
