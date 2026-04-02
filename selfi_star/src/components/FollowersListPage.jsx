@@ -3,6 +3,7 @@ import { ArrowLeft, UserPlus, UserCheck } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import config from "../config";
 
 export function FollowersListPage({ userId, type = "followers", onBack, onUserClick }) {
   const { colors: T } = useTheme();
@@ -140,12 +141,30 @@ export function FollowersListPage({ userId, type = "followers", onBack, onUserCl
                       padding: 0,
                     }}
                   >
+                    {user.profile_photo ? (
+                      <img
+                        src={user.profile_photo.startsWith('http') ? user.profile_photo : `${config.API_BASE_URL.replace('/api', '')}${user.profile_photo}`}
+                        alt={user.username}
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          flexShrink: 0,
+                          border: `1px solid ${T.border}`,
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
                     <div style={{
                       width: 48,
                       height: 48,
                       borderRadius: "50%",
                       background: T.pri + "30",
-                      display: "flex",
+                      display: user.profile_photo ? "none" : "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontSize: 20,
