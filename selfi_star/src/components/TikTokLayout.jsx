@@ -90,6 +90,16 @@ export function TikTokLayout({
 
   const videoRefs = useRef({});
   const videoContainerRefs = useRef({});
+  const [visibleVideos, setVisibleVideos] = useState({});
+
+  // Generate Cloudinary poster thumbnail from video URL
+  const getVideoPoster = (url) => {
+    if (!url || !url.includes('cloudinary')) return undefined;
+    // Replace /video/upload/ with /video/upload/so_0,w_480,q_auto,f_jpg/ for first-frame thumbnail
+    return url
+      .replace('/video/upload/', '/video/upload/so_0,w_480,q_auto,f_jpg/')
+      .replace(/\.(mp4|webm|mov|ogg)$/i, '.jpg');
+  };
 
   // Mobile detection - runs once on mount and on resize
   useEffect(() => {
@@ -245,50 +255,54 @@ export function TikTokLayout({
     }
   }, [loadingMore, hasMore, page]);
 
-  // IntersectionObserver to control video playback - only play visible video
+  // IntersectionObserver to control video playback AND lazy-load src
   useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.7, // Video must be 70% visible to play
-    };
+    // Observer for playback (70% visible)
+    const playbackObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const videoId = entry.target.dataset.videoId;
+          const videoElement = videoRefs.current[videoId];
+          if (!videoElement) return;
 
-    const handleIntersection = (entries) => {
-      entries.forEach((entry) => {
-        const videoId = entry.target.dataset.videoId;
-        const videoElement = videoRefs.current[videoId];
-
-        if (!videoElement) return;
-
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
-          // Video is in view - play it
-          videoElement
-            .play()
-            .catch((err) => console.log('Play prevented:', err));
-          setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
-        } else {
-          // Video is out of view - pause it
-          videoElement.pause();
-          setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
-        }
-      });
-    };
-
-    const observer = new IntersectionObserver(
-      handleIntersection,
-      observerOptions,
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
+            videoElement
+              .play()
+              .catch((err) => console.log('Play prevented:', err));
+            setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
+          } else {
+            videoElement.pause();
+            setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
+          }
+        });
+      },
+      { root: null, rootMargin: '0px', threshold: 0.7 },
     );
 
-    // Observe all video containers
+    // Observer for lazy-loading src (preload when 1 screen away)
+    const lazyObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const videoId = entry.target.dataset.videoId;
+          if (entry.isIntersecting) {
+            setVisibleVideos((prev) => ({ ...prev, [videoId]: true }));
+          }
+        });
+      },
+      { root: null, rootMargin: '200% 0px', threshold: 0 },
+    );
+
     Object.keys(videoContainerRefs.current).forEach((videoId) => {
       const container = videoContainerRefs.current[videoId];
       if (container) {
-        observer.observe(container);
+        playbackObserver.observe(container);
+        lazyObserver.observe(container);
       }
     });
 
     return () => {
-      observer.disconnect();
+      playbackObserver.disconnect();
+      lazyObserver.disconnect();
     };
   }, [videos]);
 
@@ -854,10 +868,18 @@ export function TikTokLayout({
                         <video
                           ref={(el) => (videoRefs.current[video.id] = el)}
                           src={
+                            (videos.indexOf(video) === 0 || visibleVideos[video.id])
+                              ? (video.imageUrl.startsWith('http')
+                                  ? video.imageUrl
+                                  : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`)
+                              : undefined
+                          }
+                          poster={getVideoPoster(
                             video.imageUrl.startsWith('http')
                               ? video.imageUrl
                               : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
-                          }
+                          )}
+                          preload={videos.indexOf(video) === 0 ? 'auto' : 'none'}
                           loop
                           playsInline
                           muted={!audioEnabled}
@@ -866,6 +888,7 @@ export function TikTokLayout({
                             height: '100%',
                             objectFit: 'cover',
                             display: 'block',
+                            background: '#000',
                           }}
                           onClick={() => toggleVideoPlayback(video.id)}
                           onDoubleClick={() => handleDoubleTap(video.id)}
