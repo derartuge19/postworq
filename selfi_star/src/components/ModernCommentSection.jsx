@@ -95,34 +95,56 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
   };
 
   return (
-    <div style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: "rgba(0,0,0,0.7)",
-      display: "flex",
-      alignItems: "flex-end",
-      justifyContent: "center",
-      zIndex: 4000,
-      paddingBottom: window.innerWidth <= 1024 ? 60 : 0, // Add padding for mobile footer
-    }}
-    onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
+    <>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .modern-comment-overlay {
+          padding-bottom: 0;
+        }
+        .modern-comment-modal {
+          max-height: 85vh;
+        }
+        @media (max-width: 1024px) {
+          .modern-comment-overlay {
+            padding-bottom: 60px;
+          }
+          .modern-comment-modal {
+            max-height: calc(85vh - 60px);
+          }
+        }
+      `}</style>
+      <div 
+        className="modern-comment-overlay"
         style={{
-          width: "100%",
-          maxWidth: 600,
-          maxHeight: "calc(85vh - 60px)", // Account for footer height
-          background: "#fff",
-          borderRadius: "20px 20px 0 0",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.7)",
           display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
+          alignItems: "flex-end",
+          justifyContent: "center",
+          zIndex: 4000,
         }}
+        onClick={onClose}
       >
+        <div
+          className="modern-comment-modal"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: "100%",
+            maxWidth: 600,
+            background: "#fff",
+            borderRadius: "20px 20px 0 0",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
         {/* Header */}
         <div style={{
           padding: "16px 20px",
@@ -393,13 +415,6 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
         </div>
       </div>
 
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-
       <AlertModal
         isOpen={alertModal.isOpen}
         onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
@@ -408,5 +423,6 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
         type={alertModal.type}
       />
     </div>
+    </>
   );
 }
