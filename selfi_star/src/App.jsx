@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { AppShell } from './components/AppShell';
 import { TikTokLayout } from './components/TikTokLayout';
 import api from './api';
@@ -27,7 +27,41 @@ const prefetchComponents = () => {
   import('./components/FollowersListPage');
   import('./components/ModernLoginScreen');
   import('./components/ModernRegisterScreen');
+  import('./pages/CampaignsPage');
+  import('./pages/CampaignDetailPage');
 };
+
+// Error boundary for lazy loading failures
+class LazyLoadErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Lazy loading error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          height: '100vh', background: '#fff', gap: 16,
+        }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#000' }}>Loading...</div>
+          <div style={{ fontSize: 14, color: '#666' }}>Please wait while we load the page</div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Page skeleton for navigation transitions
 function PageSkeleton() {
@@ -312,7 +346,8 @@ export default function WerqRoot() {
         onShowNotifications={handleShowNotifications}
         onShowCampaigns={handleShowCampaigns}
       >
-        <Suspense fallback={<PageSkeleton />}>
+        <LazyLoadErrorBoundary>
+          <Suspense fallback={<PageSkeleton />}>
         {showSettings ? (
           <SettingsPage
             user={authUser}
@@ -438,6 +473,7 @@ export default function WerqRoot() {
           />
         )}
         </Suspense>
+        </LazyLoadErrorBoundary>
       </AppShell>
       {showLogin && (
         <div
