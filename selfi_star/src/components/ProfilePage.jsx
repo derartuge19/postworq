@@ -548,21 +548,31 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 const videoUrl = (fullUrl.includes('cloudinary') && !fullUrl.match(/\.(mp4|webm|ogg|mov)$/i))
                   ? fullUrl + '.mp4'
                   : fullUrl;
+                
+                // Generate poster thumbnail from video URL
+                const getVideoPoster = (url) => {
+                  if (!url.includes('cloudinary')) return '';
+                  // Create thumbnail by replacing /video/upload/ with transformed image URL
+                  return url
+                    .replace('/video/upload/', '/video/upload/so_0,w_300,h_300,c_fill,q_auto:low/')
+                    .replace(/\.mp4$/i, '.jpg');
+                };
+                
                 return (
                   <>
                     <video
                       src={videoUrl}
+                      poster={getVideoPoster(videoUrl)}
                       style={{
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
+                        background: T.bg,
                       }}
                       muted
                       loop
                       playsInline
-                      preload="none"
-                      loading="lazy"
-                      poster=""
+                      preload="metadata"
                       onMouseEnter={(e) => e.target.play()}
                       onMouseLeave={(e) => e.target.pause()}
                     />
