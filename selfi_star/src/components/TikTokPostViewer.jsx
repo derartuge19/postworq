@@ -74,19 +74,29 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
     }
   };
 
-  // Wheel/scroll handling
+  // Wheel/scroll handling - using useEffect to add non-passive listener
   const wheelTimeout = useRef(null);
-  const handleWheel = (e) => {
-    e.preventDefault();
-    if (wheelTimeout.current) return;
+  
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
     
-    wheelTimeout.current = setTimeout(() => {
-      wheelTimeout.current = null;
-    }, 300);
+    const handleWheel = (e) => {
+      e.preventDefault();
+      if (wheelTimeout.current) return;
+      
+      wheelTimeout.current = setTimeout(() => {
+        wheelTimeout.current = null;
+      }, 300);
 
-    if (e.deltaY > 0) goToNext();
-    else goToPrev();
-  };
+      if (e.deltaY > 0) goToNext();
+      else goToPrev();
+    };
+    
+    // Add listener with passive: false to allow preventDefault
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [goToNext, goToPrev]);
 
   const mediaUrl = currentPost?.media || currentPost?.image || '';
   const fullUrl = mediaUrl.startsWith('http') ? mediaUrl : `${config.API_BASE_URL.replace('/api', '')}${mediaUrl}`;
@@ -125,7 +135,6 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
       }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      onWheel={handleWheel}
     >
       {/* Close Button */}
       <button
