@@ -5,6 +5,7 @@ import { AlertModal } from "./AlertModal";
 import { getRelativeTime } from "../utils/timeUtils";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import "./ModernCommentSection.css";
 
 export function ModernCommentSection({ reelId, user, onClose, onCommentPosted }) {
   const { colors: T } = useTheme();
@@ -96,26 +97,6 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
 
   return (
     <>
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .modern-comment-overlay {
-          padding-bottom: 0;
-        }
-        .modern-comment-modal {
-          max-height: 85vh;
-        }
-        @media (max-width: 1024px) {
-          .modern-comment-overlay {
-            padding-bottom: 60px;
-          }
-          .modern-comment-modal {
-            max-height: calc(85vh - 60px);
-          }
-        }
-      `}</style>
       <div 
         className="modern-comment-overlay"
         style={{
