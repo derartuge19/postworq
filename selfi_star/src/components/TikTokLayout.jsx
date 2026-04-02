@@ -95,16 +95,9 @@ export function TikTokLayout({
 
   // Generate Cloudinary poster thumbnail from video URL
   const getVideoPoster = (url) => {
-    if (!url || !url.includes('cloudinary')) return undefined;
-    try {
-      // Use Cloudinary image delivery for video first frame
-      // Change /video/upload/ to /video/upload/so_0,w_480,c_scale,q_auto/ and append .jpg
-      const withTransform = url.replace('/video/upload/', '/video/upload/so_0,w_480,c_scale,q_auto/');
-      // Strip any existing video extension and add .jpg
-      return withTransform.replace(/\.(mp4|webm|mov|ogg)$/i, '') + '.jpg';
-    } catch {
-      return undefined;
-    }
+    // Disabled: Cloudinary poster URLs were causing 400 errors
+    // Videos will load without poster attribute (browser will show first frame when ready)
+    return undefined;
   };
 
   // Mobile detection - runs once on mount and on resize
