@@ -121,7 +121,7 @@ export function TikTokLayout({
     
     try {
       let reelsData = [];
-      const limit = 10; // Load 10 videos at a time
+      const limit = 5; // Load 5 videos at a time for faster initial paint
       const offset = (pageNum - 1) * limit;
 
       // Fetch different content based on active tab
@@ -139,7 +139,6 @@ export function TikTokLayout({
         reelsData = await api.request(`/reels/?limit=${limit}&offset=${offset}`);
       }
 
-      console.log('API response:', reelsData);
 
       // Handle different response formats (DRF pagination returns {count, next, previous, results})
       const reelsList = Array.isArray(reelsData)
@@ -153,20 +152,6 @@ export function TikTokLayout({
       // Transform backend data to match frontend format
       const formattedVideos = reelsList.map((reel) => {
         const videoUrl = reel.media || reel.image;
-        console.log('🎬 Processing reel:', {
-          id: reel.id,
-          user: reel.user?.username,
-          media: reel.media,
-          image: reel.image,
-          finalUrl: videoUrl,
-          isVideo:
-            videoUrl &&
-            (videoUrl.includes('.mp4') ||
-              videoUrl.includes('.webm') ||
-              videoUrl.includes('.ogg') ||
-              videoUrl.includes('.mov')),
-          caption: reel.caption,
-        });
 
         return {
           id: reel.id,
@@ -195,7 +180,6 @@ export function TikTokLayout({
           created_at: reel.created_at,
         };
       });
-      console.log('Formatted videos:', formattedVideos);
       
       if (append) {
         setVideos(prev => [...prev, ...formattedVideos]);
@@ -724,16 +708,34 @@ export function TikTokLayout({
             }}
           >
             {loading ? (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: 200,
-                  color: '#000',
-                }}
-              >
-                Loading videos...
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 0 : 20 }}>
+                {[0, 1].map(i => (
+                  <div key={i} className="video-card-snap" style={{
+                    background: '#111',
+                    borderRadius: isMobile ? 0 : 12,
+                    overflow: 'hidden',
+                    height: isMobile ? 'calc(100dvh - 70px)' : 750,
+                    width: isMobile ? '100vw' : '100%',
+                    position: 'relative',
+                  }}>
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)',
+                      animation: 'shimmer 1.5s infinite',
+                    }} />
+                    <div style={{ position: 'absolute', bottom: 80, left: 16, right: 70 }}>
+                      <div style={{ width: 100, height: 14, background: 'rgba(255,255,255,0.12)', borderRadius: 7, marginBottom: 10 }} />
+                      <div style={{ width: 180, height: 12, background: 'rgba(255,255,255,0.08)', borderRadius: 6, marginBottom: 6 }} />
+                      <div style={{ width: 140, height: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 6 }} />
+                    </div>
+                    <div style={{ position: 'absolute', bottom: 80, right: 12, display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center' }}>
+                      {[0,1,2].map(j => (
+                        <div key={j} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <style>{`@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}`}</style>
               </div>
             ) : videos.length === 0 ? (
               <div

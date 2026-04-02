@@ -1,12 +1,12 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { ModernLoginScreen } from './components/ModernLoginScreen';
-import { ModernRegisterScreen } from './components/ModernRegisterScreen';
-import { LandingPage } from './components/LandingPage';
 import { AppShell } from './components/AppShell';
 import { TikTokLayout } from './components/TikTokLayout';
 import api from './api';
 
-// Lazy load heavy components
+// Lazy load ALL non-critical components for smaller initial bundle
+const ModernLoginScreen = lazy(() => import('./components/ModernLoginScreen').then(m => ({ default: m.ModernLoginScreen })));
+const ModernRegisterScreen = lazy(() => import('./components/ModernRegisterScreen').then(m => ({ default: m.ModernRegisterScreen })));
+const LandingPage = lazy(() => import('./components/LandingPage').then(m => ({ default: m.LandingPage })));
 const EnhancedPostPage = lazy(() => import('./components/EnhancedPostPage').then(m => ({ default: m.EnhancedPostPage })));
 const ProfilePage = lazy(() => import('./components/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const EditProfilePage = lazy(() => import('./components/EditProfilePage').then(m => ({ default: m.EditProfilePage })));
