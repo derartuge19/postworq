@@ -54,7 +54,8 @@ const api = {
       headers['Content-Type'] = 'application/json';
     }
 
-    const currentToken = authToken || localStorage.getItem('authToken');
+    // Always get fresh token from localStorage to ensure it's current
+    const currentToken = localStorage.getItem('authToken') || authToken;
     if (currentToken && !endpoint.includes('/auth/')) {
       headers['Authorization'] = `Token ${currentToken}`;
     }
@@ -331,9 +332,9 @@ const api = {
       body: JSON.stringify({ following_id: userId }),
     }),
 
-  getFollowers: (userId) => api.request(`/follows/?following=${userId}`),
+  getFollowers: (userId) => api.request(`/follows/?following=${userId}`, { noCache: true }),
 
-  getFollowing: (userId) => api.request(`/follows/?follower=${userId}`),
+  getFollowing: (userId) => api.request(`/follows/?follower=${userId}`, { noCache: true }),
 
   getUserSuggestions: () => api.request('/follows/suggestions/'),
 
