@@ -355,131 +355,141 @@ export default function WerqRoot() {
       >
         <LazyLoadErrorBoundary>
           <Suspense fallback={<PageSkeleton />}>
-        {showSettings ? (
-          <SettingsPage
-            user={authUser}
-            onClose={() => setShowSettings(false)}
-            onLogout={handleLogout}
-          />
-        ) : showNotifications ? (
-          <NotificationsPage
-            user={authUser}
-            onUserClick={(userId) => {
-              setShowNotifications(false);
-              handleShowProfile(userId);
-            }}
-            onBack={() => setShowNotifications(false)}
-            onShowPostPage={handleShowPostPage}
-            onLogout={handleLogout}
-            onShowProfile={() => handleShowProfile(null)}
-            onShowSettings={handleShowSettings}
-            onShowCampaigns={handleShowCampaigns}
-          />
-        ) : showEditProfile ? (
-          <EditProfilePage
-            user={authUser}
-            onBack={() => {
-              setShowEditProfile(false);
-              setShowProfile(true);
-            }}
-            onSave={handleProfileSaved}
-          />
-        ) : showFollowersList ? (
-          <FollowersListPage
-            userId={followersListUserId}
-            type={followersListType}
-            onBack={() => {
-              setShowFollowersList(false);
-              setShowProfile(true);
-            }}
-            onUserClick={(userId) => {
-              // Note: the component passes the full user object, but handleShowProfile expects an ID
-              const id = typeof userId === 'object' ? userId.id : userId;
-              setShowFollowersList(false);
-              handleShowProfile(id);
-            }}
-          />
-        ) : showProfile ? (
-          <ProfilePage
-            user={authUser}
-            userId={profileUserId}
-            onBack={() => setShowProfile(false)}
-            onEditProfile={handleShowEditProfile}
-            onShowSettings={handleShowSettings}
-            onShowFollowers={(userId) =>
-              handleShowFollowers(userId, 'followers')
-            }
-            onShowFollowing={(userId) =>
-              handleShowFollowers(userId, 'following')
-            }
-          />
-        ) : showCampaignDetail ? (
-          <CampaignDetailPage
-            theme={{
-              pri: '#DA9B2A',
-              txt: '#1C1917',
-              sub: '#78716C',
-              bg: '#FAFAF9',
-              card: '#FFFFFF',
-              border: '#E7E5E4',
-              blue: '#3B82F6',
-              green: '#10B981',
-              red: '#EF4444',
-              orange: '#F59E0B',
-              purple: '#8B5CF6',
-            }}
-            campaignId={campaignId}
-            onBack={() => {
-              setShowCampaignDetail(false);
-              setShowCampaigns(true);
-            }}
-          />
-        ) : showCampaigns ? (
-          <CampaignsPage
-            theme={{
-              pri: '#DA9B2A',
-              txt: '#1C1917',
-              sub: '#78716C',
-              bg: '#FAFAF9',
-              card: '#FFFFFF',
-              border: '#E7E5E4',
-              blue: '#3B82F6',
-              green: '#10B981',
-              red: '#EF4444',
-              orange: '#F59E0B',
-              purple: '#8B5CF6',
-            }}
-            onCampaignClick={(id) => {
-              setCampaignId(id);
-              setShowCampaigns(false);
-              setShowCampaignDetail(true);
-            }}
-            onBack={() => setShowCampaigns(false)}
-          />
-        ) : showPostPage ? (
-          <EnhancedPostPage
-            user={authUser}
-            onBack={() => setShowPostPage(false)}
-          />
-        ) : screen === 'landing' ? (
-          <LandingPage
-            onLogin={() => setShowLogin(true)}
-            onRegister={() => setShowRegister(true)}
-            onShowCampaigns={handleShowCampaigns}
-          />
-        ) : (
-          <TikTokLayout
-            user={authUser}
-            activeTab={activeTab}
-            onLogout={handleLogout}
-            onRequireAuth={handleRequireAuth}
-            onShowPostPage={handleShowPostPage}
-            onShowProfile={handleShowProfile}
-            onShowSettings={handleShowSettings}
-            onShowNotifications={handleShowNotifications}
-          />
-        )}
-        </Suspense>
+            {/* Always mount all components to maintain hook order - use display:none to hide */}
+            <div style={{ display: showSettings ? 'block' : 'none' }}>
+              <SettingsPage
+                user={authUser}
+                onClose={() => setShowSettings(false)}
+                onLogout={handleLogout}
+              />
+            </div>
+            <div style={{ display: showNotifications ? 'block' : 'none' }}>
+              <NotificationsPage
+                user={authUser}
+                onUserClick={(userId) => {
+                  setShowNotifications(false);
+                  handleShowProfile(userId);
+                }}
+                onBack={() => setShowNotifications(false)}
+                onShowPostPage={handleShowPostPage}
+                onLogout={handleLogout}
+                onShowProfile={() => handleShowProfile(null)}
+                onShowSettings={handleShowSettings}
+                onShowCampaigns={handleShowCampaigns}
+              />
+            </div>
+            <div style={{ display: showEditProfile ? 'block' : 'none' }}>
+              <EditProfilePage
+                user={authUser}
+                onBack={() => {
+                  setShowEditProfile(false);
+                  setShowProfile(true);
+                }}
+                onSave={handleProfileSaved}
+              />
+            </div>
+            <div style={{ display: showFollowersList ? 'block' : 'none' }}>
+              <FollowersListPage
+                userId={followersListUserId}
+                type={followersListType}
+                onBack={() => {
+                  setShowFollowersList(false);
+                  setShowProfile(true);
+                }}
+                onUserClick={(userId) => {
+                  // Note: the component passes the full user object, but handleShowProfile expects an ID
+                  const id = typeof userId === 'object' ? userId.id : userId;
+                  setShowFollowersList(false);
+                  handleShowProfile(id);
+                }}
+              />
+            </div>
+            <div style={{ display: showProfile ? 'block' : 'none' }}>
+              <ProfilePage
+                user={authUser}
+                userId={profileUserId}
+                onBack={() => setShowProfile(false)}
+                onEditProfile={handleShowEditProfile}
+                onShowSettings={handleShowSettings}
+                onShowFollowers={(userId) =>
+                  handleShowFollowers(userId, 'followers')
+                }
+                onShowFollowing={(userId) =>
+                  handleShowFollowers(userId, 'following')
+                }
+              />
+            </div>
+            <div style={{ display: showCampaignDetail ? 'block' : 'none' }}>
+              <CampaignDetailPage
+                theme={{
+                  pri: '#DA9B2A',
+                  txt: '#1C1917',
+                  sub: '#78716C',
+                  bg: '#FAFAF9',
+                  card: '#FFFFFF',
+                  border: '#E7E5E4',
+                  blue: '#3B82F6',
+                  green: '#10B981',
+                  red: '#EF4444',
+                  orange: '#F59E0B',
+                  purple: '#8B5CF6',
+                }}
+                campaignId={campaignId}
+                onBack={() => {
+                  setShowCampaignDetail(false);
+                  setShowCampaigns(true);
+                }}
+              />
+            </div>
+            <div style={{ display: showCampaigns ? 'block' : 'none' }}>
+              <CampaignsPage
+                theme={{
+                  pri: '#DA9B2A',
+                  txt: '#1C1917',
+                  sub: '#78716C',
+                  bg: '#FAFAF9',
+                  card: '#FFFFFF',
+                  border: '#E7E5E4',
+                  blue: '#3B82F6',
+                  green: '#10B981',
+                  red: '#EF4444',
+                  orange: '#F59E0B',
+                  purple: '#8B5CF6',
+                }}
+                onCampaignClick={(id) => {
+                  setCampaignId(id);
+                  setShowCampaigns(false);
+                  setShowCampaignDetail(true);
+                }}
+                onBack={() => setShowCampaigns(false)}
+              />
+            </div>
+            <div style={{ display: showPostPage ? 'block' : 'none' }}>
+              <EnhancedPostPage
+                user={authUser}
+                onBack={() => setShowPostPage(false)}
+              />
+            </div>
+            <div style={{ display: screen === 'landing' ? 'block' : 'none' }}>
+              <LandingPage
+                onLogin={() => setShowLogin(true)}
+                onRegister={() => setShowRegister(true)}
+                onShowCampaigns={handleShowCampaigns}
+              />
+            </div>
+            <div style={{ display: !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && screen !== 'landing' ? 'block' : 'none' }}>
+              <TikTokLayout
+                user={authUser}
+                activeTab={activeTab}
+                onLogout={handleLogout}
+                onRequireAuth={handleRequireAuth}
+                onShowPostPage={handleShowPostPage}
+                onShowProfile={handleShowProfile}
+                onShowSettings={handleShowSettings}
+                onShowNotifications={handleShowNotifications}
+              />
+            </div>
+          </Suspense>
         </LazyLoadErrorBoundary>
       </AppShell>
       {showLogin && (
