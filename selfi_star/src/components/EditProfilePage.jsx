@@ -87,6 +87,17 @@ export function EditProfilePage({ user, onBack, onSave }) {
     }
   };
 
+  const inputStyle = {
+    width: "100%",
+    padding: "12px 16px",
+    border: `1px solid ${T.border}`,
+    borderRadius: 8,
+    fontSize: 14,
+    outline: "none",
+    transition: "border 0.2s",
+    boxSizing: "border-box",
+  };
+
   return (
     <div style={{
       position: "fixed",
@@ -95,19 +106,20 @@ export function EditProfilePage({ user, onBack, onSave }) {
       right: 0,
       bottom: 0,
       background: "#fff",
-      overflowY: "auto",
       zIndex: 200,
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
     }}>
-      {/* Header */}
+      {/* Header - always visible */}
       <div style={{
-        position: "sticky",
-        top: 0,
+        flexShrink: 0,
         background: "#fff",
         borderBottom: `1px solid ${T.border}`,
-        padding: "12px 20px",
+        padding: "10px 16px",
         display: "flex",
         alignItems: "center",
-        gap: 16,
+        gap: 12,
         zIndex: 10,
       }}>
         <button
@@ -116,228 +128,206 @@ export function EditProfilePage({ user, onBack, onSave }) {
             background: "none",
             border: "none",
             cursor: "pointer",
-            padding: 8,
+            padding: 6,
             display: "flex",
             alignItems: "center",
             color: T.txt,
+            flexShrink: 0,
           }}
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft size={22} />
         </button>
-        <div style={{ flex: 1, fontSize: 18, fontWeight: 700, color: T.txt }}>
+        <div style={{ flex: 1, fontSize: 17, fontWeight: 700, color: T.txt, minWidth: 0 }}>
           Edit Profile
         </div>
+      </div>
+
+      {/* Scrollable Content */}
+      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+        <div style={{ padding: "16px", maxWidth: 600, margin: "0 auto", boxSizing: "border-box" }}>
+          {/* Profile Photo */}
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <div style={{ position: "relative", display: "inline-block" }}>
+              {photoPreview ? (
+                <img
+                  src={photoPreview}
+                  alt="Profile"
+                  style={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: `3px solid ${T.pri}`,
+                  }}
+                />
+              ) : (
+                <div style={{
+                  width: 88,
+                  height: 88,
+                  borderRadius: "50%",
+                  background: T.pri + "30",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 36,
+                }}>
+                  👤
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  background: T.pri,
+                  border: "2px solid #fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  color: "#fff",
+                }}
+              >
+                <Camera size={16} />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                style={{ display: "none" }}
+              />
+            </div>
+            <div style={{ fontSize: 12, color: T.sub, marginTop: 6 }}>
+              Tap to change photo
+            </div>
+          </div>
+
+          {/* Form Fields */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
+                Username
+              </label>
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) => handleChange("username", e.target.value)}
+                placeholder="Enter your username"
+                style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = T.pri}
+                onBlur={(e) => e.target.style.borderColor = T.border}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
+                Email
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+                placeholder="Enter your email"
+                style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = T.pri}
+                onBlur={(e) => e.target.style.borderColor = T.border}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => handleChange("firstName", e.target.value)}
+                  placeholder="First name"
+                  style={inputStyle}
+                  onFocus={(e) => e.target.style.borderColor = T.pri}
+                  onBlur={(e) => e.target.style.borderColor = T.border}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => handleChange("lastName", e.target.value)}
+                  placeholder="Last name"
+                  style={inputStyle}
+                  onFocus={(e) => e.target.style.borderColor = T.pri}
+                  onBlur={(e) => e.target.style.borderColor = T.border}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
+                Bio
+              </label>
+              <textarea
+                value={formData.bio}
+                onChange={(e) => handleChange("bio", e.target.value)}
+                placeholder="Tell us about yourself..."
+                rows={3}
+                maxLength={150}
+                style={{
+                  ...inputStyle,
+                  resize: "none",
+                  fontFamily: "inherit",
+                }}
+                onFocus={(e) => e.target.style.borderColor = T.pri}
+                onBlur={(e) => e.target.style.borderColor = T.border}
+              />
+              <div style={{ fontSize: 11, color: T.sub, marginTop: 4, textAlign: "right" }}>
+                {formData.bio.length}/150
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky bottom save button - always reachable */}
+      <div style={{
+        flexShrink: 0,
+        padding: "12px 16px",
+        paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+        borderTop: `1px solid ${T.border}`,
+        background: "#fff",
+      }}>
         <button
           onClick={handleSave}
           disabled={saving}
           style={{
+            width: "100%",
+            padding: "14px 20px",
             background: T.pri,
             border: "none",
-            borderRadius: 8,
-            padding: "8px 20px",
+            borderRadius: 10,
             color: "#fff",
-            fontSize: 14,
+            fontSize: 15,
             fontWeight: 700,
             cursor: saving ? "not-allowed" : "pointer",
             opacity: saving ? 0.6 : 1,
             display: "flex",
             alignItems: "center",
-            gap: 6,
+            justifyContent: "center",
+            gap: 8,
           }}
         >
-          <Save size={16} />
-          {saving ? "Saving..." : "Save"}
+          <Save size={18} />
+          {saving ? "Saving..." : "Save Changes"}
         </button>
-      </div>
-
-      {/* Content */}
-      <div style={{ padding: "20px", maxWidth: 600, margin: "0 auto" }}>
-        {/* Profile Photo */}
-        <div style={{ textAlign: "center", marginBottom: 30 }}>
-          <div style={{ position: "relative", display: "inline-block" }}>
-            {photoPreview ? (
-              <img
-                src={photoPreview}
-                alt="Profile"
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: `3px solid ${T.pri}`,
-                }}
-              />
-            ) : (
-              <div style={{
-                width: 100,
-                height: 100,
-                borderRadius: "50%",
-                background: T.pri + "30",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 40,
-              }}>
-                👤
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                position: "absolute",
-                bottom: 0,
-                right: 0,
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                background: T.pri,
-                border: "2px solid #fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                color: "#fff",
-              }}
-            >
-              <Camera size={18} />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoSelect}
-              style={{ display: "none" }}
-            />
-          </div>
-          <div style={{ fontSize: 12, color: T.sub, marginTop: 8 }}>
-            Click camera icon to change photo
-          </div>
-        </div>
-
-        {/* Form Fields */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
-              Username
-            </label>
-            <input
-              type="text"
-              value={formData.username}
-              onChange={(e) => handleChange("username", e.target.value)}
-              placeholder="Enter your username"
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                border: `1px solid ${T.border}`,
-                borderRadius: 8,
-                fontSize: 14,
-                outline: "none",
-                transition: "border 0.2s",
-              }}
-              onFocus={(e) => e.target.style.borderColor = T.pri}
-              onBlur={(e) => e.target.style.borderColor = T.border}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-              placeholder="Enter your email"
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                border: `1px solid ${T.border}`,
-                borderRadius: 8,
-                fontSize: 14,
-                outline: "none",
-                transition: "border 0.2s",
-              }}
-              onFocus={(e) => e.target.style.borderColor = T.pri}
-              onBlur={(e) => e.target.style.borderColor = T.border}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
-              First Name
-            </label>
-            <input
-              type="text"
-              value={formData.firstName}
-              onChange={(e) => handleChange("firstName", e.target.value)}
-              placeholder="Enter your first name"
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                border: `1px solid ${T.border}`,
-                borderRadius: 8,
-                fontSize: 14,
-                outline: "none",
-                transition: "border 0.2s",
-              }}
-              onFocus={(e) => e.target.style.borderColor = T.pri}
-              onBlur={(e) => e.target.style.borderColor = T.border}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
-              Last Name
-            </label>
-            <input
-              type="text"
-              value={formData.lastName}
-              onChange={(e) => handleChange("lastName", e.target.value)}
-              placeholder="Enter your last name"
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                border: `1px solid ${T.border}`,
-                borderRadius: 8,
-                fontSize: 14,
-                outline: "none",
-                transition: "border 0.2s",
-              }}
-              onFocus={(e) => e.target.style.borderColor = T.pri}
-              onBlur={(e) => e.target.style.borderColor = T.border}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 6 }}>
-              Bio
-            </label>
-            <textarea
-              value={formData.bio}
-              onChange={(e) => handleChange("bio", e.target.value)}
-              placeholder="Tell us about yourself..."
-              rows={4}
-              maxLength={150}
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                border: `1px solid ${T.border}`,
-                borderRadius: 8,
-                fontSize: 14,
-                outline: "none",
-                resize: "vertical",
-                fontFamily: "inherit",
-                transition: "border 0.2s",
-              }}
-              onFocus={(e) => e.target.style.borderColor = T.pri}
-              onBlur={(e) => e.target.style.borderColor = T.border}
-            />
-            <div style={{ fontSize: 11, color: T.sub, marginTop: 4, textAlign: "right" }}>
-              {formData.bio.length}/150
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

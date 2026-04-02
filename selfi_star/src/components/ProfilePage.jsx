@@ -9,17 +9,21 @@ import { useLanguage } from "../contexts/LanguageContext";
 export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
-  const [profileUser, setProfileUser] = useState(null);
+  const isOwnProfile = !userId || userId === user?.id;
+
+  // For own profile, initialize immediately from cache so no loading screen
+  const cachedUser = isOwnProfile ? (() => {
+    try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : user; } catch { return user; }
+  })() : null;
+  const [profileUser, setProfileUser] = useState(cachedUser);
   const [posts, setPosts] = useState([]);
   const [activeTab, setActiveTab] = useState("posts");
-  const [profileData, setProfileData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [profileData, setProfileData] = useState(cachedUser);
+  const [loading, setLoading] = useState(!isOwnProfile);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [showPostMenu, setShowPostMenu] = useState(null);
-
-  const isOwnProfile = !userId || userId === user?.id;
 
   const handleDeletePost = async (postId) => {
     if (!confirm('Are you sure you want to delete this post?')) return;
@@ -62,45 +66,39 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        setLoading(true);
         const targetUserId = userId || user?.id;
         
-        // Set profile user immediately from cache for own profile
         if (isOwnProfile) {
+          // Own profile: already initialized from cache, just refresh counts in background
           const storedUser = localStorage.getItem('user');
           if (storedUser) {
-            setProfileUser(JSON.parse(storedUser));
-          } else {
-            setProfileUser(user);
+            const parsed = JSON.parse(storedUser);
+            setProfileUser(parsed);
+            setProfileData(parsed);
+          }
+          // Don't block — fetch counts in background
+          fetchFollowCounts(targetUserId);
+        } else {
+          // Other user profile: show skeleton until data arrives
+          setLoading(true);
+          try {
+            const [userData] = await Promise.all([
+              api.getUser(userId),
+              fetchFollowCounts(targetUserId),
+            ]);
+            setProfileUser(userData);
+          } finally {
+            setLoading(false);
           }
         }
-        
-        // Parallelize: fetch user data + follow counts simultaneously
-        const promises = [];
-        if (!isOwnProfile) {
-          promises.push(api.getUser(userId).then(data => setProfileUser(data)));
-        }
-        promises.push(fetchFollowCounts(targetUserId));
-        
-        await Promise.all(promises);
       } catch (error) {
         console.error("Failed to fetch profile:", error);
-      } finally {
         setLoading(false);
       }
     };
     
     fetchProfile();
   }, [userId, user]);
-
-  useEffect(() => {
-    // Refresh profile when user data changes
-    const storedUser = localStorage.getItem('user');
-    if (storedUser && isOwnProfile) {
-      const userData = JSON.parse(storedUser);
-      setProfileData(userData);
-    }
-  }, [user, isOwnProfile]);
 
   useEffect(() => {
     const fetchPosts = async () => {
