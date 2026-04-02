@@ -52,21 +52,21 @@ export function UserSuggestions({ onUserClick }) {
     }
   };
 
+  // All hooks must be called before any returns - use conditional content instead
+  let content;
   if (loading) {
-    return (
+    content = (
       <div style={{ padding: 20, textAlign: "center", color: T.sub, fontSize: 13 }}>
         Loading suggestions...
       </div>
     );
-  }
-
-  if (suggestions.length === 0) {
-    return (
+  } else if (suggestions.length === 0) {
+    content = (
       <div style={{ padding: 20, textAlign: "center", color: T.sub, fontSize: 13 }}>
         No suggestions available
       </div>
     );
-  }
+  } else {
 
   return (
     <div style={{ padding: "0 0 20px 0" }}>
@@ -177,5 +177,8 @@ export function UserSuggestions({ onUserClick }) {
         })}
       </div>
     </div>
-  );
+    );
+  }
+
+  return content;
 }
