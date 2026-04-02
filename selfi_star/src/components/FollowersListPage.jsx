@@ -5,7 +5,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import config from "../config";
 
-export function FollowersListPage({ userId, type = "followers", onBack, onUserClick }) {
+export function FollowersListPage({ user, userId, type = "followers", onBack, onUserClick }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const [users, setUsers] = useState([]);
@@ -13,10 +13,19 @@ export function FollowersListPage({ userId, type = "followers", onBack, onUserCl
   const [followingStates, setFollowingStates] = useState({});
 
   useEffect(() => {
-    fetchUsers();
-  }, [userId, type]);
+    if (user && userId) {
+      fetchUsers();
+    } else {
+      setLoading(false);
+      setUsers([]);
+    }
+  }, [userId, type, user]);
 
   const fetchUsers = async () => {
+    if (!user || !userId) {
+      setUsers([]);
+      return;
+    }
     try {
       setLoading(true);
       const raw = type === "followers" 

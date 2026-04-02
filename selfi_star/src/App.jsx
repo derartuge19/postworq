@@ -390,6 +390,7 @@ export default function WerqRoot() {
             </div>
             <div style={{ display: showFollowersList ? 'block' : 'none' }}>
               <FollowersListPage
+                user={authUser}
                 userId={followersListUserId}
                 type={followersListType}
                 onBack={() => {
