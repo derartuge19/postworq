@@ -62,13 +62,30 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
     return notif.type === activeFilter;
   });
 
+  const handleTabChange = (tab) => {
+    // Navigate to different pages based on tab
+    if (tab === 'home' || tab === 'foryou') {
+      onBack(); // Go back to home feed
+    } else if (tab === 'search') {
+      onBack(); // Will need to handle search separately
+    } else if (tab === 'profile') {
+      onShowProfile();
+    } else if (tab === 'settings') {
+      onShowSettings();
+    } else if (tab === 'campaigns') {
+      onShowCampaigns();
+    } else if (tab === 'post') {
+      onShowPostPage();
+    }
+  };
+
   return (
     <div style={{ display: "flex", height: "100vh", background: T.bg }}>
       {/* Sidebar */}
       <ModernSidebar
         user={user}
         activeTab="notifications"
-        onTabChange={onBack}
+        onTabChange={handleTabChange}
         onShowPostPage={onShowPostPage}
         onLogout={onLogout}
         onShowProfile={onShowProfile}
