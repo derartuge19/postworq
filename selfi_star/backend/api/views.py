@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.models import User
-from django.db.models import F
+from django.db.models import F, Count, Exists, OuterRef, Subquery, Prefetch
 from django.utils import timezone
 from datetime import timedelta
 
@@ -264,7 +264,22 @@ class ReelViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]  # Allow anyone to view reels
     
     def get_queryset(self):
-        queryset = Reel.objects.all().order_by('-created_at')
+        queryset = Reel.objects.select_related(
+            'user', 'user__profile'
+        ).annotate(
+            comment_count_db=Count('comments', distinct=True),
+        ).order_by('-created_at')
+        
+        # Annotate is_liked / is_saved for the current user to avoid N+1
+        if self.request.user.is_authenticated:
+            queryset = queryset.annotate(
+                is_liked_db=Exists(
+                    Vote.objects.filter(user=self.request.user, reel=OuterRef('pk'))
+                ),
+                is_saved_db=Exists(
+                    SavedPost.objects.filter(user=self.request.user, reel=OuterRef('pk'))
+                ),
+            )
         
         # Filter by user
         user_id = self.request.query_params.get('user', None)
@@ -274,7 +289,6 @@ class ReelViewSet(viewsets.ModelViewSet):
         # Filter saved posts (requires authentication)
         saved = self.request.query_params.get('saved', None)
         if saved == 'true' and self.request.user.is_authenticated:
-            from .models import SavedPost
             saved_post_ids = SavedPost.objects.filter(user=self.request.user).values_list('reel_id', flat=True)
             queryset = queryset.filter(id__in=saved_post_ids)
         
@@ -324,7 +338,7 @@ class ReelViewSet(viewsets.ModelViewSet):
         reel = self.get_object()
         
         if request.method == 'GET':
-            comments = Comment.objects.filter(reel=reel)
+            comments = Comment.objects.filter(reel=reel).select_related('user', 'user__profile')
             serializer = CommentSerializer(comments, many=True)
             return Response(serializer.data)
         elif request.method == 'POST':
@@ -523,9 +537,9 @@ def search(request):
     )
     posts = posts.distinct()[:20]
     
-    # Extract unique hashtags
+    # Extract unique hashtags - only scan reels that match, not ALL reels
     hashtags = set()
-    for post in Reel.objects.exclude(hashtags=''):
+    for post in Reel.objects.filter(hashtags__icontains=query).only('hashtags')[:100]:
         for tag in post.get_hashtags_list():
             if query.lower() in tag.lower():
                 hashtags.add(tag)
@@ -540,11 +554,17 @@ def search(request):
 @permission_classes([IsAuthenticated])
 def get_user_notifications(request):
     """Get all notifications for the authenticated user"""
-    # Get general notifications (likes, comments, follows)
-    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+    # Get general notifications (likes, comments, follows) - with select_related to avoid N+1
+    notifications = Notification.objects.filter(
+        recipient=request.user
+    ).select_related(
+        'sender', 'reel', 'comment'
+    ).order_by('-created_at')[:50]
     
     # Get campaign notifications
-    campaign_notifications = CampaignNotification.objects.filter(user=request.user).order_by('-created_at')
+    campaign_notifications = CampaignNotification.objects.filter(
+        user=request.user
+    ).select_related('campaign').order_by('-created_at')[:50]
     
     result = []
     

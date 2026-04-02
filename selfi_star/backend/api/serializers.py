@@ -14,20 +14,30 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'followers_count', 'following_count', 'profile_photo', 'bio', 'is_following']
     
     def get_followers_count(self, obj):
+        # Use prefetched count if available
+        if hasattr(obj, '_prefetched_followers_count'):
+            return obj._prefetched_followers_count
         return obj.followers.count()
     
     def get_following_count(self, obj):
+        if hasattr(obj, '_prefetched_following_count'):
+            return obj._prefetched_following_count
         return obj.following.count()
     
     def get_profile_photo(self, obj):
-        if hasattr(obj, 'profile') and obj.profile.profile_photo:
-            return obj.profile.profile_photo.url
+        try:
+            profile = obj.profile
+            if profile and profile.profile_photo:
+                return profile.profile_photo.url
+        except UserProfile.DoesNotExist:
+            pass
         return None
     
     def get_bio(self, obj):
-        if hasattr(obj, 'profile'):
+        try:
             return obj.profile.bio
-        return ''
+        except UserProfile.DoesNotExist:
+            return ''
     
     def get_is_following(self, obj):
         request = self.context.get('request')
@@ -83,12 +93,18 @@ class ReelSerializer(serializers.ModelSerializer):
         return None
     
     def get_comment_count(self, obj):
+        # Use DB annotation if available (set by ReelViewSet.get_queryset)
+        if hasattr(obj, 'comment_count_db'):
+            return obj.comment_count_db
         return obj.comments.count()
     
     def get_hashtags_list(self, obj):
         return obj.get_hashtags_list()
     
     def get_is_liked(self, obj):
+        # Use DB annotation if available (set by ReelViewSet.get_queryset)
+        if hasattr(obj, 'is_liked_db'):
+            return obj.is_liked_db
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             from .models import Vote
@@ -96,6 +112,9 @@ class ReelSerializer(serializers.ModelSerializer):
         return False
     
     def get_is_saved(self, obj):
+        # Use DB annotation if available (set by ReelViewSet.get_queryset)
+        if hasattr(obj, 'is_saved_db'):
+            return obj.is_saved_db
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             from .models import SavedPost

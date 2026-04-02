@@ -35,6 +35,10 @@ class Reel(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __str__(self):
         return f"Reel by {self.user.username}"
@@ -107,6 +111,9 @@ class Vote(models.Model):
 
     class Meta:
         unique_together = ('user', 'reel')
+        indexes = [
+            models.Index(fields=['user', 'reel']),
+        ]
 
     def __str__(self):
         return f"{self.user.username} voted on {self.reel.id}"
@@ -229,6 +236,10 @@ class Follow(models.Model):
     class Meta:
         unique_together = ('follower', 'following')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['follower', 'following']),
+            models.Index(fields=['following']),
+        ]
 
     def __str__(self):
         return f"{self.follower.username} follows {self.following.username}"

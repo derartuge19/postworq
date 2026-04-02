@@ -4,89 +4,107 @@ const API_BASE_URL = config.API_BASE_URL;
 
 let authToken =
   localStorage.getItem('authToken') || localStorage.getItem('adminToken');
-console.log(
-  '🔑 Initial authToken loaded:',
-  authToken ? authToken.substring(0, 10) + '...' : 'NONE',
-);
+
+// --- Lightweight GET cache & request deduplication ---
+const _cache = new Map();
+const _inflight = new Map();
+const CACHE_TTL = 30_000; // 30s default TTL
+
+function getCached(key) {
+  const entry = _cache.get(key);
+  if (entry && Date.now() - entry.ts < entry.ttl) return entry.data;
+  _cache.delete(key);
+  return null;
+}
+function setCache(key, data, ttl = CACHE_TTL) {
+  _cache.set(key, { data, ts: Date.now(), ttl });
+}
+function invalidateCache(pattern) {
+  for (const key of _cache.keys()) {
+    if (key.includes(pattern)) _cache.delete(key);
+  }
+}
 
 const api = {
   setAuthToken: (token) => {
-    console.log(
-      '🔑 setAuthToken called with:',
-      token ? token.substring(0, 10) + '...' : 'NULL',
-    );
     authToken = token;
     if (token) {
       localStorage.setItem('authToken', token);
-      console.log('✅ Token saved to localStorage');
     } else {
       localStorage.removeItem('authToken');
-      console.log('❌ Token removed from localStorage');
     }
+    _cache.clear(); // Clear cache on auth change
   },
 
   getToken: () => {
-    const currentToken = authToken || localStorage.getItem('authToken');
-    console.log(
-      '🔍 getToken returning:',
-      currentToken ? currentToken.substring(0, 10) + '...' : 'NONE',
-    );
-    return currentToken;
+    return authToken || localStorage.getItem('authToken');
   },
 
   clearToken: () => {
-    console.log('🗑️ clearToken called');
     authToken = null;
     localStorage.removeItem('authToken');
+    _cache.clear();
   },
 
   async request(endpoint, options = {}) {
-    const headers = {
-      ...options.headers,
-    };
+    const method = options.method || 'GET';
+    const headers = { ...options.headers };
 
-    // Don't set Content-Type for FormData - browser will set it with boundary
     if (!options.isFormData) {
       headers['Content-Type'] = 'application/json';
     }
 
-    // Only add token if it exists AND it's not an auth endpoint
     const currentToken = authToken || localStorage.getItem('authToken');
     if (currentToken && !endpoint.includes('/auth/')) {
       headers['Authorization'] = `Token ${currentToken}`;
-      console.log(
-        `🔐 Using token for request: ${currentToken.substring(0, 10)}...`,
-      );
-    } else {
-      console.log('⚠️ No token available for request');
     }
 
-    console.log(`📡 API Request: ${options.method || 'GET'} ${endpoint}`, {
-      headers,
-      isFormData: options.isFormData,
-    });
+    // GET request caching + deduplication
+    const isGet = method === 'GET';
+    const cacheKey = isGet ? endpoint : null;
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (e) {
-      data = { error: 'Failed to parse response' };
+    if (isGet && !options.noCache) {
+      const cached = getCached(cacheKey);
+      if (cached) return cached;
+      // Deduplicate: reuse in-flight promise for same endpoint
+      if (_inflight.has(cacheKey)) return _inflight.get(cacheKey);
     }
 
-    if (!response.ok) {
-      console.error('API Error:', response.status, data);
-      // Log the full error object
-      console.error('Full error response:', JSON.stringify(data, null, 2));
-      throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
+    const fetchPromise = (async () => {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        method,
+        headers,
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        data = { error: 'Failed to parse response' };
+      }
+
+      if (!response.ok) {
+        console.error('API Error:', response.status, data);
+        throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
+      }
+
+      // Cache successful GET responses
+      if (isGet && cacheKey) setCache(cacheKey, data);
+      return data;
+    })();
+
+    // Track in-flight for dedup
+    if (isGet && cacheKey) {
+      _inflight.set(cacheKey, fetchPromise);
+      fetchPromise.finally(() => _inflight.delete(cacheKey));
     }
 
-    return data;
+    return fetchPromise;
   },
+
+  // Invalidate cache for specific patterns (call after mutations)
+  invalidateCache,
 
   // Generic HTTP methods for admin panel
   get: (endpoint) =>
@@ -155,18 +173,7 @@ const api = {
 
   createPost: (formData) => {
     const currentToken = authToken || localStorage.getItem('authToken');
-    console.log('📤 createPost called with FormData:');
-    console.log('FormData entries:');
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-    console.log(
-      '🔑 Using token:',
-      currentToken ? currentToken.substring(0, 10) + '...' : 'NONE',
-    );
-
     if (!currentToken) {
-      console.error('❌ NO TOKEN AVAILABLE FOR POST CREATION!');
       return Promise.reject({ error: 'Not authenticated' });
     }
 
@@ -177,13 +184,10 @@ const api = {
       },
       body: formData,
     }).then((r) => {
-      console.log('API response status:', r.status);
       if (!r.ok) {
-        return r.json().then((err) => {
-          console.error('API error response:', err);
-          return Promise.reject(err);
-        });
+        return r.json().then((err) => Promise.reject(err));
       }
+      invalidateCache('/reels');
       return r.json();
     });
   },
@@ -214,13 +218,13 @@ const api = {
   voteReel: (reelId) =>
     api.request(`/reels/${reelId}/vote/`, {
       method: 'POST',
-    }),
+    }).then(r => { invalidateCache('/reels'); return r; }),
 
   postComment: (reelId, text) =>
     api.request(`/reels/${reelId}/comments/`, {
       method: 'POST',
       body: JSON.stringify({ text }),
-    }),
+    }).then(r => { invalidateCache(`/reels/${reelId}/comments`); return r; }),
 
   getComments: (reelId) => api.request(`/reels/${reelId}/comments/`),
 
@@ -228,18 +232,18 @@ const api = {
     api.request('/follows/toggle/', {
       method: 'POST',
       body: JSON.stringify({ following_id: userId }),
-    }),
+    }).then(r => { invalidateCache('/follows'); return r; }),
 
   unfollowUser: (userId) =>
     api.request('/follows/toggle/', {
       method: 'POST',
       body: JSON.stringify({ following_id: userId }),
-    }),
+    }).then(r => { invalidateCache('/follows'); return r; }),
 
   deletePost: (reelId) =>
     api.request(`/reels/${reelId}/`, {
       method: 'DELETE',
-    }),
+    }).then(r => { invalidateCache('/reels'); return r; }),
 
   updateNotificationSettings: (settings) =>
     api.request('/notifications/me/', {
