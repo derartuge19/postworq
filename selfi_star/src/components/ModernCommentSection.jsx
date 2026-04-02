@@ -114,8 +114,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
         style={{
           width: "100%",
           maxWidth: 600,
-          height: "min(90vh, 90dvh)",
-          maxHeight: "min(90vh, 90dvh)",
+          maxHeight: "85vh",
           background: "#fff",
           borderRadius: "20px 20px 0 0",
           display: "flex",
@@ -154,6 +153,8 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
           flex: 1,
           overflowY: "auto",
           padding: "16px 20px",
+          minHeight: 0,
+          WebkitOverflowScrolling: "touch",
         }}>
           {loading ? (
             <div style={{ textAlign: "center", padding: 40, color: T.sub }}>

@@ -111,8 +111,10 @@ export function EditProfilePage({ user, onBack, onSave }) {
       flexDirection: "column",
       overflow: "hidden",
     }}>
-      {/* Header - always visible */}
+      {/* Header - sticky so always visible */}
       <div style={{
+        position: "sticky",
+        top: 0,
         flexShrink: 0,
         background: "#fff",
         borderBottom: `1px solid ${T.border}`,
@@ -120,7 +122,7 @@ export function EditProfilePage({ user, onBack, onSave }) {
         display: "flex",
         alignItems: "center",
         gap: 12,
-        zIndex: 10,
+        zIndex: 100,
       }}>
         <button
           onClick={onBack}
@@ -165,7 +167,7 @@ export function EditProfilePage({ user, onBack, onSave }) {
       </div>
 
       {/* Scrollable Content */}
-      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", position: "relative" }}>
         <div style={{ padding: "16px", maxWidth: 600, margin: "0 auto", boxSizing: "border-box" }}>
           {/* Profile Photo */}
           <div style={{ textAlign: "center", marginBottom: 24 }}>
@@ -321,11 +323,14 @@ export function EditProfilePage({ user, onBack, onSave }) {
 
       {/* Sticky bottom save button - always reachable */}
       <div style={{
+        position: "sticky",
+        bottom: 0,
         flexShrink: 0,
         padding: "12px 16px",
         paddingBottom: "max(12px, env(safe-area-inset-bottom))",
         borderTop: `1px solid ${T.border}`,
         background: "#fff",
+        zIndex: 50,
       }}>
         <button
           onClick={handleSave}
