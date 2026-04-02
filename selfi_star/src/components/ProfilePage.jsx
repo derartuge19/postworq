@@ -24,6 +24,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [showPostMenu, setShowPostMenu] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   const handleDeletePost = async (postId) => {
     if (!confirm('Are you sure you want to delete this post?')) return;
@@ -449,6 +450,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               cursor: "pointer",
               overflow: "hidden",
             }}
+            onClick={() => setSelectedPost(post)}
             onMouseEnter={(e) => {
               if (isOwnProfile) {
                 e.currentTarget.querySelector('.post-actions').style.opacity = '1';
@@ -617,6 +619,243 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>No posts yet</div>
           <div style={{ fontSize: 13 }}>
             {isOwnProfile ? "Share your first post!" : "No posts to show"}
+          </div>
+        </div>
+      )}
+
+      {/* Post Detail Modal */}
+      {selectedPost && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.9)",
+          zIndex: 300,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 16,
+        }}>
+          <div style={{
+            background: "#fff",
+            borderRadius: 12,
+            maxWidth: 600,
+            width: "100%",
+            maxHeight: "90vh",
+            overflowY: "auto",
+            position: "relative",
+          }}>
+            {/* Header */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "16px 20px",
+              borderBottom: `1px solid ${T.border}`,
+              position: "sticky",
+              top: 0,
+              background: "#fff",
+              zIndex: 10,
+            }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: T.txt }}>
+                Post
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {isOwnProfile && (
+                  <>
+                    <button
+                      onClick={() => {
+                        handleEditPost(selectedPost.id);
+                        setSelectedPost(null);
+                      }}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        background: T.pri,
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                      }}
+                      title="Edit post"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDeletePost(selectedPost.id);
+                        setSelectedPost(null);
+                      }}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        background: "#DC2626",
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                      }}
+                      title="Delete post"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setSelectedPost(null)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    background: T.border,
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: T.txt,
+                    fontSize: 20,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Media */}
+            <div style={{
+              width: "100%",
+              background: T.bg,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 300,
+            }}>
+              {(() => {
+                const mediaUrl = selectedPost.media || selectedPost.image || '';
+                const fullUrl = mediaUrl.startsWith('http') ? mediaUrl : `${config.API_BASE_URL.replace('/api', '')}${mediaUrl}`;
+                const isVideo = mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i) || mediaUrl.includes('video');
+                
+                if (!mediaUrl) {
+                  return <div style={{ color: T.sub }}>No media</div>;
+                }
+                
+                if (isVideo) {
+                  const videoUrl = (fullUrl.includes('cloudinary') && !fullUrl.match(/\.(mp4|webm|ogg|mov)$/i))
+                    ? fullUrl + '.mp4'
+                    : fullUrl;
+                  return (
+                    <video
+                      src={videoUrl}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        maxHeight: 400,
+                      }}
+                      controls
+                      playsInline
+                    />
+                  );
+                }
+                
+                return (
+                  <img
+                    src={fullUrl}
+                    alt={selectedPost.caption}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      maxHeight: 400,
+                    }}
+                  />
+                );
+              })()}
+            </div>
+
+            {/* Post Info */}
+            <div style={{ padding: "16px 20px" }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                marginBottom: 16,
+              }}>
+                {profileUser?.profile_photo ? (
+                  <img
+                    src={profileUser.profile_photo.startsWith('http') ? profileUser.profile_photo : `${config.API_BASE_URL.replace('/api', '')}${profileUser.profile_photo}`}
+                    alt="Profile"
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    background: T.pri + "30",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                  }}>
+                    👤
+                  </div>
+                )}
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: T.txt }}>
+                    {profileUser?.username}
+                  </div>
+                  <div style={{ fontSize: 12, color: T.sub }}>
+                    {getRelativeTime(new Date(selectedPost.created_at || selectedPost.timestamp))}
+                  </div>
+                </div>
+              </div>
+
+              {selectedPost.caption && (
+                <div style={{
+                  fontSize: 14,
+                  color: T.txt,
+                  marginBottom: 16,
+                  lineHeight: 1.5,
+                }}>
+                  {selectedPost.caption}
+                </div>
+              )}
+
+              <div style={{
+                display: "flex",
+                gap: 16,
+                paddingTop: 12,
+                borderTop: `1px solid ${T.border}`,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 20 }}>❤️</span>
+                  <span style={{ fontSize: 14, color: T.txt, fontWeight: 600 }}>
+                    {selectedPost.votes || 0}
+                  </span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 20 }}>💬</span>
+                  <span style={{ fontSize: 14, color: T.txt, fontWeight: 600 }}>
+                    {selectedPost.comments_count || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
