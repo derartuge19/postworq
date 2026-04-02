@@ -545,18 +545,22 @@ export default function WerqRoot() {
             style={{ width: '100%', maxWidth: 480, margin: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ModernLoginScreen
-              onSuccess={(u) => {
-                setAuthUser(u);
-                localStorage.setItem('user', JSON.stringify(u));
-                setShowLogin(false);
-              }}
-              onRegister={() => {
-                setShowLogin(false);
-                setShowRegister(true);
-              }}
-              onBack={() => setShowLogin(false)}
-            />
+            <LazyLoadErrorBoundary>
+              <Suspense fallback={<PageSkeleton />}>
+                <ModernLoginScreen
+                  onSuccess={(u) => {
+                    setAuthUser(u);
+                    localStorage.setItem('user', JSON.stringify(u));
+                    setShowLogin(false);
+                  }}
+                  onRegister={() => {
+                    setShowLogin(false);
+                    setShowRegister(true);
+                  }}
+                  onBack={() => setShowLogin(false)}
+                />
+              </Suspense>
+            </LazyLoadErrorBoundary>
           </div>
         </div>
       )}
@@ -582,18 +586,22 @@ export default function WerqRoot() {
             style={{ width: '100%', maxWidth: 480, margin: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <ModernRegisterScreen
-              onSuccess={(u) => {
-                setAuthUser(u);
-                localStorage.setItem('user', JSON.stringify(u));
-                setShowRegister(false);
-              }}
-              onLogin={() => {
-                setShowRegister(false);
-                setShowLogin(true);
-              }}
-              onBack={() => setShowRegister(false)}
-            />
+            <LazyLoadErrorBoundary>
+              <Suspense fallback={<PageSkeleton />}>
+                <ModernRegisterScreen
+                  onSuccess={(u) => {
+                    setAuthUser(u);
+                    localStorage.setItem('user', JSON.stringify(u));
+                    setShowRegister(false);
+                  }}
+                  onLogin={() => {
+                    setShowRegister(false);
+                    setShowLogin(true);
+                  }}
+                  onBack={() => setShowRegister(false)}
+                />
+              </Suspense>
+            </LazyLoadErrorBoundary>
           </div>
         </div>
       )}
