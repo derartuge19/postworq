@@ -52,6 +52,11 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       return;
     }
     
+    // Skip API calls if user is not authenticated
+    if (!user) {
+      return;
+    }
+    
     try {
       const followersRaw = await api.getFollowers(targetUserId);
       const followingRaw = await api.getFollowing(targetUserId);

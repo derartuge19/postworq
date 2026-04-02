@@ -14,10 +14,19 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
   const [activeFilter, setActiveFilter] = useState("all");
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    if (user) {
+      fetchNotifications();
+    } else {
+      setLoading(false);
+      setNotifications([]);
+    }
+  }, [user]);
 
   const fetchNotifications = async () => {
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
     try {
       setLoading(true);
       const data = await api.getUserNotifications();
