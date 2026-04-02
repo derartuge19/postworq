@@ -9,7 +9,7 @@ from django.db.models import F, Count, Exists, OuterRef, Subquery, Prefetch
 from django.utils import timezone
 from datetime import timedelta
 
-from .models import UserProfile, Reel, Comment, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, CommentLike, CommentReply, SavedPost
+from .models import UserProfile, Reel, Comment, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, CommentLike, CommentReply, SavedPost, Notification
 from .models_campaign import CampaignNotification
 from .serializers import (
     UserSerializer, UserProfileSerializer, ReelSerializer, CommentSerializer, VoteSerializer,
