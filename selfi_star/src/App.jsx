@@ -353,17 +353,21 @@ export default function WerqRoot() {
         onShowNotifications={handleShowNotifications}
         onShowCampaigns={handleShowCampaigns}
       >
-        <LazyLoadErrorBoundary>
-          <Suspense fallback={<PageSkeleton />}>
-            {/* Always mount all components to maintain hook order - use display:none to hide */}
-            <div style={{ display: showSettings ? 'block' : 'none' }}>
+        {/* Each lazy page gets its own Suspense so only one loads at a time */}
+        {showSettings && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
               <SettingsPage
                 user={authUser}
                 onClose={() => setShowSettings(false)}
                 onLogout={handleLogout}
               />
-            </div>
-            <div style={{ display: showNotifications ? 'block' : 'none' }}>
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {showNotifications && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
               <NotificationsPage
                 user={authUser}
                 onUserClick={(userId) => {
@@ -377,8 +381,12 @@ export default function WerqRoot() {
                 onShowSettings={handleShowSettings}
                 onShowCampaigns={handleShowCampaigns}
               />
-            </div>
-            <div style={{ display: showEditProfile ? 'block' : 'none' }}>
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {showEditProfile && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
               <EditProfilePage
                 user={authUser}
                 onBack={() => {
@@ -387,8 +395,12 @@ export default function WerqRoot() {
                 }}
                 onSave={handleProfileSaved}
               />
-            </div>
-            <div style={{ display: showFollowersList ? 'block' : 'none' }}>
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {showFollowersList && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
               <FollowersListPage
                 user={authUser}
                 userId={followersListUserId}
@@ -398,14 +410,17 @@ export default function WerqRoot() {
                   setShowProfile(true);
                 }}
                 onUserClick={(userId) => {
-                  // Note: the component passes the full user object, but handleShowProfile expects an ID
                   const id = typeof userId === 'object' ? userId.id : userId;
                   setShowFollowersList(false);
                   handleShowProfile(id);
                 }}
               />
-            </div>
-            <div style={{ display: showProfile ? 'block' : 'none' }}>
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {showProfile && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
               <ProfilePage
                 user={authUser}
                 userId={profileUserId}
@@ -419,8 +434,12 @@ export default function WerqRoot() {
                   handleShowFollowers(userId, 'following')
                 }
               />
-            </div>
-            <div style={{ display: showCampaignDetail ? 'block' : 'none' }}>
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {showCampaignDetail && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
               <CampaignDetailPage
                 theme={{
                   pri: '#DA9B2A',
@@ -441,8 +460,12 @@ export default function WerqRoot() {
                   setShowCampaigns(true);
                 }}
               />
-            </div>
-            <div style={{ display: showCampaigns ? 'block' : 'none' }}>
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {showCampaigns && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
               <CampaignsPage
                 theme={{
                   pri: '#DA9B2A',
@@ -464,34 +487,42 @@ export default function WerqRoot() {
                 }}
                 onBack={() => setShowCampaigns(false)}
               />
-            </div>
-            <div style={{ display: showPostPage ? 'block' : 'none' }}>
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {showPostPage && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
               <EnhancedPostPage
                 user={authUser}
                 onBack={() => setShowPostPage(false)}
               />
-            </div>
-            <div style={{ display: screen === 'landing' ? 'block' : 'none' }}>
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {screen === 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
               <LandingPage
                 onLogin={() => setShowLogin(true)}
                 onRegister={() => setShowRegister(true)}
                 onShowCampaigns={handleShowCampaigns}
               />
-            </div>
-            <div style={{ display: !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && screen !== 'landing' ? 'block' : 'none' }}>
-              <TikTokLayout
-                user={authUser}
-                activeTab={activeTab}
-                onLogout={handleLogout}
-                onRequireAuth={handleRequireAuth}
-                onShowPostPage={handleShowPostPage}
-                onShowProfile={handleShowProfile}
-                onShowSettings={handleShowSettings}
-                onShowNotifications={handleShowNotifications}
-              />
-            </div>
-          </Suspense>
-        </LazyLoadErrorBoundary>
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && (
+          <TikTokLayout
+            user={authUser}
+            activeTab={activeTab}
+            onLogout={handleLogout}
+            onRequireAuth={handleRequireAuth}
+            onShowPostPage={handleShowPostPage}
+            onShowProfile={handleShowProfile}
+            onShowSettings={handleShowSettings}
+            onShowNotifications={handleShowNotifications}
+          />
+        )}
       </AppShell>
       {showLogin && (
         <div
