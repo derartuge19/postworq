@@ -47,6 +47,11 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   };
 
   const fetchFollowCounts = async (targetUserId) => {
+    if (!targetUserId || targetUserId === 'null' || targetUserId === null) {
+      console.log('No valid user ID for fetching follow counts');
+      return;
+    }
+    
     try {
       const followersRaw = await api.getFollowers(targetUserId);
       const followingRaw = await api.getFollowing(targetUserId);
