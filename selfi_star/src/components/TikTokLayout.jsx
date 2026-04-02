@@ -1134,9 +1134,9 @@ export function TikTokLayout({
                             border: video.user?.is_following
                               ? '1px solid rgba(255,255,255,0.4)'
                               : 'none',
-                            borderRadius: 20,
-                            padding: '4px 14px',
-                            fontSize: 12,
+                            borderRadius: 14,
+                            padding: '2px 10px',
+                            fontSize: 11,
                             fontWeight: 700,
                             cursor: 'pointer',
                             letterSpacing: 0.3,

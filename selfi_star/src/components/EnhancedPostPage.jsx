@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Camera, Upload, Sparkles, X, Play, Square, RotateCw, Check } from "lucide-react";
+import { Camera, Upload, Sparkles, X, Play, Square, RotateCw, Check, Image, Video, RefreshCw } from "lucide-react";
 import api from "../api";
 
 const T = { pri:"#DA9B2A", txt:"#1C1917", sub:"#78716C", bg:"#FAFAF7", dark:"#0C1A12", border:"#E7E5E4" };
@@ -37,6 +37,7 @@ export function EnhancedPostPage({ user, onBack }) {
   const [stream, setStream] = useState(null);
   const [facingMode, setFacingMode] = useState('user');
   const [recordingTime, setRecordingTime] = useState(0);
+  const [cameraMode, setCameraMode] = useState('photo'); // 'photo' or 'video'
   
   // Effects states
   const [selectedFilter, setSelectedFilter] = useState('none');
@@ -77,6 +78,32 @@ export function EnhancedPostPage({ user, onBack }) {
   const switchCamera = () => {
     stopCamera();
     setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+  };
+
+  // Capture photo from camera stream
+  const capturePhoto = () => {
+    if (!videoRef.current || !stream) return;
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    // Mirror if front camera
+    if (facingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        setSelectedFile(file);
+        const url = URL.createObjectURL(blob);
+        setPreview(url);
+        stopCamera();
+        setActiveTab('upload');
+      }
+    }, 'image/jpeg', 0.92);
   };
 
   // Start recording
@@ -584,6 +611,64 @@ export function EnhancedPostPage({ user, onBack }) {
                 </div>
               )}
 
+              {/* Photo / Video mode toggle */}
+              <div style={{
+                position: "absolute",
+                bottom: 120,
+                left: 0,
+                right: 0,
+                display: "flex",
+                justifyContent: "center",
+                gap: 0,
+              }}>
+                <div style={{
+                  display: "flex",
+                  background: "rgba(0,0,0,0.4)",
+                  borderRadius: 20,
+                  padding: 3,
+                  backdropFilter: "blur(8px)",
+                }}>
+                  <button
+                    onClick={() => setCameraMode('photo')}
+                    style={{
+                      padding: "6px 18px",
+                      borderRadius: 16,
+                      border: "none",
+                      background: cameraMode === 'photo' ? '#fff' : 'transparent',
+                      color: cameraMode === 'photo' ? T.txt : '#fff',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <Image size={14} /> Photo
+                  </button>
+                  <button
+                    onClick={() => setCameraMode('video')}
+                    style={{
+                      padding: "6px 18px",
+                      borderRadius: 16,
+                      border: "none",
+                      background: cameraMode === 'video' ? '#fff' : 'transparent',
+                      color: cameraMode === 'video' ? T.txt : '#fff',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <Video size={14} /> Video
+                  </button>
+                </div>
+              </div>
+
               {/* Controls */}
               <div style={{
                 position: "absolute",
@@ -593,58 +678,90 @@ export function EnhancedPostPage({ user, onBack }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 24,
+                gap: 28,
               }}>
-                {/* Switch camera */}
+                {/* Switch camera (front/back) */}
                 <button
                   onClick={switchCamera}
                   disabled={isRecording}
                   style={{
-                    width: 50,
-                    height: 50,
+                    width: 46,
+                    height: 46,
                     borderRadius: "50%",
                     background: "rgba(255,255,255,0.2)",
-                    border: "none",
+                    border: "1px solid rgba(255,255,255,0.3)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     cursor: isRecording ? "not-allowed" : "pointer",
                     opacity: isRecording ? 0.5 : 1,
+                    backdropFilter: "blur(6px)",
+                    flexDirection: "column",
+                    gap: 0,
                   }}
+                  title={facingMode === 'user' ? 'Switch to back camera' : 'Switch to front camera'}
                 >
-                  <RotateCw size={24} color="#fff" />
+                  <RefreshCw size={20} color="#fff" />
                 </button>
 
-                {/* Record button */}
-                <button
-                  onClick={isRecording ? stopRecording : startRecording}
-                  style={{
-                    width: 70,
-                    height: 70,
-                    borderRadius: "50%",
-                    background: isRecording ? "#ff0000" : "#fff",
-                    border: isRecording ? "none" : "4px solid rgba(255,255,255,0.3)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  {isRecording ? (
-                    <Square size={28} color="#fff" fill="#fff" />
-                  ) : (
-                    <div style={{
-                      width: 60,
-                      height: 60,
+                {/* Capture / Record button */}
+                {cameraMode === 'photo' ? (
+                  <button
+                    onClick={capturePhoto}
+                    style={{
+                      width: 68,
+                      height: 68,
                       borderRadius: "50%",
-                      background: "#ff0000",
+                      background: "#fff",
+                      border: "4px solid rgba(255,255,255,0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                      boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <div style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: "50%",
+                      background: "#fff",
+                      border: "2px solid #ddd",
                     }} />
-                  )}
-                </button>
+                  </button>
+                ) : (
+                  <button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    style={{
+                      width: 68,
+                      height: 68,
+                      borderRadius: "50%",
+                      background: isRecording ? "#ff0000" : "#fff",
+                      border: isRecording ? "none" : "4px solid rgba(255,255,255,0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    {isRecording ? (
+                      <Square size={26} color="#fff" fill="#fff" />
+                    ) : (
+                      <div style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: "50%",
+                        background: "#ff0000",
+                      }} />
+                    )}
+                  </button>
+                )}
 
                 {/* Placeholder for symmetry */}
-                <div style={{ width: 50, height: 50 }} />
+                <div style={{ width: 46, height: 46 }} />
               </div>
             </div>
 
