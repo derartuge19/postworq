@@ -11,6 +11,7 @@ import {
   Volume2,
   VolumeX,
   Bell,
+  Heart,
 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -317,14 +318,14 @@ export function TikTokLayout({
       return;
     }
     
-    // Trigger like
-    handleLike(videoId);
+    // Trigger like (only if not already liked)
+    const video = videos.find(v => v.id === videoId);
+    if (video && !video.liked) {
+      handleLike(videoId);
+    }
     
-    // Show double-tap heart animation
-    setDoubleTapLike((prev) => ({ ...prev, [videoId]: true }));
-    setTimeout(() => {
-      setDoubleTapLike((prev) => ({ ...prev, [videoId]: false }));
-    }, 1000);
+    // Show double-tap heart animation (use timestamp key for re-triggering)
+    setDoubleTapLike((prev) => ({ ...prev, [videoId]: Date.now() }));
   };
 
   const toggleVideoPlayback = (videoId) => {
@@ -359,14 +360,28 @@ export function TikTokLayout({
       return;
     }
 
-    // Show heart animation
+    // Show heart animation instantly
     setLikeAnimations((prev) => ({ ...prev, [videoId]: Date.now() }));
+
+    // Optimistic UI: update immediately before API call
+    setVideos((prev) =>
+      prev.map((video) =>
+        video.id === videoId
+          ? {
+              ...video,
+              liked: !video.liked,
+              likes: video.liked ? video.likes - 1 : video.likes + 1,
+            }
+          : video,
+      ),
+    );
 
     try {
       const response = await api.request(`/reels/${videoId}/vote/`, {
         method: 'POST',
       });
 
+      // Reconcile with server truth
       if (response.voted !== undefined) {
         setVideos((prev) =>
           prev.map((video) =>
@@ -374,14 +389,25 @@ export function TikTokLayout({
               ? {
                   ...video,
                   liked: response.voted,
-                  likes: response.votes || video.likes,
+                  likes: response.votes ?? video.likes,
                 }
               : video,
           ),
         );
       }
     } catch (error) {
-      console.error('Failed to like video:', error);
+      // Revert optimistic update on failure
+      setVideos((prev) =>
+        prev.map((video) =>
+          video.id === videoId
+            ? {
+                ...video,
+                liked: !video.liked,
+                likes: video.liked ? video.likes - 1 : video.likes + 1,
+              }
+            : video,
+        ),
+      );
     }
   };
 
@@ -901,19 +927,20 @@ export function TikTokLayout({
                         {/* Double-tap heart animation */}
                         {doubleTapLike[video.id] && (
                           <div
+                            key={doubleTapLike[video.id]}
+                            onAnimationEnd={() => setDoubleTapLike((prev) => ({ ...prev, [video.id]: 0 }))}
                             style={{
                               position: 'absolute',
                               top: '50%',
                               left: '50%',
                               transform: 'translate(-50%, -50%)',
-                              fontSize: 120,
-                              color: '#ff2e63',
-                              animation: 'heartPop 1s ease-out',
+                              animation: 'heartPop 0.7s ease-out forwards',
                               pointerEvents: 'none',
                               zIndex: 100,
+                              willChange: 'transform, opacity',
                             }}
                           >
-                            ❤️
+                            <Heart size={100} fill="#ff2e63" stroke="none" style={{ filter: 'drop-shadow(0 0 12px rgba(255,46,99,0.6))' }} />
                           </div>
                         )}
 
