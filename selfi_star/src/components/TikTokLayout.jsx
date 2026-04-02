@@ -96,10 +96,15 @@ export function TikTokLayout({
   // Generate Cloudinary poster thumbnail from video URL
   const getVideoPoster = (url) => {
     if (!url || !url.includes('cloudinary')) return undefined;
-    // Replace /video/upload/ with /video/upload/so_0,w_480,q_auto,f_jpg/ for first-frame thumbnail
-    return url
-      .replace('/video/upload/', '/video/upload/so_0,w_480,q_auto,f_jpg/')
-      .replace(/\.(mp4|webm|mov|ogg)$/i, '.jpg');
+    try {
+      // Use Cloudinary image delivery for video first frame
+      // Change /video/upload/ to /video/upload/so_0,w_480,c_scale,q_auto/ and append .jpg
+      const withTransform = url.replace('/video/upload/', '/video/upload/so_0,w_480,c_scale,q_auto/');
+      // Strip any existing video extension and add .jpg
+      return withTransform.replace(/\.(mp4|webm|mov|ogg)$/i, '') + '.jpg';
+    } catch {
+      return undefined;
+    }
   };
 
   // Mobile detection - runs once on mount and on resize
