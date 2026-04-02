@@ -234,7 +234,14 @@ export default function WerqRoot() {
     setAuthUser(null);
     setShowProfile(false);
     setShowPostPage(false);
+    setShowSettings(false);
+    setShowNotifications(false);
+    setShowEditProfile(false);
+    setShowFollowersList(false);
+    setShowCampaigns(false);
+    setShowCampaignDetail(false);
     setActiveTab('home');
+    setShowLogin(true);
   };
 
   const handleShowProfile = (userId = null) => {
