@@ -106,6 +106,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
       alignItems: "flex-end",
       justifyContent: "center",
       zIndex: 4000,
+      paddingBottom: window.innerWidth <= 1024 ? 60 : 0, // Add padding for mobile footer
     }}
     onClick={onClose}
     >
@@ -114,7 +115,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
         style={{
           width: "100%",
           maxWidth: 600,
-          maxHeight: "85vh",
+          maxHeight: "calc(85vh - 60px)", // Account for footer height
           background: "#fff",
           borderRadius: "20px 20px 0 0",
           display: "flex",
@@ -326,13 +327,14 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
         <div style={{
           flexShrink: 0,
           padding: "12px 16px",
-          paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+          paddingBottom: "calc(12px + env(safe-area-inset-bottom, 20px))",
           borderTop: `1px solid ${T.border}`,
           display: "flex",
           gap: 10,
           alignItems: "center",
           background: "#fff",
           boxSizing: "border-box",
+          width: "100%",
         }}>
           <div style={{
             width: 36,
