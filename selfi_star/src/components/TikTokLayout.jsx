@@ -1326,6 +1326,8 @@ export function TikTokLayout({
                             onRequireAuth();
                             return;
                           }
+                          // Prevent rapid clicking that causes React error #426
+                          if (showComments === video.id) return;
                           setShowComments(video.id);
                         }}
                         style={{
@@ -1536,12 +1538,14 @@ export function TikTokLayout({
 
       {/* Comments Modal */}
       {showComments && (
-        <ModernCommentSection
-          reelId={showComments}
-          user={user}
-          onClose={() => setShowComments(null)}
-          onCommentPosted={handleCommentPosted}
-        />
+        <div key={showComments}>
+          <ModernCommentSection
+            reelId={showComments}
+            user={user}
+            onClose={() => setShowComments(null)}
+            onCommentPosted={handleCommentPosted}
+          />
+        </div>
       )}
 
       {/* Report Category Modal */}
