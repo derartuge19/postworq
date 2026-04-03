@@ -131,8 +131,12 @@ def admin_campaign_create(request):
 @permission_classes([IsAdminUser])
 def admin_campaign_update(request, campaign_id):
     """Update campaign"""
+    print(f"=== PATCH Campaign {campaign_id} ===")
+    print(f"User: {request.user}, Is Admin: {request.user.is_staff}")
+    print(f"Request data: {request.data}")
     try:
         campaign = Campaign.objects.get(id=campaign_id)
+        print(f"Found campaign: {campaign.title}")
         
         for field in ['title', 'description', 'prize_title', 'prize_description', 'prize_value', 
                       'status', 'min_followers', 'min_level', 'min_votes_per_reel', 
@@ -146,6 +150,7 @@ def admin_campaign_update(request, campaign_id):
             campaign.image = request.FILES['image']
         
         campaign.save()
+        print(f"Campaign {campaign_id} updated successfully")
         
         # If status changed to voting, notify participants
         if request.data.get('status') == 'voting':
@@ -153,18 +158,30 @@ def admin_campaign_update(request, campaign_id):
         
         return Response({'message': 'Campaign updated successfully'})
     except Campaign.DoesNotExist:
+        print(f"Campaign {campaign_id} not found in database")
         return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error updating campaign {campaign_id}: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
 def admin_campaign_delete(request, campaign_id):
     """Delete campaign"""
+    print(f"=== DELETE Campaign {campaign_id} ===")
+    print(f"User: {request.user}, Is Admin: {request.user.is_staff}")
     try:
         campaign = Campaign.objects.get(id=campaign_id)
+        print(f"Found campaign: {campaign.title}")
         campaign.delete()
+        print(f"Campaign {campaign_id} deleted successfully")
         return Response({'message': 'Campaign deleted successfully'})
     except Campaign.DoesNotExist:
+        print(f"Campaign {campaign_id} not found in database")
         return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error deleting campaign {campaign_id}: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])

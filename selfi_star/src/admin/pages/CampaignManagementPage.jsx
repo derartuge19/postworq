@@ -40,28 +40,41 @@ export function CampaignManagementPage({ theme }) {
       title: 'Delete Campaign',
       message: `Are you sure you want to delete "${campaign.title}"? This action cannot be undone.`,
       onConfirm: async () => {
+        console.log(`Deleting campaign ${campaign.id}: ${campaign.title}`);
         try {
-          await api.request(`/admin/campaigns/${campaign.id}/delete/`, { method: 'DELETE' });
+          const response = await api.request(`/admin/campaigns/${campaign.id}/delete/`, { method: 'DELETE' });
+          console.log('Delete response:', response);
           loadCampaigns();
           setConfirmModal({ isOpen: false });
         } catch (error) {
           console.error('Failed to delete campaign:', error);
+          console.log('Error details:', error.message);
+          
           // Parse error to check for 404
           let isNotFound = false;
+          let errorMessage = error.message;
+          
           try {
             const errorData = JSON.parse(error.message);
-            isNotFound = errorData.error?.includes('not found') || errorData.error?.includes('Campaign');
+            errorMessage = errorData.error || error.message;
+            isNotFound = errorData.error?.toLowerCase().includes('not found') || 
+                        errorData.error?.toLowerCase().includes('campaign');
+            console.log('Parsed error data:', errorData);
           } catch (e) {
-            isNotFound = error.message?.includes('not found') || error.message?.includes('404');
+            isNotFound = error.message?.toLowerCase().includes('not found') || 
+                        error.message?.toLowerCase().includes('404');
           }
+          
+          console.log('Is not found:', isNotFound);
           
           // If campaign not found (404), clear it from the list
           if (isNotFound) {
+            console.log('Removing campaign from list');
             setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
             setConfirmModal({ 
               isOpen: true, 
               title: 'Campaign Not Found', 
-              message: 'This campaign no longer exists. It has been removed from the list.',
+              message: 'This campaign no longer exists in the database. It has been removed from the list.',
               showCancel: false,
               onConfirm: () => setConfirmModal({ isOpen: false })
             });
