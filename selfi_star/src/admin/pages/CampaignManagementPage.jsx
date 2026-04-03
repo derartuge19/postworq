@@ -43,6 +43,10 @@ export function CampaignManagementPage({ theme }) {
           loadCampaigns();
         } catch (error) {
           console.error('Failed to delete campaign:', error);
+          // If campaign not found (404), remove it from the list anyway
+          if (error.status === 404) {
+            loadCampaigns(); // Refresh to remove the non-existent campaign
+          }
         }
       }
     });
@@ -74,6 +78,11 @@ export function CampaignManagementPage({ theme }) {
       loadCampaigns();
     } catch (error) {
       console.error('Failed to update campaign status:', error);
+      // If campaign not found (404), remove it from the list
+      if (error.status === 404) {
+        loadCampaigns(); // Refresh to remove the non-existent campaign
+        return;
+      }
       setConfirmModal({
         isOpen: true,
         title: 'Error',
