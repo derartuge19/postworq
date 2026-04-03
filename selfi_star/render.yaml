@@ -5,9 +5,17 @@ services:
     env: python
     plan: free
     buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements_py314.txt
-    startCommand: cd backend && python manage.py migrate --verbosity=2 && python manage.py collectstatic --noinput && python manage.py create_superadmin && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: cd backend && python manage.py migrate --verbosity=2 && python manage.py collectstatic --noinput && python setup_admin.py && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
     healthCheckPath: /api/
     envVars:
+      # Admin credentials (auto-created on deploy)
+      - key: ADMIN_USERNAME
+        value: superadmin
+      - key: ADMIN_EMAIL
+        value: superadmin@postworq.com
+      - key: ADMIN_PASSWORD
+        value: Admin123!
+      # Database (Neon PostgreSQL)
       - key: DB_ENGINE
         value: django.db.backends.postgresql
       - key: DB_NAME
@@ -20,6 +28,7 @@ services:
         value: flat-thunder-79099653.aws.neon.tech
       - key: DB_PORT
         value: 5432
+      # Django settings
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
