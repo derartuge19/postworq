@@ -11,7 +11,9 @@ import { SystemLogsPage } from './pages/SystemLogsPage';
 import { PerformancePage } from './pages/PerformancePage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { AdminManagementPage } from './pages/AdminManagementPage';
-import { CampaignManagementPage } from './pages/CampaignManagementPage';
+import { ContestDashboardPage } from './pages/ContestDashboardPage';
+import { JudgingPortalPage } from './pages/JudgingPortalPage';
+import { AntiCheatPage } from './pages/AntiCheatPage';
 import { AdminSidebar } from './components/AdminSidebar';
 import { AdminLogin } from './pages/AdminLogin';
 import api from '../api';
@@ -133,6 +135,12 @@ export function AdminApp() {
         return <AdminManagementPage theme={T} />;
       case 'campaigns':
         return <CampaignManagementPage theme={T} />;
+      case 'contest':
+        return <ContestDashboardPage theme={T} />;
+      case 'judging':
+        return <JudgingPortalPage theme={T} />;
+      case 'anti-cheat':
+        return <AntiCheatPage theme={T} />;
       default:
         return <AdminDashboard theme={T} />;
     }
