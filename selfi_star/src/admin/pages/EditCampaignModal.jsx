@@ -68,7 +68,17 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
     } catch (error) {
       console.error('Failed to update campaign:', error);
       const errorMsg = typeof error === 'string' ? error : error.message || 'Failed to update campaign';
-      setError(errorMsg);
+      
+      // Check if campaign not found (404)
+      if (error.status === 404 || errorMsg.includes('404') || errorMsg.includes('not found')) {
+        setError('This campaign no longer exists in the database. It will be removed from the list.');
+        // Pass a special flag to parent to remove this campaign
+        setTimeout(() => {
+          onSuccess('CAMPAIGN_NOT_FOUND');
+        }, 2000);
+      } else {
+        setError(errorMsg);
+      }
     }
   };
   

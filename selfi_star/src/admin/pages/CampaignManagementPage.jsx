@@ -24,9 +24,11 @@ export function CampaignManagementPage({ theme }) {
       setLoading(true);
       const filterParam = statusFilter !== 'all' ? `?status=${statusFilter}` : '';
       const response = await api.request(`/admin/campaigns/${filterParam}`);
-      setCampaigns(response.campaigns);
+      setCampaigns(response.campaigns || []);
     } catch (error) {
       console.error('Failed to load campaigns:', error);
+      // Clear campaigns on error to avoid stale data
+      setCampaigns([]);
     } finally {
       setLoading(false);
     }
@@ -41,11 +43,19 @@ export function CampaignManagementPage({ theme }) {
         try {
           await api.request(`/admin/campaigns/${campaign.id}/delete/`, { method: 'DELETE' });
           loadCampaigns();
+          setConfirmModal({ isOpen: false });
         } catch (error) {
           console.error('Failed to delete campaign:', error);
-          // If campaign not found (404), remove it from the list anyway
-          if (error.status === 404) {
-            loadCampaigns(); // Refresh to remove the non-existent campaign
+          // If campaign not found (404), clear it from the list
+          if (error.status === 404 || error.message?.includes('404') || error.message?.includes('not found')) {
+            setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
+            setConfirmModal({ 
+              isOpen: true, 
+              title: 'Campaign Not Found', 
+              message: 'This campaign no longer exists. It has been removed from the list.',
+              showCancel: false,
+              onConfirm: () => setConfirmModal({ isOpen: false })
+            });
           }
         }
       }
@@ -452,10 +462,15 @@ export function CampaignManagementPage({ theme }) {
             setShowEditModal(false);
             setEditingCampaign(null);
           }}
-          onSuccess={() => {
+          onSuccess={(result) => {
             setShowEditModal(false);
             setEditingCampaign(null);
-            loadCampaigns();
+            if (result === 'CAMPAIGN_NOT_FOUND') {
+              // Remove the stale campaign from the list
+              setCampaigns(prev => prev.filter(c => c.id !== editingCampaign.id));
+            } else {
+              loadCampaigns();
+            }
           }}
         />
       )}
