@@ -20,7 +20,15 @@ def create_superadmin():
     email = os.getenv('ADMIN_EMAIL', 'superadmin@yourapp.com')
     password = os.getenv('ADMIN_PASSWORD', 'Admin123!')
     
-    print(f"Checking for super admin: {username}")
+    print(f"=== Admin Setup Script Starting ===")
+    print(f"ENV ADMIN_USERNAME: {os.getenv('ADMIN_USERNAME', '(using default: superadmin)')}")
+    print(f"ENV ADMIN_EMAIL: {os.getenv('ADMIN_EMAIL', '(using default: superadmin@yourapp.com)')}")
+    print(f"ENV ADMIN_PASSWORD: {'*' * len(password) if password else '(EMPTY!)'}")
+    print(f"")
+    print(f"Attempting to create super admin: {username} / {email}")
+    print(f"Total users in DB: {User.objects.count()}")
+    print(f"Existing superusers: {list(User.objects.filter(is_superuser=True).values('username', 'email'))}")
+    print(f"")
     
     # Check if user already exists
     existing = User.objects.filter(username=username).first()
@@ -37,8 +45,9 @@ def create_superadmin():
             return True
     
     # Check if email is taken
-    if User.objects.filter(email=email).exclude(username=username).exists():
-        print(f"⚠ Email '{email}' already used by another user")
+    email_exists = User.objects.filter(email=email).exclude(username=username).first()
+    if email_exists:
+        print(f"⚠ Email '{email}' already used by user: {email_exists.username}")
         return False
     
     # Create super admin
@@ -53,11 +62,16 @@ def create_superadmin():
         print(f"✓ Super admin created successfully!")
         print(f"  Username: {username}")
         print(f"  Email: {email}")
-        print(f"  Password: {'*' * len(password)}")
+        print(f"  Password set: {'Yes' if password else 'NO - EMPTY PASSWORD!'}")
         return True
     except Exception as e:
         print(f"✗ Failed to create super admin: {e}")
+        import traceback
+        traceback.print_exc()
         return False
+    finally:
+        print(f"=== Admin Setup Complete ===")
+        print(f"Final superusers: {list(User.objects.filter(is_superuser=True).values('username', 'email', 'is_active'))}")
 
 if __name__ == '__main__':
     success = create_superadmin()
