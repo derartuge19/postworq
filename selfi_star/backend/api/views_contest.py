@@ -515,11 +515,20 @@ def calculate_leaderboard(period, date):
 def admin_contest_dashboard(request):
     """Admin contest dashboard with budget monitoring"""
     
-    # Get active contest
+    # Get active contest or create default
     try:
         contest = ContestTimeline.objects.get(is_active=True)
     except ContestTimeline.DoesNotExist:
-        return Response({'error': 'No active contest'}, status=status.HTTP_404_NOT_FOUND)
+        # Create default contest
+        contest = ContestTimeline.objects.create(
+            name="90-Day Contest",
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=90),
+            total_budget=2100000,
+            flash_start_time=timezone.now().time().replace(hour=18, minute=0),
+            flash_end_time=timezone.now().time().replace(hour=20, minute=0),
+            is_active=True,
+        )
     
     # Budget breakdown
     total_budget = float(contest.total_budget)
@@ -741,7 +750,13 @@ def get_grand_finale(request):
     try:
         contest = ContestTimeline.objects.get(is_active=True)
     except ContestTimeline.DoesNotExist:
-        return Response({'error': 'No active contest'}, status=status.HTTP_404_NOT_FOUND)
+        # Return empty grand finale data
+        return Response({
+            'days_remaining': 90,
+            'is_grand_finale': False,
+            'message': 'No active contest',
+            'entries': [],
+        })
     
     # Check if it's day 90
     days_remaining = contest.get_days_remaining()
