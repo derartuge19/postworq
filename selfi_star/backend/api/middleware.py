@@ -21,3 +21,44 @@ class VideoStreamingMiddleware(MiddlewareMixin):
                 response['Content-Type'] = 'video/quicktime'
                 
         return response
+
+
+class CustomCorsMiddleware(MiddlewareMixin):
+    """
+    Custom CORS middleware to ensure proper headers are set for Vercel frontend
+    """
+    
+    def process_response(self, request, response):
+        # Add CORS headers for all responses
+        origin = request.META.get('HTTP_ORIGIN', '')
+        
+        # Allow Vercel domains and localhost
+        allowed_origins = [
+            'https://postworqq.vercel.app',
+            'https://postworq.onrender.com',
+            'http://localhost:3000',
+            'http://localhost:5173',
+            'http://localhost:5174',
+            'http://127.0.0.1:3000',
+            'http://127.0.0.1:5173',
+            'http://127.0.0.1:5174',
+        ]
+        
+        # Allow any vercel subdomain
+        if any(domain in origin for domain in allowed_origins) or 'vercel.app' in origin:
+            response['Access-Control-Allow-Origin'] = origin
+            response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD'
+            response['Access-Control-Allow-Headers'] = 'accept, accept-encoding, authorization, content-type, dnt, origin, user-agent, x-csrftoken, x-requested-with, x-forwarded-for, x-forwarded-host, x-forwarded-proto'
+            response['Access-Control-Allow-Credentials'] = 'true'
+            response['Access-Control-Expose-Headers'] = 'content-type, x-csrftoken'
+        
+        # Handle preflight requests
+        if request.method == 'OPTIONS':
+            response.status_code = 200
+            response['Access-Control-Allow-Origin'] = origin
+            response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD'
+            response['Access-Control-Allow-Headers'] = 'accept, accept-encoding, authorization, content-type, dnt, origin, user-agent, x-csrftoken, x-requested-with, x-forwarded-for, x-forwarded-host, x-forwarded-proto'
+            response['Access-Control-Allow-Credentials'] = 'true'
+            response['Access-Control-Max-Age'] = '86400'
+        
+        return response
