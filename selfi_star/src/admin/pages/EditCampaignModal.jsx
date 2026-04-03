@@ -64,7 +64,11 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
         body: formDataToSend,
         isFormData: true
       });
-      onSuccess();
+      // Show success message before closing
+      setSuccessMessage('Campaign updated successfully!');
+      setTimeout(() => {
+        onSuccess();
+      }, 1000);
     } catch (error) {
       console.error('Failed to update campaign:', error);
       console.log('Error status:', error.status);

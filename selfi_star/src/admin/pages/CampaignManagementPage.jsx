@@ -36,39 +36,54 @@ export function CampaignManagementPage({ theme }) {
 
   const handleDelete = (campaign) => {
     const deleteUrl = `/admin/campaigns/${campaign.id}/delete/`;
-    console.log(`[DELETE] URL: ${deleteUrl}, Campaign ID: ${campaign.id}, Title: ${campaign.title}`);
     
     setConfirmModal({
       isOpen: true,
       title: 'Delete Campaign',
       message: `Are you sure you want to delete "${campaign.title}"? This action cannot be undone.`,
+      type: 'danger',
+      showCancel: true,
       onConfirm: async () => {
-        console.log(`[DELETE] Executing: ${deleteUrl}`);
         try {
-          const response = await api.request(deleteUrl, { method: 'DELETE' });
-          console.log('[DELETE] Success:', response);
-          loadCampaigns();
-          setConfirmModal({ isOpen: false });
+          await api.request(deleteUrl, { method: 'DELETE' });
+          // Immediately remove from list
+          setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
+          // Show success notification
+          setConfirmModal({ 
+            isOpen: true, 
+            title: 'Success', 
+            message: `Campaign "${campaign.title}" deleted successfully!`,
+            type: 'success',
+            showCancel: false,
+            onConfirm: () => setConfirmModal({ isOpen: false })
+          });
         } catch (error) {
           console.error('[DELETE] Failed:', error);
-          console.log('[DELETE] Error status:', error.status);
-          console.log('[DELETE] Error message:', error.message);
           
-          const isNotFound = error.status === 404;
-          console.log('[DELETE] Is 404:', isNotFound);
-          
-          if (isNotFound) {
+          if (error.status === 404) {
+            // Already gone, remove from list
             setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
             setConfirmModal({ 
               isOpen: true, 
-              title: 'Campaign Not Found', 
-              message: 'Campaign removed from list.',
+              title: 'Campaign Removed', 
+              message: 'Campaign was already deleted.',
+              type: 'info',
+              showCancel: false,
+              onConfirm: () => setConfirmModal({ isOpen: false })
+            });
+          } else {
+            setConfirmModal({ 
+              isOpen: true, 
+              title: 'Error', 
+              message: 'Failed to delete campaign. Please try again.',
+              type: 'error',
               showCancel: false,
               onConfirm: () => setConfirmModal({ isOpen: false })
             });
           }
         }
-      }
+      },
+      onCancel: () => setConfirmModal({ isOpen: false })
     });
   };
 
@@ -95,22 +110,41 @@ export function CampaignManagementPage({ theme }) {
         method: 'PATCH',
         body: JSON.stringify({ status: newStatus })
       });
-      loadCampaigns();
-    } catch (error) {
-      console.error('Failed to update campaign status:', error);
-      // If campaign not found (404), remove it from the list
-      if (error.status === 404) {
-        loadCampaigns(); // Refresh to remove the non-existent campaign
-        return;
-      }
+      // Update local state immediately
+      setCampaigns(prev => prev.map(c => 
+        c.id === campaignId ? { ...c, status: newStatus } : c
+      ));
+      // Show success message
       setConfirmModal({
         isOpen: true,
-        title: 'Error',
-        message: 'Failed to update campaign status. Please try again.',
-        type: 'error',
+        title: 'Success',
+        message: `Campaign status updated to "${newStatus}"`,
+        type: 'success',
         showCancel: false,
-        onConfirm: () => {}
+        onConfirm: () => setConfirmModal({ isOpen: false })
       });
+    } catch (error) {
+      console.error('Failed to update campaign status:', error);
+      if (error.status === 404) {
+        setCampaigns(prev => prev.filter(c => c.id !== campaignId));
+        setConfirmModal({
+          isOpen: true,
+          title: 'Campaign Not Found',
+          message: 'Campaign no longer exists.',
+          type: 'error',
+          showCancel: false,
+          onConfirm: () => setConfirmModal({ isOpen: false })
+        });
+      } else {
+        setConfirmModal({
+          isOpen: true,
+          title: 'Error',
+          message: 'Failed to update campaign status. Please try again.',
+          type: 'error',
+          showCancel: false,
+          onConfirm: () => setConfirmModal({ isOpen: false })
+        });
+      }
     }
   };
 
