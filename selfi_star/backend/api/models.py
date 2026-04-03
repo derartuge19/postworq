@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Campaign models will be imported after they're created
-# from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
+# Import campaign models
+from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
