@@ -14,6 +14,7 @@ import { AdminManagementPage } from './pages/AdminManagementPage';
 import { ContestDashboardPage } from './pages/ContestDashboardPage';
 import { JudgingPortalPage } from './pages/JudgingPortalPage';
 import { AntiCheatPage } from './pages/AntiCheatPage';
+import { CampaignManagementPage } from './pages/CampaignManagementPage';
 import { AdminSidebar } from './components/AdminSidebar';
 import { AdminLogin } from './pages/AdminLogin';
 import api from '../api';
