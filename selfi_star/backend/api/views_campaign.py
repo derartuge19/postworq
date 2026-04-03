@@ -6,9 +6,20 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Count, Q
+from django.conf import settings
 from datetime import timedelta
 from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
 from .models import Reel, Follow
+
+def get_image_url(image_field, request=None):
+    """Get image URL without using build_absolute_uri"""
+    if not image_field:
+        return None
+    try:
+        # Return relative URL which works with any domain
+        return image_field.url
+    except:
+        return None
 
 # Admin Campaign Management
 @api_view(['GET'])
@@ -33,9 +44,7 @@ def admin_campaigns_list(request):
     
     data = []
     for c in campaigns_page:
-        image_url = None
-        if c.image:
-            image_url = request.build_absolute_uri(c.image.url)
+        image_url = get_image_url(c.image)
         
         data.append({
             'id': c.id,
@@ -276,9 +285,7 @@ def user_campaigns_list(request):
                 is_eligible = False
             has_entered = CampaignEntry.objects.filter(campaign=c, user=user).exists()
         
-        image_url = None
-        if c.image:
-            image_url = request.build_absolute_uri(c.image.url)
+        image_url = get_image_url(c.image)
         
         data.append({
             'id': c.id,
@@ -431,9 +438,7 @@ def user_campaign_detail(request, campaign_id):
             'user_voted': CampaignVote.objects.filter(entry=entry, user=user).exists(),
         } for entry in entries]
         
-        image_url = None
-        if campaign.image:
-            image_url = request.build_absolute_uri(campaign.image.url)
+        image_url = get_image_url(campaign.image)
         
         return Response({
             'id': campaign.id,
