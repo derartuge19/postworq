@@ -13,6 +13,7 @@ export function CampaignManagementPage({ theme }) {
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false });
+  const [successModal, setSuccessModal] = useState({ isOpen: false, campaign: null });
 
   useEffect(() => {
     loadCampaigns();
@@ -416,10 +417,20 @@ export function CampaignManagementPage({ theme }) {
         <CreateCampaignModal
           theme={theme}
           onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
+          onSuccess={(response) => {
             setShowCreateModal(false);
+            setSuccessModal({ isOpen: true, campaign: response });
             loadCampaigns();
           }}
+        />
+      )}
+
+      {/* Success Modal */}
+      {successModal.isOpen && (
+        <SuccessModal
+          theme={theme}
+          campaign={successModal.campaign}
+          onClose={() => setSuccessModal({ isOpen: false, campaign: null })}
         />
       )}
 
@@ -480,10 +491,13 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
+    setIsSubmitting(true);
     
     try {
       // Create FormData for file upload
@@ -524,8 +538,10 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
         body: formDataToSend,
         isFormData: true
       });
-      onSuccess();
+      setIsSubmitting(false);
+      onSuccess(response);
     } catch (error) {
+      setIsSubmitting(false);
       console.error('Failed to create campaign:', error);
       const errorMsg = typeof error === 'string' ? error : error.message || 'Failed to create campaign';
       setError(errorMsg);
@@ -1053,23 +1069,40 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
               </button>
               <button
                 type="submit"
+                disabled={isSubmitting}
                 style={{
                   flex: 1,
                   padding: 14,
-                  background: theme.pri,
+                  background: isSubmitting ? theme.sub : theme.pri,
                   border: 'none',
                   borderRadius: 8,
                   color: '#fff',
                   fontSize: 15,
                   fontWeight: 600,
-                  cursor: 'pointer',
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s',
-                  boxShadow: `0 4px 12px ${theme.pri}40`,
+                  boxShadow: isSubmitting ? 'none' : `0 4px 12px ${theme.pri}40`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
                 }}
-                onMouseEnter={(e) => e.target.style.transform = 'translateY(-1px)'}
+                onMouseEnter={(e) => !isSubmitting && (e.target.style.transform = 'translateY(-1px)')}
                 onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
               >
-                Create Campaign
+                {isSubmitting ? (
+                  <>
+                    <div style={{
+                      width: 18,
+                      height: 18,
+                      border: '2px solid #fff',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite',
+                    }} />
+                    Creating...
+                  </>
+                ) : 'Create Campaign'}
               </button>
             </div>
           </div>
@@ -1202,6 +1235,208 @@ function CampaignEntriesModal({ theme, campaign, onClose }) {
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function SuccessModal({ theme, campaign, onClose }) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0,0,0,0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000,
+        padding: 20,
+        animation: 'fadeIn 0.3s ease',
+      }}
+      onClick={onClose}
+    >
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { transform: scale(0.8); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes checkmark {
+          0% { transform: scale(0) rotate(-45deg); }
+          50% { transform: scale(1.2) rotate(-45deg); }
+          100% { transform: scale(1) rotate(-45deg); }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 20,
+          padding: '40px 48px',
+          width: '100%',
+          maxWidth: 420,
+          textAlign: 'center',
+          boxShadow: '0 25px 80px rgba(0,0,0,0.3)',
+          animation: 'scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Success Icon */}
+        <div
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            background: `linear-gradient(135deg, ${theme.green}20, ${theme.green}40)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px',
+            position: 'relative',
+          }}
+        >
+          <div
+            style={{
+              width: 36,
+              height: 18,
+              borderLeft: `5px solid ${theme.green}`,
+              borderBottom: `5px solid ${theme.green}`,
+              transform: 'rotate(-45deg)',
+              marginTop: -8,
+              animation: 'checkmark 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both',
+            }}
+          />
+        </div>
+
+        {/* Title */}
+        <h2
+          style={{
+            margin: 0,
+            fontSize: 26,
+            fontWeight: 700,
+            color: theme.txt,
+            marginBottom: 12,
+          }}
+        >
+          Campaign Created! 🎉
+        </h2>
+
+        {/* Message */}
+        <p
+          style={{
+            margin: 0,
+            fontSize: 15,
+            color: theme.sub,
+            lineHeight: 1.6,
+            marginBottom: 24,
+          }}
+        >
+          "{campaign?.title || 'Your campaign'}" has been successfully created and is now live!
+        </p>
+
+        {/* Campaign ID Badge */}
+        {campaign?.id && (
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 16px',
+              background: theme.pri + '10',
+              borderRadius: 20,
+              fontSize: 13,
+              fontWeight: 600,
+              color: theme.pri,
+              marginBottom: 24,
+            }}
+          >
+            <Trophy size={14} />
+            Campaign ID: #{campaign.id}
+          </div>
+        )}
+
+        {/* Progress Bar */}
+        <div
+          style={{
+            width: '100%',
+            height: 4,
+            background: theme.border,
+            borderRadius: 2,
+            overflow: 'hidden',
+            marginBottom: 16,
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              background: `linear-gradient(90deg, ${theme.green}, ${theme.pri})`,
+              borderRadius: 2,
+              animation: 'progress 3s linear',
+            }}
+          />
+        </div>
+        <style>{`
+          @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+          }
+        `}</style>
+
+        {/* Auto close hint */}
+        <p
+          style={{
+            margin: 0,
+            fontSize: 12,
+            color: theme.sub,
+          }}
+        >
+          Closing automatically in 3 seconds...
+        </p>
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          style={{
+            marginTop: 20,
+            padding: '12px 32px',
+            background: theme.pri,
+            border: 'none',
+            borderRadius: 10,
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: `0 4px 12px ${theme.pri}40`,
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = `0 6px 20px ${theme.pri}60`;
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = `0 4px 12px ${theme.pri}40`;
+          }}
+        >
+          Got it!
+        </button>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -65,6 +66,7 @@ def admin_campaigns_list(request):
 
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 def admin_campaign_create(request):
     """Create new campaign"""
     try:
