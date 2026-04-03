@@ -35,36 +35,34 @@ export function CampaignManagementPage({ theme }) {
   };
 
   const handleDelete = (campaign) => {
+    const deleteUrl = `/admin/campaigns/${campaign.id}/delete/`;
+    console.log(`[DELETE] URL: ${deleteUrl}, Campaign ID: ${campaign.id}, Title: ${campaign.title}`);
+    
     setConfirmModal({
       isOpen: true,
       title: 'Delete Campaign',
       message: `Are you sure you want to delete "${campaign.title}"? This action cannot be undone.`,
       onConfirm: async () => {
-        console.log(`Deleting campaign ${campaign.id}: ${campaign.title}`);
+        console.log(`[DELETE] Executing: ${deleteUrl}`);
         try {
-          const response = await api.request(`/admin/campaigns/${campaign.id}/delete/`, { method: 'DELETE' });
-          console.log('Delete response:', response);
+          const response = await api.request(deleteUrl, { method: 'DELETE' });
+          console.log('[DELETE] Success:', response);
           loadCampaigns();
           setConfirmModal({ isOpen: false });
         } catch (error) {
-          console.error('Failed to delete campaign:', error);
-          console.log('Error status:', error.status);
-          console.log('Error message:', error.message);
+          console.error('[DELETE] Failed:', error);
+          console.log('[DELETE] Error status:', error.status);
+          console.log('[DELETE] Error message:', error.message);
           
-          // Check for 404 - campaign not found
-          const isNotFound = error.status === 404 || 
-                            (error.message && error.message.toLowerCase().includes('not found'));
+          const isNotFound = error.status === 404;
+          console.log('[DELETE] Is 404:', isNotFound);
           
-          console.log('Is 404:', isNotFound);
-          
-          // If campaign not found (404), clear it from the list
           if (isNotFound) {
-            console.log('Removing campaign from list');
             setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
             setConfirmModal({ 
               isOpen: true, 
               title: 'Campaign Not Found', 
-              message: 'This campaign no longer exists in the database. It has been removed from the list.',
+              message: 'Campaign removed from list.',
               showCancel: false,
               onConfirm: () => setConfirmModal({ isOpen: false })
             });
