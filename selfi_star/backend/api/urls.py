@@ -23,7 +23,13 @@ from .views_campaign import (
     admin_campaign_entries, admin_announce_winners, user_campaigns_list, user_campaign_enter,
     user_campaign_vote, user_campaign_detail
 )
-from .views_reels import reels_following, reels_saved, reels_trending
+from .views_contest import (
+    get_user_subscription, upgrade_subscription, get_coin_packages, get_coin_balance,
+    purchase_coins, gift_creator, boost_post, purchase_extra_entry, get_post_score,
+    judge_post, get_leaderboard, admin_contest_dashboard, toggle_flash_challenge,
+    admin_judging_portal, verify_phone, verify_age, anti_cheat_flags, review_flag,
+    get_grand_finale, vote_grand_finale, check_upload_eligibility
+)
 
 router = DefaultRouter()
 router.register(r'profile', UserProfileViewSet, basename='profile')
@@ -100,5 +106,28 @@ urlpatterns = [
     path('reels/following/', reels_following, name='reels-following'),
     path('reels/saved/', reels_saved, name='reels-saved'),
     path('reels/trending/', reels_trending, name='reels-trending'),
+    # Contest System - User
+    path('subscription/details/', get_user_subscription, name='subscription-details'),
+    path('subscription/upgrade/', upgrade_subscription, name='subscription-upgrade'),
+    path('coins/packages/', get_coin_packages, name='coin-packages'),
+    path('coins/balance/', get_coin_balance, name='coin-balance'),
+    path('coins/purchase/', purchase_coins, name='coin-purchase'),
+    path('coins/gift/', gift_creator, name='gift-creator'),
+    path('coins/boost/', boost_post, name='boost-post'),
+    path('coins/extra-entry/', purchase_extra_entry, name='extra-entry'),
+    path('scores/<int:reel_id>/', get_post_score, name='post-score'),
+    path('leaderboard/', get_leaderboard, name='leaderboard'),
+    path('eligibility/phone/', verify_phone, name='verify-phone'),
+    path('eligibility/age/', verify_age, name='verify-age'),
+    path('upload/check/', check_upload_eligibility, name='check-upload'),
+    path('grand-finale/', get_grand_finale, name='grand-finale'),
+    path('grand-finale/vote/', vote_grand_finale, name='grand-vote'),
+    # Contest System - Admin
+    path('admin/contest/dashboard/', admin_contest_dashboard, name='admin-contest-dashboard'),
+    path('admin/contest/flash-toggle/', toggle_flash_challenge, name='flash-toggle'),
+    path('admin/contest/judging/', admin_judging_portal, name='admin-judging'),
+    path('admin/contest/judge/<int:reel_id>/', judge_post, name='judge-post'),
+    path('admin/contest/anti-cheat/', anti_cheat_flags, name='anti-cheat-flags'),
+    path('admin/contest/review-flag/<int:flag_id>/', review_flag, name='review-flag'),
     path('', include(router.urls)),
 ]
