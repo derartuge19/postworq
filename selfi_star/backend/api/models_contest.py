@@ -21,7 +21,7 @@ class UserSubscription(models.Model):
     User subscription with tier-based multipliers
     Monthly auto-renewal (30 days), VIP is annual
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='subscription')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='contest_subscription')
     tier = models.CharField(max_length=20, choices=UserTier.choices, default=UserTier.FREE)
     
     # Subscription timing

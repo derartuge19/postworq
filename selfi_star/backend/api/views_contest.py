@@ -396,7 +396,7 @@ def judge_post(request, reel_id):
     
     # Calculate consistency score
     try:
-        streak = reel.user.subscription.post_streak
+        streak = reel.user.contest_subscription.post_streak
     except:
         streak = 0
     score.calculate_consistency(streak)
@@ -842,7 +842,7 @@ def check_upload_eligibility(request):
     
     # Check subscription tier limits
     try:
-        subscription = user.subscription
+        subscription = user.contest_subscription
         if not subscription.can_post_today():
             # Check if extra entry purchased
             today = timezone.now().date()
