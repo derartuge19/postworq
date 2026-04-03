@@ -580,7 +580,9 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
       formDataToSend.append('status', formData.status);
       formDataToSend.append('min_followers', formData.min_followers);
       formDataToSend.append('min_level', formData.min_level);
+      formDataToSend.append('min_votes_per_reel', formData.min_votes_per_reel);
       formDataToSend.append('winner_count', formData.winner_count);
+      formDataToSend.append('required_hashtags', formData.required_hashtags);
       
       // Convert dates to ISO format
       if (formData.start_date) {
@@ -1111,6 +1113,132 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
                     </select>
                   </div>
                 </div>
+              </div>
+            </div>
+            
+            {/* Entry Criteria */}
+            <div style={{ 
+              padding: 16, 
+              background: theme.blue + '08', 
+              borderRadius: 8,
+              border: `1px solid ${theme.blue}30`,
+            }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: theme.txt, marginBottom: 16 }}>
+                Entry Requirements
+              </h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
+                    Min Followers
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={formData.min_followers}
+                    onChange={(e) => setFormData({ ...formData, min_followers: parseInt(e.target.value) || 0 })}
+                    min="0"
+                    style={{
+                      width: '100%',
+                      padding: 12,
+                      border: `2px solid ${theme.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
+                    Min Level
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={formData.min_level}
+                    onChange={(e) => setFormData({ ...formData, min_level: parseInt(e.target.value) || 0 })}
+                    min="0"
+                    style={{
+                      width: '100%',
+                      padding: 12,
+                      border: `2px solid ${theme.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
+                    Min Votes Per Reel
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={formData.min_votes_per_reel}
+                    onChange={(e) => setFormData({ ...formData, min_votes_per_reel: parseInt(e.target.value) || 0 })}
+                    min="0"
+                    style={{
+                      width: '100%',
+                      padding: 12,
+                      border: `2px solid ${theme.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
+                    Number of Winners *
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="3"
+                    value={formData.winner_count}
+                    onChange={(e) => setFormData({ ...formData, winner_count: parseInt(e.target.value) || 1 })}
+                    min="1"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: 12,
+                      border: `2px solid ${theme.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
+                  Required Hashtags (comma separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="#contest, #giveaway, #challenge"
+                  value={formData.required_hashtags}
+                  onChange={(e) => setFormData({ ...formData, required_hashtags: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: 12,
+                    border: `2px solid ${theme.border}`,
+                    borderRadius: 8,
+                    fontSize: 14,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
               </div>
             </div>
             
