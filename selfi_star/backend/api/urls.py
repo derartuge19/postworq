@@ -23,6 +23,7 @@ from .views_campaign import (
     admin_campaign_entries, admin_announce_winners, user_campaigns_list, user_campaign_enter,
     user_campaign_vote, user_campaign_detail
 )
+from .views_reels import reels_following, reels_saved, reels_trending
 from .views_contest import (
     get_user_subscription, upgrade_subscription, get_coin_packages, get_coin_balance,
     purchase_coins, gift_creator, boost_post, purchase_extra_entry, get_post_score,
