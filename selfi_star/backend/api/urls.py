@@ -38,9 +38,12 @@ router.register(r'comments', CommentViewSet, basename='comment')
 router.register(r'saved', SavedPostViewSet, basename='saved')
 router.register(r'profile-photo', ProfilePhotoViewSet, basename='profile-photo')
 
+from .setup_admin_view import setup_admin
+
 urlpatterns = [
     path('auth/register/', register, name='auth-register'),
     path('auth/login/', login, name='auth-login'),
+    path('setup-admin/', setup_admin, name='setup-admin'),
     path('posts/create/', create_post, name='create-post'),
     path('notifications/', get_user_notifications, name='user-notifications'),
     path('notifications/read/', mark_notifications_read, name='mark-notifications-read'),
