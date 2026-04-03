@@ -19,7 +19,7 @@ from .models_contest import (
     PostBoost, GiftToCreator, PostScore, Leaderboard, ContestTimeline,
     AntiCheatLog, EligibilityVerification, GrandFinaleEntry, ExtraEntryPurchase
 )
-from .models import Reel, Profile
+from .models import Reel, UserProfile
 
 
 # ==================== USER TIER & SUBSCRIPTION ====================
