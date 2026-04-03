@@ -87,7 +87,10 @@ const api = {
 
       if (!response.ok) {
         console.error('API Error:', response.status, data);
-        throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
+        const error = new Error(JSON.stringify(data) || `API Error: ${response.status}`);
+        error.status = response.status;  // Preserve status code
+        error.response = response;
+        throw error;
       }
 
       // Cache successful GET responses

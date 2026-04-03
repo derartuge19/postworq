@@ -48,24 +48,14 @@ export function CampaignManagementPage({ theme }) {
           setConfirmModal({ isOpen: false });
         } catch (error) {
           console.error('Failed to delete campaign:', error);
-          console.log('Error details:', error.message);
+          console.log('Error status:', error.status);
+          console.log('Error message:', error.message);
           
-          // Parse error to check for 404
-          let isNotFound = false;
-          let errorMessage = error.message;
+          // Check for 404 - campaign not found
+          const isNotFound = error.status === 404 || 
+                            (error.message && error.message.toLowerCase().includes('not found'));
           
-          try {
-            const errorData = JSON.parse(error.message);
-            errorMessage = errorData.error || error.message;
-            isNotFound = errorData.error?.toLowerCase().includes('not found') || 
-                        errorData.error?.toLowerCase().includes('campaign');
-            console.log('Parsed error data:', errorData);
-          } catch (e) {
-            isNotFound = error.message?.toLowerCase().includes('not found') || 
-                        error.message?.toLowerCase().includes('404');
-          }
-          
-          console.log('Is not found:', isNotFound);
+          console.log('Is 404:', isNotFound);
           
           // If campaign not found (404), clear it from the list
           if (isNotFound) {
