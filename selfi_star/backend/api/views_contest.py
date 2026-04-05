@@ -514,56 +514,90 @@ def calculate_leaderboard(period, date):
 @permission_classes([IsAdminUser])
 def admin_contest_dashboard(request):
     """Admin contest dashboard with budget monitoring"""
+    print(f"[CONTEST DASHBOARD] User: {request.user}, is_staff: {request.user.is_staff}")
     
-    # Get active contest or create default
     try:
-        contest = ContestTimeline.objects.get(is_active=True)
-    except ContestTimeline.DoesNotExist:
-        # Create default contest
-        contest = ContestTimeline.objects.create(
-            name="90-Day Contest",
-            start_date=timezone.now(),
-            end_date=timezone.now() + timedelta(days=90),
-            total_budget=2100000,
-            flash_start_time=timezone.now().time().replace(hour=18, minute=0),
-            flash_end_time=timezone.now().time().replace(hour=20, minute=0),
-            is_active=True,
-        )
-    
-    # Budget breakdown
-    total_budget = float(contest.total_budget)
-    budget_breakdown = contest.get_budget_breakdown()
-    
-    return Response({
-        'contest_name': contest.name,
-        'days_remaining': contest.get_days_remaining(),
-        'is_flash_hour': contest.is_flash_hour(),
-        'flash_multiplier': contest.flash_multiplier if contest.is_flash_hour() else 1.0,
-        'budget': {
-            'total': total_budget,
-            'allocated': {
-                'daily': total_budget * budget_breakdown['daily'] / 100,
-                'weekly': total_budget * budget_breakdown['weekly'] / 100,
-                'monthly': total_budget * budget_breakdown['monthly'] / 100,
-                'grand': total_budget * budget_breakdown['grand'] / 100,
+        # Get active contest or create default
+        try:
+            contest = ContestTimeline.objects.get(is_active=True)
+            print(f"[CONTEST DASHBOARD] Found active contest: {contest.name}")
+        except ContestTimeline.DoesNotExist:
+            print("[CONTEST DASHBOARD] No active contest, creating default...")
+            # Create default contest
+            contest = ContestTimeline.objects.create(
+                name="90-Day Contest",
+                start_date=timezone.now(),
+                end_date=timezone.now() + timedelta(days=90),
+                total_budget=2100000,
+                flash_start_time=timezone.now().time().replace(hour=18, minute=0),
+                flash_end_time=timezone.now().time().replace(hour=20, minute=0),
+                is_active=True,
+            )
+            print(f"[CONTEST DASHBOARD] Created default contest: {contest.id}")
+        
+        # Budget breakdown
+        total_budget = float(contest.total_budget)
+        budget_breakdown = contest.get_budget_breakdown()
+        
+        # Stats with error handling
+        try:
+            total_participants = User.objects.filter(reel__isnull=False).distinct().count()
+        except Exception as e:
+            print(f"[CONTEST DASHBOARD] Error getting participants: {e}")
+            total_participants = 0
+            
+        try:
+            total_posts = Reel.objects.count()
+        except Exception as e:
+            print(f"[CONTEST DASHBOARD] Error getting posts: {e}")
+            total_posts = 0
+            
+        try:
+            coins_result = UserCoinBalance.objects.aggregate(Sum('total_earned'))
+            total_coins = coins_result['total_earned__sum'] or 0
+        except Exception as e:
+            print(f"[CONTEST DASHBOARD] Error getting coins: {e}")
+            total_coins = 0
+        
+        response_data = {
+            'contest_name': contest.name,
+            'days_remaining': contest.get_days_remaining(),
+            'is_flash_hour': contest.is_flash_hour(),
+            'flash_multiplier': contest.flash_multiplier if contest.is_flash_hour() else 1.0,
+            'budget': {
+                'total': total_budget,
+                'allocated': {
+                    'daily': total_budget * budget_breakdown['daily'] / 100,
+                    'weekly': total_budget * budget_breakdown['weekly'] / 100,
+                    'monthly': total_budget * budget_breakdown['monthly'] / 100,
+                    'grand': total_budget * budget_breakdown['grand'] / 100,
+                },
+                'spent': {
+                    'daily': float(contest.spent_daily),
+                    'weekly': float(contest.spent_weekly),
+                    'monthly': float(contest.spent_monthly),
+                    'grand': float(contest.spent_grand),
+                },
+                'remaining': total_budget - (
+                    float(contest.spent_daily) + float(contest.spent_weekly) +
+                    float(contest.spent_monthly) + float(contest.spent_grand)
+                ),
             },
-            'spent': {
-                'daily': float(contest.spent_daily),
-                'weekly': float(contest.spent_weekly),
-                'monthly': float(contest.spent_monthly),
-                'grand': float(contest.spent_grand),
-            },
-            'remaining': total_budget - (
-                float(contest.spent_daily) + float(contest.spent_weekly) +
-                float(contest.spent_monthly) + float(contest.spent_grand)
-            ),
-        },
-        'stats': {
-            'total_participants': User.objects.filter(reel__isnull=False).distinct().count(),
-            'total_posts': Reel.objects.count(),
-            'total_coins_distributed': UserCoinBalance.objects.aggregate(Sum('total_earned'))['total_earned__sum'] or 0,
+            'stats': {
+                'total_participants': total_participants,
+                'total_posts': total_posts,
+                'total_coins_distributed': total_coins,
+            }
         }
-    })
+        print(f"[CONTEST DASHBOARD] Success, returning data")
+        return Response(response_data)
+        
+    except Exception as e:
+        import traceback
+        error_msg = f"[CONTEST DASHBOARD] ERROR: {str(e)}"
+        print(error_msg)
+        traceback.print_exc()
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
