@@ -1,318 +1,246 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { ArrowLeft, Trophy, Medal, Award, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Trophy, Medal, TrendingUp } from 'lucide-react';
+
+const PRI = '#DA9B2A';
+const BORDER = '#E7E5E4';
+const TXT = '#1C1917';
+const SUB = '#78716C';
+const BG = '#FAFAF9';
+
+const PERIODS = [
+  { id: 'daily', label: 'Today' },
+  { id: 'weekly', label: 'This Week' },
+  { id: 'monthly', label: 'This Month' },
+  { id: 'overall', label: 'All Time' },
+];
+
+const MEDAL = { 1: '#FFD700', 2: '#A8A8A8', 3: '#CD7F32' };
 
 const CampaignLeaderboard = ({ campaignId, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [campaign, setCampaign] = useState(null);
-  const [period, setPeriod] = useState('daily');
+  const [period, setPeriod] = useState('overall');
   const [leaderboard, setLeaderboard] = useState([]);
 
-  useEffect(() => {
-    loadData();
-  }, [campaignId, period]);
+  useEffect(() => { loadData(); }, [campaignId, period]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [campaignRes, leaderboardRes] = await Promise.all([
+      const [campaignRes, lbRes] = await Promise.all([
         api.request(`/campaigns/${campaignId}/`),
         api.request(`/campaigns/${campaignId}/leaderboard/?period=${period}`)
       ]);
       setCampaign(campaignRes);
-      setLeaderboard(leaderboardRes.entries || []);
-    } catch (error) {
-      console.error('Error loading leaderboard:', error);
+      setLeaderboard(lbRes.entries || []);
+    } catch (err) {
+      console.error('Error loading leaderboard:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const getRankIcon = (rank) => {
-    if (rank === 1) return <Trophy size={24} color="#FFD700" />;
-    if (rank === 2) return <Medal size={24} color="#C0C0C0" />;
-    if (rank === 3) return <Medal size={24} color="#CD7F32" />;
-    return <Award size={20} color="#999" />;
-  };
-
-  const getRankColor = (rank) => {
-    if (rank === 1) return '#FFD700';
-    if (rank === 2) return '#C0C0C0';
-    if (rank === 3) return '#CD7F32';
-    return '#666';
-  };
-
-  if (loading) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontSize: '18px', color: '#666' }}>Loading...</div>
-      </div>
-    );
-  }
+  const top3 = leaderboard.slice(0, 3);
+  const rest = leaderboard.slice(3);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f5f5', paddingBottom: '80px' }}>
+    <div style={{ minHeight: '100vh', background: BG, boxSizing: 'border-box' }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        padding: '20px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
+        background: '#fff', borderBottom: `1px solid ${BORDER}`,
+        padding: '16px 24px', position: 'sticky', top: 0, zIndex: 100,
       }}>
-        <button
-          onClick={() => onBack?.()}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            background: 'rgba(255,255,255,0.2)',
-            border: 'none',
-            borderRadius: '8px',
-            color: 'white',
-            cursor: 'pointer',
-            marginBottom: '16px'
-          }}
-        >
-          <ArrowLeft size={20} />
-          Back to Campaign
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-          <TrendingUp size={32} />
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>
-              Leaderboard
-            </h1>
-            <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>
-              {campaign?.title}
-            </p>
+        <div style={{ maxWidth: 700, margin: '0 auto' }}>
+          <button
+            onClick={() => onBack?.()}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              color: SUB, fontSize: 14, fontWeight: 600, padding: '4px 0', marginBottom: 10,
+            }}
+          >
+            <ArrowLeft size={16} /> Back to Campaign
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+              background: `linear-gradient(135deg, ${PRI}, #F59E0B)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <TrendingUp size={20} color="#fff" />
+            </div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TXT }}>Leaderboard</h1>
+              <p style={{ margin: 0, fontSize: 13, color: SUB }}>{campaign?.title}</p>
+            </div>
           </div>
-        </div>
-
-        {/* Period Selector */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
-          {['daily', 'weekly', 'monthly', 'overall'].map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              style={{
-                padding: '8px 16px',
-                background: period === p ? 'white' : 'rgba(255,255,255,0.2)',
-                color: period === p ? '#667eea' : 'white',
-                border: 'none',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                textTransform: 'capitalize',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {p}
-            </button>
-          ))}
+          {/* Period tabs */}
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
+            {PERIODS.map(p => (
+              <button
+                key={p.id}
+                onClick={() => setPeriod(p.id)}
+                style={{
+                  padding: '7px 16px',
+                  background: period === p.id ? PRI : '#fff',
+                  color: period === p.id ? '#fff' : SUB,
+                  border: `1.5px solid ${period === p.id ? PRI : BORDER}`,
+                  borderRadius: 20, cursor: 'pointer',
+                  fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
+                }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Top 3 Podium */}
-      {leaderboard.length >= 3 && (
-        <div style={{
-          padding: '30px 20px',
-          background: 'white',
-          marginBottom: '20px'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-            gap: '16px',
-            maxWidth: '600px',
-            margin: '0 auto'
-          }}>
-            {/* 2nd Place */}
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #C0C0C0, #E8E8E8)',
-                margin: '0 auto 12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '32px',
-                fontWeight: 'bold',
-                color: 'white',
-                border: '4px solid #C0C0C0'
-              }}>
-                {leaderboard[1]?.username?.[0]?.toUpperCase()}
-              </div>
-              <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-                {leaderboard[1]?.username}
-              </div>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#C0C0C0' }}>
-                {leaderboard[1]?.total_score}
-              </div>
-              <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-                2nd Place
-              </div>
-            </div>
-
-            {/* 1st Place */}
-            <div style={{ flex: 1, textAlign: 'center', marginBottom: '20px' }}>
-              <Trophy size={32} color="#FFD700" style={{ marginBottom: '8px' }} />
-              <div style={{
-                width: '100px',
-                height: '100px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-                margin: '0 auto 12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '40px',
-                fontWeight: 'bold',
-                color: 'white',
-                border: '4px solid #FFD700',
-                boxShadow: '0 4px 12px rgba(255,215,0,0.3)'
-              }}>
-                {leaderboard[0]?.username?.[0]?.toUpperCase()}
-              </div>
-              <div style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>
-                {leaderboard[0]?.username}
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#FFD700' }}>
-                {leaderboard[0]?.total_score}
-              </div>
-              <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-                Champion
-              </div>
-            </div>
-
-            {/* 3rd Place */}
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #CD7F32, #E5A572)',
-                margin: '0 auto 12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '32px',
-                fontWeight: 'bold',
-                color: 'white',
-                border: '4px solid #CD7F32'
-              }}>
-                {leaderboard[2]?.username?.[0]?.toUpperCase()}
-              </div>
-              <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-                {leaderboard[2]?.username}
-              </div>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#CD7F32' }}>
-                {leaderboard[2]?.total_score}
-              </div>
-              <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-                3rd Place
-              </div>
-            </div>
+      <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 24px 60px' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: SUB, fontSize: 15 }}>
+            Loading rankings...
           </div>
-        </div>
-      )}
-
-      {/* Full Leaderboard */}
-      <div style={{ padding: '0 20px' }}>
-        {leaderboard.length === 0 ? (
+        ) : leaderboard.length === 0 ? (
           <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '40px',
-            textAlign: 'center'
+            background: '#fff', borderRadius: 14, padding: '48px 24px',
+            textAlign: 'center', border: `1px solid ${BORDER}`,
           }}>
-            <TrendingUp size={48} color="#ccc" style={{ marginBottom: '16px' }} />
-            <h3 style={{ fontSize: '18px', color: '#666', marginBottom: '8px' }}>
-              No Rankings Yet
-            </h3>
-            <p style={{ color: '#999', fontSize: '14px' }}>
-              Be the first to participate and climb the leaderboard!
-            </p>
+            <Trophy size={44} color={PRI} style={{ marginBottom: 16, opacity: 0.4 }} />
+            <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: TXT }}>No Rankings Yet</h3>
+            <p style={{ margin: 0, color: SUB, fontSize: 14 }}>Be the first to participate!</p>
           </div>
         ) : (
-          <div style={{ background: 'white', borderRadius: '12px', overflow: 'hidden' }}>
-            {leaderboard.map((entry, index) => (
-              <div
-                key={entry.user_id || index}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '16px',
-                  borderBottom: index < leaderboard.length - 1 ? '1px solid #f0f0f0' : 'none',
-                  background: entry.rank <= 3 ? 'rgba(255,215,0,0.05)' : 'white'
-                }}
-              >
-                {/* Rank */}
-                <div style={{
-                  width: '50px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {entry.rank <= 3 ? (
-                    getRankIcon(entry.rank)
-                  ) : (
-                    <span style={{ fontSize: '18px', fontWeight: '600', color: '#999' }}>
-                      {entry.rank}
-                    </span>
+          <>
+            {/* Podium – top 3 */}
+            {top3.length >= 1 && (
+              <div style={{
+                background: '#fff', borderRadius: 14, border: `1px solid ${BORDER}`,
+                padding: '28px 24px 24px', marginBottom: 16,
+              }}>
+                <p style={{ margin: '0 0 20px', fontSize: 13, fontWeight: 700, color: SUB, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Top Performers
+                </p>
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 16 }}>
+                  {/* 2nd */}
+                  {top3[1] && (
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: '50%', margin: '0 auto 10px',
+                        background: `linear-gradient(135deg, #A8A8A8, #D0D0D0)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 26, fontWeight: 800, color: '#fff',
+                        border: '3px solid #A8A8A8',
+                      }}>
+                        {top3[1].username?.[0]?.toUpperCase()}
+                      </div>
+                      <Medal size={18} color="#A8A8A8" style={{ marginBottom: 4 }} />
+                      <div style={{ fontSize: 14, fontWeight: 700, color: TXT, marginBottom: 2 }}>{top3[1].username}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#A8A8A8' }}>{top3[1].total_score || top3[1].score}</div>
+                      <div style={{ fontSize: 11, color: SUB }}>pts</div>
+                    </div>
+                  )}
+                  {/* 1st */}
+                  {top3[0] && (
+                    <div style={{ flex: 1, textAlign: 'center', marginBottom: 12 }}>
+                      <Trophy size={24} color="#FFD700" style={{ marginBottom: 6 }} />
+                      <div style={{
+                        width: 80, height: 80, borderRadius: '50%', margin: '0 auto 10px',
+                        background: `linear-gradient(135deg, ${PRI}, #F59E0B)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 32, fontWeight: 800, color: '#fff',
+                        border: `4px solid ${PRI}`,
+                        boxShadow: `0 4px 16px ${PRI}40`,
+                      }}>
+                        {top3[0].username?.[0]?.toUpperCase()}
+                      </div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: TXT, marginBottom: 2 }}>{top3[0].username}</div>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: PRI }}>{top3[0].total_score || top3[0].score}</div>
+                      <div style={{ fontSize: 11, color: SUB }}>pts · Champion</div>
+                    </div>
+                  )}
+                  {/* 3rd */}
+                  {top3[2] && (
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: '50%', margin: '0 auto 10px',
+                        background: `linear-gradient(135deg, #CD7F32, #E5A572)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 26, fontWeight: 800, color: '#fff',
+                        border: '3px solid #CD7F32',
+                      }}>
+                        {top3[2].username?.[0]?.toUpperCase()}
+                      </div>
+                      <Medal size={18} color="#CD7F32" style={{ marginBottom: 4 }} />
+                      <div style={{ fontSize: 14, fontWeight: 700, color: TXT, marginBottom: 2 }}>{top3[2].username}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: '#CD7F32' }}>{top3[2].total_score || top3[2].score}</div>
+                      <div style={{ fontSize: 11, color: SUB }}>pts</div>
+                    </div>
                   )}
                 </div>
-
-                {/* User */}
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: getRankColor(entry.rank),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '16px',
-                    fontWeight: 'bold'
-                  }}>
-                    {entry.username?.[0]?.toUpperCase()}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: '600', fontSize: '16px' }}>
-                      {entry.username}
-                    </div>
-                    {entry.post_count && (
-                      <div style={{ fontSize: '12px', color: '#999' }}>
-                        {entry.post_count} posts
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Score */}
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{
-                    fontSize: '20px',
-                    fontWeight: 'bold',
-                    color: getRankColor(entry.rank)
-                  }}>
-                    {entry.total_score || entry.score}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#999' }}>
-                    points
-                  </div>
-                </div>
               </div>
-            ))}
-          </div>
+            )}
+
+            {/* Full list */}
+            {leaderboard.length > 0 && (
+              <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${BORDER}`, overflow: 'hidden' }}>
+                {leaderboard.map((entry, idx) => {
+                  const rank = entry.rank || idx + 1;
+                  const medalColor = MEDAL[rank];
+                  return (
+                    <div
+                      key={entry.user_id || idx}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 14,
+                        padding: '14px 18px',
+                        borderBottom: idx < leaderboard.length - 1 ? `1px solid ${BORDER}` : 'none',
+                        background: rank === 1 ? `${PRI}08` : '#fff',
+                      }}
+                    >
+                      {/* Rank number */}
+                      <div style={{ width: 32, textAlign: 'center', flexShrink: 0 }}>
+                        {rank <= 3 ? (
+                          rank === 1 ? <Trophy size={20} color="#FFD700" /> :
+                          rank === 2 ? <Medal size={20} color="#A8A8A8" /> :
+                                       <Medal size={20} color="#CD7F32" />
+                        ) : (
+                          <span style={{ fontSize: 15, fontWeight: 700, color: SUB }}>#{rank}</span>
+                        )}
+                      </div>
+                      {/* Avatar */}
+                      <div style={{
+                        width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+                        background: medalColor
+                          ? `linear-gradient(135deg, ${medalColor}, ${medalColor}bb)`
+                          : `linear-gradient(135deg, ${PRI}60, #F59E0B60)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', fontSize: 15, fontWeight: 800,
+                      }}>
+                        {entry.username?.[0]?.toUpperCase()}
+                      </div>
+                      {/* Name */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: TXT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {entry.username}
+                        </div>
+                        {entry.post_count > 0 && (
+                          <div style={{ fontSize: 12, color: SUB }}>{entry.post_count} posts</div>
+                        )}
+                      </div>
+                      {/* Score */}
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: rank <= 3 ? PRI : TXT }}>
+                          {entry.total_score || entry.score || 0}
+                        </div>
+                        <div style={{ fontSize: 11, color: SUB }}>points</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

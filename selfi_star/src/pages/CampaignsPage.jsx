@@ -76,9 +76,8 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: `linear-gradient(135deg, ${theme.bg} 0%, ${theme.pri}08 100%)`,
-      padding: '20px',
-      marginLeft: '240px',
+      background: theme.bg,
+      padding: '20px 24px',
       boxSizing: 'border-box',
     }}>
       {/* Hero Section */}
@@ -135,17 +134,11 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
       {/* Filter Tabs */}
       <div style={{
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        gap: 8,
+        flexWrap: 'wrap',
         justifyContent: 'center',
-        marginBottom: 40,
+        marginBottom: 28,
       }}>
-        <div style={{
-          display: 'flex',
-          gap: 8,
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-        }}>
           {[
             { id: 'active', label: 'Active Now', icon: Trophy, color: theme.green },
             { id: 'voting', label: 'Voting Open', icon: Award, color: theme.blue },
@@ -193,17 +186,16 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
               </button>
             );
           })}
-        </div>
+      </div>
 
-        {/* Campaigns Grid */}
-        {loading ? (
+      {/* Campaigns Grid */}
+      {loading ? (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: 16,
-            maxWidth: '1200px',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: 20,
+            maxWidth: '1100px',
             margin: '0 auto',
-            marginTop: '32px',
           }}>
             {[1, 2, 3].map(i => (
               <div
@@ -251,14 +243,13 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
               </div>
             ))}
           </div>
-        ) : campaigns.length === 0 ? (
+      ) : campaigns.length === 0 ? (
           <div style={{
             background: theme.card,
             borderRadius: 16,
             padding: 40,
             textAlign: 'center',
             border: `1px solid ${theme.border}`,
-            marginTop: '32px',
           }}>
             <Trophy size={48} color={theme.sub} style={{ marginBottom: 16 }} />
             <h3 style={{
@@ -278,14 +269,13 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
               Check back later for new opportunities!
             </p>
           </div>
-        ) : (
+      ) : (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: 16,
-            maxWidth: '1200px',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: 20,
+            maxWidth: '1100px',
             margin: '0 auto',
-            marginTop: '32px',
           }}>
             {campaigns.map(campaign => {
               const statusColor = getStatusColor(campaign.status);
@@ -305,12 +295,10 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
                     position: 'relative',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = `0 8px 16px ${statusColor}20`;
+                    e.currentTarget.style.boxShadow = `0 6px 20px ${statusColor}25`;
                     e.currentTarget.style.borderColor = statusColor;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
                     e.currentTarget.style.borderColor = theme.border;
                   }}
@@ -576,12 +564,10 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
                         transition: 'all 0.3s',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = `0 8px 24px ${theme.pri}50`;
+                        e.currentTarget.style.opacity = '0.9';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = `0 4px 16px ${theme.pri}40`;
+                        e.currentTarget.style.opacity = '1';
                       }}
                     >
                       View Campaign
@@ -593,7 +579,6 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
             })}
           </div>
         )}
-      </div>
     </div>
   );
 }

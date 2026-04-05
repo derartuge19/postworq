@@ -164,8 +164,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
     <div style={{
       minHeight: '100vh',
       background: theme.bg,
-      marginLeft: '240px',
-      padding: '20px 20px 40px 20px',
+      padding: '24px 32px 60px 32px',
       boxSizing: 'border-box',
     }}>
       <div style={{
