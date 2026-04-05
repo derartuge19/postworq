@@ -49,19 +49,19 @@ export function AdminApp() {
   }, []);
 
   const checkAdminAuth = async () => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('adminToken');
     if (token) {
       try {
-        api.setAuthToken(token);
+        api.setAdminToken(token);
         const response = await api.getProfile();
         if (response.user && response.user.is_staff) {
           setAdminUser(response.user);
           setIsAuthenticated(true);
         } else {
-          localStorage.removeItem('authToken');
+          localStorage.removeItem('adminToken');
         }
       } catch (error) {
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('adminToken');
       }
     }
     setLoading(false);
@@ -72,8 +72,7 @@ export function AdminApp() {
       const response = await api.login(email, password);
       
       if (response.user && response.user.is_staff) {
-        localStorage.setItem('authToken', response.token);
-        api.setAuthToken(response.token);
+        api.setAdminToken(response.token);
         setAdminUser(response.user);
         setIsAuthenticated(true);
         return { success: true };
@@ -86,8 +85,7 @@ export function AdminApp() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    api.setAuthToken(null);
+    api.setAdminToken(null);
     setIsAuthenticated(false);
     setAdminUser(null);
     setCurrentPage('dashboard');

@@ -2,8 +2,7 @@ import config from './config.js';
 
 const API_BASE_URL = config.API_BASE_URL;
 
-let authToken =
-  localStorage.getItem('authToken') || localStorage.getItem('adminToken');
+let authToken = localStorage.getItem('authToken');
 
 // --- Lightweight GET cache & request deduplication ---
 const _cache = new Map();
@@ -33,7 +32,18 @@ const api = {
     } else {
       localStorage.removeItem('authToken');
     }
-    _cache.clear(); // Clear cache on auth change
+    _cache.clear();
+  },
+
+  // Used by admin panel only - does NOT touch the user's authToken in localStorage
+  setAdminToken: (token) => {
+    authToken = token;
+    if (token) {
+      localStorage.setItem('adminToken', token);
+    } else {
+      localStorage.removeItem('adminToken');
+    }
+    _cache.clear();
   },
 
   getToken: () => {
