@@ -34,10 +34,11 @@ def admin_campaign_themes(request, campaign_id):
             'week_number': theme.week_number,
             'start_date': theme.start_date,
             'end_date': theme.end_date,
+            'hashtags': theme.hashtags or [],
             'is_active': theme.is_active,
             'posts_count': theme.theme_posts.count(),
         } for theme in themes]
-        return Response(data)
+        return Response({'themes': data})
     
     elif request.method == 'POST':
         title = request.data.get('title')
@@ -49,19 +50,25 @@ def admin_campaign_themes(request, campaign_id):
         if not all([title, description, week_number, start_date, end_date]):
             return Response({'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
         
+        hashtags = request.data.get('hashtags', [])
+        if isinstance(hashtags, str):
+            hashtags = [h.strip() for h in hashtags.split(',') if h.strip()]
+        
         theme = CampaignTheme.objects.create(
             campaign=campaign,
             title=title,
             description=description,
             week_number=week_number,
             start_date=start_date,
-            end_date=end_date
+            end_date=end_date,
+            hashtags=hashtags
         )
         
         return Response({
             'id': theme.id,
             'title': theme.title,
             'week_number': theme.week_number,
+            'hashtags': theme.hashtags,
             'message': 'Theme created successfully'
         }, status=status.HTTP_201_CREATED)
 
@@ -80,6 +87,11 @@ def admin_campaign_theme_detail(request, theme_id):
         theme.week_number = request.data.get('week_number', theme.week_number)
         theme.start_date = request.data.get('start_date', theme.start_date)
         theme.end_date = request.data.get('end_date', theme.end_date)
+        if 'hashtags' in request.data:
+            hashtags = request.data['hashtags']
+            if isinstance(hashtags, str):
+                hashtags = [h.strip() for h in hashtags.split(',') if h.strip()]
+            theme.hashtags = hashtags
         theme.save()
         
         return Response({'message': 'Theme updated successfully'})

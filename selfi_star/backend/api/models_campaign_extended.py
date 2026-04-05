@@ -53,6 +53,7 @@ class CampaignTheme(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     
+    hashtags = models.JSONField(default=list, blank=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
