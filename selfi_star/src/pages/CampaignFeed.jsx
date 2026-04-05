@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api';
 import config from '../config';
-import { ArrowLeft, Heart, MessageCircle, Award, TrendingUp, Clock, Star } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, Award, TrendingUp, Clock, Star, Trophy } from 'lucide-react';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -15,21 +15,29 @@ const BORDER = '#E7E5E4';
 const TXT = '#1C1917';
 const SUB = '#78716C';
 const BG = '#FAFAF9';
+const RED = '#EF4444';
+
+const RANK_STYLES = {
+  1: { bg: '#FFD70020', border: '#FFD700', text: '#B8860B', label: '🥇 #1' },
+  2: { bg: '#C0C0C020', border: '#C0C0C0', text: '#808080', label: '🥈 #2' },
+  3: { bg: '#CD7F3220', border: '#CD7F32', text: '#8B4513', label: '🥉 #3' },
+};
 
 const CampaignFeed = ({ campaignId, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [campaign, setCampaign] = useState(null);
   const [posts, setPosts] = useState([]);
   const [filter, setFilter] = useState('all');
+  const engagementTimer = useRef(null);
 
   useEffect(() => { loadData(); }, [campaignId, filter]);
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const [campaignRes, feedRes] = await Promise.all([
-        api.request(`/campaigns/${campaignId}/`),
-        api.request(`/campaigns/${campaignId}/feed/?filter=${filter}`)
+        api.request(`/campaigns/${campaignId}/`, { noCache: true }),
+        api.request(`/campaigns/${campaignId}/feed/?filter=${filter}`, { noCache: true })
       ]);
       setCampaign(campaignRes);
       setPosts(feedRes.posts || []);
@@ -40,12 +48,44 @@ const CampaignFeed = ({ campaignId, onBack }) => {
     }
   };
 
-  const handleVote = async (entryId) => {
+  const handleVote = async (post) => {
+    const reelId = post.reel?.id;
+    if (!reelId) return;
+
+    const wasLiked = post.engagement?.user_liked ?? false;
+    const prevLikes = post.engagement?.likes ?? 0;
+
+    // Optimistic update — instant UI response
+    setPosts(prev => prev.map(p =>
+      p.id === post.id
+        ? { ...p, engagement: { ...p.engagement, user_liked: !wasLiked, likes: wasLiked ? prevLikes - 1 : prevLikes + 1 } }
+        : p
+    ));
+
     try {
-      await api.request(`/campaigns/entries/${entryId}/vote/`, { method: 'POST' });
-      loadData();
+      // 1. Toggle like on the reel (syncs with profile vote count everywhere)
+      await api.request(`/reels/${reelId}/vote/`, { method: 'POST' });
+
+      // 2. Debounce engagement score refresh (avoids hammering on rapid clicks)
+      clearTimeout(engagementTimer.current);
+      engagementTimer.current = setTimeout(async () => {
+        try {
+          // Update engagement_score → total_score on all posts in campaign
+          await api.request(`/campaigns/${campaignId}/engagement/update/`, { method: 'POST' });
+          // Re-fetch feed to get updated scores + re-ordered ranking
+          loadData(true);
+        } catch (e) {
+          console.error('Engagement sync error:', e);
+        }
+      }, 1200);
     } catch (error) {
-      console.error('Error voting:', error);
+      // Revert optimistic update on failure
+      setPosts(prev => prev.map(p =>
+        p.id === post.id
+          ? { ...p, engagement: { ...p.engagement, user_liked: wasLiked, likes: prevLikes } }
+          : p
+      ));
+      console.error('Vote error:', error);
     }
   };
 
@@ -125,8 +165,8 @@ const CampaignFeed = ({ campaignId, onBack }) => {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {posts.map(post => (
-              <PostCard key={post.id} post={post} onVote={handleVote} />
+            {posts.map((post, idx) => (
+              <PostCard key={post.id} post={post} rank={idx + 1} onVote={handleVote} />
             ))}
           </div>
         )}
@@ -135,10 +175,9 @@ const CampaignFeed = ({ campaignId, onBack }) => {
   );
 };
 
-const PostCard = ({ post, onVote }) => {
+const PostCard = ({ post, rank, onVote }) => {
   const [showScores, setShowScores] = useState(false);
 
-  // Support both flat (legacy) and nested (current) backend response shapes
   const totalScore = post.scores?.total ?? post.total_score ?? 0;
   const likes = post.engagement?.likes ?? post.votes_count ?? 0;
   const comments = post.engagement?.comments ?? post.comments_count ?? 0;
@@ -150,11 +189,13 @@ const PostCard = ({ post, onVote }) => {
     quality: post.quality_score,
     theme_relevance: post.theme_relevance_score,
   };
+  const rankStyle = RANK_STYLES[rank];
 
   return (
     <div style={{
       background: '#fff', borderRadius: 14, overflow: 'hidden',
-      border: `1px solid ${BORDER}`, boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+      border: `1.5px solid ${rankStyle ? rankStyle.border : BORDER}`,
+      boxShadow: rankStyle ? `0 2px 12px ${rankStyle.border}30` : '0 1px 4px rgba(0,0,0,0.06)',
     }}>
       {/* User Row */}
       <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -174,16 +215,38 @@ const PostCard = ({ post, onVote }) => {
             </div>
           )}
         </div>
-        {totalScore > 0 && (
-          <div style={{
-            background: PRI_LIGHT, color: PRI,
-            border: `1px solid ${PRI}40`,
-            padding: '5px 12px', borderRadius: 20,
-            fontSize: 13, fontWeight: 700,
-          }}>
-            {totalScore} pts
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {rankStyle && (
+            <div style={{
+              background: rankStyle.bg, color: rankStyle.text,
+              border: `1px solid ${rankStyle.border}`,
+              padding: '4px 10px', borderRadius: 20,
+              fontSize: 12, fontWeight: 700,
+            }}>
+              {rankStyle.label}
+            </div>
+          )}
+          {!rankStyle && rank && (
+            <div style={{
+              background: BG, color: SUB,
+              border: `1px solid ${BORDER}`,
+              padding: '4px 10px', borderRadius: 20,
+              fontSize: 12, fontWeight: 600,
+            }}>
+              #{rank}
+            </div>
+          )}
+          {totalScore > 0 && (
+            <div style={{
+              background: PRI_LIGHT, color: PRI,
+              border: `1px solid ${PRI}40`,
+              padding: '5px 12px', borderRadius: 20,
+              fontSize: 13, fontWeight: 700,
+            }}>
+              {Number(totalScore).toFixed(1)} pts
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Media */}
@@ -219,15 +282,18 @@ const PostCard = ({ post, onVote }) => {
         display: 'flex', alignItems: 'center', gap: 16,
       }}>
         <button
-          onClick={() => onVote(post.id)}
+          onClick={() => onVote(post)}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            background: 'transparent', border: 'none', cursor: 'pointer',
-            fontSize: 14, fontWeight: 600,
-            color: userLiked ? '#EF4444' : SUB,
+            background: userLiked ? `${RED}12` : 'transparent',
+            border: `1.5px solid ${userLiked ? RED : BORDER}`,
+            borderRadius: 20, padding: '5px 12px',
+            cursor: 'pointer', fontSize: 14, fontWeight: 700,
+            color: userLiked ? RED : SUB,
+            transition: 'all 0.18s ease',
           }}
         >
-          <Heart size={18} fill={userLiked ? '#EF4444' : 'none'} color={userLiked ? '#EF4444' : SUB} />
+          <Heart size={16} fill={userLiked ? RED : 'none'} color={userLiked ? RED : SUB} />
           {likes}
         </button>
         <button style={{
