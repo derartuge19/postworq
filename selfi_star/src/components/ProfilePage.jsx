@@ -6,6 +6,7 @@ import { getRelativeTime } from "../utils/timeUtils";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { TikTokPostViewer } from "./TikTokPostViewer";
+import CampaignStats from "./CampaignStats";
 
 export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
@@ -637,6 +638,11 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           </div>
         </div>
       )}
+
+      {/* Campaign Stats */}
+      <div style={{ padding: "0 20px", marginTop: 20 }}>
+        <CampaignStats userId={userId || user?.id} />
+      </div>
 
       {/* TikTok-Style Post Detail Viewer */}
       {selectedPost && (

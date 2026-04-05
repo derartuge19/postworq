@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Calendar, Award, Users, Clock, Upload, Video, Check, X, Heart, Share2, ArrowLeft, AlertCircle, Star, Zap, TrendingUp, Medal, Crown, Target, Flame } from 'lucide-react';
+import { Trophy, Calendar, Award, Users, Clock, Upload, Video, Check, X, Heart, Share2, ArrowLeft, AlertCircle, Star, Zap, TrendingUp, Medal, Crown, Target, Flame, List, BarChart3 } from 'lucide-react';
 import api from '../api';
 
-export function CampaignDetailPage({ theme, campaignId, onBack }) {
+export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboard, onShowFeed }) {
   const [campaign, setCampaign] = useState(null);
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -304,14 +304,67 @@ export function CampaignDetailPage({ theme, campaignId, onBack }) {
                 ) : (
                   <div style={{
                     padding: '12px 20px',
-                    background: '#f44336',
-                    color: '#fff',
+                    background: `${theme.red}15`,
+                    border: `2px solid ${theme.red}`,
                     borderRadius: 16,
-                    fontSize: 13,
+                    color: theme.red,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
                   }}>
-                    ⚠️ Cannot submit: Check dates or campaign status
+                    <AlertCircle size={18} strokeWidth={3} />
+                    Cannot Submit
                   </div>
-                )}</div>
+                )}
+                
+                {/* Quick Actions */}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => onShowLeaderboard?.()}
+                    style={{
+                      flex: 1,
+                      padding: '10px 16px',
+                      background: theme.card,
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: 8,
+                      color: theme.txt,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8
+                    }}
+                  >
+                    <BarChart3 size={18} />
+                    Leaderboard
+                  </button>
+                  <button
+                    onClick={() => onShowFeed?.()}
+                    style={{
+                      flex: 1,
+                      padding: '10px 16px',
+                      background: theme.card,
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: 8,
+                      color: theme.txt,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8
+                    }}
+                  >
+                    <List size={18} />
+                    Feed
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Prize Section */}

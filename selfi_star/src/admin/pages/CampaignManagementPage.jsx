@@ -4,7 +4,7 @@ import api from '../../api';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { EditCampaignModal } from './EditCampaignModal';
 
-export function CampaignManagementPage({ theme }) {
+export function CampaignManagementPage({ theme, onManageCampaign }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -396,7 +396,7 @@ export function CampaignManagementPage({ theme }) {
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                     <button
                       onClick={() => setSelectedCampaign(campaign)}
                       style={{
@@ -441,6 +441,61 @@ export function CampaignManagementPage({ theme }) {
                         Winners
                       </button>
                     )}
+                  </div>
+                  
+                  {/* Campaign Management Actions */}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => onManageCampaign?.(campaign.id, 'scoring')}
+                      style={{
+                        flex: 1,
+                        padding: '6px',
+                        background: theme.purple + '15',
+                        border: 'none',
+                        borderRadius: 6,
+                        color: theme.purple,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ⚙️ Scoring
+                    </button>
+                    <button
+                      onClick={() => onManageCampaign?.(campaign.id, 'themes')}
+                      style={{
+                        flex: 1,
+                        padding: '6px',
+                        background: theme.orange + '15',
+                        border: 'none',
+                        borderRadius: 6,
+                        color: theme.orange,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      📅 Themes
+                    </button>
+                    <button
+                      onClick={() => onManageCampaign?.(campaign.id, 'moderation')}
+                      style={{
+                        flex: 1,
+                        padding: '6px',
+                        background: theme.green + '15',
+                        border: 'none',
+                        borderRadius: 6,
+                        color: theme.green,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ✅ Moderate
+                    </button>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     <button
                       onClick={() => handleEditCampaign(campaign)}
                       style={{

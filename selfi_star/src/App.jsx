@@ -15,6 +15,8 @@ const SettingsPage = lazy(() => import('./components/SettingsPage').then(m => ({
 const NotificationsPage = lazy(() => import('./components/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
 const CampaignsPage = lazy(() => import('./pages/CampaignsPage').then(m => ({ default: m.CampaignsPage })));
 const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage').then(m => ({ default: m.CampaignDetailPage })));
+const CampaignLeaderboard = lazy(() => import('./pages/CampaignLeaderboard'));
+const CampaignFeed = lazy(() => import('./pages/CampaignFeed'));
 const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
 
 // Prefetch all lazy chunks after initial load so navigation is instant
@@ -29,6 +31,8 @@ const prefetchComponents = () => {
   import('./components/ModernRegisterScreen');
   import('./pages/CampaignsPage');
   import('./pages/CampaignDetailPage');
+  import('./pages/CampaignLeaderboard');
+  import('./pages/CampaignFeed');
 };
 
 // Error boundary for lazy loading failures
@@ -132,6 +136,8 @@ export default function WerqRoot() {
   const [showSettings, setShowSettings] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCampaigns, setShowCampaigns] = useState(false);
+  const [showCampaignLeaderboard, setShowCampaignLeaderboard] = useState(false);
+  const [showCampaignFeed, setShowCampaignFeed] = useState(false);
 
   // Browser history support
   useEffect(() => {
@@ -151,6 +157,8 @@ export default function WerqRoot() {
       setShowSettings(state.showSettings || false);
       setShowNotifications(state.showNotifications || false);
       setShowCampaigns(state.showCampaigns || false);
+      setShowCampaignLeaderboard(state.showCampaignLeaderboard || false);
+      setShowCampaignFeed(state.showCampaignFeed || false);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -173,6 +181,8 @@ export default function WerqRoot() {
       showSettings: newState.showSettings !== undefined ? newState.showSettings : showSettings,
       showNotifications: newState.showNotifications !== undefined ? newState.showNotifications : showNotifications,
       showCampaigns: newState.showCampaigns !== undefined ? newState.showCampaigns : showCampaigns,
+      showCampaignLeaderboard: newState.showCampaignLeaderboard !== undefined ? newState.showCampaignLeaderboard : showCampaignLeaderboard,
+      showCampaignFeed: newState.showCampaignFeed !== undefined ? newState.showCampaignFeed : showCampaignFeed,
     };
     window.history.pushState(state, '');
   };
@@ -189,6 +199,8 @@ export default function WerqRoot() {
     setShowNotifications(false);
     setShowCampaigns(false);
     setShowCampaignDetail(false);
+    setShowCampaignLeaderboard(false);
+    setShowCampaignFeed(false);
   };
 
   // Load user from localStorage on mount + prefetch lazy components
@@ -216,6 +228,8 @@ export default function WerqRoot() {
       setShowFollowersList(false);
       setShowCampaigns(false);
       setShowCampaignDetail(false);
+      setShowCampaignLeaderboard(false);
+      setShowCampaignFeed(false);
     };
     window.addEventListener('navigateToCreatePost', handleNavigateToCreatePost);
 
@@ -240,6 +254,8 @@ export default function WerqRoot() {
     setShowFollowersList(false);
     setShowCampaigns(false);
     setShowCampaignDetail(false);
+    setShowCampaignLeaderboard(false);
+    setShowCampaignFeed(false);
     setActiveTab('home');
     setShowLogin(true);
   };
@@ -297,8 +313,10 @@ export default function WerqRoot() {
     setShowFollowersList(false);
     setShowNotifications(false);
     setShowCampaigns(false);
-    pushHistoryState({ showSettings: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showNotifications: false, showCampaigns: false });
     setShowCampaignDetail(false);
+    setShowCampaignLeaderboard(false);
+    setShowCampaignFeed(false);
+    pushHistoryState({ showSettings: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showNotifications: false, showCampaigns: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false });
   };
 
   const handleShowCampaigns = () => {
@@ -310,7 +328,9 @@ export default function WerqRoot() {
     setShowSettings(false);
     setShowNotifications(false);
     setShowCampaignDetail(false);
-    pushHistoryState({ showCampaigns: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showNotifications: false, showCampaignDetail: false });
+    setShowCampaignLeaderboard(false);
+    setShowCampaignFeed(false);
+    pushHistoryState({ showCampaigns: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showNotifications: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false });
   };
 
   const handleShowNotifications = () => {
@@ -326,7 +346,9 @@ export default function WerqRoot() {
     setShowSettings(false);
     setShowCampaigns(false);
     setShowCampaignDetail(false);
-    pushHistoryState({ showNotifications: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showCampaigns: false, showCampaignDetail: false });
+    setShowCampaignLeaderboard(false);
+    setShowCampaignFeed(false);
+    pushHistoryState({ showNotifications: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showCampaigns: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false });
   };
 
   const handleProfileSaved = (updatedUser) => {
@@ -458,6 +480,40 @@ export default function WerqRoot() {
                 onBack={() => {
                   setShowCampaignDetail(false);
                   setShowCampaigns(true);
+                }}
+                onShowLeaderboard={() => {
+                  setShowCampaignDetail(false);
+                  setShowCampaignLeaderboard(true);
+                }}
+                onShowFeed={() => {
+                  setShowCampaignDetail(false);
+                  setShowCampaignFeed(true);
+                }}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {showCampaignLeaderboard && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
+              <CampaignLeaderboard
+                campaignId={campaignId}
+                onBack={() => {
+                  setShowCampaignLeaderboard(false);
+                  setShowCampaignDetail(true);
+                }}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {showCampaignFeed && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
+              <CampaignFeed
+                campaignId={campaignId}
+                onBack={() => {
+                  setShowCampaignFeed(false);
+                  setShowCampaignDetail(true);
                 }}
               />
             </Suspense>

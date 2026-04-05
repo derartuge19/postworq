@@ -15,6 +15,9 @@ import { ContestDashboardPage } from './pages/ContestDashboardPage';
 import { JudgingPortalPage } from './pages/JudgingPortalPage';
 import { AntiCheatPage } from './pages/AntiCheatPage';
 import { CampaignManagementPage } from './pages/CampaignManagementPage';
+import CampaignScoringConfig from './pages/CampaignScoringConfig';
+import CampaignThemeManagement from './pages/CampaignThemeManagement';
+import CampaignPostModeration from './pages/CampaignPostModeration';
 import { AdminSidebar } from './components/AdminSidebar';
 import { AdminLogin } from './pages/AdminLogin';
 import api from '../api';
@@ -39,6 +42,7 @@ export function AdminApp() {
   const [adminUser, setAdminUser] = useState(null);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [loading, setLoading] = useState(true);
+  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
 
   useEffect(() => {
     checkAdminAuth();
@@ -135,7 +139,18 @@ export function AdminApp() {
       case 'admins':
         return <AdminManagementPage theme={T} />;
       case 'campaigns':
-        return <CampaignManagementPage theme={T} />;
+        return <CampaignManagementPage theme={T} onManageCampaign={(id, action) => {
+          setSelectedCampaignId(id);
+          if (action === 'scoring') setCurrentPage('campaign-scoring');
+          else if (action === 'themes') setCurrentPage('campaign-themes');
+          else if (action === 'moderation') setCurrentPage('campaign-moderation');
+        }} />;
+      case 'campaign-scoring':
+        return <CampaignScoringConfig campaignId={selectedCampaignId} onBack={() => setCurrentPage('campaigns')} />;
+      case 'campaign-themes':
+        return <CampaignThemeManagement campaignId={selectedCampaignId} onBack={() => setCurrentPage('campaigns')} />;
+      case 'campaign-moderation':
+        return <CampaignPostModeration campaignId={selectedCampaignId} onBack={() => setCurrentPage('campaigns')} />;
       case 'contest':
         return <ContestDashboardPage theme={T} />;
       case 'judging':
