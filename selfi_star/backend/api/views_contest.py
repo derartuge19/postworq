@@ -16,7 +16,7 @@ import json
 
 from .models_contest import (
     UserSubscription, UserTier, CoinPackage, CoinTransaction, UserCoinBalance,
-    PostBoost, GiftToCreator, ContestPostScore, Leaderboard, ContestTimeline,
+    PostBoost, GiftToCreator, ContestPostScore, ContestLeaderboard, ContestTimeline,
     AntiCheatLog, EligibilityVerification, GrandFinaleEntry, ExtraEntryPurchase
 )
 from .models import Reel, UserProfile
@@ -437,9 +437,9 @@ def get_leaderboard(request):
             date = timezone.now().date()
     
     try:
-        leaderboard = Leaderboard.objects.get(period=period, date=date)
+        leaderboard = ContestLeaderboard.objects.get(period=period, date=date)
         entries = leaderboard.entries
-    except Leaderboard.DoesNotExist:
+    except ContestLeaderboard.DoesNotExist:
         # Calculate on the fly
         entries = calculate_leaderboard(period, date)
     

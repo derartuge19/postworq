@@ -361,9 +361,9 @@ class ContestPostScore(models.Model):
         return score
 
 
-class Leaderboard(models.Model):
+class ContestLeaderboard(models.Model):
     """
-    Daily, Weekly, Monthly leaderboards
+    Daily, Weekly, Monthly leaderboards for contests
     """
     PERIOD_CHOICES = [
         ('daily', 'Daily'),
@@ -385,7 +385,7 @@ class Leaderboard(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'leaderboards'
+        db_table = 'contest_leaderboards'
         unique_together = ['period', 'date']
         ordering = ['-date']
 

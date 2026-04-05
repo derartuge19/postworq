@@ -136,7 +136,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Leaderboard',
+            name='ContestLeaderboard',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('period', models.CharField(choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly'), ('grand', 'Grand Finale')], max_length=20)),
@@ -147,7 +147,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'leaderboards',
+                'db_table': 'contest_leaderboards',
                 'ordering': ['-date'],
                 'unique_together': {('period', 'date')},
             },
