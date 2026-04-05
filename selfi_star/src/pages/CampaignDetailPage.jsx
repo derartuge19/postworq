@@ -790,6 +790,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack }) {
       {showSubmitModal && (
         <SubmitEntryModal
           theme={theme}
+          campaign={campaign}
           campaignId={campaignId}
           onClose={() => setShowSubmitModal(false)}
           onSuccess={() => {
@@ -1059,7 +1060,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
   );
 }
 
-function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
+function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
   const [selectedReel, setSelectedReel] = useState(null);
   const [userReels, setUserReels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1068,6 +1069,8 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
   const [showCreateNew, setShowCreateNew] = useState(false);
   const [newReelFile, setNewReelFile] = useState(null);
   const [newReelCaption, setNewReelCaption] = useState('');
+  const [showCamera, setShowCamera] = useState(false);
+  const [stream, setStream] = useState(null);
 
   useEffect(() => {
     loadUserReels();
@@ -1095,6 +1098,29 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
       setNewReelFile(file);
       setShowCreateNew(true);
     }
+  };
+
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user' }, 
+        audio: true 
+      });
+      setStream(mediaStream);
+      setShowCamera(true);
+      setShowCreateNew(true);
+    } catch (error) {
+      console.error('Camera access denied:', error);
+      setError('Camera access denied. Please allow camera permissions.');
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setShowCamera(false);
   };
 
   const handleCreateAndSubmit = async () => {
@@ -1264,16 +1290,101 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
 
         {showCreateNew ? (
           <div>
+            {/* Campaign Requirements */}
+            {campaign && (
+              <div style={{
+                padding: 16,
+                background: `${theme.blue}10`,
+                borderRadius: 12,
+                border: `2px solid ${theme.blue}30`,
+                marginBottom: 20,
+              }}>
+                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: theme.txt, marginBottom: 12 }}>
+                  📋 Campaign Requirements
+                </h4>
+                <div style={{ fontSize: 13, color: theme.sub, lineHeight: 1.8 }}>
+                  {campaign.required_hashtags && (
+                    <div style={{ marginBottom: 8 }}>
+                      <strong style={{ color: theme.txt }}>Required Hashtags:</strong> {campaign.required_hashtags}
+                    </div>
+                  )}
+                  {campaign.min_followers > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      <strong style={{ color: theme.txt }}>Min Followers:</strong> {campaign.min_followers}
+                    </div>
+                  )}
+                  {campaign.min_level > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      <strong style={{ color: theme.txt }}>Min Level:</strong> {campaign.min_level}
+                    </div>
+                  )}
+                  {campaign.min_votes_per_reel > 0 && (
+                    <div>
+                      <strong style={{ color: theme.txt }}>Min Votes Required:</strong> {campaign.min_votes_per_reel}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Upload or Record Options */}
+            <div style={{
+              display: 'flex',
+              gap: 12,
+              marginBottom: 20,
+            }}>
+              <button
+                onClick={() => document.getElementById('campaign-file-upload').click()}
+                style={{
+                  flex: 1,
+                  padding: '14px 16px',
+                  background: theme.card,
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: 12,
+                  color: theme.txt,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                <Upload size={18} />
+                Upload File
+              </button>
+              <button
+                onClick={startCamera}
+                style={{
+                  flex: 1,
+                  padding: '14px 16px',
+                  background: theme.card,
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: 12,
+                  color: theme.txt,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                <Video size={18} />
+                Record Video
+              </button>
+            </div>
+            
             <div style={{
               marginBottom: 20,
               padding: 24,
               border: `2px dashed ${theme.border}`,
               borderRadius: 12,
               textAlign: 'center',
-              cursor: 'pointer',
               background: newReelFile ? `${theme.green}10` : theme.bg,
             }}
-            onClick={() => document.getElementById('campaign-file-upload').click()}
             >
               {newReelFile ? (
                 <div>
@@ -1313,12 +1424,12 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
                 color: theme.txt,
                 marginBottom: 8,
               }}>
-                Caption (optional)
+                Caption {campaign?.required_hashtags ? '(Include required hashtags)' : '(optional)'}
               </label>
               <textarea
                 value={newReelCaption}
                 onChange={(e) => setNewReelCaption(e.target.value)}
-                placeholder="Add a caption for your entry..."
+                placeholder={campaign?.required_hashtags ? `Add caption with: ${campaign.required_hashtags}` : "Add a caption for your entry..."}
                 rows={3}
                 style={{
                   width: '100%',
@@ -1331,6 +1442,15 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
                   boxSizing: 'border-box',
                 }}
               />
+              {campaign?.required_hashtags && (
+                <div style={{
+                  fontSize: 12,
+                  color: theme.sub,
+                  marginTop: 6,
+                }}>
+                  💡 Tip: Copy and paste: {campaign.required_hashtags}
+                </div>
+              )}
             </div>
           </div>
         ) : loading ? (
