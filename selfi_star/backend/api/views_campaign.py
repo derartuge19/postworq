@@ -509,6 +509,12 @@ def user_campaign_detail(request, campaign_id):
             'total_entries': campaign.total_entries,
             'total_votes': campaign.total_votes,
             'winners_announced': campaign.winners_announced,
+            'winner_count': campaign.winner_count,
+            'min_followers': campaign.min_followers,
+            'min_level': campaign.min_level,
+            'min_votes_per_reel': campaign.min_votes_per_reel,
+            'required_hashtags': campaign.required_hashtags,
+            'current_user_id': user.id,
             'entries': entries_data,
         })
         

@@ -521,6 +521,126 @@ export function CampaignDetailPage({ theme, campaignId, onBack }) {
               </div>
             </div>
 
+            {/* Entry Requirements */}
+            {(campaign.min_followers > 0 || campaign.min_level > 0 || campaign.min_votes_per_reel > 0 || campaign.required_hashtags) && (
+              <div style={{
+                padding: 20,
+                background: `linear-gradient(135deg, ${theme.blue}10, ${theme.purple}10)`,
+                borderRadius: 12,
+                border: `2px solid ${theme.blue}30`,
+                marginBottom: 24,
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  marginBottom: 16,
+                }}>
+                  <div style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: theme.blue,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Target size={20} color="#fff" strokeWidth={2.5} />
+                  </div>
+                  <h3 style={{
+                    margin: 0,
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: theme.txt,
+                  }}>
+                    Entry Requirements
+                  </h3>
+                </div>
+                
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: 16,
+                }}>
+                  {campaign.required_hashtags && (
+                    <div style={{
+                      padding: 16,
+                      background: theme.card,
+                      borderRadius: 10,
+                      border: `1px solid ${theme.border}`,
+                    }}>
+                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                        Required Hashtags
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: theme.pri }}>
+                        {campaign.required_hashtags}
+                      </div>
+                    </div>
+                  )}
+                  {campaign.min_followers > 0 && (
+                    <div style={{
+                      padding: 16,
+                      background: theme.card,
+                      borderRadius: 10,
+                      border: `1px solid ${theme.border}`,
+                    }}>
+                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                        Minimum Followers
+                      </div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: theme.blue }}>
+                        {campaign.min_followers}+
+                      </div>
+                    </div>
+                  )}
+                  {campaign.min_level > 0 && (
+                    <div style={{
+                      padding: 16,
+                      background: theme.card,
+                      borderRadius: 10,
+                      border: `1px solid ${theme.border}`,
+                    }}>
+                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                        Minimum Level
+                      </div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: theme.orange }}>
+                        Level {campaign.min_level}
+                      </div>
+                    </div>
+                  )}
+                  {campaign.min_votes_per_reel > 0 && (
+                    <div style={{
+                      padding: 16,
+                      background: theme.card,
+                      borderRadius: 10,
+                      border: `1px solid ${theme.border}`,
+                    }}>
+                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                        Minimum Votes per Reel
+                      </div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: theme.red }}>
+                        {campaign.min_votes_per_reel}+
+                      </div>
+                    </div>
+                  )}
+                  {campaign.winner_count > 0 && (
+                    <div style={{
+                      padding: 16,
+                      background: theme.card,
+                      borderRadius: 10,
+                      border: `1px solid ${theme.border}`,
+                    }}>
+                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                        Number of Winners
+                      </div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: theme.green }}>
+                        {campaign.winner_count}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Timeline */}
             <div style={{
               padding: 20,
