@@ -10,6 +10,7 @@ from django.conf import settings
 from datetime import timedelta
 from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
 from .models import Reel, Follow
+from .models_campaign_extended import CampaignTheme, PostScore, UserCampaignStats
 
 def get_image_url(image_field, request=None):
     """Get image URL without using build_absolute_uri"""
@@ -350,15 +351,10 @@ def user_campaign_enter(request, campaign_id):
         print(f"[CAMPAIGN ENTER] Campaign: {campaign.title}, Status: {campaign.status}")
         print(f"[CAMPAIGN ENTER] Reel ID: {reel_id}")
         
-        # Check if campaign is active
-        if not campaign.is_active():
-            print(f"[CAMPAIGN ENTER] Campaign not active")
+        # Check if campaign accepts entries (active or voting status)
+        if campaign.status not in ('active', 'voting'):
+            print(f"[CAMPAIGN ENTER] Campaign not active (status={campaign.status})")
             return Response({'error': 'Campaign is not accepting entries'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Check if user already entered
-        if CampaignEntry.objects.filter(campaign=campaign, user=user).exists():
-            print(f"[CAMPAIGN ENTER] User already entered")
-            return Response({'error': 'You have already entered this campaign'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Get reel
         try:
@@ -372,47 +368,66 @@ def user_campaign_enter(request, campaign_id):
         user_profile = user.profile if hasattr(user, 'profile') else None
         follower_count = Follow.objects.filter(following=user).count()
         
-        print(f"[CAMPAIGN ENTER] Follower count: {follower_count}, Required: {campaign.min_followers}")
-        print(f"[CAMPAIGN ENTER] User level: {user_profile.level if user_profile else 'N/A'}, Required: {campaign.min_level}")
-        print(f"[CAMPAIGN ENTER] Reel votes: {reel.votes}, Required: {campaign.min_votes_per_reel}")
-        
         if campaign.min_followers > 0 and follower_count < campaign.min_followers:
-            print(f"[CAMPAIGN ENTER] Not enough followers")
             return Response({'error': f'You need at least {campaign.min_followers} followers'}, status=status.HTTP_400_BAD_REQUEST)
         
         if user_profile and campaign.min_level > user_profile.level:
-            print(f"[CAMPAIGN ENTER] Level too low")
             return Response({'error': f'You need to be level {campaign.min_level}'}, status=status.HTTP_400_BAD_REQUEST)
         
         if campaign.min_votes_per_reel > 0 and reel.votes < campaign.min_votes_per_reel:
-            print(f"[CAMPAIGN ENTER] Not enough votes on reel")
             return Response({'error': f'Reel needs at least {campaign.min_votes_per_reel} votes'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Create entry
-        entry = CampaignEntry.objects.create(
-            campaign=campaign,
-            user=user,
-            reel=reel
+        # Create entry (one per user per campaign - idempotent)
+        already_entered = CampaignEntry.objects.filter(campaign=campaign, user=user).exists()
+        if not already_entered:
+            entry = CampaignEntry.objects.create(campaign=campaign, user=user, reel=reel)
+            campaign.total_entries += 1
+            campaign.save()
+            CampaignNotification.objects.create(
+                campaign=campaign, user=user,
+                notification_type='entry_approved',
+                message=f'Your entry to {campaign.title} has been approved!'
+            )
+            print(f"[CAMPAIGN ENTER] Entry created: {entry.id}")
+        else:
+            entry = CampaignEntry.objects.get(campaign=campaign, user=user)
+            print(f"[CAMPAIGN ENTER] Existing entry reused: {entry.id}")
+        
+        # Bridge to new PostScore system so post appears in feed
+        # Auto-assign active theme if exists
+        active_theme = campaign.themes.filter(is_active=True).first()
+        
+        # Mark reel as campaign post
+        reel.campaign = campaign
+        reel.theme = active_theme
+        reel.is_campaign_post = True
+        reel.save(update_fields=['campaign', 'theme', 'is_campaign_post'])
+        
+        # Create PostScore (auto-approved so it appears in feed immediately)
+        post_score, ps_created = PostScore.objects.get_or_create(
+            reel=reel,
+            defaults={
+                'campaign': campaign,
+                'theme': active_theme,
+                'user': user,
+                'moderation_status': 'approved',
+            }
         )
+        if not ps_created and post_score.moderation_status != 'approved':
+            post_score.moderation_status = 'approved'
+            post_score.save(update_fields=['moderation_status'])
         
-        print(f"[CAMPAIGN ENTER] Entry created: {entry.id}")
+        # Update user campaign stats
+        stats, _ = UserCampaignStats.objects.get_or_create(user=user, campaign=campaign)
+        stats.total_posts = PostScore.objects.filter(user=user, campaign=campaign).count()
+        stats.approved_posts = PostScore.objects.filter(user=user, campaign=campaign, moderation_status='approved').count()
+        stats.save(update_fields=['total_posts', 'approved_posts'])
         
-        # Update campaign stats
-        campaign.total_entries += 1
-        campaign.save()
-        
-        # Notify user
-        CampaignNotification.objects.create(
-            campaign=campaign,
-            user=user,
-            notification_type='entry_approved',
-            message=f'Your entry to {campaign.title} has been approved!'
-        )
-        
-        print(f"[CAMPAIGN ENTER] Success!")
+        print(f"[CAMPAIGN ENTER] Success! PostScore id={post_score.id}, approved={post_score.moderation_status}")
         return Response({
             'message': 'Successfully entered campaign',
-            'entry_id': entry.id
+            'entry_id': entry.id,
+            'post_score_id': post_score.id,
         }, status=status.HTTP_201_CREATED)
         
     except Campaign.DoesNotExist:
