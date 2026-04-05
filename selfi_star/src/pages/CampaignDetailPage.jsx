@@ -164,10 +164,8 @@ export function CampaignDetailPage({ theme, campaignId, onBack }) {
     <div style={{
       minHeight: '100vh',
       background: theme.bg,
-      paddingTop: 20,
-      paddingBottom: 40,
       marginLeft: '240px',
-      padding: '20px',
+      padding: '20px 20px 40px 20px',
       boxSizing: 'border-box',
     }}>
       <div style={{
@@ -1077,7 +1075,12 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
 
   const loadUserReels = async () => {
     try {
-      const response = await api.request('/reels/');
+      // Get current user's ID first
+      const userResponse = await api.request('/profile/me/');
+      const userId = userResponse.id;
+      
+      // Fetch only current user's reels
+      const response = await api.request(`/reels/?user=${userId}`);
       setUserReels(response.results || []);
     } catch (error) {
       console.error('Failed to load reels:', error);
