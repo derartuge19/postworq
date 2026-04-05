@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('api', '0019_alter_campaign_options_and_more'),
+        ('api', '0017_coinpackage_contesttimeline_usersubscription_and_more'),
     ]
 
     operations = [
