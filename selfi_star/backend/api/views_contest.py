@@ -16,7 +16,7 @@ import json
 
 from .models_contest import (
     UserSubscription, UserTier, CoinPackage, CoinTransaction, UserCoinBalance,
-    PostBoost, GiftToCreator, PostScore, Leaderboard, ContestTimeline,
+    PostBoost, GiftToCreator, ContestPostScore, Leaderboard, ContestTimeline,
     AntiCheatLog, EligibilityVerification, GrandFinaleEntry, ExtraEntryPurchase
 )
 from .models import Reel, UserProfile
@@ -331,7 +331,7 @@ def get_post_score(request, reel_id):
     
     try:
         reel = Reel.objects.get(id=reel_id)
-        score, _ = PostScore.objects.get_or_create(
+        score, _ = ContestPostScore.objects.get_or_create(
             reel=reel,
             user=reel.user,
             defaults={}
@@ -375,7 +375,7 @@ def judge_post(request, reel_id):
     theme = min(request.data.get('theme_relevance', 0), 10)
     
     # Get or create score
-    score, _ = PostScore.objects.get_or_create(
+    score, _ = ContestPostScore.objects.get_or_create(
         reel=reel,
         user=reel.user,
         defaults={}
@@ -457,12 +457,12 @@ def calculate_leaderboard(period, date):
         end = start + timedelta(days=1)
         
         # Get top 10 + 5 random
-        top_scores = PostScore.objects.filter(
+        top_scores = ContestPostScore.objects.filter(
             created_at__date=date
         ).order_by('-total_score')[:10]
         
         # Get 5 random from remaining
-        remaining = PostScore.objects.filter(
+        remaining = ContestPostScore.objects.filter(
             created_at__date=date
         ).exclude(id__in=[s.id for s in top_scores]).order_by('?')[:5]
         
@@ -484,7 +484,7 @@ def calculate_leaderboard(period, date):
         end = start + timedelta(days=7)
         
         # Aggregate by user
-        user_scores = PostScore.objects.filter(
+        user_scores = ContestPostScore.objects.filter(
             created_at__date__gte=start,
             created_at__date__lt=end
         ).values('user').annotate(
@@ -630,15 +630,15 @@ def admin_judging_portal(request):
     status_filter = request.GET.get('status', 'pending')  # pending, judged, all
     
     if status_filter == 'pending':
-        posts = PostScore.objects.filter(is_judged=False).select_related('reel', 'user')[:50]
+        posts = ContestPostScore.objects.filter(is_judged=False).select_related('reel', 'user')[:50]
     elif status_filter == 'judged':
-        posts = PostScore.objects.filter(is_judged=True).select_related('reel', 'user')[:50]
+        posts = ContestPostScore.objects.filter(is_judged=True).select_related('reel', 'user')[:50]
     else:
-        posts = PostScore.objects.all().select_related('reel', 'user')[:50]
+        posts = ContestPostScore.objects.all().select_related('reel', 'user')[:50]
     
     return Response({
-        'pending_count': PostScore.objects.filter(is_judged=False).count(),
-        'judged_count': PostScore.objects.filter(is_judged=True).count(),
+        'pending_count': ContestPostScore.objects.filter(is_judged=False).count(),
+        'judged_count': ContestPostScore.objects.filter(is_judged=True).count(),
         'posts': [{
             'id': score.id,
             'reel_id': score.reel.id,

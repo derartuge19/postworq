@@ -96,7 +96,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='PostScore',
+            name='ContestPostScore',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('creativity', models.PositiveIntegerField(default=0, help_text='Max 30 points')),
@@ -112,11 +112,11 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('judged_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='judged_scores', to=settings.AUTH_USER_MODEL)),
-                ('reel', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='score', to='api.reel')),
+                ('reel', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='contest_score', to='api.reel')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'db_table': 'post_scores',
+                'db_table': 'contest_post_scores',
                 'ordering': ['-total_score'],
             },
         ),

@@ -292,12 +292,12 @@ class GiftToCreator(models.Model):
 
 # Scoring Matrix Models
 
-class PostScore(models.Model):
+class ContestPostScore(models.Model):
     """
     Total score for each post (max 100 points)
     Components: Creativity(30), Engagement(25), Consistency(20), Quality(15), Theme(10)
     """
-    reel = models.OneToOneField('Reel', on_delete=models.CASCADE, related_name='score')
+    reel = models.OneToOneField('Reel', on_delete=models.CASCADE, related_name='contest_score')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     
     # Admin-assigned scores (manual)
@@ -325,7 +325,7 @@ class PostScore(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'post_scores'
+        db_table = 'contest_post_scores'
         ordering = ['-total_score']
 
     def calculate_total(self):
