@@ -1,16 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api';
-import { ArrowLeft, CheckCircle, XCircle, Star, Eye } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Eye } from 'lucide-react';
+
+const PRI = '#DA9B2A';
+const BG = '#FAFAF9';
+const CARD = '#FFFFFF';
+const BORDER = '#E7E5E4';
+const TXT = '#1C1917';
+const SUB = '#78716C';
+const RED = '#EF4444';
+const GREEN = '#10B981';
+
+const ScoreSlider = ({ label, value, max, color, onChange }) => {
+  const pct = Math.round((value / max) * 100);
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: SUB, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
+        <span style={{ fontSize: 15, fontWeight: 800, color }}>{value}<span style={{ fontSize: 11, color: SUB, fontWeight: 500 }}>/{max}</span></span>
+      </div>
+      <div style={{ position: 'relative', height: 6, background: `${color}20`, borderRadius: 4 }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${pct}%`, background: color, borderRadius: 4, transition: 'width 0.15s' }} />
+      </div>
+      <input type="range" min="0" max={max} value={value} onChange={e => onChange(parseInt(e.target.value))}
+        style={{ width: '100%', marginTop: 4, accentColor: color, cursor: 'pointer' }} />
+    </div>
+  );
+};
 
 const CampaignPostModeration = ({ campaignId, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [campaign, setCampaign] = useState(null);
   const [posts, setPosts] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [toast, setToast] = useState(null);
 
-  useEffect(() => {
-    loadData();
-  }, [campaignId]);
+  const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+
+  useEffect(() => { loadData(); }, [campaignId]);
 
   const loadData = async () => {
     try {
@@ -21,9 +48,8 @@ const CampaignPostModeration = ({ campaignId, onBack }) => {
       ]);
       setCampaign(campaignRes);
       setPosts(postsRes.posts || []);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      alert('Failed to load posts');
+    } catch (err) {
+      console.error('Error loading data:', err);
     } finally {
       setLoading(false);
     }
@@ -33,171 +59,91 @@ const CampaignPostModeration = ({ campaignId, onBack }) => {
     try {
       await api.request(`/admin/campaigns/posts/${scoreId}/moderate/`, {
         method: 'POST',
-        body: JSON.stringify({
-          action,
-          ...scores
-        })
+        body: JSON.stringify({ action, ...scores })
       });
-      alert(`Post ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
+      showToast(`Post ${action === 'approve' ? 'approved' : 'rejected'} successfully!`, action === 'approve' ? 'success' : 'warn');
       setSelectedPost(null);
       loadData();
-    } catch (error) {
-      console.error('Error moderating post:', error);
-      alert('Failed to moderate post');
+    } catch (err) {
+      showToast('Failed to moderate post', 'error');
     }
   };
 
-  if (loading) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontSize: '18px', color: '#666' }}>Loading...</div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
+      <div style={{ width: 36, height: 36, border: `3px solid ${PRI}30`, borderTopColor: PRI, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      {toast && (
+        <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 9999, padding: '12px 20px', borderRadius: 10, background: toast.type === 'error' ? '#FEF2F2' : '#F0FDF4', border: `1.5px solid ${toast.type === 'error' ? '#FECACA' : '#BBF7D0'}`, color: toast.type === 'error' ? RED : GREEN, fontSize: 14, fontWeight: 600, boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }}>
+          {toast.msg}
+        </div>
+      )}
+
       {/* Header */}
-      <div style={{ marginBottom: '30px' }}>
-        <button
-          onClick={() => onBack?.()}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            background: '#f0f0f0',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            marginBottom: '20px'
-          }}
-        >
-          <ArrowLeft size={20} />
-          Back to Campaigns
-        </button>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
-          Post Moderation
-        </h1>
-        <p style={{ color: '#666', fontSize: '16px' }}>
-          {campaign?.title} - {posts.length} pending posts
-        </p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button onClick={() => onBack?.()} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: CARD, border: `1.5px solid ${BORDER}`, borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: SUB }}>
+            <ArrowLeft size={15} /> Back
+          </button>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: TXT }}>Post Moderation</h1>
+            {campaign && <p style={{ margin: 0, fontSize: 13, color: SUB, marginTop: 2 }}>{campaign.title}</p>}
+          </div>
+        </div>
+        {posts.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: `${PRI}12`, border: `1.5px solid ${PRI}30`, borderRadius: 20 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: PRI, animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: PRI }}>{posts.length} Pending Review</span>
+            <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+          </div>
+        )}
       </div>
 
-      {/* Posts Grid */}
       {posts.length === 0 ? (
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          padding: '60px',
-          textAlign: 'center',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
-          <CheckCircle size={48} color="#4CAF50" style={{ marginBottom: '16px' }} />
-          <h3 style={{ fontSize: '20px', marginBottom: '8px', color: '#666' }}>All Caught Up!</h3>
-          <p style={{ color: '#999' }}>No posts pending moderation</p>
+        <div style={{ background: CARD, borderRadius: 14, padding: 60, textAlign: 'center', border: `1.5px solid ${BORDER}` }}>
+          <CheckCircle size={44} color={`${GREEN}`} style={{ marginBottom: 14 }} />
+          <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 700, color: TXT }}>All Caught Up!</h3>
+          <p style={{ margin: 0, color: SUB, fontSize: 14 }}>No posts pending moderation</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
           {posts.map((post) => (
-            <div
-              key={post.id}
-              style={{
-                background: 'white',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                cursor: 'pointer',
-                transition: 'transform 0.2s',
-              }}
-              onClick={() => setSelectedPost(post)}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            <div key={post.id} onClick={() => setSelectedPost(post)}
+              style={{ background: CARD, borderRadius: 12, overflow: 'hidden', border: `1.5px solid ${BORDER}`, cursor: 'pointer', transition: 'box-shadow 0.2s, border-color 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 4px 18px rgba(0,0,0,0.10)`; e.currentTarget.style.borderColor = PRI; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = BORDER; }}
             >
-              {/* Media */}
-              <div style={{ position: 'relative', paddingTop: '100%', background: '#f0f0f0' }}>
-                {post.reel?.image && (
-                  <img
-                    src={post.reel.image}
-                    alt="Post"
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
+              {/* Media thumbnail */}
+              <div style={{ position: 'relative', paddingTop: '80%', background: '#F3F4F6' }}>
+                {post.reel?.image && <img src={post.reel.image} alt="Post" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+                {post.reel?.media && !post.reel?.image && <video src={post.reel.media} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+                {!post.reel?.image && !post.reel?.media && (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Eye size={28} color={`${SUB}60`} />
+                  </div>
                 )}
-                {post.reel?.media && (
-                  <video
-                    src={post.reel.media}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
-                )}
-                <div style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  background: 'rgba(0,0,0,0.7)',
-                  color: 'white',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}>
-                  <Eye size={14} />
-                  Review
+                <div style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.65)', color: '#fff', padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Eye size={11} /> Review
                 </div>
               </div>
-
               {/* Info */}
-              <div style={{ padding: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    background: '#2196f3',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '14px',
-                    fontWeight: 'bold'
-                  }}>
-                    {post.user?.username?.[0]?.toUpperCase()}
+              <div style={{ padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: `linear-gradient(135deg, ${PRI}, #F59E0B)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
+                    {post.user?.username?.[0]?.toUpperCase() || '?'}
                   </div>
-                  <div>
-                    <div style={{ fontWeight: '500', fontSize: '14px' }}>
-                      {post.user?.username}
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#999' }}>
-                      {new Date(post.created_at).toLocaleDateString()}
-                    </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: TXT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.user?.username}</div>
+                    <div style={{ fontSize: 11, color: SUB }}>{new Date(post.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
                 {post.reel?.caption && (
-                  <p style={{
-                    fontSize: '14px',
-                    color: '#666',
-                    marginTop: '8px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical'
-                  }}>
+                  <p style={{ margin: 0, fontSize: 12, color: SUB, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
                     {post.reel.caption}
                   </p>
                 )}
@@ -207,13 +153,8 @@ const CampaignPostModeration = ({ campaignId, onBack }) => {
         </div>
       )}
 
-      {/* Moderation Modal */}
       {selectedPost && (
-        <ModerationModal
-          post={selectedPost}
-          onClose={() => setSelectedPost(null)}
-          onModerate={handleModerate}
-        />
+        <ModerationModal post={selectedPost} onClose={() => setSelectedPost(null)} onModerate={handleModerate} />
       )}
     </div>
   );
@@ -221,253 +162,93 @@ const CampaignPostModeration = ({ campaignId, onBack }) => {
 
 const ModerationModal = ({ post, onClose, onModerate }) => {
   const [action, setAction] = useState('approve');
-  const [scores, setScores] = useState({
-    creativity_score: 20,
-    quality_score: 10,
-    theme_relevance_score: 5
-  });
+  const [submitting, setSubmitting] = useState(false);
+  const [scores, setScores] = useState({ creativity_score: 20, quality_score: 10, theme_relevance_score: 5 });
+  const setScore = (k, v) => setScores(p => ({ ...p, [k]: v }));
+  const total = scores.creativity_score + scores.quality_score + scores.theme_relevance_score;
 
-  const handleSubmit = () => {
-    if (action === 'approve') {
-      onModerate(post.id, 'approve', scores);
-    } else {
-      onModerate(post.id, 'reject');
-    }
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    await onModerate(post.id, action, action === 'approve' ? scores : {});
+    setSubmitting(false);
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0,0,0,0.8)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'white',
-        borderRadius: '12px',
-        maxWidth: '900px',
-        width: '100%',
-        maxHeight: '90vh',
-        overflow: 'auto',
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '0'
-      }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}
+      onClick={onClose}>
+      <div style={{ background: CARD, borderRadius: 16, maxWidth: 860, width: '100%', maxHeight: '90vh', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1fr 1fr', boxShadow: '0 24px 60px rgba(0,0,0,0.25)' }}
+        onClick={e => e.stopPropagation()}>
+
         {/* Left: Media */}
-        <div style={{ background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {post.reel?.image && (
-            <img
-              src={post.reel.image}
-              alt="Post"
-              style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }}
-            />
-          )}
-          {post.reel?.media && (
-            <video
-              src={post.reel.media}
-              controls
-              style={{ maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain' }}
-            />
+        <div style={{ background: '#0C0C0C', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, position: 'relative', borderRadius: '16px 0 0 16px', overflow: 'hidden' }}>
+          {post.reel?.image && <img src={post.reel.image} alt="Post" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
+          {post.reel?.media && <video src={post.reel.media} controls style={{ width: '100%', maxHeight: '90vh', objectFit: 'contain' }} />}
+          {!post.reel?.image && !post.reel?.media && (
+            <div style={{ color: SUB, fontSize: 14 }}>No media</div>
           )}
         </div>
 
-        {/* Right: Moderation Form */}
-        <div style={{ padding: '30px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>
-            Moderate Post
-          </h2>
+        {/* Right: Form */}
+        <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', maxHeight: '90vh' }}>
+          {/* Modal header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', borderBottom: `1.5px solid ${BORDER}`, flexShrink: 0 }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: TXT }}>Review Post</h2>
+              <p style={{ margin: 0, fontSize: 12, color: SUB }}>Campaign moderation</p>
+            </div>
+            <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', background: BG, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <XCircle size={16} color={SUB} />
+            </button>
+          </div>
 
-          {/* User Info */}
-          <div style={{ marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #e0e0e0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                background: '#2196f3',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '20px',
-                fontWeight: 'bold'
-              }}>
-                {post.user?.username?.[0]?.toUpperCase()}
+          <div style={{ padding: '18px 20px', flex: 1 }}>
+            {/* User */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, paddingBottom: 14, borderBottom: `1.5px solid ${BORDER}` }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: `linear-gradient(135deg, ${PRI}, #F59E0B)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                {post.user?.username?.[0]?.toUpperCase() || '?'}
               </div>
               <div>
-                <div style={{ fontWeight: '600', fontSize: '16px' }}>
-                  {post.user?.username}
-                </div>
-                <div style={{ fontSize: '14px', color: '#999' }}>
-                  {new Date(post.created_at).toLocaleString()}
-                </div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: TXT }}>{post.user?.username}</div>
+                <div style={{ fontSize: 12, color: SUB }}>{new Date(post.created_at).toLocaleString()}</div>
               </div>
             </div>
-            {post.reel?.caption && (
-              <p style={{ fontSize: '14px', color: '#666' }}>
-                {post.reel.caption}
-              </p>
+            {post.reel?.caption && <p style={{ margin: '0 0 16px', fontSize: 13, color: SUB, lineHeight: 1.5 }}>{post.reel.caption}</p>}
+
+            {/* Decision */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: SUB, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Decision</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <button onClick={() => setAction('approve')} style={{ padding: '10px', background: action === 'approve' ? `${GREEN}15` : BG, color: action === 'approve' ? GREEN : SUB, border: `2px solid ${action === 'approve' ? GREEN : BORDER}`, borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <CheckCircle size={15} /> Approve
+                </button>
+                <button onClick={() => setAction('reject')} style={{ padding: '10px', background: action === 'reject' ? '#FEF2F2' : BG, color: action === 'reject' ? RED : SUB, border: `2px solid ${action === 'reject' ? RED : BORDER}`, borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <XCircle size={15} /> Reject
+                </button>
+              </div>
+            </div>
+
+            {/* Scores */}
+            {action === 'approve' && (
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: SUB, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>Initial Scores</div>
+                <ScoreSlider label="Creativity" value={scores.creativity_score} max={30} color={PRI} onChange={v => setScore('creativity_score', v)} />
+                <ScoreSlider label="Quality" value={scores.quality_score} max={15} color="#8B5CF6" onChange={v => setScore('quality_score', v)} />
+                <ScoreSlider label="Theme Relevance" value={scores.theme_relevance_score} max={10} color="#3B82F6" onChange={v => setScore('theme_relevance_score', v)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: `${PRI}10`, border: `1.5px solid ${PRI}30`, borderRadius: 8, marginTop: 4 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: TXT }}>Initial Total</span>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: PRI }}>{total} pts</span>
+                </div>
+                <p style={{ margin: '8px 0 0', fontSize: 11, color: SUB }}>Engagement & consistency scores auto-calculated from activity</p>
+              </div>
             )}
           </div>
 
-          {/* Action Selection */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '12px', fontWeight: '600' }}>
-              Decision
-            </label>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                onClick={() => setAction('approve')}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  background: action === 'approve' ? '#4CAF50' : '#f0f0f0',
-                  color: action === 'approve' ? 'white' : '#666',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-              >
-                <CheckCircle size={18} />
-                Approve
-              </button>
-              <button
-                onClick={() => setAction('reject')}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  background: action === 'reject' ? '#f44336' : '#f0f0f0',
-                  color: action === 'reject' ? 'white' : '#666',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-              >
-                <XCircle size={18} />
-                Reject
-              </button>
-            </div>
-          </div>
-
-          {/* Scoring (only if approving) */}
-          {action === 'approve' && (
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '12px', fontWeight: '600' }}>
-                Initial Scores
-              </label>
-              
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '14px' }}>Creativity (0-30)</span>
-                  <span style={{ fontSize: '14px', fontWeight: '600' }}>{scores.creativity_score}</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="30"
-                  value={scores.creativity_score}
-                  onChange={(e) => setScores({ ...scores, creativity_score: parseInt(e.target.value) })}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '14px' }}>Quality (0-15)</span>
-                  <span style={{ fontSize: '14px', fontWeight: '600' }}>{scores.quality_score}</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="15"
-                  value={scores.quality_score}
-                  onChange={(e) => setScores({ ...scores, quality_score: parseInt(e.target.value) })}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '14px' }}>Theme Relevance (0-10)</span>
-                  <span style={{ fontSize: '14px', fontWeight: '600' }}>{scores.theme_relevance_score}</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  value={scores.theme_relevance_score}
-                  onChange={(e) => setScores({ ...scores, theme_relevance_score: parseInt(e.target.value) })}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div style={{
-                background: '#f5f5f5',
-                padding: '12px',
-                borderRadius: '8px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{ fontWeight: '600' }}>Initial Total:</span>
-                <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#2196f3' }}>
-                  {scores.creativity_score + scores.quality_score + scores.theme_relevance_score}
-                </span>
-              </div>
-              <p style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
-                Engagement and consistency scores will be calculated automatically
-              </p>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: '12px', marginTop: '30px' }}>
-            <button
-              onClick={onClose}
-              style={{
-                flex: 1,
-                padding: '12px',
-                background: '#f0f0f0',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '16px'
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              style={{
-                flex: 1,
-                padding: '12px',
-                background: action === 'approve' ? '#4CAF50' : '#f44336',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: '500'
-              }}
-            >
-              {action === 'approve' ? 'Approve Post' : 'Reject Post'}
+          {/* Footer */}
+          <div style={{ display: 'flex', gap: 10, padding: '14px 20px', borderTop: `1.5px solid ${BORDER}`, flexShrink: 0 }}>
+            <button onClick={onClose} style={{ flex: 1, padding: '11px', background: BG, border: `1.5px solid ${BORDER}`, borderRadius: 8, fontWeight: 600, cursor: 'pointer', color: TXT, fontSize: 13 }}>Cancel</button>
+            <button onClick={handleSubmit} disabled={submitting}
+              style={{ flex: 2, padding: '11px', background: submitting ? `${action === 'approve' ? GREEN : RED}aa` : action === 'approve' ? GREEN : RED, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+              {submitting ? 'Submitting...' : action === 'approve' ? <><CheckCircle size={15} /> Approve Post</> : <><XCircle size={15} /> Reject Post</>}
             </button>
           </div>
         </div>

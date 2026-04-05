@@ -1,12 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api';
-import { ArrowLeft, Save, RotateCcw, Info } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw } from 'lucide-react';
 
+const PRI = '#DA9B2A';
+const BG = '#FAFAF9';
+const CARD = '#FFFFFF';
+const BORDER = '#E7E5E4';
+const TXT = '#1C1917';
+const SUB = '#78716C';
+const RED = '#EF4444';
+const GREEN = '#10B981';
+
+const inp = {
+  width: '100%', padding: '10px 12px', border: `1.5px solid ${BORDER}`,
+  borderRadius: 8, fontSize: 14, color: TXT, background: CARD,
+  outline: 'none', boxSizing: 'border-box',
+};
+
+const SectionCard = ({ title, subtitle, accent, children }) => (
+  <div style={{ background: CARD, borderRadius: 12, border: `1.5px solid ${BORDER}`, overflow: 'hidden', marginBottom: 18 }}>
+    <div style={{ padding: '14px 20px', borderBottom: `1.5px solid ${BORDER}`, background: `${accent}08`, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ width: 6, height: 22, borderRadius: 3, background: accent }} />
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: TXT }}>{title}</div>
+        {subtitle && <div style={{ fontSize: 12, color: SUB, marginTop: 1 }}>{subtitle}</div>}
+      </div>
+    </div>
+    <div style={{ padding: '18px 20px' }}>{children}</div>
+  </div>
+);
+
+const NumField = ({ label, hint, value, step, onChange }) => (
+  <div>
+    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: SUB, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>{label}</label>
+    <input type="number" step={step || '0.1'} value={value} onChange={onChange} style={inp} />
+    {hint && <span style={{ fontSize: 11, color: SUB, marginTop: 4, display: 'block' }}>{hint}</span>}
+  </div>
+);
 
 const CampaignScoringConfig = ({ campaignId, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [campaign, setCampaign] = useState(null);
+  const [toast, setToast] = useState(null);
   const [config, setConfig] = useState({
     max_creativity_points: 30,
     max_engagement_points: 25,
@@ -20,9 +58,10 @@ const CampaignScoringConfig = ({ campaignId, onBack }) => {
     participation_points_per_day: 0.5,
   });
 
-  useEffect(() => {
-    loadData();
-  }, [campaignId]);
+  const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+  const set = (k, v) => setConfig(p => ({ ...p, [k]: v }));
+
+  useEffect(() => { loadData(); }, [campaignId]);
 
   const loadData = async () => {
     try {
@@ -46,9 +85,8 @@ const CampaignScoringConfig = ({ campaignId, onBack }) => {
           participation_points_per_day: configRes.consistency_settings.participation_points_per_day,
         });
       }
-    } catch (error) {
-      console.error('Error loading data:', error);
-      alert('Failed to load scoring configuration');
+    } catch (err) {
+      console.error('Error loading data:', err);
     } finally {
       setLoading(false);
     }
@@ -57,388 +95,129 @@ const CampaignScoringConfig = ({ campaignId, onBack }) => {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await api.request(`/admin/campaigns/${campaignId}/scoring-config/`, {
-        method: 'POST',
-        body: JSON.stringify(config)
-      });
-      alert('Scoring configuration saved successfully!');
-    } catch (error) {
-      console.error('Error saving config:', error);
-      alert('Failed to save scoring configuration');
+      await api.request(`/admin/campaigns/${campaignId}/scoring-config/`, { method: 'POST', body: JSON.stringify(config) });
+      setSaved(true);
+      showToast('Scoring configuration saved!');
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      showToast('Failed to save configuration', 'error');
     } finally {
       setSaving(false);
     }
   };
 
   const handleReset = async () => {
-    if (!window.confirm('Reset scoring configuration to defaults? This cannot be undone.')) {
-      return;
-    }
     try {
-      setSaving(true);
-      await api.request(`/admin/campaigns/${campaignId}/scoring-config/reset/`, {
-        method: 'POST'
-      });
-      alert('Scoring configuration reset to defaults!');
+      setResetting(true);
+      await api.request(`/admin/campaigns/${campaignId}/scoring-config/reset/`, { method: 'POST' });
+      showToast('Reset to defaults');
       loadData();
-    } catch (error) {
-      console.error('Error resetting config:', error);
-      alert('Failed to reset scoring configuration');
+    } catch (err) {
+      showToast('Failed to reset configuration', 'error');
     } finally {
-      setSaving(false);
+      setResetting(false);
     }
   };
 
-  const getTotalMaxPoints = () => {
-    return (
-      parseFloat(config.max_creativity_points) +
-      parseFloat(config.max_engagement_points) +
-      parseFloat(config.max_consistency_points) +
-      parseFloat(config.max_quality_points) +
-      parseFloat(config.max_theme_relevance_points)
-    );
-  };
+  const totalMax = [
+    config.max_creativity_points, config.max_engagement_points, config.max_consistency_points,
+    config.max_quality_points, config.max_theme_relevance_points
+  ].reduce((s, v) => s + parseFloat(v || 0), 0);
 
-  if (loading) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontSize: '18px', color: '#666' }}>Loading...</div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
+      <div style={{ width: 36, height: 36, border: `3px solid ${PRI}30`, borderTopColor: PRI, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{ maxWidth: 860, margin: '0 auto' }}>
+      {toast && (
+        <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 9999, padding: '12px 20px', borderRadius: 10, background: toast.type === 'error' ? '#FEF2F2' : '#F0FDF4', border: `1.5px solid ${toast.type === 'error' ? '#FECACA' : '#BBF7D0'}`, color: toast.type === 'error' ? RED : GREEN, fontSize: 14, fontWeight: 600, boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }}>
+          {toast.msg}
+        </div>
+      )}
+
       {/* Header */}
-      <div style={{ marginBottom: '30px' }}>
-        <button
-          onClick={() => onBack?.()}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            background: '#f0f0f0',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            marginBottom: '20px'
-          }}
-        >
-          <ArrowLeft size={20} />
-          Back to Campaigns
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button onClick={() => onBack?.()} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: CARD, border: `1.5px solid ${BORDER}`, borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: SUB }}>
+            <ArrowLeft size={15} /> Back
+          </button>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: TXT }}>Scoring Configuration</h1>
+            {campaign && <p style={{ margin: 0, fontSize: 13, color: SUB, marginTop: 2 }}>{campaign.title}</p>}
+          </div>
+        </div>
+
+        {/* Total Points Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: `${PRI}12`, border: `1.5px solid ${PRI}30`, borderRadius: 10 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: PRI }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: PRI }}>Total Max: {totalMax} pts</span>
+        </div>
+      </div>
+
+      {/* Max Points */}
+      <SectionCard title="Maximum Points per Component" subtitle="Sets the ceiling for each scoring category" accent={PRI}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
+          <NumField label="Creativity" hint="Manual admin scoring" value={config.max_creativity_points} step="1" onChange={e => set('max_creativity_points', e.target.value)} />
+          <NumField label="Engagement" hint="Likes, comments, shares" value={config.max_engagement_points} step="1" onChange={e => set('max_engagement_points', e.target.value)} />
+          <NumField label="Consistency" hint="Posting frequency" value={config.max_consistency_points} step="1" onChange={e => set('max_consistency_points', e.target.value)} />
+          <NumField label="Quality" hint="Video / image quality" value={config.max_quality_points} step="1" onChange={e => set('max_quality_points', e.target.value)} />
+          <NumField label="Theme Relevance" hint="Match with weekly theme" value={config.max_theme_relevance_points} step="1" onChange={e => set('max_theme_relevance_points', e.target.value)} />
+        </div>
+        {/* Visual bar */}
+        <div style={{ marginTop: 18, display: 'flex', gap: 4, height: 10, borderRadius: 6, overflow: 'hidden' }}>
+          {[
+            { v: config.max_creativity_points, c: PRI },
+            { v: config.max_engagement_points, c: '#3B82F6' },
+            { v: config.max_consistency_points, c: GREEN },
+            { v: config.max_quality_points, c: '#8B5CF6' },
+            { v: config.max_theme_relevance_points, c: '#F59E0B' },
+          ].map((seg, i) => (
+            <div key={i} style={{ flex: parseFloat(seg.v) || 0, background: seg.c, minWidth: 2 }} />
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
+          {[
+            { label: 'Creativity', c: PRI }, { label: 'Engagement', c: '#3B82F6' },
+            { label: 'Consistency', c: GREEN }, { label: 'Quality', c: '#8B5CF6' },
+            { label: 'Theme', c: '#F59E0B' },
+          ].map((l, i) => (
+            <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: SUB }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: l.c, display: 'inline-block' }} />{l.label}
+            </span>
+          ))}
+        </div>
+      </SectionCard>
+
+      {/* Engagement Weights */}
+      <SectionCard title="Engagement Weights" subtitle="Points multiplier for each engagement type" accent="#3B82F6">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
+          <NumField label="Likes Weight" hint="Points per like received" value={config.likes_weight} step="0.1" onChange={e => set('likes_weight', e.target.value)} />
+          <NumField label="Comments Weight" hint="Points per comment received" value={config.comments_weight} step="0.1" onChange={e => set('comments_weight', e.target.value)} />
+          <NumField label="Shares Weight" hint="Points per share received" value={config.shares_weight} step="0.1" onChange={e => set('shares_weight', e.target.value)} />
+        </div>
+      </SectionCard>
+
+      {/* Consistency Settings */}
+      <SectionCard title="Consistency Settings" subtitle="Rewards for regular posting behaviour" accent={GREEN}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+          <NumField label="Streak Points / Day" hint="Bonus for consecutive posting days" value={config.streak_points_per_day} step="0.1" onChange={e => set('streak_points_per_day', e.target.value)} />
+          <NumField label="Participation Points / Day" hint="Base points for each active day" value={config.participation_points_per_day} step="0.1" onChange={e => set('participation_points_per_day', e.target.value)} />
+        </div>
+      </SectionCard>
+
+      {/* Actions */}
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', paddingBottom: 8 }}>
+        <button onClick={handleReset} disabled={resetting || saving}
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 20px', background: '#FEF2F2', color: RED, border: `1.5px solid #FECACA`, borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: resetting ? 'not-allowed' : 'pointer', opacity: resetting ? 0.6 : 1 }}>
+          <RotateCcw size={15} />{resetting ? 'Resetting...' : 'Reset to Defaults'}
         </button>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
-          Scoring Configuration
-        </h1>
-        <p style={{ color: '#666', fontSize: '16px' }}>
-          {campaign?.title}
-        </p>
-      </div>
-
-      {/* Info Banner */}
-      <div style={{
-        background: '#e3f2fd',
-        border: '1px solid #2196f3',
-        borderRadius: '8px',
-        padding: '16px',
-        marginBottom: '30px',
-        display: 'flex',
-        gap: '12px'
-      }}>
-        <Info size={20} color="#2196f3" style={{ flexShrink: 0, marginTop: '2px' }} />
-        <div style={{ fontSize: '14px', color: '#1565c0' }}>
-          <strong>Total Max Points: {getTotalMaxPoints()}</strong>
-          <br />
-          Configure how posts are scored in this campaign. Changes apply to all future scoring calculations.
-        </div>
-      </div>
-
-      {/* Maximum Points Section */}
-      <div style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '24px',
-        marginBottom: '20px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
-          Maximum Points per Component
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Creativity Points
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={config.max_creativity_points}
-              onChange={(e) => setConfig({ ...config, max_creativity_points: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Manual admin scoring</small>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Engagement Points
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={config.max_engagement_points}
-              onChange={(e) => setConfig({ ...config, max_engagement_points: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Likes, comments, shares</small>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Consistency Points
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={config.max_consistency_points}
-              onChange={(e) => setConfig({ ...config, max_consistency_points: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Posting frequency</small>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Quality Points
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={config.max_quality_points}
-              onChange={(e) => setConfig({ ...config, max_quality_points: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Video/image quality</small>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Theme Relevance Points
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={config.max_theme_relevance_points}
-              onChange={(e) => setConfig({ ...config, max_theme_relevance_points: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Match with theme</small>
-          </div>
-        </div>
-      </div>
-
-      {/* Engagement Weights Section */}
-      <div style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '24px',
-        marginBottom: '20px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
-          Engagement Calculation Weights
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Likes Weight
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={config.likes_weight}
-              onChange={(e) => setConfig({ ...config, likes_weight: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Points per like</small>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Comments Weight
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={config.comments_weight}
-              onChange={(e) => setConfig({ ...config, comments_weight: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Points per comment</small>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Shares Weight
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={config.shares_weight}
-              onChange={(e) => setConfig({ ...config, shares_weight: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Points per share</small>
-          </div>
-        </div>
-      </div>
-
-      {/* Consistency Settings Section */}
-      <div style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '24px',
-        marginBottom: '30px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
-          Consistency Calculation Settings
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Points per Day of Streak
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={config.streak_points_per_day}
-              onChange={(e) => setConfig({ ...config, streak_points_per_day: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Rewards consecutive posting days</small>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-              Points per Day Participated
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={config.participation_points_per_day}
-              onChange={(e) => setConfig({ ...config, participation_points_per_day: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                fontSize: '16px'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>Rewards total participation</small>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-        <button
-          onClick={handleReset}
-          disabled={saving}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 24px',
-            background: '#f44336',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: '500',
-            cursor: saving ? 'not-allowed' : 'pointer',
-            opacity: saving ? 0.6 : 1
-          }}
-        >
-          <RotateCcw size={20} />
-          Reset to Defaults
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 24px',
-            background: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: '500',
-            cursor: saving ? 'not-allowed' : 'pointer',
-            opacity: saving ? 0.6 : 1
-          }}
-        >
-          <Save size={20} />
-          {saving ? 'Saving...' : 'Save Configuration'}
+        <button onClick={handleSave} disabled={saving || saved}
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 24px', background: saved ? GREEN : saving ? `${PRI}aa` : PRI, color: '#fff', border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: saving || saved ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}>
+          <Save size={15} />{saved ? 'Saved!' : saving ? 'Saving...' : 'Save Configuration'}
         </button>
       </div>
     </div>
