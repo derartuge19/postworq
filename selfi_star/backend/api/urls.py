@@ -23,6 +23,17 @@ from .views_campaign import (
     admin_campaign_entries, admin_announce_winners, user_campaigns_list, user_campaign_enter,
     user_campaign_vote, user_campaign_detail
 )
+from .views_campaign_admin import (
+    admin_campaign_themes, admin_campaign_theme_detail, admin_activate_theme,
+    admin_campaign_posts_pending, admin_moderate_post, admin_update_post_scores,
+    admin_generate_leaderboard, get_leaderboard, admin_select_winners, get_campaign_winners,
+    admin_campaign_analytics
+)
+from .views_campaign_user import (
+    get_active_campaigns, get_campaign_detail_extended, create_campaign_post,
+    get_campaign_feed, get_user_campaign_profile, update_engagement_scores,
+    update_consistency_scores, get_campaign_notifications
+)
 from .views_reels import reels_following, reels_saved, reels_trending
 from .views_contest import (
     get_user_subscription, upgrade_subscription, get_coin_packages, get_coin_balance,
@@ -98,11 +109,33 @@ urlpatterns = [
     path('admin/campaigns/<int:campaign_id>/delete/', admin_campaign_delete, name='admin-campaign-delete'),
     path('admin/campaigns/<int:campaign_id>/entries/', admin_campaign_entries, name='admin-campaign-entries'),
     path('admin/campaigns/<int:campaign_id>/announce-winners/', admin_announce_winners, name='admin-announce-winners'),
+    # Campaign Extended Admin
+    path('admin/campaigns/<int:campaign_id>/themes/', admin_campaign_themes, name='admin-campaign-themes'),
+    path('admin/campaigns/themes/<int:theme_id>/', admin_campaign_theme_detail, name='admin-campaign-theme-detail'),
+    path('admin/campaigns/themes/<int:theme_id>/activate/', admin_activate_theme, name='admin-activate-theme'),
+    path('admin/campaigns/<int:campaign_id>/posts/pending/', admin_campaign_posts_pending, name='admin-campaign-posts-pending'),
+    path('admin/campaigns/posts/<int:score_id>/moderate/', admin_moderate_post, name='admin-moderate-post'),
+    path('admin/campaigns/posts/<int:score_id>/scores/', admin_update_post_scores, name='admin-update-post-scores'),
+    path('admin/campaigns/<int:campaign_id>/leaderboard/generate/', admin_generate_leaderboard, name='admin-generate-leaderboard'),
+    path('admin/campaigns/<int:campaign_id>/winners/select/', admin_select_winners, name='admin-select-winners'),
+    path('admin/campaigns/<int:campaign_id>/analytics/', admin_campaign_analytics, name='admin-campaign-analytics'),
+    
     # Campaign (User)
     path('campaigns/', user_campaigns_list, name='campaigns-list'),
+    path('campaigns/active/', get_active_campaigns, name='campaigns-active'),
     path('campaigns/<int:campaign_id>/', user_campaign_detail, name='campaign-detail'),
+    path('campaigns/<int:campaign_id>/extended/', get_campaign_detail_extended, name='campaign-detail-extended'),
     path('campaigns/<int:campaign_id>/enter/', user_campaign_enter, name='campaign-enter'),
     path('campaigns/entries/<int:entry_id>/vote/', user_campaign_vote, name='campaign-vote'),
+    path('campaigns/<int:campaign_id>/leaderboard/', get_leaderboard, name='campaign-leaderboard'),
+    path('campaigns/<int:campaign_id>/winners/', get_campaign_winners, name='campaign-winners'),
+    path('campaigns/<int:campaign_id>/feed/', get_campaign_feed, name='campaign-feed'),
+    path('campaigns/posts/create/', create_campaign_post, name='create-campaign-post'),
+    path('campaigns/notifications/', get_campaign_notifications, name='campaign-notifications'),
+    path('campaigns/profile/', get_user_campaign_profile, name='user-campaign-profile'),
+    path('campaigns/profile/<int:user_id>/', get_user_campaign_profile, name='user-campaign-profile-detail'),
+    path('campaigns/<int:campaign_id>/engagement/update/', update_engagement_scores, name='update-engagement-scores'),
+    path('campaigns/<int:campaign_id>/consistency/update/', update_consistency_scores, name='update-consistency-scores'),
     # Reels Feeds
     path('reels/following/', reels_following, name='reels-following'),
     path('reels/saved/', reels_saved, name='reels-saved'),

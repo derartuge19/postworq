@@ -9,6 +9,10 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import UserProfile, Reel, Comment, CommentLike, CommentReply, SavedPost, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, Report, Notification
 from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
+from .models_campaign_extended import (
+    CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
+    WinnerSelection, SelectedWinner, CampaignBadge
+)
 
 # Custom Admin Site Configuration
 class SelfieStarAdminSite(admin.AdminSite):
@@ -489,6 +493,61 @@ class NotificationAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('recipient', 'sender', 'reel', 'comment')
+
+# Campaign Extended Models
+@admin.register(CampaignTheme, site=admin_site)
+class CampaignThemeAdmin(admin.ModelAdmin):
+    list_display = ['campaign', 'title', 'week_number', 'is_active', 'start_date', 'end_date']
+    list_filter = ['is_active', 'campaign']
+    search_fields = ['title', 'campaign__title']
+    ordering = ['campaign', 'week_number']
+
+@admin.register(PostScore, site=admin_site)
+class PostScoreAdmin(admin.ModelAdmin):
+    list_display = ['user', 'campaign', 'theme', 'moderation_status', 'total_score', 'created_at']
+    list_filter = ['moderation_status', 'campaign', 'theme']
+    search_fields = ['user__username', 'campaign__title']
+    readonly_fields = ['total_score', 'created_at', 'updated_at']
+
+@admin.register(UserCampaignStats, site=admin_site)
+class UserCampaignStatsAdmin(admin.ModelAdmin):
+    list_display = ['user', 'campaign', 'total_score', 'approved_posts', 'overall_rank', 'current_streak']
+    list_filter = ['campaign']
+    search_fields = ['user__username', 'campaign__title']
+    readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(Leaderboard, site=admin_site)
+class LeaderboardAdmin(admin.ModelAdmin):
+    list_display = ['campaign', 'period_type', 'period_start', 'period_end', 'is_current', 'is_finalized']
+    list_filter = ['period_type', 'is_current', 'is_finalized', 'campaign']
+    ordering = ['-period_start']
+
+@admin.register(LeaderboardEntry, site=admin_site)
+class LeaderboardEntryAdmin(admin.ModelAdmin):
+    list_display = ['leaderboard', 'rank', 'user', 'score', 'posts_count']
+    list_filter = ['leaderboard']
+    search_fields = ['user__username']
+    ordering = ['leaderboard', 'rank']
+
+@admin.register(WinnerSelection, site=admin_site)
+class WinnerSelectionAdmin(admin.ModelAdmin):
+    list_display = ['campaign', 'selection_type', 'is_finalized', 'finalized_at', 'finalized_by']
+    list_filter = ['selection_type', 'is_finalized', 'campaign']
+    ordering = ['-created_at']
+
+@admin.register(SelectedWinner, site=admin_site)
+class SelectedWinnerAdmin(admin.ModelAdmin):
+    list_display = ['selection', 'rank', 'user', 'final_score', 'selection_method', 'prize_claimed']
+    list_filter = ['selection_method', 'prize_claimed']
+    search_fields = ['user__username']
+    ordering = ['selection', 'rank']
+
+@admin.register(CampaignBadge, site=admin_site)
+class CampaignBadgeAdmin(admin.ModelAdmin):
+    list_display = ['user', 'campaign', 'badge_type', 'title', 'earned_at']
+    list_filter = ['badge_type', 'campaign']
+    search_fields = ['user__username', 'title']
+    ordering = ['-earned_at']
 
 # Register User with custom admin
 admin_site.register(User, CustomUserAdmin)

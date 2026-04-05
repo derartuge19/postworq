@@ -1,0 +1,535 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
+from django.db.models import Sum, Avg, Count, Q
+from datetime import datetime, timedelta
+import random
+
+from .models import User, Reel
+from .models_campaign import Campaign
+from .models_campaign_extended import (
+    CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
+    WinnerSelection, SelectedWinner, CampaignBadge
+)
+
+# ==================== THEME MANAGEMENT ====================
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAdminUser])
+def admin_campaign_themes(request, campaign_id):
+    """List or create themes for a campaign"""
+    try:
+        campaign = Campaign.objects.get(id=campaign_id)
+    except Campaign.DoesNotExist:
+        return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        themes = CampaignTheme.objects.filter(campaign=campaign)
+        data = [{
+            'id': theme.id,
+            'title': theme.title,
+            'description': theme.description,
+            'week_number': theme.week_number,
+            'start_date': theme.start_date,
+            'end_date': theme.end_date,
+            'is_active': theme.is_active,
+            'posts_count': theme.theme_posts.count(),
+        } for theme in themes]
+        return Response(data)
+    
+    elif request.method == 'POST':
+        title = request.data.get('title')
+        description = request.data.get('description')
+        week_number = request.data.get('week_number')
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+        
+        if not all([title, description, week_number, start_date, end_date]):
+            return Response({'error': 'Missing required fields'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        theme = CampaignTheme.objects.create(
+            campaign=campaign,
+            title=title,
+            description=description,
+            week_number=week_number,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        return Response({
+            'id': theme.id,
+            'title': theme.title,
+            'week_number': theme.week_number,
+            'message': 'Theme created successfully'
+        }, status=status.HTTP_201_CREATED)
+
+@api_view(['PUT', 'DELETE'])
+@permission_classes([IsAdminUser])
+def admin_campaign_theme_detail(request, theme_id):
+    """Update or delete a theme"""
+    try:
+        theme = CampaignTheme.objects.get(id=theme_id)
+    except CampaignTheme.DoesNotExist:
+        return Response({'error': 'Theme not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'PUT':
+        theme.title = request.data.get('title', theme.title)
+        theme.description = request.data.get('description', theme.description)
+        theme.week_number = request.data.get('week_number', theme.week_number)
+        theme.start_date = request.data.get('start_date', theme.start_date)
+        theme.end_date = request.data.get('end_date', theme.end_date)
+        theme.save()
+        
+        return Response({'message': 'Theme updated successfully'})
+    
+    elif request.method == 'DELETE':
+        theme.delete()
+        return Response({'message': 'Theme deleted successfully'})
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_activate_theme(request, theme_id):
+    """Activate a specific theme"""
+    try:
+        theme = CampaignTheme.objects.get(id=theme_id)
+        theme.activate()
+        return Response({'message': f'Theme "{theme.title}" activated'})
+    except CampaignTheme.DoesNotExist:
+        return Response({'error': 'Theme not found'}, status=status.HTTP_404_NOT_FOUND)
+
+# ==================== POST MODERATION ====================
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_campaign_posts_pending(request, campaign_id):
+    """Get pending campaign posts for moderation"""
+    try:
+        campaign = Campaign.objects.get(id=campaign_id)
+    except Campaign.DoesNotExist:
+        return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    pending_scores = PostScore.objects.filter(
+        campaign=campaign,
+        moderation_status='pending'
+    ).select_related('user', 'reel', 'theme')
+    
+    data = [{
+        'id': score.id,
+        'reel_id': score.reel.id,
+        'user': {
+            'id': score.user.id,
+            'username': score.user.username,
+        },
+        'theme': {
+            'id': score.theme.id,
+            'title': score.theme.title,
+        } if score.theme else None,
+        'reel': {
+            'caption': score.reel.caption,
+            'hashtags': score.reel.hashtags,
+            'image': score.reel.image.url if score.reel.image else None,
+            'media': score.reel.media.url if score.reel.media else None,
+            'created_at': score.reel.created_at,
+        },
+        'created_at': score.created_at,
+    } for score in pending_scores]
+    
+    return Response(data)
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_moderate_post(request, score_id):
+    """Approve or reject a campaign post"""
+    try:
+        score = PostScore.objects.get(id=score_id)
+    except PostScore.DoesNotExist:
+        return Response({'error': 'Post score not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    action = request.data.get('action')  # 'approve' or 'reject'
+    
+    if action == 'approve':
+        score.moderation_status = 'approved'
+        score.moderated_by = request.user
+        score.moderated_at = timezone.now()
+        
+        # Assign initial scores
+        score.creativity_score = request.data.get('creativity_score', 0)
+        score.quality_score = request.data.get('quality_score', 10)  # Default quality
+        score.theme_relevance_score = request.data.get('theme_relevance_score', 5)
+        
+        # Calculate engagement and consistency scores
+        score.update_engagement_score()
+        
+        # Update user stats
+        stats, created = UserCampaignStats.objects.get_or_create(
+            user=score.user,
+            campaign=score.campaign
+        )
+        stats.update_stats()
+        
+        score.save()
+        
+        return Response({'message': 'Post approved successfully'})
+    
+    elif action == 'reject':
+        score.moderation_status = 'rejected'
+        score.rejection_reason = request.data.get('rejection_reason', '')
+        score.moderated_by = request.user
+        score.moderated_at = timezone.now()
+        score.save()
+        
+        # Update user stats
+        stats, created = UserCampaignStats.objects.get_or_create(
+            user=score.user,
+            campaign=score.campaign
+        )
+        stats.update_stats()
+        
+        return Response({'message': 'Post rejected'})
+    
+    else:
+        return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_update_post_scores(request, score_id):
+    """Update individual score components for a post"""
+    try:
+        score = PostScore.objects.get(id=score_id)
+    except PostScore.DoesNotExist:
+        return Response({'error': 'Post score not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if 'creativity_score' in request.data:
+        score.creativity_score = min(30, float(request.data['creativity_score']))
+    if 'quality_score' in request.data:
+        score.quality_score = min(15, float(request.data['quality_score']))
+    if 'theme_relevance_score' in request.data:
+        score.theme_relevance_score = min(10, float(request.data['theme_relevance_score']))
+    
+    score.calculate_total_score()
+    
+    # Update user stats
+    stats, created = UserCampaignStats.objects.get_or_create(
+        user=score.user,
+        campaign=score.campaign
+    )
+    stats.update_stats()
+    
+    return Response({
+        'message': 'Scores updated',
+        'total_score': float(score.total_score)
+    })
+
+# ==================== LEADERBOARD MANAGEMENT ====================
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_generate_leaderboard(request, campaign_id):
+    """Generate leaderboard for a specific period"""
+    try:
+        campaign = Campaign.objects.get(id=campaign_id)
+    except Campaign.DoesNotExist:
+        return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    period_type = request.data.get('period_type', 'daily')  # daily, weekly, monthly, overall
+    
+    # Determine period dates
+    now = timezone.now()
+    if period_type == 'daily':
+        period_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        period_end = period_start + timedelta(days=1)
+    elif period_type == 'weekly':
+        period_start = now - timedelta(days=now.weekday())
+        period_start = period_start.replace(hour=0, minute=0, second=0, microsecond=0)
+        period_end = period_start + timedelta(days=7)
+    elif period_type == 'monthly':
+        period_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        next_month = period_start + timedelta(days=32)
+        period_end = next_month.replace(day=1)
+    else:  # overall
+        period_start = campaign.start_date
+        period_end = campaign.entry_deadline
+    
+    # Mark previous leaderboards as not current
+    Leaderboard.objects.filter(
+        campaign=campaign,
+        period_type=period_type
+    ).update(is_current=False)
+    
+    # Create new leaderboard
+    leaderboard = Leaderboard.objects.create(
+        campaign=campaign,
+        period_type=period_type,
+        period_start=period_start,
+        period_end=period_end,
+        is_current=True
+    )
+    
+    # Get user stats and rank them
+    stats = UserCampaignStats.objects.filter(
+        campaign=campaign
+    ).order_by('-total_score')
+    
+    # Create leaderboard entries
+    for rank, stat in enumerate(stats, start=1):
+        LeaderboardEntry.objects.create(
+            leaderboard=leaderboard,
+            user=stat.user,
+            rank=rank,
+            score=stat.total_score,
+            posts_count=stat.approved_posts
+        )
+        
+        # Update user's rank in stats
+        if period_type == 'daily':
+            stat.daily_rank = rank
+        elif period_type == 'weekly':
+            stat.weekly_rank = rank
+        elif period_type == 'monthly':
+            stat.monthly_rank = rank
+        else:
+            stat.overall_rank = rank
+        stat.save()
+    
+    return Response({
+        'message': f'{period_type.capitalize()} leaderboard generated',
+        'leaderboard_id': leaderboard.id,
+        'entries_count': stats.count()
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_leaderboard(request, campaign_id):
+    """Get current leaderboard for a campaign"""
+    try:
+        campaign = Campaign.objects.get(id=campaign_id)
+    except Campaign.DoesNotExist:
+        return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    period_type = request.query_params.get('period', 'overall')
+    
+    try:
+        leaderboard = Leaderboard.objects.get(
+            campaign=campaign,
+            period_type=period_type,
+            is_current=True
+        )
+    except Leaderboard.DoesNotExist:
+        return Response({'error': 'No leaderboard found for this period'}, status=status.HTTP_404_NOT_FOUND)
+    
+    entries = LeaderboardEntry.objects.filter(leaderboard=leaderboard).select_related('user')[:100]
+    
+    data = {
+        'period_type': leaderboard.period_type,
+        'period_start': leaderboard.period_start,
+        'period_end': leaderboard.period_end,
+        'entries': [{
+            'rank': entry.rank,
+            'user': {
+                'id': entry.user.id,
+                'username': entry.user.username,
+            },
+            'score': float(entry.score),
+            'posts_count': entry.posts_count,
+            'bonus_points': float(entry.bonus_points),
+        } for entry in entries]
+    }
+    
+    return Response(data)
+
+# ==================== WINNER SELECTION ====================
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_select_winners(request, campaign_id):
+    """Select winners for a period"""
+    try:
+        campaign = Campaign.objects.get(id=campaign_id)
+    except Campaign.DoesNotExist:
+        return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    selection_type = request.data.get('selection_type', 'daily')
+    leaderboard_id = request.data.get('leaderboard_id')
+    
+    try:
+        leaderboard = Leaderboard.objects.get(id=leaderboard_id)
+    except Leaderboard.DoesNotExist:
+        return Response({'error': 'Leaderboard not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Create winner selection
+    selection = WinnerSelection.objects.create(
+        campaign=campaign,
+        selection_type=selection_type,
+        leaderboard=leaderboard
+    )
+    
+    # Get leaderboard entries
+    entries = LeaderboardEntry.objects.filter(leaderboard=leaderboard).order_by('rank')
+    
+    if selection_type == 'daily':
+        # Daily: 70% top scorers, 30% random
+        total_winners = request.data.get('total_winners', 10)
+        top_count = int(total_winners * 0.7)
+        random_count = total_winners - top_count
+        
+        # Select top scorers
+        top_entries = entries[:top_count]
+        for idx, entry in enumerate(top_entries, start=1):
+            SelectedWinner.objects.create(
+                selection=selection,
+                user=entry.user,
+                rank=idx,
+                final_score=entry.score,
+                selection_method='top_scorer'
+            )
+        
+        # Select random participants
+        remaining_entries = list(entries[top_count:])
+        if len(remaining_entries) > random_count:
+            random_entries = random.sample(remaining_entries, random_count)
+        else:
+            random_entries = remaining_entries
+        
+        for idx, entry in enumerate(random_entries, start=top_count + 1):
+            SelectedWinner.objects.create(
+                selection=selection,
+                user=entry.user,
+                rank=idx,
+                final_score=entry.score,
+                selection_method='random'
+            )
+    
+    elif selection_type in ['weekly', 'monthly']:
+        # Weekly/Monthly: Top scorers only
+        winner_count = request.data.get('winner_count', 3)
+        top_entries = entries[:winner_count]
+        
+        for idx, entry in enumerate(top_entries, start=1):
+            SelectedWinner.objects.create(
+                selection=selection,
+                user=entry.user,
+                rank=idx,
+                final_score=entry.score,
+                selection_method='top_scorer'
+            )
+    
+    selection.is_finalized = True
+    selection.finalized_at = timezone.now()
+    selection.finalized_by = request.user
+    selection.save()
+    
+    return Response({
+        'message': f'{selection_type.capitalize()} winners selected',
+        'selection_id': selection.id,
+        'winners_count': selection.winners.count()
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_campaign_winners(request, campaign_id):
+    """Get winners for a campaign"""
+    try:
+        campaign = Campaign.objects.get(id=campaign_id)
+    except Campaign.DoesNotExist:
+        return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    selection_type = request.query_params.get('type', 'overall')
+    
+    selections = WinnerSelection.objects.filter(
+        campaign=campaign,
+        selection_type=selection_type,
+        is_finalized=True
+    ).order_by('-finalized_at')
+    
+    data = []
+    for selection in selections:
+        winners = SelectedWinner.objects.filter(selection=selection).select_related('user')
+        data.append({
+            'selection_id': selection.id,
+            'selection_type': selection.selection_type,
+            'finalized_at': selection.finalized_at,
+            'winners': [{
+                'rank': winner.rank,
+                'user': {
+                    'id': winner.user.id,
+                    'username': winner.user.username,
+                },
+                'final_score': float(winner.final_score),
+                'selection_method': winner.selection_method,
+                'prize_claimed': winner.prize_claimed,
+            } for winner in winners]
+        })
+    
+    return Response(data)
+
+# ==================== ANALYTICS ====================
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_campaign_analytics(request, campaign_id):
+    """Get comprehensive analytics for a campaign"""
+    try:
+        campaign = Campaign.objects.get(id=campaign_id)
+    except Campaign.DoesNotExist:
+        return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Overall stats
+    total_participants = UserCampaignStats.objects.filter(campaign=campaign).count()
+    total_posts = PostScore.objects.filter(campaign=campaign).count()
+    approved_posts = PostScore.objects.filter(campaign=campaign, moderation_status='approved').count()
+    pending_posts = PostScore.objects.filter(campaign=campaign, moderation_status='pending').count()
+    rejected_posts = PostScore.objects.filter(campaign=campaign, moderation_status='rejected').count()
+    
+    # Score statistics
+    score_stats = PostScore.objects.filter(
+        campaign=campaign,
+        moderation_status='approved'
+    ).aggregate(
+        avg_total=Avg('total_score'),
+        avg_creativity=Avg('creativity_score'),
+        avg_engagement=Avg('engagement_score'),
+        avg_quality=Avg('quality_score'),
+    )
+    
+    # Theme participation
+    themes = CampaignTheme.objects.filter(campaign=campaign)
+    theme_data = [{
+        'week_number': theme.week_number,
+        'title': theme.title,
+        'posts_count': theme.theme_posts.count(),
+        'is_active': theme.is_active,
+    } for theme in themes]
+    
+    # Top performers
+    top_users = UserCampaignStats.objects.filter(campaign=campaign).order_by('-total_score')[:10]
+    top_performers = [{
+        'username': stat.user.username,
+        'total_score': float(stat.total_score),
+        'posts_count': stat.approved_posts,
+        'rank': stat.overall_rank,
+    } for stat in top_users]
+    
+    return Response({
+        'campaign': {
+            'id': campaign.id,
+            'title': campaign.title,
+            'status': campaign.status,
+        },
+        'participation': {
+            'total_participants': total_participants,
+            'total_posts': total_posts,
+            'approved_posts': approved_posts,
+            'pending_posts': pending_posts,
+            'rejected_posts': rejected_posts,
+        },
+        'score_statistics': {
+            'average_total_score': float(score_stats['avg_total'] or 0),
+            'average_creativity': float(score_stats['avg_creativity'] or 0),
+            'average_engagement': float(score_stats['avg_engagement'] or 0),
+            'average_quality': float(score_stats['avg_quality'] or 0),
+        },
+        'themes': theme_data,
+        'top_performers': top_performers,
+    })

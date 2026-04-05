@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 
 # Import campaign models
 from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
+from .models_campaign_extended import (
+    CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
+    WinnerSelection, SelectedWinner, CampaignBadge
+)
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -31,6 +35,12 @@ class Reel(models.Model):
     caption = models.TextField(blank=True)
     hashtags = models.TextField(blank=True)
     votes = models.IntegerField(default=0)
+    
+    # Campaign integration
+    campaign = models.ForeignKey('Campaign', on_delete=models.SET_NULL, null=True, blank=True, related_name='campaign_posts')
+    theme = models.ForeignKey('CampaignTheme', on_delete=models.SET_NULL, null=True, blank=True, related_name='theme_posts')
+    is_campaign_post = models.BooleanField(default=False)
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -38,6 +48,8 @@ class Reel(models.Model):
         indexes = [
             models.Index(fields=['user', '-created_at']),
             models.Index(fields=['-created_at']),
+            models.Index(fields=['campaign', '-created_at']),
+            models.Index(fields=['is_campaign_post', '-created_at']),
         ]
 
     def __str__(self):
