@@ -1,474 +1,399 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Save, Image, Trophy, Calendar, Users, Hash, CheckCircle } from 'lucide-react';
 import api from '../../api';
+
+const toLocalInput = (iso) => {
+  if (!iso) return '';
+  try { return new Date(iso).toISOString().slice(0, 16); } catch { return ''; }
+};
+
+const STATUS_OPTIONS = [
+  { value: 'draft',     label: 'Draft',     color: '#F59E0B' },
+  { value: 'active',    label: 'Active',    color: '#10B981' },
+  { value: 'voting',    label: 'Voting',    color: '#3B82F6' },
+  { value: 'completed', label: 'Completed', color: '#6B7280' },
+  { value: 'cancelled', label: 'Cancelled', color: '#EF4444' },
+];
+
+const inputStyle = (theme) => ({
+  width: '100%',
+  padding: '10px 14px',
+  border: `1.5px solid ${theme.border}`,
+  borderRadius: 8,
+  fontSize: 14,
+  color: theme.txt,
+  background: theme.bg,
+  outline: 'none',
+  boxSizing: 'border-box',
+  transition: 'border-color 0.2s',
+});
+
+const Section = ({ icon: Icon, title, color, children }) => (
+  <div style={{
+    marginBottom: 24,
+    borderRadius: 10,
+    border: `1.5px solid ${color}30`,
+    overflow: 'hidden',
+  }}>
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '12px 16px',
+      background: `${color}12`,
+      borderBottom: `1.5px solid ${color}30`,
+    }}>
+      <Icon size={16} color={color} />
+      <span style={{ fontSize: 13, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        {title}
+      </span>
+    </div>
+    <div style={{ padding: '16px 16px 4px' }}>{children}</div>
+  </div>
+);
+
+const Field = ({ label, required, children }) => (
+  <div style={{ marginBottom: 16 }}>
+    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: '#374151' }}>
+      {label}{required && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
+    </label>
+    {children}
+  </div>
+);
 
 export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
-    title: campaign.title || '',
-    description: campaign.description || '',
-    prize_title: campaign.prize_title || '',
-    prize_description: campaign.prize_description || '',
-    prize_value: campaign.prize_value || '',
-    status: campaign.status || 'draft',
-    min_followers: campaign.min_followers || 0,
-    min_level: campaign.min_level || 1,
+    title:              campaign.title || '',
+    description:        campaign.description || '',
+    status:             campaign.status || 'draft',
+    prize_title:        campaign.prize_title || '',
+    prize_description:  campaign.prize_description || '',
+    prize_value:        campaign.prize_value || '',
+    start_date:         toLocalInput(campaign.start_date),
+    entry_deadline:     toLocalInput(campaign.entry_deadline),
+    voting_start:       toLocalInput(campaign.voting_start),
+    voting_end:         toLocalInput(campaign.voting_end),
+    winner_count:       campaign.winner_count || 1,
+    min_followers:      campaign.min_followers || 0,
+    min_level:          campaign.min_level || 1,
     min_votes_per_reel: campaign.min_votes_per_reel || 0,
-    required_hashtags: campaign.required_hashtags || '',
-    winner_count: campaign.winner_count || 1,
-    start_date: campaign.start_date ? new Date(campaign.start_date).toISOString().slice(0, 16) : '',
-    entry_deadline: campaign.entry_deadline ? new Date(campaign.entry_deadline).toISOString().slice(0, 16) : '',
-    voting_start: campaign.voting_start ? new Date(campaign.voting_start).toISOString().slice(0, 16) : '',
-    voting_end: campaign.voting_end ? new Date(campaign.voting_end).toISOString().slice(0, 16) : '',
+    required_hashtags:  campaign.required_hashtags || '',
   });
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFile, setImageFile]     = useState(null);
   const [imagePreview, setImagePreview] = useState(campaign.image || null);
-  const [error, setError] = useState('');
+  const [saving, setSaving]           = useState(false);
+  const [saved, setSaved]             = useState(false);
+  const [error, setError]             = useState('');
+
+  const set = (field, value) => setFormData(p => ({ ...p, [field]: value }));
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+    setSaving(true);
+
     try {
-      const formDataToSend = new FormData();
-      
-      // Add all form fields
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('prize_title', formData.prize_title);
-      formDataToSend.append('prize_description', formData.prize_description || formData.prize_title);
-      formDataToSend.append('prize_value', formData.prize_value);
-      formDataToSend.append('status', formData.status);
-      formDataToSend.append('min_followers', formData.min_followers);
-      formDataToSend.append('min_level', formData.min_level);
-      formDataToSend.append('min_votes_per_reel', formData.min_votes_per_reel);
-      formDataToSend.append('required_hashtags', formData.required_hashtags);
-      formDataToSend.append('winner_count', formData.winner_count);
-      
-      // Convert dates to ISO format
-      if (formData.start_date) {
-        formDataToSend.append('start_date', new Date(formData.start_date).toISOString());
-      }
-      if (formData.entry_deadline) {
-        formDataToSend.append('entry_deadline', new Date(formData.entry_deadline).toISOString());
-      }
-      if (formData.voting_start) {
-        formDataToSend.append('voting_start', new Date(formData.voting_start).toISOString());
-      }
-      if (formData.voting_end) {
-        formDataToSend.append('voting_end', new Date(formData.voting_end).toISOString());
-      }
-      
-      // Add image if selected
-      if (imageFile) {
-        formDataToSend.append('image', imageFile);
-      }
-      
+      const fd = new FormData();
+
+      fd.append('title',              formData.title);
+      fd.append('description',        formData.description);
+      fd.append('status',             formData.status);
+      fd.append('prize_title',        formData.prize_title);
+      fd.append('prize_description',  formData.prize_description || formData.prize_title);
+      fd.append('prize_value',        formData.prize_value);
+      fd.append('winner_count',       formData.winner_count);
+      fd.append('min_followers',      formData.min_followers);
+      fd.append('min_level',          formData.min_level);
+      fd.append('min_votes_per_reel', formData.min_votes_per_reel);
+      fd.append('required_hashtags',  formData.required_hashtags);
+
+      if (formData.start_date)     fd.append('start_date',     new Date(formData.start_date).toISOString());
+      if (formData.entry_deadline) fd.append('entry_deadline', new Date(formData.entry_deadline).toISOString());
+      if (formData.voting_start)   fd.append('voting_start',   new Date(formData.voting_start).toISOString());
+      if (formData.voting_end)     fd.append('voting_end',     new Date(formData.voting_end).toISOString());
+      if (imageFile)               fd.append('image',          imageFile);
+
       await api.request(`/admin/campaigns/${campaign.id}/update/`, {
         method: 'PATCH',
-        body: formDataToSend,
-        isFormData: true
+        body: fd,
+        isFormData: true,
       });
-      // Show success message before closing
-      setSuccessMessage('Campaign updated successfully!');
-      setTimeout(() => {
-        onSuccess();
-      }, 1000);
-    } catch (error) {
-      console.error('Failed to update campaign:', error);
-      console.log('Error status:', error.status);
-      
-      // Check if campaign not found (404)
-      const isNotFound = error.status === 404 || 
-                        (error.message && error.message.toLowerCase().includes('not found'));
-      
-      if (isNotFound) {
-        setError('This campaign no longer exists in the database. It will be removed from the list.');
-        setTimeout(() => {
-          onSuccess('CAMPAIGN_NOT_FOUND');
-        }, 2000);
+
+      setSaved(true);
+      setTimeout(() => onSuccess(), 1200);
+    } catch (err) {
+      console.error('Failed to update campaign:', err);
+      if (err.status === 404) {
+        setError('Campaign no longer exists. It will be removed from the list.');
+        setTimeout(() => onSuccess('CAMPAIGN_NOT_FOUND'), 2000);
       } else {
-        const errorMsg = typeof error === 'string' ? error : error.message || 'Failed to update campaign';
-        setError(errorMsg);
+        setError(err.message || 'Failed to save changes. Please try again.');
       }
+    } finally {
+      setSaving(false);
     }
   };
-  
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
+  const inp = inputStyle(theme);
 
   return (
     <div
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: 20,
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.55)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 1000, padding: '16px',
       }}
       onClick={onClose}
     >
       <div
         style={{
-          background: theme.card,
-          borderRadius: 12,
-          padding: 32,
+          background: '#fff',
+          borderRadius: 16,
           width: '100%',
-          maxWidth: 600,
-          maxHeight: '90vh',
+          maxWidth: 680,
+          maxHeight: '92vh',
           overflowY: 'auto',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
+          display: 'flex',
+          flexDirection: 'column',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: theme.txt }}>
-            Edit Campaign
-          </h2>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '20px 24px',
+          borderBottom: '1.5px solid #F3F4F6',
+          position: 'sticky', top: 0, background: '#fff', zIndex: 10,
+          borderRadius: '16px 16px 0 0',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: `linear-gradient(135deg, ${theme.pri}, #F59E0B)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Trophy size={20} color="#fff" />
+            </div>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#111827' }}>Edit Campaign</h2>
+              <p style={{ margin: 0, fontSize: 12, color: '#6B7280' }}>{campaign.title}</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
             style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 8,
-              color: theme.sub,
+              width: 36, height: 36, borderRadius: '50%',
+              background: '#F3F4F6', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <X size={24} />
+            <X size={18} color="#6B7280" />
           </button>
         </div>
 
-        {error && (
-          <div style={{
-            padding: 12,
-            background: theme.red + '15',
-            border: `1px solid ${theme.red}`,
-            borderRadius: 8,
-            color: theme.red,
-            fontSize: 14,
-            marginBottom: 20,
-          }}>
-            {error}
-          </div>
-        )}
+        {/* Body */}
+        <form onSubmit={handleSubmit} style={{ padding: '20px 24px 0' }}>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-              Campaign Title *
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-              style={{
-                width: '100%',
-                padding: 12,
-                border: `2px solid ${theme.border}`,
-                borderRadius: 8,
-                fontSize: 14,
-                outline: 'none',
-              }}
-            />
-          </div>
+          {/* Error */}
+          {error && (
+            <div style={{
+              padding: '12px 16px', borderRadius: 8, marginBottom: 20,
+              background: '#FEF2F2', border: '1.5px solid #FECACA',
+              color: '#DC2626', fontSize: 13, fontWeight: 500,
+            }}>
+              {error}
+            </div>
+          )}
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-              Description *
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              required
-              rows={3}
-              style={{
-                width: '100%',
-                padding: 12,
-                border: `2px solid ${theme.border}`,
-                borderRadius: 8,
-                fontSize: 14,
-                outline: 'none',
-                resize: 'vertical',
-              }}
-            />
-          </div>
+          {/* Saved */}
+          {saved && (
+            <div style={{
+              padding: '12px 16px', borderRadius: 8, marginBottom: 20,
+              background: '#F0FDF4', border: '1.5px solid #BBF7D0',
+              color: '#16A34A', fontSize: 13, fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              <CheckCircle size={16} /> Campaign saved successfully!
+            </div>
+          )}
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-              Campaign Banner Image
-            </label>
-            <div
-              style={{
-                border: `2px dashed ${theme.border}`,
-                borderRadius: 8,
-                padding: 20,
-                textAlign: 'center',
-                cursor: 'pointer',
-                position: 'relative',
-              }}
-              onClick={() => document.getElementById('edit-image-upload').click()}
-            >
-              {imagePreview ? (
-                <div style={{ position: 'relative' }}>
-                  <img src={imagePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8 }} />
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setImageFile(null);
-                      setImagePreview(campaign.image || null);
-                    }}
+          {/* ── BASIC INFO ── */}
+          <Section icon={Trophy} title="Basic Information" color={theme.pri}>
+            <Field label="Campaign Title" required>
+              <input type="text" value={formData.title}
+                onChange={e => set('title', e.target.value)} required style={inp} />
+            </Field>
+            <Field label="Description" required>
+              <textarea value={formData.description}
+                onChange={e => set('description', e.target.value)} required rows={3}
+                style={{ ...inp, resize: 'vertical' }} />
+            </Field>
+            <Field label="Status">
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {STATUS_OPTIONS.map(opt => (
+                  <button key={opt.value} type="button"
+                    onClick={() => set('status', opt.value)}
                     style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      background: theme.red,
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 4,
-                      padding: '4px 8px',
-                      cursor: 'pointer',
-                      fontSize: 12,
+                      padding: '7px 16px', borderRadius: 20, cursor: 'pointer',
+                      fontSize: 13, fontWeight: 600,
+                      background: formData.status === opt.value ? opt.color : '#F9FAFB',
+                      color: formData.status === opt.value ? '#fff' : '#6B7280',
+                      border: `1.5px solid ${formData.status === opt.value ? opt.color : '#E5E7EB'}`,
                     }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ fontSize: 40, marginBottom: 8 }}>📸</div>
-                  <div style={{ fontSize: 14, color: theme.txt, marginBottom: 4 }}>
-                    Click to upload banner image
-                  </div>
-                  <div style={{ fontSize: 12, color: theme.sub }}>
-                    PNG, JPG up to 10MB
-                  </div>
-                </div>
-              )}
-              <input
-                id="edit-image-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                style={{ display: 'none' }}
-              />
-            </div>
-          </div>
+                  >{opt.label}</button>
+                ))}
+              </div>
+            </Field>
+          </Section>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-                Prize Title *
-              </label>
-              <input
-                type="text"
-                value={formData.prize_title}
-                onChange={(e) => setFormData({ ...formData, prize_title: e.target.value })}
-                required
+          {/* ── BANNER IMAGE ── */}
+          <Section icon={Image} title="Banner Image" color="#8B5CF6">
+            <div style={{ marginBottom: 16 }}>
+              <div
                 style={{
-                  width: '100%',
-                  padding: 12,
-                  border: `2px solid ${theme.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: 'none',
+                  border: `2px dashed ${imagePreview ? '#8B5CF6' : '#E5E7EB'}`,
+                  borderRadius: 10, padding: 16, textAlign: 'center',
+                  cursor: 'pointer', background: imagePreview ? '#F5F3FF' : '#FAFAFA',
+                  position: 'relative', transition: 'all 0.2s',
                 }}
-              />
+                onClick={() => document.getElementById('edit-img-upload').click()}
+              >
+                {imagePreview ? (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <img src={imagePreview} alt="Banner"
+                      style={{ maxWidth: '100%', maxHeight: 180, borderRadius: 8, display: 'block' }} />
+                    <button type="button"
+                      onClick={e => { e.stopPropagation(); setImageFile(null); setImagePreview(campaign.image || null); }}
+                      style={{
+                        position: 'absolute', top: 6, right: 6,
+                        background: '#EF4444', color: '#fff', border: 'none',
+                        borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                      }}
+                    >Remove</button>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 32, marginBottom: 6 }}>🖼️</div>
+                    <div style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>Click to upload banner</div>
+                    <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>PNG, JPG up to 10 MB</div>
+                  </>
+                )}
+                <input id="edit-img-upload" type="file" accept="image/*"
+                  onChange={handleImageChange} style={{ display: 'none' }} />
+              </div>
             </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-                Prize Value ($) *
-              </label>
-              <input
-                type="number"
-                value={formData.prize_value}
-                onChange={(e) => setFormData({ ...formData, prize_value: e.target.value })}
-                required
-                min="0"
-                step="0.01"
-                style={{
-                  width: '100%',
-                  padding: 12,
-                  border: `2px solid ${theme.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: 'none',
-                }}
-              />
-            </div>
-          </div>
+          </Section>
 
-          {/* Entry Requirements */}
-          <div style={{ 
-            padding: 16, 
-            background: theme.blue + '08', 
-            borderRadius: 8,
-            border: `1px solid ${theme.blue}30`,
-            marginBottom: 20,
-          }}>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: theme.txt, marginBottom: 16 }}>
-              Entry Requirements
-            </h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-                  Min Followers
-                </label>
-                <input
-                  type="number"
-                  value={formData.min_followers}
-                  onChange={(e) => setFormData({ ...formData, min_followers: parseInt(e.target.value) || 0 })}
-                  min="0"
-                  style={{
-                    width: '100%',
-                    padding: 12,
-                    border: `2px solid ${theme.border}`,
-                    borderRadius: 8,
-                    fontSize: 14,
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-                  Min Level
-                </label>
-                <input
-                  type="number"
-                  value={formData.min_level}
-                  onChange={(e) => setFormData({ ...formData, min_level: parseInt(e.target.value) || 0 })}
-                  min="0"
-                  style={{
-                    width: '100%',
-                    padding: 12,
-                    border: `2px solid ${theme.border}`,
-                    borderRadius: 8,
-                    fontSize: 14,
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
+          {/* ── PRIZE ── */}
+          <Section icon={Trophy} title="Prize Details" color="#F59E0B">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Prize Title" required>
+                <input type="text" value={formData.prize_title}
+                  onChange={e => set('prize_title', e.target.value)} required style={inp} />
+              </Field>
+              <Field label="Prize Value (USD)" required>
+                <input type="number" value={formData.prize_value} min="0" step="0.01"
+                  onChange={e => set('prize_value', e.target.value)} required style={inp} />
+              </Field>
             </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-                  Min Votes Per Reel
-                </label>
-                <input
-                  type="number"
-                  value={formData.min_votes_per_reel}
-                  onChange={(e) => setFormData({ ...formData, min_votes_per_reel: parseInt(e.target.value) || 0 })}
-                  min="0"
-                  style={{
-                    width: '100%',
-                    padding: 12,
-                    border: `2px solid ${theme.border}`,
-                    borderRadius: 8,
-                    fontSize: 14,
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-                  Number of Winners *
-                </label>
-                <input
-                  type="number"
-                  value={formData.winner_count}
-                  onChange={(e) => setFormData({ ...formData, winner_count: parseInt(e.target.value) || 1 })}
-                  min="1"
-                  required
-                  style={{
-                    width: '100%',
-                    padding: 12,
-                    border: `2px solid ${theme.border}`,
-                    borderRadius: 8,
-                    fontSize: 14,
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
+            <Field label="Prize Description">
+              <textarea value={formData.prize_description}
+                onChange={e => set('prize_description', e.target.value)} rows={2}
+                placeholder="Describe the prize in detail..."
+                style={{ ...inp, resize: 'vertical' }} />
+            </Field>
+          </Section>
+
+          {/* ── DATES ── */}
+          <Section icon={Calendar} title="Campaign Timeline" color="#3B82F6">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Field label="Start Date">
+                <input type="datetime-local" value={formData.start_date}
+                  onChange={e => set('start_date', e.target.value)} style={inp} />
+              </Field>
+              <Field label="Entry Deadline">
+                <input type="datetime-local" value={formData.entry_deadline}
+                  onChange={e => set('entry_deadline', e.target.value)} style={inp} />
+              </Field>
+              <Field label="Voting Opens">
+                <input type="datetime-local" value={formData.voting_start}
+                  onChange={e => set('voting_start', e.target.value)} style={inp} />
+              </Field>
+              <Field label="Voting Closes">
+                <input type="datetime-local" value={formData.voting_end}
+                  onChange={e => set('voting_end', e.target.value)} style={inp} />
+              </Field>
             </div>
-            
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-                Required Hashtags (comma separated)
-              </label>
-              <input
-                type="text"
+          </Section>
+
+          {/* ── REQUIREMENTS ── */}
+          <Section icon={Users} title="Entry Requirements" color="#10B981">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <Field label="Min Followers">
+                <input type="number" value={formData.min_followers} min="0"
+                  onChange={e => set('min_followers', parseInt(e.target.value) || 0)} style={inp} />
+              </Field>
+              <Field label="Min Level">
+                <input type="number" value={formData.min_level} min="1"
+                  onChange={e => set('min_level', parseInt(e.target.value) || 1)} style={inp} />
+              </Field>
+              <Field label="Min Votes / Reel">
+                <input type="number" value={formData.min_votes_per_reel} min="0"
+                  onChange={e => set('min_votes_per_reel', parseInt(e.target.value) || 0)} style={inp} />
+              </Field>
+            </div>
+            <Field label="Number of Winners" required>
+              <input type="number" value={formData.winner_count} min="1"
+                onChange={e => set('winner_count', parseInt(e.target.value) || 1)} required style={{ ...inp, maxWidth: 160 }} />
+            </Field>
+          </Section>
+
+          {/* ── HASHTAGS ── */}
+          <Section icon={Hash} title="Required Hashtags" color="#6B7280">
+            <Field label="Hashtags (comma-separated)">
+              <input type="text" value={formData.required_hashtags}
                 placeholder="#contest, #giveaway, #challenge"
-                value={formData.required_hashtags}
-                onChange={(e) => setFormData({ ...formData, required_hashtags: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: 12,
-                  border: `2px solid ${theme.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
-          </div>
+                onChange={e => set('required_hashtags', e.target.value)} style={inp} />
+            </Field>
+          </Section>
 
-          <div style={{ display: 'flex', gap: 16, marginTop: 24 }}>
-            <button
-              type="button"
-              onClick={onClose}
+          {/* Footer */}
+          <div style={{
+            display: 'flex', gap: 12, padding: '16px 0 24px',
+            position: 'sticky', bottom: 0, background: '#fff',
+          }}>
+            <button type="button" onClick={onClose}
               style={{
-                flex: 1,
-                padding: 12,
-                background: 'transparent',
-                border: `2px solid ${theme.border}`,
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                color: theme.txt,
-                cursor: 'pointer',
+                flex: 1, padding: '12px 20px',
+                background: '#F9FAFB', border: '1.5px solid #E5E7EB',
+                borderRadius: 10, fontSize: 14, fontWeight: 600,
+                color: '#374151', cursor: 'pointer',
+              }}
+            >Cancel</button>
+            <button type="submit" disabled={saving || saved}
+              style={{
+                flex: 2, padding: '12px 20px',
+                background: saved ? '#10B981' : saving ? `${theme.pri}aa` : theme.pri,
+                border: 'none', borderRadius: 10,
+                fontSize: 14, fontWeight: 700,
+                color: '#fff', cursor: saving || saved ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                transition: 'background 0.2s',
               }}
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              style={{
-                flex: 1,
-                padding: 12,
-                background: theme.pri,
-                border: 'none',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 600,
-                color: '#fff',
-                cursor: 'pointer',
-              }}
-            >
-              Update Campaign
+              {saved ? <><CheckCircle size={16} /> Saved!</> :
+               saving ? 'Saving...' :
+               <><Save size={16} /> Save Changes</>}
             </button>
           </div>
         </form>
