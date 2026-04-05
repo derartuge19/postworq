@@ -238,7 +238,8 @@ def get_campaign_feed(request, campaign_id):
     except Campaign.DoesNotExist:
         return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
     
-    sort_by = request.query_params.get('sort', 'trending')  # trending, top, latest
+    # Accept both 'filter' (frontend) and 'sort' (legacy) params
+    filter_param = request.query_params.get('filter', request.query_params.get('sort', 'all'))
     theme_id = request.query_params.get('theme')
     
     # Base query - approved posts only
@@ -251,12 +252,12 @@ def get_campaign_feed(request, campaign_id):
     if theme_id:
         posts = posts.filter(theme_id=theme_id)
     
-    # Sort
-    if sort_by == 'top':
+    # Sort: frontend sends all/top/recent; legacy sends trending/top/latest
+    if filter_param in ('top',):
         posts = posts.order_by('-total_score')
-    elif sort_by == 'latest':
+    elif filter_param in ('recent', 'latest'):
         posts = posts.order_by('-created_at')
-    else:  # trending - combination of recent and score
+    else:  # 'all' or 'trending'
         posts = posts.order_by('-total_score', '-created_at')
     
     # Paginate
@@ -305,7 +306,7 @@ def get_campaign_feed(request, campaign_id):
             },
         })
     
-    return Response(data)
+    return Response({'posts': data})
 
 # ==================== USER PROFILE CAMPAIGN STATS ====================
 

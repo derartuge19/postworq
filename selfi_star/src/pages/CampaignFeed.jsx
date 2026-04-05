@@ -131,6 +131,19 @@ const CampaignFeed = ({ campaignId, onBack }) => {
 const PostCard = ({ post, onVote }) => {
   const [showScores, setShowScores] = useState(false);
 
+  // Support both flat (legacy) and nested (current) backend response shapes
+  const totalScore = post.scores?.total ?? post.total_score ?? 0;
+  const likes = post.engagement?.likes ?? post.votes_count ?? 0;
+  const comments = post.engagement?.comments ?? post.comments_count ?? 0;
+  const userLiked = post.engagement?.user_liked ?? post.has_voted ?? false;
+  const createdAt = post.reel?.created_at ?? post.created_at;
+  const scores = post.scores ?? {
+    creativity: post.creativity_score,
+    engagement: post.engagement_score,
+    quality: post.quality_score,
+    theme_relevance: post.theme_relevance_score,
+  };
+
   return (
     <div style={{
       background: '#fff', borderRadius: 14, overflow: 'hidden',
@@ -148,18 +161,20 @@ const PostCard = ({ post, onVote }) => {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: TXT }}>{post.user?.username}</div>
-          <div style={{ fontSize: 12, color: SUB }}>
-            {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          </div>
+          {createdAt && (
+            <div style={{ fontSize: 12, color: SUB }}>
+              {new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </div>
+          )}
         </div>
-        {post.total_score > 0 && (
+        {totalScore > 0 && (
           <div style={{
             background: PRI_LIGHT, color: PRI,
             border: `1px solid ${PRI}40`,
             padding: '5px 12px', borderRadius: 20,
             fontSize: 13, fontWeight: 700,
           }}>
-            {post.total_score} pts
+            {totalScore} pts
           </div>
         )}
       </div>
@@ -194,11 +209,11 @@ const PostCard = ({ post, onVote }) => {
             display: 'flex', alignItems: 'center', gap: 6,
             background: 'transparent', border: 'none', cursor: 'pointer',
             fontSize: 14, fontWeight: 600,
-            color: post.has_voted ? '#EF4444' : SUB,
+            color: userLiked ? '#EF4444' : SUB,
           }}
         >
-          <Heart size={18} fill={post.has_voted ? '#EF4444' : 'none'} color={post.has_voted ? '#EF4444' : SUB} />
-          {post.votes_count || 0}
+          <Heart size={18} fill={userLiked ? '#EF4444' : 'none'} color={userLiked ? '#EF4444' : SUB} />
+          {likes}
         </button>
         <button style={{
           display: 'flex', alignItems: 'center', gap: 6,
@@ -206,9 +221,9 @@ const PostCard = ({ post, onVote }) => {
           fontSize: 14, fontWeight: 600, color: SUB,
         }}>
           <MessageCircle size={18} />
-          {post.comments_count || 0}
+          {comments}
         </button>
-        {post.total_score > 0 && (
+        {totalScore > 0 && (
           <button
             onClick={() => setShowScores(!showScores)}
             style={{
@@ -224,15 +239,14 @@ const PostCard = ({ post, onVote }) => {
       </div>
 
       {/* Score Breakdown */}
-      {showScores && post.total_score > 0 && (
+      {showScores && totalScore > 0 && (
         <div style={{ padding: '14px 16px', background: BG, borderTop: `1px solid ${BORDER}` }}>
           <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: TXT }}>Score Breakdown</p>
           <div style={{ display: 'grid', gap: 8 }}>
-            {post.creativity_score > 0 && <ScoreBar label="Creativity" score={post.creativity_score} max={30} />}
-            {post.engagement_score > 0 && <ScoreBar label="Engagement" score={post.engagement_score} max={25} />}
-            {post.consistency_score > 0 && <ScoreBar label="Consistency" score={post.consistency_score} max={20} />}
-            {post.quality_score > 0 && <ScoreBar label="Quality" score={post.quality_score} max={15} />}
-            {post.theme_relevance_score > 0 && <ScoreBar label="Theme Relevance" score={post.theme_relevance_score} max={10} />}
+            {scores.creativity > 0 && <ScoreBar label="Creativity" score={scores.creativity} max={30} />}
+            {scores.engagement > 0 && <ScoreBar label="Engagement" score={scores.engagement} max={25} />}
+            {scores.quality > 0 && <ScoreBar label="Quality" score={scores.quality} max={15} />}
+            {scores.theme_relevance > 0 && <ScoreBar label="Theme Relevance" score={scores.theme_relevance} max={10} />}
           </div>
         </div>
       )}

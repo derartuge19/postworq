@@ -321,42 +321,67 @@ def admin_generate_leaderboard(request, campaign_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_leaderboard(request, campaign_id):
-    """Get current leaderboard for a campaign"""
+    """Get leaderboard for a campaign - uses generated leaderboard or computes live from PostScore"""
     try:
         campaign = Campaign.objects.get(id=campaign_id)
     except Campaign.DoesNotExist:
         return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
-    
+
     period_type = request.query_params.get('period', 'overall')
-    
+
+    # Try to use a pre-generated leaderboard first
     try:
         leaderboard = Leaderboard.objects.get(
             campaign=campaign,
             period_type=period_type,
             is_current=True
         )
-    except Leaderboard.DoesNotExist:
-        return Response({'error': 'No leaderboard found for this period'}, status=status.HTTP_404_NOT_FOUND)
-    
-    entries = LeaderboardEntry.objects.filter(leaderboard=leaderboard).select_related('user')[:100]
-    
-    data = {
-        'period_type': leaderboard.period_type,
-        'period_start': leaderboard.period_start,
-        'period_end': leaderboard.period_end,
-        'entries': [{
+        entries = LeaderboardEntry.objects.filter(leaderboard=leaderboard).select_related('user').order_by('rank')[:100]
+        entries_data = [{
             'rank': entry.rank,
-            'user': {
-                'id': entry.user.id,
-                'username': entry.user.username,
-            },
-            'score': float(entry.score),
-            'posts_count': entry.posts_count,
-            'bonus_points': float(entry.bonus_points),
+            'user_id': entry.user.id,
+            'username': entry.user.username,
+            'total_score': float(entry.score),
+            'post_count': entry.posts_count,
         } for entry in entries]
-    }
-    
-    return Response(data)
+        return Response({'period_type': period_type, 'entries': entries_data})
+    except Leaderboard.DoesNotExist:
+        pass
+
+    # Fallback: compute live rankings from PostScore
+    now = timezone.now()
+    posts_qs = PostScore.objects.filter(
+        campaign=campaign,
+        moderation_status='approved'
+    ).select_related('user')
+
+    if period_type == 'daily':
+        posts_qs = posts_qs.filter(created_at__date=now.date())
+    elif period_type == 'weekly':
+        week_start = now - timedelta(days=now.weekday())
+        posts_qs = posts_qs.filter(created_at__gte=week_start.replace(hour=0, minute=0, second=0))
+    elif period_type == 'monthly':
+        posts_qs = posts_qs.filter(created_at__year=now.year, created_at__month=now.month)
+    # 'overall' — no date filter
+
+    # Aggregate per user
+    from django.db.models import Sum, Count
+    aggregated = (
+        posts_qs
+        .values('user__id', 'user__username')
+        .annotate(total_score=Sum('total_score'), post_count=Count('id'))
+        .order_by('-total_score')[:100]
+    )
+
+    entries_data = [{
+        'rank': idx + 1,
+        'user_id': row['user__id'],
+        'username': row['user__username'],
+        'total_score': float(row['total_score'] or 0),
+        'post_count': row['post_count'],
+    } for idx, row in enumerate(aggregated)]
+
+    return Response({'period_type': period_type, 'entries': entries_data})
 
 # ==================== WINNER SELECTION ====================
 

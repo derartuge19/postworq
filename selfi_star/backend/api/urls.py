@@ -26,7 +26,7 @@ from .views_campaign import (
 from .views_campaign_admin import (
     admin_campaign_themes, admin_campaign_theme_detail, admin_activate_theme,
     admin_campaign_posts_pending, admin_moderate_post, admin_update_post_scores,
-    admin_generate_leaderboard, get_leaderboard, admin_select_winners, get_campaign_winners,
+    admin_generate_leaderboard, get_leaderboard as get_campaign_leaderboard, admin_select_winners, get_campaign_winners,
     admin_campaign_analytics
 )
 from .views_campaign_user import (
@@ -132,7 +132,7 @@ urlpatterns = [
     path('campaigns/<int:campaign_id>/extended/', get_campaign_detail_extended, name='campaign-detail-extended'),
     path('campaigns/<int:campaign_id>/enter/', user_campaign_enter, name='campaign-enter'),
     path('campaigns/entries/<int:entry_id>/vote/', user_campaign_vote, name='campaign-vote'),
-    path('campaigns/<int:campaign_id>/leaderboard/', get_leaderboard, name='campaign-leaderboard'),
+    path('campaigns/<int:campaign_id>/leaderboard/', get_campaign_leaderboard, name='campaign-leaderboard'),
     path('campaigns/<int:campaign_id>/winners/', get_campaign_winners, name='campaign-winners'),
     path('campaigns/<int:campaign_id>/feed/', get_campaign_feed, name='campaign-feed'),
     path('campaigns/<int:campaign_id>/scoring-config/', get_scoring_config, name='campaign-scoring-config'),
