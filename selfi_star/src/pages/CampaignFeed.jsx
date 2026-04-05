@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
+import config from '../config';
 import { ArrowLeft, Heart, MessageCircle, Award, TrendingUp, Clock, Star } from 'lucide-react';
+
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${config.API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 const PRI = '#DA9B2A';
 const PRI_LIGHT = '#DA9B2A18';
@@ -182,12 +189,20 @@ const PostCard = ({ post, onVote }) => {
       {/* Media */}
       {(post.reel?.image || post.reel?.media) && (
         <div style={{ background: '#000', maxHeight: 480, overflow: 'hidden' }}>
-          {post.reel?.image && (
-            <img src={post.reel.image} alt="" style={{ width: '100%', display: 'block', objectFit: 'cover' }} />
-          )}
-          {post.reel?.media && !post.reel?.image && (
-            <video src={post.reel.media} controls style={{ width: '100%', display: 'block' }} />
-          )}
+          {post.reel?.media ? (
+            <video
+              src={mediaUrl(post.reel.media)}
+              controls
+              playsInline
+              style={{ width: '100%', display: 'block', maxHeight: 480 }}
+            />
+          ) : post.reel?.image ? (
+            <img
+              src={mediaUrl(post.reel.image)}
+              alt=""
+              style={{ width: '100%', display: 'block', objectFit: 'contain', maxHeight: 480 }}
+            />
+          ) : null}
         </div>
       )}
 

@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api';
+import config from '../../config';
 import { ArrowLeft, CheckCircle, XCircle, Eye } from 'lucide-react';
+
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${config.API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 const PRI = '#DA9B2A';
 const BG = '#FAFAF9';
@@ -120,8 +127,11 @@ const CampaignPostModeration = ({ campaignId, onBack }) => {
             >
               {/* Media thumbnail */}
               <div style={{ position: 'relative', paddingTop: '80%', background: '#F3F4F6' }}>
-                {post.reel?.image && <img src={post.reel.image} alt="Post" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
-                {post.reel?.media && !post.reel?.image && <video src={post.reel.media} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+                {post.reel?.media
+                  ? <video src={mediaUrl(post.reel.media)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : post.reel?.image
+                  ? <img src={mediaUrl(post.reel.image)} alt="Post" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : null}
                 {!post.reel?.image && !post.reel?.media && (
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Eye size={28} color={`${SUB}60`} />
@@ -181,8 +191,11 @@ const ModerationModal = ({ post, onClose, onModerate }) => {
 
         {/* Left: Media */}
         <div style={{ background: '#0C0C0C', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, position: 'relative', borderRadius: '16px 0 0 16px', overflow: 'hidden' }}>
-          {post.reel?.image && <img src={post.reel.image} alt="Post" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />}
-          {post.reel?.media && <video src={post.reel.media} controls style={{ width: '100%', maxHeight: '90vh', objectFit: 'contain' }} />}
+          {post.reel?.media
+            ? <video src={mediaUrl(post.reel.media)} controls playsInline style={{ width: '100%', maxHeight: '90vh', objectFit: 'contain' }} />
+            : post.reel?.image
+            ? <img src={mediaUrl(post.reel.image)} alt="Post" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            : null}
           {!post.reel?.image && !post.reel?.media && (
             <div style={{ color: SUB, fontSize: 14 }}>No media</div>
           )}
