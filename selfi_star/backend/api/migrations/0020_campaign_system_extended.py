@@ -13,6 +13,31 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Create CampaignScoringConfig model
+        migrations.CreateModel(
+            name='CampaignScoringConfig',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('max_creativity_points', models.DecimalField(decimal_places=2, default=30, help_text='Max points for creativity', max_digits=5)),
+                ('max_engagement_points', models.DecimalField(decimal_places=2, default=25, help_text='Max points for engagement', max_digits=5)),
+                ('max_consistency_points', models.DecimalField(decimal_places=2, default=20, help_text='Max points for consistency', max_digits=5)),
+                ('max_quality_points', models.DecimalField(decimal_places=2, default=15, help_text='Max points for quality', max_digits=5)),
+                ('max_theme_relevance_points', models.DecimalField(decimal_places=2, default=10, help_text='Max points for theme relevance', max_digits=5)),
+                ('likes_weight', models.DecimalField(decimal_places=2, default=0.6, help_text='Weight for likes in engagement score', max_digits=5)),
+                ('comments_weight', models.DecimalField(decimal_places=2, default=1.5, help_text='Weight for comments in engagement score', max_digits=5)),
+                ('shares_weight', models.DecimalField(decimal_places=2, default=2.0, help_text='Weight for shares in engagement score', max_digits=5)),
+                ('streak_points_per_day', models.DecimalField(decimal_places=2, default=1.0, help_text='Points per day of streak', max_digits=5)),
+                ('participation_points_per_day', models.DecimalField(decimal_places=2, default=0.5, help_text='Points per day participated', max_digits=5)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('campaign', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='scoring_config', to='api.campaign')),
+            ],
+            options={
+                'verbose_name': 'Campaign Scoring Configuration',
+                'verbose_name_plural': 'Campaign Scoring Configurations',
+            },
+        ),
+        
         # Add campaign fields to Reel
         migrations.AddField(
             model_name='reel',

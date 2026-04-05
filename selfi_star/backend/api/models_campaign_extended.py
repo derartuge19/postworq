@@ -3,6 +3,46 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from .models_campaign import Campaign, CampaignEntry
 
+class CampaignScoringConfig(models.Model):
+    """Configurable scoring weights for campaigns"""
+    campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, related_name='scoring_config')
+    
+    # Maximum points for each component (configurable by admin)
+    max_creativity_points = models.DecimalField(max_digits=5, decimal_places=2, default=30, help_text='Max points for creativity')
+    max_engagement_points = models.DecimalField(max_digits=5, decimal_places=2, default=25, help_text='Max points for engagement')
+    max_consistency_points = models.DecimalField(max_digits=5, decimal_places=2, default=20, help_text='Max points for consistency')
+    max_quality_points = models.DecimalField(max_digits=5, decimal_places=2, default=15, help_text='Max points for quality')
+    max_theme_relevance_points = models.DecimalField(max_digits=5, decimal_places=2, default=10, help_text='Max points for theme relevance')
+    
+    # Engagement calculation weights
+    likes_weight = models.DecimalField(max_digits=5, decimal_places=2, default=0.6, help_text='Weight for likes in engagement score')
+    comments_weight = models.DecimalField(max_digits=5, decimal_places=2, default=1.5, help_text='Weight for comments in engagement score')
+    shares_weight = models.DecimalField(max_digits=5, decimal_places=2, default=2.0, help_text='Weight for shares in engagement score')
+    
+    # Consistency calculation settings
+    streak_points_per_day = models.DecimalField(max_digits=5, decimal_places=2, default=1.0, help_text='Points per day of streak')
+    participation_points_per_day = models.DecimalField(max_digits=5, decimal_places=2, default=0.5, help_text='Points per day participated')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Campaign Scoring Configuration'
+        verbose_name_plural = 'Campaign Scoring Configurations'
+    
+    def __str__(self):
+        return f"Scoring Config for {self.campaign.title}"
+    
+    def get_total_max_points(self):
+        """Calculate total maximum possible points"""
+        return (
+            self.max_creativity_points +
+            self.max_engagement_points +
+            self.max_consistency_points +
+            self.max_quality_points +
+            self.max_theme_relevance_points
+        )
+
 class CampaignTheme(models.Model):
     """Weekly themes for campaigns"""
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='themes')
@@ -85,16 +125,25 @@ class PostScore(models.Model):
         return self.total_score
     
     def update_engagement_score(self):
-        """Calculate engagement score based on likes, comments, shares"""
+        """Calculate engagement score based on likes, comments, shares using configurable weights"""
         from .models import Vote, Comment
+        
+        # Get scoring config for this campaign
+        config = CampaignScoringConfig.objects.filter(campaign=self.campaign).first()
+        if not config:
+            # Create default config if not exists
+            config = CampaignScoringConfig.objects.create(campaign=self.campaign)
         
         likes = Vote.objects.filter(reel=self.reel).count()
         comments = Comment.objects.filter(reel=self.reel).count()
+        # shares = 0  # TODO: Implement shares tracking
         
-        # Engagement formula: likes * 0.6 + comments * 1.5
-        # Normalized to max 25 points
-        raw_engagement = (likes * 0.6) + (comments * 1.5)
-        self.engagement_score = min(25, raw_engagement / 10)  # Scale down
+        # Use configurable weights
+        raw_engagement = (likes * float(config.likes_weight)) + (comments * float(config.comments_weight))
+        
+        # Normalize to max points configured by admin
+        max_points = float(config.max_engagement_points)
+        self.engagement_score = min(max_points, raw_engagement / 10)  # Scale down
         self.save()
         self.calculate_total_score()
 

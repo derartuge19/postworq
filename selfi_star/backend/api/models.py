@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 # Import campaign models
 from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
 from .models_campaign_extended import (
-    CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
+    CampaignScoringConfig, CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
     WinnerSelection, SelectedWinner, CampaignBadge
 )
 

@@ -34,6 +34,9 @@ from .views_campaign_user import (
     get_campaign_feed, get_user_campaign_profile, update_engagement_scores,
     update_consistency_scores, get_campaign_notifications
 )
+from .views_scoring_config import (
+    admin_scoring_config, get_scoring_config, reset_scoring_config
+)
 from .views_reels import reels_following, reels_saved, reels_trending
 from .views_contest import (
     get_user_subscription, upgrade_subscription, get_coin_packages, get_coin_balance,
@@ -119,6 +122,8 @@ urlpatterns = [
     path('admin/campaigns/<int:campaign_id>/leaderboard/generate/', admin_generate_leaderboard, name='admin-generate-leaderboard'),
     path('admin/campaigns/<int:campaign_id>/winners/select/', admin_select_winners, name='admin-select-winners'),
     path('admin/campaigns/<int:campaign_id>/analytics/', admin_campaign_analytics, name='admin-campaign-analytics'),
+    path('admin/campaigns/<int:campaign_id>/scoring-config/', admin_scoring_config, name='admin-scoring-config'),
+    path('admin/campaigns/<int:campaign_id>/scoring-config/reset/', reset_scoring_config, name='reset-scoring-config'),
     
     # Campaign (User)
     path('campaigns/', user_campaigns_list, name='campaigns-list'),
@@ -130,6 +135,7 @@ urlpatterns = [
     path('campaigns/<int:campaign_id>/leaderboard/', get_leaderboard, name='campaign-leaderboard'),
     path('campaigns/<int:campaign_id>/winners/', get_campaign_winners, name='campaign-winners'),
     path('campaigns/<int:campaign_id>/feed/', get_campaign_feed, name='campaign-feed'),
+    path('campaigns/<int:campaign_id>/scoring-config/', get_scoring_config, name='campaign-scoring-config'),
     path('campaigns/posts/create/', create_campaign_post, name='create-campaign-post'),
     path('campaigns/notifications/', get_campaign_notifications, name='campaign-notifications'),
     path('campaigns/profile/', get_user_campaign_profile, name='user-campaign-profile'),

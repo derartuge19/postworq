@@ -10,7 +10,7 @@ from datetime import timedelta
 from .models import UserProfile, Reel, Comment, CommentLike, CommentReply, SavedPost, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, Report, Notification
 from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
 from .models_campaign_extended import (
-    CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
+    CampaignScoringConfig, CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
     WinnerSelection, SelectedWinner, CampaignBadge
 )
 
@@ -495,6 +495,29 @@ class NotificationAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related('recipient', 'sender', 'reel', 'comment')
 
 # Campaign Extended Models
+@admin.register(CampaignScoringConfig, site=admin_site)
+class CampaignScoringConfigAdmin(admin.ModelAdmin):
+    list_display = ['campaign', 'get_total_max_points', 'max_creativity_points', 'max_engagement_points', 'max_consistency_points']
+    search_fields = ['campaign__title']
+    readonly_fields = ['created_at', 'updated_at']
+    fieldsets = (
+        ('Campaign', {
+            'fields': ('campaign',)
+        }),
+        ('Maximum Points', {
+            'fields': ('max_creativity_points', 'max_engagement_points', 'max_consistency_points', 'max_quality_points', 'max_theme_relevance_points')
+        }),
+        ('Engagement Weights', {
+            'fields': ('likes_weight', 'comments_weight', 'shares_weight')
+        }),
+        ('Consistency Settings', {
+            'fields': ('streak_points_per_day', 'participation_points_per_day')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
 @admin.register(CampaignTheme, site=admin_site)
 class CampaignThemeAdmin(admin.ModelAdmin):
     list_display = ['campaign', 'title', 'week_number', 'is_active', 'start_date', 'end_date']

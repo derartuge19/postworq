@@ -409,17 +409,24 @@ def update_engagement_scores(request, campaign_id):
 # ==================== CONSISTENCY SCORING ====================
 
 def calculate_consistency_score(user, campaign):
-    """Calculate consistency score based on posting frequency"""
+    """Calculate consistency score based on posting frequency using configurable weights"""
+    from .models_campaign_extended import CampaignScoringConfig
+    
     stats = UserCampaignStats.objects.filter(user=user, campaign=campaign).first()
     if not stats:
         return 0
     
-    # Calculate based on streak and days participated
-    # Max 20 points
-    streak_score = min(10, stats.current_streak)  # Up to 10 points for streak
-    participation_score = min(10, stats.days_participated / 2)  # Up to 10 points for participation
+    # Get scoring config
+    config = CampaignScoringConfig.objects.filter(campaign=campaign).first()
+    if not config:
+        config = CampaignScoringConfig.objects.create(campaign=campaign)
     
-    return streak_score + participation_score
+    # Calculate based on streak and days participated with configurable weights
+    max_points = float(config.max_consistency_points)
+    streak_score = min(max_points / 2, stats.current_streak * float(config.streak_points_per_day))
+    participation_score = min(max_points / 2, stats.days_participated * float(config.participation_points_per_day))
+    
+    return min(max_points, streak_score + participation_score)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

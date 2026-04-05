@@ -150,14 +150,25 @@ def admin_moderate_post(request, score_id):
     action = request.data.get('action')  # 'approve' or 'reject'
     
     if action == 'approve':
+        from .models_campaign_extended import CampaignScoringConfig
+        
+        # Get scoring config
+        config = CampaignScoringConfig.objects.filter(campaign=score.campaign).first()
+        if not config:
+            config = CampaignScoringConfig.objects.create(campaign=score.campaign)
+        
         score.moderation_status = 'approved'
         score.moderated_by = request.user
         score.moderated_at = timezone.now()
         
-        # Assign initial scores
-        score.creativity_score = request.data.get('creativity_score', 0)
-        score.quality_score = request.data.get('quality_score', 10)  # Default quality
-        score.theme_relevance_score = request.data.get('theme_relevance_score', 5)
+        # Assign initial scores (capped by config max points)
+        creativity = request.data.get('creativity_score', 0)
+        quality = request.data.get('quality_score', float(config.max_quality_points) * 0.7)  # Default 70% of max
+        theme_relevance = request.data.get('theme_relevance_score', float(config.max_theme_relevance_points) * 0.5)  # Default 50% of max
+        
+        score.creativity_score = min(float(config.max_creativity_points), creativity)
+        score.quality_score = min(float(config.max_quality_points), quality)
+        score.theme_relevance_score = min(float(config.max_theme_relevance_points), theme_relevance)
         
         # Calculate engagement and consistency scores
         score.update_engagement_score()
@@ -201,12 +212,20 @@ def admin_update_post_scores(request, score_id):
     except PostScore.DoesNotExist:
         return Response({'error': 'Post score not found'}, status=status.HTTP_404_NOT_FOUND)
     
+    from .models_campaign_extended import CampaignScoringConfig
+    
+    # Get scoring config
+    config = CampaignScoringConfig.objects.filter(campaign=score.campaign).first()
+    if not config:
+        config = CampaignScoringConfig.objects.create(campaign=score.campaign)
+    
+    # Update scores with configurable max points
     if 'creativity_score' in request.data:
-        score.creativity_score = min(30, float(request.data['creativity_score']))
+        score.creativity_score = min(float(config.max_creativity_points), float(request.data['creativity_score']))
     if 'quality_score' in request.data:
-        score.quality_score = min(15, float(request.data['quality_score']))
+        score.quality_score = min(float(config.max_quality_points), float(request.data['quality_score']))
     if 'theme_relevance_score' in request.data:
-        score.theme_relevance_score = min(10, float(request.data['theme_relevance_score']))
+        score.theme_relevance_score = min(float(config.max_theme_relevance_points), float(request.data['theme_relevance_score']))
     
     score.calculate_total_score()
     
