@@ -339,33 +339,53 @@ def user_campaigns_list(request):
 @permission_classes([IsAuthenticated])
 def user_campaign_enter(request, campaign_id):
     """Enter a campaign with a reel"""
+    print(f"[CAMPAIGN ENTER] Campaign ID: {campaign_id}, User: {request.user}")
+    print(f"[CAMPAIGN ENTER] Request data: {request.data}")
+    
     try:
         campaign = Campaign.objects.get(id=campaign_id)
         user = request.user
         reel_id = request.data.get('reel_id')
         
+        print(f"[CAMPAIGN ENTER] Campaign: {campaign.title}, Status: {campaign.status}")
+        print(f"[CAMPAIGN ENTER] Reel ID: {reel_id}")
+        
         # Check if campaign is active
         if not campaign.is_active():
+            print(f"[CAMPAIGN ENTER] Campaign not active")
             return Response({'error': 'Campaign is not accepting entries'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Check if user already entered
         if CampaignEntry.objects.filter(campaign=campaign, user=user).exists():
+            print(f"[CAMPAIGN ENTER] User already entered")
             return Response({'error': 'You have already entered this campaign'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Get reel
-        reel = Reel.objects.get(id=reel_id, user=user)
+        try:
+            reel = Reel.objects.get(id=reel_id, user=user)
+            print(f"[CAMPAIGN ENTER] Found reel: {reel.id}")
+        except Reel.DoesNotExist:
+            print(f"[CAMPAIGN ENTER] Reel {reel_id} not found for user {user.username}")
+            return Response({'error': 'Reel not found'}, status=status.HTTP_404_NOT_FOUND)
         
         # Check eligibility
         user_profile = user.profile if hasattr(user, 'profile') else None
         follower_count = Follow.objects.filter(following=user).count()
         
+        print(f"[CAMPAIGN ENTER] Follower count: {follower_count}, Required: {campaign.min_followers}")
+        print(f"[CAMPAIGN ENTER] User level: {user_profile.level if user_profile else 'N/A'}, Required: {campaign.min_level}")
+        print(f"[CAMPAIGN ENTER] Reel votes: {reel.votes}, Required: {campaign.min_votes_per_reel}")
+        
         if campaign.min_followers > 0 and follower_count < campaign.min_followers:
+            print(f"[CAMPAIGN ENTER] Not enough followers")
             return Response({'error': f'You need at least {campaign.min_followers} followers'}, status=status.HTTP_400_BAD_REQUEST)
         
         if user_profile and campaign.min_level > user_profile.level:
+            print(f"[CAMPAIGN ENTER] Level too low")
             return Response({'error': f'You need to be level {campaign.min_level}'}, status=status.HTTP_400_BAD_REQUEST)
         
         if campaign.min_votes_per_reel > 0 and reel.votes < campaign.min_votes_per_reel:
+            print(f"[CAMPAIGN ENTER] Not enough votes on reel")
             return Response({'error': f'Reel needs at least {campaign.min_votes_per_reel} votes'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Create entry
@@ -374,6 +394,8 @@ def user_campaign_enter(request, campaign_id):
             user=user,
             reel=reel
         )
+        
+        print(f"[CAMPAIGN ENTER] Entry created: {entry.id}")
         
         # Update campaign stats
         campaign.total_entries += 1
@@ -387,15 +409,20 @@ def user_campaign_enter(request, campaign_id):
             message=f'Your entry to {campaign.title} has been approved!'
         )
         
+        print(f"[CAMPAIGN ENTER] Success!")
         return Response({
             'message': 'Successfully entered campaign',
             'entry_id': entry.id
         }, status=status.HTTP_201_CREATED)
         
     except Campaign.DoesNotExist:
+        print(f"[CAMPAIGN ENTER] Campaign {campaign_id} not found")
         return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Reel.DoesNotExist:
-        return Response({'error': 'Reel not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"[CAMPAIGN ENTER] ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

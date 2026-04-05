@@ -1067,6 +1067,9 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showCreateNew, setShowCreateNew] = useState(false);
+  const [newReelFile, setNewReelFile] = useState(null);
+  const [newReelCaption, setNewReelCaption] = useState('');
 
   useEffect(() => {
     loadUserReels();
@@ -1083,7 +1086,56 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewReelFile(file);
+      setShowCreateNew(true);
+    }
+  };
+
+  const handleCreateAndSubmit = async () => {
+    if (!newReelFile) {
+      setError('Please select a file to upload');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError('');
+      
+      // Create new reel
+      const formData = new FormData();
+      formData.append('media', newReelFile);
+      formData.append('caption', newReelCaption || 'Campaign Entry');
+      
+      const newReel = await api.request('/reels/', {
+        method: 'POST',
+        body: formData,
+        isFormData: true
+      });
+      
+      // Submit to campaign
+      await api.request(`/campaigns/${campaignId}/enter/`, {
+        method: 'POST',
+        body: JSON.stringify({ reel_id: newReel.id })
+      });
+      
+      console.log('Entry submitted successfully!');
+      onSuccess();
+    } catch (error) {
+      console.error('Error submitting entry:', error);
+      setError(error.message || 'Failed to submit entry');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
+    if (showCreateNew) {
+      return handleCreateAndSubmit();
+    }
+    
     if (!selectedReel) {
       setError('Please select a reel to submit');
       return;
@@ -1148,10 +1200,50 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
           margin: 0,
           fontSize: 14,
           color: theme.sub,
+          marginBottom: 16,
+        }}>
+          {showCreateNew ? 'Upload new content for this campaign' : 'Select existing reel or create new'}
+        </p>
+        
+        {/* Toggle Buttons */}
+        <div style={{
+          display: 'flex',
+          gap: 12,
           marginBottom: 24,
         }}>
-          Select one of your existing reels to enter the campaign
-        </p>
+          <button
+            onClick={() => setShowCreateNew(false)}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              background: !showCreateNew ? theme.pri : 'transparent',
+              border: `2px solid ${theme.pri}`,
+              borderRadius: 8,
+              color: !showCreateNew ? '#fff' : theme.pri,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            📚 Use Existing
+          </button>
+          <button
+            onClick={() => setShowCreateNew(true)}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              background: showCreateNew ? theme.pri : 'transparent',
+              border: `2px solid ${theme.pri}`,
+              borderRadius: 8,
+              color: showCreateNew ? '#fff' : theme.pri,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            🎬 Create New
+          </button>
+        </div>
 
         {error && (
           <div style={{
@@ -1167,7 +1259,78 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
           </div>
         )}
 
-        {loading ? (
+        {showCreateNew ? (
+          <div>
+            <div style={{
+              marginBottom: 20,
+              padding: 24,
+              border: `2px dashed ${theme.border}`,
+              borderRadius: 12,
+              textAlign: 'center',
+              cursor: 'pointer',
+              background: newReelFile ? `${theme.green}10` : theme.bg,
+            }}
+            onClick={() => document.getElementById('campaign-file-upload').click()}
+            >
+              {newReelFile ? (
+                <div>
+                  <Check size={48} color={theme.green} style={{ marginBottom: 12 }} />
+                  <p style={{ margin: 0, color: theme.txt, fontWeight: 600 }}>
+                    {newReelFile.name}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: theme.sub, marginTop: 4 }}>
+                    Click to change file
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <Upload size={48} color={theme.sub} style={{ marginBottom: 12 }} />
+                  <p style={{ margin: 0, color: theme.txt, fontWeight: 600, marginBottom: 4 }}>
+                    Click to upload photo or video
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: theme.sub }}>
+                    MP4, MOV, JPG, PNG up to 100MB
+                  </p>
+                </div>
+              )}
+              <input
+                id="campaign-file-upload"
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+            </div>
+            
+            <div style={{ marginBottom: 20 }}>
+              <label style={{
+                display: 'block',
+                fontSize: 14,
+                fontWeight: 600,
+                color: theme.txt,
+                marginBottom: 8,
+              }}>
+                Caption (optional)
+              </label>
+              <textarea
+                value={newReelCaption}
+                onChange={(e) => setNewReelCaption(e.target.value)}
+                placeholder="Add a caption for your entry..."
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: 8,
+                  fontSize: 14,
+                  outline: 'none',
+                  resize: 'vertical',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+          </div>
+        ) : loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: theme.sub }}>
             Loading your reels...
           </div>
@@ -1290,20 +1453,20 @@ function SubmitEntryModal({ theme, campaignId, onClose, onSuccess }) {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!selectedReel || submitting}
+            disabled={(showCreateNew ? !newReelFile : !selectedReel) || submitting}
             style={{
               flex: 1,
               padding: 14,
-              background: selectedReel && !submitting ? theme.pri : theme.sub + '30',
+              background: ((showCreateNew ? newReelFile : selectedReel) && !submitting) ? theme.pri : theme.sub + '30',
               border: 'none',
               borderRadius: 8,
-              color: selectedReel && !submitting ? '#fff' : theme.sub,
+              color: ((showCreateNew ? newReelFile : selectedReel) && !submitting) ? '#fff' : theme.sub,
               fontSize: 15,
               fontWeight: 600,
-              cursor: selectedReel && !submitting ? 'pointer' : 'not-allowed',
+              cursor: ((showCreateNew ? newReelFile : selectedReel) && !submitting) ? 'pointer' : 'not-allowed',
             }}
           >
-            {submitting ? 'Submitting...' : 'Submit Entry'}
+            {submitting ? 'Submitting...' : showCreateNew ? '🚀 Create & Submit' : 'Submit Entry'}
           </button>
         </div>
       </div>
