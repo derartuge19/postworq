@@ -374,51 +374,65 @@ class ReelViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
     
     def create(self, request, *args, **kwargs):
-        """Override create to handle file uploads directly, bypassing serializer file validation"""
+        """Override create to handle file uploads directly using Cloudinary SDK"""
         print(f"[REEL CREATE] Starting - User: {request.user}, Auth: {request.user.is_authenticated}")
         print(f"[REEL CREATE] Files received: {list(request.FILES.keys())}")
-        print(f"[REEL CREATE] Data received: {dict(request.data)}")
         
         try:
-            # Get file from request
             media_file = request.FILES.get('media') or request.FILES.get('file')
             image_file = request.FILES.get('image')
             caption = request.data.get('caption', '')
             hashtags = request.data.get('hashtags', '')
             
-            # Determine file type
-            reel_data = {
-                'user': request.user,
-                'caption': caption,
-                'hashtags': hashtags,
-            }
+            reel = Reel(
+                user=request.user,
+                caption=caption,
+                hashtags=hashtags,
+            )
             
-            if media_file:
-                content_type = getattr(media_file, 'content_type', '')
-                filename = media_file.name.lower()
-                print(f"[REEL CREATE] File: {media_file.name}, content_type: {content_type}, size: {media_file.size}")
+            upload_file = media_file or image_file
+            if upload_file:
+                content_type = getattr(upload_file, 'content_type', '')
+                filename = upload_file.name.lower()
+                is_video = (
+                    content_type.startswith('video/') or
+                    filename.endswith(('.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'))
+                )
+                print(f"[REEL CREATE] File: {upload_file.name}, type: {content_type}, video: {is_video}")
                 
-                # ALWAYS use media field (FileField) to avoid ImageField validation issues
-                # The media field accepts any file type including images and videos
-                reel_data['media'] = media_file
-                print(f"[REEL CREATE] Assigned to media field (FileField)")
+                try:
+                    import cloudinary.uploader
+                    import cloudinary
+                    cfg = cloudinary.config()
+                    if cfg.cloud_name and cfg.api_key and cfg.api_secret:
+                        resource_type = 'video' if is_video else 'image'
+                        result = cloudinary.uploader.upload(
+                            upload_file,
+                            resource_type=resource_type,
+                            folder='reels'
+                        )
+                        secure_url = result.get('secure_url', '')
+                        print(f"[REEL CREATE] Cloudinary upload OK: {secure_url}")
+                        # Store URL directly in field name
+                        if is_video:
+                            reel.media.name = secure_url
+                        else:
+                            reel.image.name = secure_url
+                    else:
+                        raise Exception("Cloudinary not configured")
+                except Exception as cloud_err:
+                    print(f"[REEL CREATE] Cloudinary failed ({cloud_err}), saving locally via FileField")
+                    # Fallback: save via Django FileField (works locally)
+                    reel.media = upload_file
             
-            if image_file:
-                # For explicit image uploads, also use media field to avoid validation
-                print(f"[REEL CREATE] Separate image file: {image_file.name}")
-                reel_data['media'] = image_file
+            reel.save()
+            print(f"[REEL CREATE] Reel {reel.id} saved. image={reel.image.name if reel.image else None}, media={reel.media.name if reel.media else None}")
             
-            # Create reel directly without serializer file validation
-            reel = Reel.objects.create(**reel_data)
-            print(f"[REEL CREATE] Success! Reel ID: {reel.id}")
-            
-            # Serialize for response
             serializer = self.get_serializer(reel)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
             
         except Exception as e:
             print(f"[REEL CREATE] ERROR: {type(e).__name__}: {e}")
-            import traceback
             traceback.print_exc()
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
