@@ -1,10 +1,25 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 from .views import (
     register, login, create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
     get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail, admin_reports_stats
 )
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """Simple health check endpoint"""
+    from django.contrib.auth.models import User
+    user_count = User.objects.count()
+    return Response({
+        'status': 'ok',
+        'users_in_db': user_count,
+        'message': 'API is running'
+    })
 from .views_extended import CommentViewSet, SavedPostViewSet, ProfilePhotoViewSet
 from .views_admin import (
     admin_dashboard_stats, admin_users_list, admin_user_detail, admin_user_update, 
@@ -62,6 +77,7 @@ router.register(r'profile-photo', ProfilePhotoViewSet, basename='profile-photo')
 from .setup_admin_view import setup_admin
 
 urlpatterns = [
+    path('health/', health_check, name='health-check'),
     path('auth/register/', register, name='auth-register'),
     path('auth/login/', login, name='auth-login'),
     path('setup-admin/', setup_admin, name='setup-admin'),
