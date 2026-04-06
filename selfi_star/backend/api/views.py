@@ -134,13 +134,14 @@ def create_post(request):
                     print(f"✅ Video uploaded to Cloudinary: {upload_result.get('secure_url')}")
                     print(f"Public ID: {upload_result.get('public_id')}")
                     
-                    # Create reel with public_id stored in media field
+                    # Store the full secure_url directly so it works without Cloudinary on read
+                    secure_url = upload_result.get('secure_url')
                     reel = Reel(
                         user=request.user,
                         caption=caption,
                         hashtags=hashtags
                     )
-                    reel.media.name = upload_result.get('public_id')
+                    reel.media.name = secure_url
                     reel.save()
                 else:
                     raise ImportError("Cloudinary not configured")

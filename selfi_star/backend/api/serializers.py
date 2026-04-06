@@ -67,24 +67,27 @@ class ReelSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'votes', 'comment_count', 'created_at', 'is_liked', 'is_saved']
     
     def _build_url(self, field, request):
-        """Build absolute URL for a file field."""
+        """Build absolute URL for a file field, handling both local and Cloudinary storage."""
         if not field or not field.name:
             return None
+        # If name is already a full URL (e.g. Cloudinary secure_url stored directly)
+        if field.name.startswith('http://') or field.name.startswith('https://'):
+            return field.name
         try:
             url = field.url
+            if not url:
+                return None
+            # Storage backend returned an absolute URL (Cloudinary, S3, etc.)
+            if url.startswith('http://') or url.startswith('https://'):
+                return url
+            # Relative URL — make absolute
+            if request:
+                return request.build_absolute_uri(url)
+            from django.conf import settings
+            base = getattr(settings, 'BACKEND_URL', 'https://postworq.onrender.com')
+            return f"{base}{url}"
         except Exception:
             return None
-        if not url:
-            return None
-        # Already absolute (Cloudinary, S3, etc.)
-        if url.startswith('http'):
-            return url
-        # Relative — make absolute using request or settings
-        if request:
-            return request.build_absolute_uri(url)
-        from django.conf import settings
-        base = getattr(settings, 'BACKEND_URL', 'https://postworq.onrender.com')
-        return f"{base}{url}"
 
     def get_image(self, obj):
         return self._build_url(obj.image, self.context.get('request'))

@@ -89,9 +89,9 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
           textAlign: "center",
           color: "#fff",
         }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🚀</div>
+          <img src="/logo.jpeg" alt="SelfieStar" style={{ width: 72, height: 72, objectFit: "contain", margin: "0 auto 12px" }} />
           <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 8 }}>
-            Join WorqPost
+            Join SelfieStar
           </div>
           <div style={{ fontSize: 14, opacity: 0.9 }}>
             Create your account and start sharing
