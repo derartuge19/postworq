@@ -5,6 +5,12 @@ const API_BASE_URL = config.API_BASE_URL;
 let authToken =
   localStorage.getItem('authToken') || localStorage.getItem('adminToken');
 
+// Clear potentially stale tokens on startup
+const storedToken = localStorage.getItem('authToken');
+if (storedToken) {
+  console.log('🔍 Found stored token, will validate on first authenticated request');
+}
+
 // --- Lightweight GET cache & request deduplication ---
 const _cache = new Map();
 const _inflight = new Map();
@@ -52,6 +58,15 @@ const api = {
 
   hasToken: () => {
     return !!(authToken || localStorage.getItem('authToken'));
+  },
+
+  clearAuth: () => {
+    console.log('🧹 Clearing all auth data');
+    authToken = null;
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('user');
+    _cache.clear();
   },
 
   clearToken: () => {
