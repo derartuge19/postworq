@@ -12,12 +12,36 @@ from .views import (
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
-    """Simple health check endpoint"""
+    """Diagnostic health check endpoint"""
     from django.contrib.auth.models import User
+    from django.conf import settings
+    from .models import Reel
+    from .models_campaign import Campaign
+    
+    db_engine = settings.DATABASES['default']['ENGINE']
+    db_name = settings.DATABASES['default'].get('NAME', 'unknown')
+    db_host = settings.DATABASES['default'].get('HOST', 'localhost')
+    
     user_count = User.objects.count()
+    reel_count = Reel.objects.count()
+    campaign_count = Campaign.objects.count()
+    
+    # Get first 3 usernames for debugging
+    usernames = list(User.objects.values_list('username', flat=True)[:3])
+    
     return Response({
         'status': 'ok',
-        'users_in_db': user_count,
+        'database': {
+            'engine': db_engine,
+            'name': db_name,
+            'host': db_host[:30] + '...' if len(str(db_host)) > 30 else db_host,
+        },
+        'counts': {
+            'users': user_count,
+            'reels': reel_count,
+            'campaigns': campaign_count,
+        },
+        'sample_usernames': usernames,
         'message': 'API is running'
     })
 from .views_extended import CommentViewSet, SavedPostViewSet, ProfilePhotoViewSet
