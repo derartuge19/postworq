@@ -125,6 +125,13 @@ from .views_campaign_user import (
 from .views_scoring_config import (
     admin_scoring_config, get_scoring_config, reset_scoring_config
 )
+from .views_scoring import (
+    admin_scoring_config as admin_scoring_config_full,
+    admin_update_scoring_config as admin_update_scoring_config_full,
+    admin_calculate_scores, admin_save_scores,
+    admin_get_finalists, admin_qualify_finalists, admin_submit_judge_score,
+    admin_calculate_final_scores, get_finalists_for_voting, cast_vote, get_user_votes
+)
 from .views_reels import reels_following, reels_saved, reels_trending
 from .views_contest import (
     get_user_subscription, upgrade_subscription, get_coin_packages, get_coin_balance,
@@ -213,8 +220,19 @@ urlpatterns = [
     path('admin/campaigns/<int:campaign_id>/leaderboard/generate/', admin_generate_leaderboard, name='admin-generate-leaderboard'),
     path('admin/campaigns/<int:campaign_id>/winners/select/', admin_select_winners, name='admin-select-winners'),
     path('admin/campaigns/<int:campaign_id>/analytics/', admin_campaign_analytics, name='admin-campaign-analytics'),
-    path('admin/campaigns/<int:campaign_id>/scoring-config/', admin_scoring_config, name='admin-scoring-config'),
-    path('admin/campaigns/<int:campaign_id>/scoring-config/reset/', reset_scoring_config, name='reset-scoring-config'),
+    path('admin/campaigns/<int:campaign_id>/scoring-config/', admin_scoring_config_full, name='admin-scoring-config-full'),
+    path('admin/campaigns/<int:campaign_id>/scoring-config/update/', admin_update_scoring_config_full, name='admin-update-scoring-config-full'),
+    path('admin/campaigns/<int:campaign_id>/scoring/calculate/', admin_calculate_scores, name='admin-calculate-scores'),
+    path('admin/campaigns/<int:campaign_id>/scoring/save/', admin_save_scores, name='admin-save-scores'),
+    # Grand Campaign Phase 2 - Judge Scoring
+    path('admin/campaigns/<int:campaign_id>/finalists/', admin_get_finalists, name='admin-get-finalists'),
+    path('admin/campaigns/<int:campaign_id>/finalists/qualify/', admin_qualify_finalists, name='admin-qualify-finalists'),
+    path('admin/campaigns/<int:campaign_id>/judge-score/', admin_submit_judge_score, name='admin-submit-judge-score'),
+    path('admin/campaigns/<int:campaign_id>/final-scores/calculate/', admin_calculate_final_scores, name='admin-calculate-final-scores'),
+    # Grand Campaign Phase 2 - Public Voting
+    path('campaigns/<int:campaign_id>/finalists/voting/', get_finalists_for_voting, name='get-finalists-voting'),
+    path('campaigns/<int:campaign_id>/vote/', cast_vote, name='cast-vote'),
+    path('campaigns/<int:campaign_id>/my-votes/', get_user_votes, name='get-user-votes'),
     
     # Campaign (User)
     path('campaigns/', user_campaigns_list, name='campaigns-list'),

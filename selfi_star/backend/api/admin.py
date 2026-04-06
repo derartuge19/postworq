@@ -11,7 +11,7 @@ from .models import UserProfile, Reel, Comment, CommentLike, CommentReply, Saved
 from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
 from .models_campaign_extended import (
     CampaignScoringConfig, CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
-    WinnerSelection, SelectedWinner, CampaignBadge
+    WinnerSelection, SelectedWinner, CampaignBadge, GamificationActivity, JudgeScore, PublicVote, GrandFinalist
 )
 
 # Custom Admin Site Configuration
@@ -497,26 +497,13 @@ class NotificationAdmin(admin.ModelAdmin):
 # Campaign Extended Models
 @admin.register(CampaignScoringConfig, site=admin_site)
 class CampaignScoringConfigAdmin(admin.ModelAdmin):
-    list_display = ['campaign', 'get_total_max_points', 'max_creativity_points', 'max_engagement_points', 'max_consistency_points']
+    list_display = ['campaign', 'get_campaign_type', 'daily_top_scorer_percentage', 'grand_judging_weight']
     search_fields = ['campaign__title']
     readonly_fields = ['created_at', 'updated_at']
-    fieldsets = (
-        ('Campaign', {
-            'fields': ('campaign',)
-        }),
-        ('Maximum Points', {
-            'fields': ('max_creativity_points', 'max_engagement_points', 'max_consistency_points', 'max_quality_points', 'max_theme_relevance_points')
-        }),
-        ('Engagement Weights', {
-            'fields': ('likes_weight', 'comments_weight', 'shares_weight')
-        }),
-        ('Consistency Settings', {
-            'fields': ('streak_points_per_day', 'participation_points_per_day')
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at')
-        }),
-    )
+    
+    def get_campaign_type(self, obj):
+        return obj.campaign.campaign_type if obj.campaign else '-'
+    get_campaign_type.short_description = 'Type'
 
 @admin.register(CampaignTheme, site=admin_site)
 class CampaignThemeAdmin(admin.ModelAdmin):
