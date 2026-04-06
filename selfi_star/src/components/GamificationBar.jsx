@@ -11,6 +11,9 @@ export function GamificationBar({ userId, theme }) {
   const [spinning, setSpinning] = useState(false);
   const [spinResult, setSpinResult] = useState(null);
 
+  // Add console log for debugging
+  console.log('GamificationBar rendering for userId:', userId);
+
   useEffect(() => {
     loadStatus();
   }, []);
@@ -67,7 +70,20 @@ export function GamificationBar({ userId, theme }) {
     }
   };
 
-  if (loading) return <div style={{ padding: '12px 16px', textAlign: 'center', color: theme.sub }}>Loading...</div>;
+  if (loading) return (
+    <div style={{ 
+      padding: '16px',
+      background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
+      borderRadius: 16,
+      margin: '0 16px 16px',
+      border: `2px solid ${theme.pri}20`,
+      textAlign: 'center',
+      color: theme.pri,
+      fontWeight: 600
+    }}>
+      🎮 Loading Gamification...
+    </div>
+  );
   
   if (error) return (
     <div style={{ 

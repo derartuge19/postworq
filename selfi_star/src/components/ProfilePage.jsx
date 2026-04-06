@@ -268,6 +268,20 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
 
       {/* Mobile-Style Gamification Bar - Only for own profile */}
       {isOwnProfile && <GamificationBar userId={userId} theme={T} />}
+      
+      {/* DEBUG: Add visual indicator */}
+      {isOwnProfile && (
+        <div style={{
+          padding: '8px 16px',
+          background: '#FF6B35',
+          color: 'white',
+          fontSize: 12,
+          textAlign: 'center',
+          fontWeight: 600
+        }}>
+          🎮 GAMIFICATION SECTION ABOVE
+        </div>
+      )}
 
       {/* Profile Info */}
       <div style={{ padding: "20px" }}>
