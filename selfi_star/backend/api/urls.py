@@ -48,25 +48,47 @@ def health_check(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def cleanup_broken_reels(request):
-    """Delete reels with no valid media (both image and media are null or empty)"""
+    """Delete all reels that don't have valid Cloudinary URLs, and clear broken campaign images"""
     from .models import Reel
+    from .models_campaign import Campaign
     from django.db.models import Q
     
     try:
-        # Find reels where BOTH image and media are empty/null
-        broken_reels = Reel.objects.filter(
-            Q(image='') | Q(image__isnull=True)
-        ).filter(
-            Q(media='') | Q(media__isnull=True)
-        )
-        count = broken_reels.count()
-        broken_reels.delete()
-        
+        deleted_count = 0
+        kept = []
+
+        for reel in Reel.objects.all():
+            image_name = reel.image.name if reel.image else ''
+            media_name = reel.media.name if reel.media else ''
+
+            # A reel is valid only if at least one field has a Cloudinary https URL
+            image_ok = image_name.startswith('https://')
+            media_ok = media_name.startswith('https://')
+
+            if not image_ok and not media_ok:
+                reel.delete()
+                deleted_count += 1
+            else:
+                kept.append(reel.id)
+
+        # Also clear broken campaign images (not https URLs)
+        campaign_fixed = 0
+        for campaign in Campaign.objects.all():
+            img_name = campaign.image.name if campaign.image else ''
+            if img_name and not img_name.startswith('https://'):
+                campaign.image = None
+                campaign.save()
+                campaign_fixed += 1
+
         return Response({
-            'message': f'Deleted {count} reels with no media',
+            'deleted_reels': deleted_count,
+            'kept_reels': len(kept),
+            'fixed_campaigns': campaign_fixed,
             'remaining_reels': Reel.objects.count()
         })
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return Response({'error': str(e)}, status=500)
 from .views_extended import CommentViewSet, SavedPostViewSet, ProfilePhotoViewSet
 from .views_admin import (
