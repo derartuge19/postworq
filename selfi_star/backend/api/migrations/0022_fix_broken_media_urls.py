@@ -7,10 +7,10 @@ def fix_broken_media_urls(apps, schema_editor):
     fixed = 0
     for reel in Reel.objects.all():
         changed = False
-        if reel.image and not reel.image.startswith('https://'):
+        if reel.image and not str(reel.image).startswith('https://'):
             reel.image = ''
             changed = True
-        if reel.media and not reel.media.startswith('https://'):
+        if reel.media and not str(reel.media).startswith('https://'):
             reel.media = ''
             changed = True
         if changed:
@@ -25,7 +25,7 @@ def fix_broken_campaign_images(apps, schema_editor):
         Campaign = apps.get_model('api', 'Campaign')
         fixed = 0
         for campaign in Campaign.objects.all():
-            if campaign.image and not campaign.image.startswith('https://'):
+            if campaign.image and not str(campaign.image).startswith('https://'):
                 campaign.image = ''
                 campaign.save()
                 fixed += 1
