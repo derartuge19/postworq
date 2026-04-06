@@ -66,6 +66,45 @@ export function FeedPage({ tab }) {
     ));
   };
 
+  if (loading) {
+    return (
+      <div style={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: T.bg,
+        fontSize: 18,
+        color: T.sub,
+      }}>
+        Loading feed...
+      </div>
+    );
+  }
+
+  if (videos.length === 0) {
+    return (
+      <div style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: T.bg,
+        padding: 40,
+        textAlign: "center",
+      }}>
+        <div style={{ fontSize: 60, marginBottom: 20 }}>📹</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: T.txt, marginBottom: 10 }}>
+          No videos yet
+        </div>
+        <div style={{ fontSize: 14, color: T.sub }}>
+          Create your first post to see it here!
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       flex: 1,
@@ -86,12 +125,8 @@ export function FeedPage({ tab }) {
           {tab === "likes" && "Your Likes"}
           {tab === "bookmarks" && "Bookmarks"}
         </div>
-        <div style={{ fontSize: 13, color: T.sub, marginTop: 4 }}>
-          {tab === "feed" && "Discover trending content"}
-          {tab === "following" && "Videos from creators you follow"}
-          {tab === "explore" && "What's trending now"}
-          {tab === "likes" && "Videos you've liked"}
-          {tab === "bookmarks" && "Your saved videos"}
+        <div style={{ fontSize: 14, color: T.sub, marginTop: 8 }}>
+          {videos.length} video{videos.length !== 1 ? 's' : ''} found
         </div>
       </div>
 
