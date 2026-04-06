@@ -68,39 +68,36 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Auto-detect Render environment (RENDER env var is set automatically by Render)
 IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER', False)
 
-# Use PostgreSQL on Render, SQLite locally (unless DB_ENGINE is explicitly set)
-if IS_RENDER:
-    DB_ENGINE = 'django.db.backends.postgresql'
-else:
-    DB_ENGINE = config('DB_ENGINE', default='django.db.backends.sqlite3')
+# Check for DATABASE_URL first (recommended for Render + Neon)
+DATABASE_URL = config('DATABASE_URL', default='')
 
-if DB_ENGINE == 'django.db.backends.sqlite3':
+if DATABASE_URL:
+    # Parse DATABASE_URL for Neon/PostgreSQL connection
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+    }
+elif IS_RENDER:
+    # Fallback: Use individual env vars on Render
     DATABASES = {
         'default': {
-            'ENGINE': DB_ENGINE,
-            'NAME': config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
-        }
-    }
-else:
-    # PostgreSQL / Neon configuration
-    db_host = config('DB_HOST', default='ep-rough-math-anwwqd2n-pooler.us-east-2.aws.neon.tech')
-    db_options = {
-        'sslmode': config('DB_SSLMODE', default='require'),
-    }
-
-    if 'neon.tech' in db_host:
-        endpoint_id = db_host.split('.')[0]
-        db_options['options'] = config('DB_OPTIONS', default=f'endpoint={endpoint_id}')
-
-    DATABASES = {
-        'default': {
-            'ENGINE': DB_ENGINE,
+            'ENGINE': 'django.db.backends.postgresql',
             'NAME': config('DB_NAME', default='neondb'),
             'USER': config('DB_USER', default='neondb_owner'),
             'PASSWORD': config('DB_PASSWORD', default='npg_gQpuHj7IBoC1'),
-            'HOST': db_host,
+            'HOST': config('DB_HOST', default='ep-rough-math-a0wwqd2n-pooler.us-east-2.aws.neon.tech'),
             'PORT': config('DB_PORT', default='5432'),
-            'OPTIONS': db_options,
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+        }
+    }
+else:
+    # Local development: SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
+            'NAME': config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
         }
     }
 
