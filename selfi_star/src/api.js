@@ -106,9 +106,9 @@ const api = {
     }
 
     if (!response.ok) {
-      // If token is invalid/expired, clear it and retry without auth (for public endpoints)
-      if (response.status === 401 && data?.detail === 'Invalid token.') {
-        console.warn('⚠️ Invalid token detected — clearing stored credentials');
+      // If 401 error and we sent a token, clear it and retry without auth (for public endpoints like /reels/)
+      if (response.status === 401 && headers['Authorization']) {
+        console.warn('⚠️ 401 with token — clearing credentials and retrying without auth');
         authToken = null;
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
@@ -125,10 +125,11 @@ const api = {
           if (isGet && cacheKey) setCache(cacheKey, retryData);
           return retryData;
         }
+        // If still failing, throw the error
+        console.error('API Error after retry:', retryResponse.status, retryData);
         throw new Error(JSON.stringify(retryData) || `API Error: ${retryResponse.status}`);
       }
       console.error('API Error:', response.status, data);
-      console.error('Full error response:', JSON.stringify(data, null, 2));
       throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
     }
 
