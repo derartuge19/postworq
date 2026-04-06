@@ -3,6 +3,11 @@
 
 echo "🔄 Running Django migrations..."
 cd backend
+
+echo "Creating new migrations if any..."
+python manage.py makemigrations
+
+echo "Applying migrations..."
 python manage.py migrate --verbosity=2
 
 echo "📦 Collecting static files..."

@@ -424,10 +424,14 @@ def admin_select_winners(request, campaign_id):
     # Get leaderboard entries
     entries = LeaderboardEntry.objects.filter(leaderboard=leaderboard).order_by('rank')
     
-    if selection_type == 'daily':
-        # Daily: 70% top scorers, 30% random
-        total_winners = request.data.get('total_winners', 10)
-        top_count = int(total_winners * 0.7)
+    if campaign.campaign_type == 'daily':
+        # Daily: configurable % top scorers, % random
+        config, _ = CampaignScoringConfig.objects.get_or_create(campaign=campaign)
+        total_winners = request.data.get('total_winners', campaign.winner_count)
+        
+        # Calculate split
+        top_percentage = config.daily_top_scorer_percentage / 100.0
+        top_count = int(total_winners * top_percentage)
         random_count = total_winners - top_count
         
         # Select top scorers
@@ -441,7 +445,7 @@ def admin_select_winners(request, campaign_id):
                 selection_method='top_scorer'
             )
         
-        # Select random participants
+        # Select random participants from the rest
         remaining_entries = list(entries[top_count:])
         if len(remaining_entries) > random_count:
             random_entries = random.sample(remaining_entries, random_count)
@@ -456,10 +460,38 @@ def admin_select_winners(request, campaign_id):
                 final_score=entry.score,
                 selection_method='random'
             )
-    
-    elif selection_type in ['weekly', 'monthly']:
-        # Weekly/Monthly: Top scorers only
-        winner_count = request.data.get('winner_count', 3)
+            
+    elif campaign.campaign_type in ['weekly', 'monthly']:
+        # Weekly/Monthly: Top scorers only, check if won already
+        winner_count = request.data.get('winner_count', campaign.winner_count)
+        
+        # Filter out users who have already won in this cycle
+        eligible_entries = []
+        for entry in entries:
+            stat = UserCampaignStats.objects.filter(user=entry.user, campaign=campaign).first()
+            if not stat or not stat.has_won_current_cycle:
+                eligible_entries.append(entry)
+                
+        top_entries = eligible_entries[:winner_count]
+        
+        for idx, entry in enumerate(top_entries, start=1):
+            SelectedWinner.objects.create(
+                selection=selection,
+                user=entry.user,
+                rank=idx,
+                final_score=entry.score,
+                selection_method='top_scorer'
+            )
+            
+            # Mark user as having won this cycle
+            stat = UserCampaignStats.objects.get(user=entry.user, campaign=campaign)
+            stat.has_won_current_cycle = True
+            stat.last_win_date = timezone.now()
+            stat.save()
+            
+    elif campaign.campaign_type == 'grand':
+        # Grand campaign logic (Voting + Scoring)
+        winner_count = request.data.get('winner_count', campaign.winner_count)
         top_entries = entries[:winner_count]
         
         for idx, entry in enumerate(top_entries, start=1):

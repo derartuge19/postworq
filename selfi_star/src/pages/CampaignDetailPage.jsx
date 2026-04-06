@@ -225,18 +225,33 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
               gap: 16,
             }}>
               <div style={{ flex: 1 }}>
-                <div style={{
-                  display: 'inline-block',
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  background: theme.pri + '20',
-                  color: theme.pri,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  marginBottom: 12,
-                }}>
-                  {campaign.status}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  <div style={{
+                    display: 'inline-block',
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    background: theme.pri + '20',
+                    color: theme.pri,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                  }}>
+                    {campaign.status}
+                  </div>
+                  <div style={{
+                    display: 'inline-block',
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    background: theme.blue + '20',
+                    color: theme.blue,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                  }}>
+                    {campaign.campaign_type === 'grand' ? 'Grand Campaign' : 
+                     campaign.campaign_type === 'daily' ? 'Daily Campaign' : 
+                     campaign.campaign_type === 'weekly' ? 'Weekly Campaign' : 'Monthly Campaign'}
+                  </div>
                 </div>
                 
                 <h1 style={{

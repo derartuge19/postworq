@@ -72,7 +72,24 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
             </div>
             <div>
               <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TXT }}>Leaderboard</h1>
-              <p style={{ margin: 0, fontSize: 13, color: SUB }}>{campaign?.title}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                <p style={{ margin: 0, fontSize: 13, color: SUB }}>{campaign?.title}</p>
+                {campaign?.campaign_type && (
+                  <span style={{
+                    padding: '2px 6px',
+                    background: `${PRI}15`,
+                    color: PRI,
+                    borderRadius: 4,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                  }}>
+                    {campaign.campaign_type === 'grand' ? 'Grand' : 
+                     campaign.campaign_type === 'daily' ? 'Daily' : 
+                     campaign.campaign_type === 'weekly' ? 'Weekly' : 'Monthly'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           {/* Period tabs */}

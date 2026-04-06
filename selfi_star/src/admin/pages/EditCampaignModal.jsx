@@ -64,6 +64,7 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
     title:              campaign.title || '',
     description:        campaign.description || '',
     status:             campaign.status || 'draft',
+    campaign_type:      campaign.campaign_type || 'grand',
     prize_title:        campaign.prize_title || '',
     prize_description:  campaign.prize_description || '',
     prize_value:        campaign.prize_value || '',
@@ -105,20 +106,11 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
       fd.append('title',              formData.title);
       fd.append('description',        formData.description);
       fd.append('status',             formData.status);
+      fd.append('campaign_type',      formData.campaign_type);
       fd.append('prize_title',        formData.prize_title);
       fd.append('prize_description',  formData.prize_description || formData.prize_title);
       fd.append('prize_value',        formData.prize_value);
       fd.append('winner_count',       formData.winner_count);
-      fd.append('min_followers',      formData.min_followers);
-      fd.append('min_level',          formData.min_level);
-      fd.append('min_votes_per_reel', formData.min_votes_per_reel);
-      fd.append('required_hashtags',  formData.required_hashtags);
-
-      if (formData.start_date)     fd.append('start_date',     new Date(formData.start_date).toISOString());
-      if (formData.entry_deadline) fd.append('entry_deadline', new Date(formData.entry_deadline).toISOString());
-      if (formData.voting_start)   fd.append('voting_start',   new Date(formData.voting_start).toISOString());
-      if (formData.voting_end)     fd.append('voting_end',     new Date(formData.voting_end).toISOString());
-      if (imageFile)               fd.append('image',          imageFile);
 
       await api.request(`/admin/campaigns/${campaign.id}/update/`, {
         method: 'PATCH',
@@ -176,18 +168,13 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
           position: 'sticky', top: 0, background: '#fff', zIndex: 10,
           borderRadius: '16px 16px 0 0',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 10,
-              background: `linear-gradient(135deg, ${theme.pri}, #F59E0B)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Trophy size={20} color="#fff" />
-            </div>
-            <div>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#111827' }}>Edit Campaign</h2>
-              <p style={{ margin: 0, fontSize: 12, color: '#6B7280' }}>{campaign.title}</p>
-            </div>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: theme.txt, letterSpacing: '-0.02em' }}>
+              Edit Campaign
+            </h2>
+            <p style={{ margin: '4px 0 0 0', fontSize: 13, color: theme.sub }}>
+              Update settings for {campaign.title}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -197,64 +184,69 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <X size={18} color="#6B7280" />
+            <X size={18} color={theme.sub} />
           </button>
         </div>
 
-        {/* Body */}
-        <form onSubmit={handleSubmit} style={{ padding: '20px 24px 0' }}>
-
-          {/* Error */}
+        {/* Content */}
+        <div style={{ padding: '24px 32px' }}>
           {error && (
             <div style={{
-              padding: '12px 16px', borderRadius: 8, marginBottom: 20,
-              background: '#FEF2F2', border: '1.5px solid #FECACA',
-              color: '#DC2626', fontSize: 13, fontWeight: 500,
+              padding: '12px 16px', background: theme.red + '15',
+              border: `1px solid ${theme.red}40`, borderRadius: 8,
+              color: theme.red, fontSize: 14, marginBottom: 24,
+              display: 'flex', alignItems: 'center', gap: 8,
             }}>
+              <AlertCircle size={18} />
               {error}
             </div>
           )}
 
-          {/* Saved */}
-          {saved && (
-            <div style={{
-              padding: '12px 16px', borderRadius: 8, marginBottom: 20,
-              background: '#F0FDF4', border: '1.5px solid #BBF7D0',
-              color: '#16A34A', fontSize: 13, fontWeight: 600,
-              display: 'flex', alignItems: 'center', gap: 8,
-            }}>
-              <CheckCircle size={16} /> Campaign saved successfully!
-            </div>
-          )}
+          <form onSubmit={handleSubmit} id="edit-campaign-form">
+            {/* ── BASIC INFO ── */}
+            <Section icon={Type} title="Basic Information" color="#3B82F6">
+              <Field label="Campaign Title" required>
+                <input type="text" value={formData.title}
+                  onChange={e => set('title', e.target.value)} required style={inp} />
+              </Field>
 
-          {/* ── BASIC INFO ── */}
-          <Section icon={Trophy} title="Basic Information" color={theme.pri}>
-            <Field label="Campaign Title" required>
-              <input type="text" value={formData.title}
-                onChange={e => set('title', e.target.value)} required style={inp} />
-            </Field>
-            <Field label="Description" required>
-              <textarea value={formData.description}
-                onChange={e => set('description', e.target.value)} required rows={3}
-                style={{ ...inp, resize: 'vertical' }} />
-            </Field>
-            <Field label="Status">
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {STATUS_OPTIONS.map(opt => (
-                  <button key={opt.value} type="button"
-                    onClick={() => set('status', opt.value)}
-                    style={{
-                      padding: '7px 16px', borderRadius: 20, cursor: 'pointer',
-                      fontSize: 13, fontWeight: 600,
-                      background: formData.status === opt.value ? opt.color : '#F9FAFB',
-                      color: formData.status === opt.value ? '#fff' : '#6B7280',
-                      border: `1.5px solid ${formData.status === opt.value ? opt.color : '#E5E7EB'}`,
-                    }}
-                  >{opt.label}</button>
-                ))}
-              </div>
-            </Field>
-          </Section>
+              <Field label="Campaign Type" required>
+                <select
+                  value={formData.campaign_type}
+                  onChange={e => set('campaign_type', e.target.value)}
+                  required
+                  style={{...inp, cursor: 'pointer'}}
+                >
+                  <option value="daily">Daily Campaign (Scoring + Random)</option>
+                  <option value="weekly">Weekly Campaign (Scoring Only)</option>
+                  <option value="monthly">Monthly Campaign (Scoring Only)</option>
+                  <option value="grand">Grand Campaign (Voting + Scoring)</option>
+                </select>
+              </Field>
+
+              <Field label="Description" required>
+                <textarea value={formData.description}
+                  onChange={e => set('description', e.target.value)} required rows={3}
+                  style={{ ...inp, resize: 'vertical' }} />
+              </Field>
+
+              <Field label="Campaign Status" required>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {STATUS_OPTIONS.map(opt => (
+                    <button key={opt.value} type="button"
+                      onClick={() => set('status', opt.value)}
+                      style={{
+                        padding: '7px 16px', borderRadius: 20, cursor: 'pointer',
+                        fontSize: 13, fontWeight: 600,
+                        background: formData.status === opt.value ? opt.color : '#F9FAFB',
+                        color: formData.status === opt.value ? '#fff' : '#6B7280',
+                        border: `1.5px solid ${formData.status === opt.value ? opt.color : '#E5E7EB'}`,
+                      }}
+                    >{opt.label}</button>
+                  ))}
+                </div>
+              </Field>
+            </Section>
 
           {/* ── BANNER IMAGE ── */}
           <Section icon={Image} title="Banner Image" color="#8B5CF6">
@@ -391,12 +383,11 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
                 transition: 'background 0.2s',
               }}
             >
-              {saved ? <><CheckCircle size={16} /> Saved!</> :
-               saving ? 'Saving...' :
-               <><Save size={16} /> Save Changes</>}
+              {saved ? 'Saved!' : saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

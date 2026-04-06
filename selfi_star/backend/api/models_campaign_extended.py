@@ -7,6 +7,10 @@ class CampaignScoringConfig(models.Model):
     """Configurable scoring weights for campaigns"""
     campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, related_name='scoring_config')
     
+    # Daily campaign specific settings
+    daily_top_scorer_percentage = models.IntegerField(default=70, help_text='Percentage of winners from top scorers (Daily)')
+    daily_random_percentage = models.IntegerField(default=30, help_text='Percentage of winners from random participants (Daily)')
+    
     # Maximum points for each component (configurable by admin)
     max_creativity_points = models.DecimalField(max_digits=5, decimal_places=2, default=30, help_text='Max points for creativity')
     max_engagement_points = models.DecimalField(max_digits=5, decimal_places=2, default=25, help_text='Max points for engagement')
@@ -171,6 +175,10 @@ class UserCampaignStats(models.Model):
     monthly_rank = models.IntegerField(null=True, blank=True)
     overall_rank = models.IntegerField(null=True, blank=True)
     
+    # State tracking
+    has_won_current_cycle = models.BooleanField(default=False, help_text='True if user has won in the current active period (week/month)')
+    last_win_date = models.DateTimeField(null=True, blank=True)
+    
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -205,6 +213,14 @@ class UserCampaignStats(models.Model):
         ).count()
         
         self.total_posts = self.approved_posts + self.rejected_posts
+        
+        # Streak calculation based on campaign type
+        config, _ = CampaignScoringConfig.objects.get_or_create(campaign=self.campaign)
+        
+        # Add consistency score based on streak
+        self.total_score += (self.current_streak * config.streak_points_per_day)
+        self.total_score += (self.days_participated * config.participation_points_per_day)
+        
         self.save()
 
 class Leaderboard(models.Model):

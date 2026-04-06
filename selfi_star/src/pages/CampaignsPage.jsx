@@ -378,6 +378,27 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
 
                   {/* Campaign Content */}
                   <div style={{ padding: 12 }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginBottom: 6,
+                    }}>
+                      <span style={{
+                        padding: '2px 8px',
+                        background: `${theme.pri}15`,
+                        color: theme.pri,
+                        borderRadius: 12,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>
+                        {campaign.campaign_type === 'grand' ? 'Grand' : 
+                         campaign.campaign_type === 'daily' ? 'Daily' : 
+                         campaign.campaign_type === 'weekly' ? 'Weekly' : 'Monthly'}
+                      </span>
+                    </div>
                     <h3 style={{
                       margin: 0,
                       fontSize: 15,

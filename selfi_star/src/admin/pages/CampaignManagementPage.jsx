@@ -106,6 +106,23 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
 
   const handleStatusChange = async (campaignId, newStatus) => {
     try {
+      // Find campaign to check type
+      const campaign = campaigns.find(c => c.id === campaignId);
+      
+      // If grand campaign, allow manual voting phase change
+      // For others, don't allow manual voting phase
+      if (newStatus === 'voting' && campaign?.campaign_type !== 'grand') {
+         setConfirmModal({
+            isOpen: true,
+            title: 'Invalid Action',
+            message: 'Only Grand Campaigns can enter a voting phase.',
+            type: 'error',
+            showCancel: false,
+            onConfirm: () => setConfirmModal({ isOpen: false })
+          });
+          return;
+      }
+      
       await api.request(`/admin/campaigns/${campaignId}/update/`, {
         method: 'PATCH',
         body: JSON.stringify({ status: newStatus })
@@ -597,6 +614,7 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    campaign_type: 'grand',
     prize_title: '',
     prize_description: '',
     prize_value: '',
@@ -629,6 +647,7 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
       // Add all form fields
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
+      formDataToSend.append('campaign_type', formData.campaign_type);
       formDataToSend.append('prize_title', formData.prize_title);
       formDataToSend.append('prize_description', formData.prize_description || formData.prize_title);
       formDataToSend.append('prize_value', formData.prize_value);
@@ -742,6 +761,35 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* Basic Info */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
+                Campaign Type *
+              </label>
+              <select
+                value={formData.campaign_type}
+                onChange={(e) => setFormData({ ...formData, campaign_type: e.target.value })}
+                required
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: 8,
+                  fontSize: 14,
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box',
+                  background: '#fff',
+                }}
+                onFocus={(e) => e.target.style.borderColor = theme.pri}
+                onBlur={(e) => e.target.style.borderColor = theme.border}
+              >
+                <option value="daily">Daily Campaign (Scoring + Random)</option>
+                <option value="weekly">Weekly Campaign (Scoring Only)</option>
+                <option value="monthly">Monthly Campaign (Scoring Only)</option>
+                <option value="grand">Grand Campaign (Voting + Scoring)</option>
+              </select>
+            </div>
+            
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
                 Campaign Title *

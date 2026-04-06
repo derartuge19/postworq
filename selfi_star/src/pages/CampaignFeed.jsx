@@ -166,7 +166,7 @@ const CampaignFeed = ({ campaignId, onBack }) => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {posts.map((post, idx) => (
-              <PostCard key={post.id} post={post} rank={idx + 1} onVote={handleVote} />
+              <PostCard key={post.id} post={post} rank={idx + 1} onVote={handleVote} campaignType={campaign?.campaign_type} isVotingOpen={campaign?.status === 'voting'} />
             ))}
           </div>
         )}
@@ -175,7 +175,7 @@ const CampaignFeed = ({ campaignId, onBack }) => {
   );
 };
 
-const PostCard = ({ post, rank, onVote }) => {
+const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
   const [showScores, setShowScores] = useState(false);
 
   const totalScore = post.scores?.total ?? post.total_score ?? 0;
@@ -282,16 +282,23 @@ const PostCard = ({ post, rank, onVote }) => {
         display: 'flex', alignItems: 'center', gap: 16,
       }}>
         <button
-          onClick={() => onVote(post)}
+          onClick={() => {
+            if (campaignType === 'grand' && isVotingOpen) {
+              onVote(post);
+            }
+          }}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             background: userLiked ? `${RED}12` : 'transparent',
             border: `1.5px solid ${userLiked ? RED : BORDER}`,
             borderRadius: 20, padding: '5px 12px',
-            cursor: 'pointer', fontSize: 14, fontWeight: 700,
+            cursor: (campaignType === 'grand' && isVotingOpen) ? 'pointer' : 'default',
+            fontSize: 14, fontWeight: 700,
             color: userLiked ? RED : SUB,
             transition: 'all 0.18s ease',
+            opacity: (campaignType === 'grand' && isVotingOpen) ? 1 : 0.7,
           }}
+          disabled={campaignType !== 'grand' || !isVotingOpen}
         >
           <Heart size={16} fill={userLiked ? RED : 'none'} color={userLiked ? RED : SUB} />
           {likes}

@@ -12,9 +12,17 @@ class Campaign(models.Model):
         ('cancelled', 'Cancelled'),
     ]
     
+    CAMPAIGN_TYPES = [
+        ('daily', 'Daily Campaign'),
+        ('weekly', 'Weekly Campaign'),
+        ('monthly', 'Monthly Campaign'),
+        ('grand', 'Grand Campaign'),
+    ]
+    
     title = models.CharField(max_length=200)
     description = models.TextField()
     image = models.ImageField(upload_to='campaigns/', null=True, blank=True)
+    campaign_type = models.CharField(max_length=20, choices=CAMPAIGN_TYPES, default='grand', help_text='Determines rules and scoring logic')
     
     # Prize information
     prize_title = models.CharField(max_length=200)
