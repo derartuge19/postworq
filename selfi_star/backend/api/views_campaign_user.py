@@ -233,14 +233,18 @@ def create_campaign_post(request):
 @permission_classes([AllowAny])
 def get_campaign_feed(request, campaign_id):
     """Get feed of approved campaign posts"""
+    print(f"[CAMPAIGN FEED] Request for campaign {campaign_id}")
     try:
         campaign = Campaign.objects.get(id=campaign_id)
+        print(f"[CAMPAIGN FEED] Campaign: {campaign.title}")
     except Campaign.DoesNotExist:
+        print(f"[CAMPAIGN FEED] Campaign {campaign_id} not found")
         return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
     
     # Accept both 'filter' (frontend) and 'sort' (legacy) params
     filter_param = request.query_params.get('filter', request.query_params.get('sort', 'all'))
     theme_id = request.query_params.get('theme')
+    print(f"[CAMPAIGN FEED] Filter: {filter_param}, Theme: {theme_id}")
     
     # Base query - approved posts only
     posts = PostScore.objects.filter(
@@ -248,9 +252,12 @@ def get_campaign_feed(request, campaign_id):
         moderation_status='approved'
     ).select_related('user', 'reel', 'theme')
     
+    print(f"[CAMPAIGN FEED] Total approved posts: {posts.count()}")
+    
     # Filter by theme if specified
     if theme_id:
         posts = posts.filter(theme_id=theme_id)
+        print(f"[CAMPAIGN FEED] After theme filter: {posts.count()}")
     
     # Sort: frontend sends all/top/recent; legacy sends trending/top/latest
     if filter_param in ('top',):
@@ -263,6 +270,7 @@ def get_campaign_feed(request, campaign_id):
     # Paginate
     page_size = 20
     posts = posts[:page_size]
+    print(f"[CAMPAIGN FEED] Returning {len(posts)} posts")
     
     data = []
     for post in posts:
@@ -273,14 +281,19 @@ def get_campaign_feed(request, campaign_id):
         # Check if current user liked
         user_liked = Vote.objects.filter(reel=post.reel, user=request.user).exists() if request.user.is_authenticated else False
         
+        image_url = post.reel.image.url if post.reel.image else None
+        media_url = post.reel.media.url if post.reel.media else None
+        
+        print(f"[CAMPAIGN FEED] Post {post.id}: image={image_url}, media={media_url}, user={post.user.username}")
+        
         data.append({
             'id': post.id,
             'reel': {
                 'id': post.reel.id,
                 'caption': post.reel.caption,
                 'hashtags': post.reel.hashtags,
-                'image': post.reel.image.url if post.reel.image else None,
-                'media': post.reel.media.url if post.reel.media else None,
+                'image': image_url,
+                'media': media_url,
                 'created_at': post.reel.created_at,
             },
             'user': {
@@ -306,6 +319,7 @@ def get_campaign_feed(request, campaign_id):
             },
         })
     
+    print(f"[CAMPAIGN FEED] Response: {len(data)} posts")
     return Response({'posts': data})
 
 # ==================== USER PROFILE CAMPAIGN STATS ====================
