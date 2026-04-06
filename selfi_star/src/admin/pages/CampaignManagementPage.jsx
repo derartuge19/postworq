@@ -463,7 +463,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
                   {/* Campaign Management Actions */}
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button
-                      onClick={() => onManageCampaign?.(campaign.id, 'scoring')}
+                      onClick={() => onManageCampaign?.(campaign.id, 'scoring', campaign.campaign_type)}
                       style={{
                         flex: 1,
                         padding: '6px',

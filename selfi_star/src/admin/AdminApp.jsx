@@ -16,6 +16,7 @@ import { JudgingPortalPage } from './pages/JudgingPortalPage';
 import { AntiCheatPage } from './pages/AntiCheatPage';
 import { CampaignManagementPage } from './pages/CampaignManagementPage';
 import CampaignScoringConfig from './pages/CampaignScoringConfig';
+import { TypeSpecificScoringConfig } from './pages/TypeSpecificScoringConfig';
 import CampaignThemeManagement from './pages/CampaignThemeManagement';
 import CampaignPostModeration from './pages/CampaignPostModeration';
 import { AdminSidebar } from './components/AdminSidebar';
@@ -43,6 +44,7 @@ export function AdminApp() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [loading, setLoading] = useState(true);
   const [selectedCampaignId, setSelectedCampaignId] = useState(null);
+  const [selectedCampaignType, setSelectedCampaignType] = useState('daily');
 
   useEffect(() => {
     checkAdminAuth();
@@ -137,14 +139,20 @@ export function AdminApp() {
       case 'admins':
         return <AdminManagementPage theme={T} />;
       case 'campaigns':
-        return <CampaignManagementPage theme={T} onManageCampaign={(id, action) => {
+        return <CampaignManagementPage theme={T} onManageCampaign={(id, action, type) => {
           setSelectedCampaignId(id);
+          setSelectedCampaignType(type || 'daily');
           if (action === 'scoring') setCurrentPage('campaign-scoring');
           else if (action === 'themes') setCurrentPage('campaign-themes');
           else if (action === 'moderation') setCurrentPage('campaign-moderation');
         }} />;
       case 'campaign-scoring':
-        return <CampaignScoringConfig campaignId={selectedCampaignId} onBack={() => setCurrentPage('campaigns')} />;
+        return <TypeSpecificScoringConfig 
+          campaignId={selectedCampaignId} 
+          campaignType={selectedCampaignType}
+          onBack={() => setCurrentPage('campaigns')} 
+          theme={T}
+        />;
       case 'campaign-themes':
         return <CampaignThemeManagement campaignId={selectedCampaignId} onBack={() => setCurrentPage('campaigns')} />;
       case 'campaign-moderation':
