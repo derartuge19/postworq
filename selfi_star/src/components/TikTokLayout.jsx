@@ -908,6 +908,11 @@ export function TikTokLayout({
                           onLoadedData={(e) => {
                             e.target.play().catch(() => {});
                           }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            const placeholder = e.target.parentElement?.querySelector('.video-error-placeholder');
+                            if (placeholder) placeholder.style.display = 'flex';
+                          }}
                           style={{
                             width: '100%',
                             height: '100%',
@@ -920,6 +925,25 @@ export function TikTokLayout({
                         >
                           Your browser does not support the video tag.
                         </video>
+                        <div
+                          className="video-error-placeholder"
+                          style={{
+                            display: 'none',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'column',
+                            color: '#fff',
+                          }}
+                        >
+                          <span style={{ fontSize: 48, marginBottom: 10 }}>🎬</span>
+                          <span style={{ fontSize: 14, opacity: 0.7 }}>Video unavailable</span>
+                        </div>
 
                         {/* Double-tap heart animation */}
                         {doubleTapLike[video.id] && (
@@ -1109,27 +1133,48 @@ export function TikTokLayout({
                         </div>
                       </div>
                     ) : (
-                      <img
-                        src={
-                          video.imageUrl.startsWith('http')
-                            ? video.imageUrl
-                            : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
-                        }
-                        alt={video.caption}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          display: 'block',
-                        }}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextElementSibling.style.display = 'flex';
-                        }}
-                      />
+                      <>
+                        <img
+                          src={
+                            video.imageUrl.startsWith('http')
+                              ? video.imageUrl
+                              : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
+                          }
+                          alt={video.caption}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block',
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            const placeholder = e.target.nextElementSibling;
+                            if (placeholder) placeholder.style.display = 'flex';
+                          }}
+                        />
+                        <div
+                          style={{
+                            display: 'none',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'column',
+                            color: '#fff',
+                          }}
+                        >
+                          <span style={{ fontSize: 48, marginBottom: 10 }}>📷</span>
+                          <span style={{ fontSize: 14, opacity: 0.7 }}>Image unavailable</span>
+                        </div>
+                      </>
                     )
                   ) : (
                     <div
