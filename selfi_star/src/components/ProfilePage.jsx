@@ -266,6 +266,9 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         )}
       </div>
 
+      {/* Mobile-Style Gamification Bar - Only for own profile */}
+      {isOwnProfile && <GamificationBar userId={userId} theme={T} />}
+
       {/* Profile Info */}
       <div style={{ padding: "20px" }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 20 }}>
@@ -372,31 +375,26 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         )}
 
         {isOwnProfile && (
-          <>
-            {/* Mobile-Style Gamification Bar */}
-            <GamificationBar userId={userId} theme={T} />
-
-            <button
-              onClick={() => onEditProfile?.()}
-              style={{
-                width: "100%",
-                padding: "10px 20px",
-                border: `1px solid ${T.border}`,
-                background: "#fff",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontSize: 14,
-                fontWeight: 700,
-                color: T.txt,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}>
-              <Edit size={16} />
-              Edit Profile
-            </button>
-          </>
+          <button
+            onClick={() => onEditProfile?.()}
+            style={{
+              width: "100%",
+              padding: "10px 20px",
+              border: `1px solid ${T.border}`,
+              background: "#fff",
+              borderRadius: 8,
+              cursor: "pointer",
+              fontSize: 14,
+              fontWeight: 700,
+              color: T.txt,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}>
+            <Edit size={16} />
+            Edit Profile
+          </button>
         )}
       </div>
 
