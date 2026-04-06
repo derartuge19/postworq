@@ -94,6 +94,12 @@ def admin_campaign_create(request):
         print("request.FILES keys:", request.FILES.keys())
         print("Has image in FILES:", 'image' in request.FILES)
         
+        # Convert empty date strings to None
+        start_date = request.data.get('start_date') or None
+        entry_deadline = request.data.get('entry_deadline') or None
+        voting_start = request.data.get('voting_start') or None
+        voting_end = request.data.get('voting_end') or None
+        
         campaign = Campaign.objects.create(
             title=request.data.get('title'),
             description=request.data.get('description'),
@@ -106,10 +112,10 @@ def admin_campaign_create(request):
             min_level=request.data.get('min_level', 1),
             min_votes_per_reel=request.data.get('min_votes_per_reel', 0),
             required_hashtags=request.data.get('required_hashtags', ''),
-            start_date=request.data.get('start_date'),
-            entry_deadline=request.data.get('entry_deadline'),
-            voting_start=request.data.get('voting_start'),
-            voting_end=request.data.get('voting_end'),
+            start_date=start_date,
+            entry_deadline=entry_deadline,
+            voting_start=voting_start,
+            voting_end=voting_end,
             winner_count=request.data.get('winner_count', 1),
             created_by=request.user
         )
@@ -119,7 +125,7 @@ def admin_campaign_create(request):
             print("Image file found:", request.FILES['image'].name)
             campaign.image = request.FILES['image']
             campaign.save()
-            print("Image saved to:", campaign.image.path)
+            print("Image saved to:", campaign.image.name)
         else:
             print("No image file in request.FILES")
         

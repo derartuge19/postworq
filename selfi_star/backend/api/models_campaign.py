@@ -39,10 +39,10 @@ class Campaign(models.Model):
     required_hashtags = models.CharField(max_length=500, blank=True, help_text='Comma-separated hashtags')
     
     # Dates
-    start_date = models.DateTimeField()
-    entry_deadline = models.DateTimeField(help_text='Deadline for submitting entries')
-    voting_start = models.DateTimeField(help_text='When voting begins')
-    voting_end = models.DateTimeField(help_text='When voting ends')
+    start_date = models.DateTimeField(null=True, blank=True)
+    entry_deadline = models.DateTimeField(null=True, blank=True, help_text='Deadline for submitting entries')
+    voting_start = models.DateTimeField(null=True, blank=True, help_text='When voting begins')
+    voting_end = models.DateTimeField(null=True, blank=True, help_text='When voting ends')
     
     # Winner information
     winner_count = models.IntegerField(default=1, help_text='Number of winners')
@@ -65,10 +65,14 @@ class Campaign(models.Model):
     
     def is_active(self):
         now = timezone.now()
+        if not self.start_date or not self.entry_deadline:
+            return self.status == 'active'
         return self.status == 'active' and self.start_date <= now <= self.entry_deadline
     
     def is_voting_open(self):
         now = timezone.now()
+        if not self.voting_start or not self.voting_end:
+            return False
         return self.status == 'voting' and self.voting_start <= now <= self.voting_end
 
 class CampaignEntry(models.Model):

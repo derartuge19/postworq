@@ -554,7 +554,6 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
           onClose={() => setShowCreateModal(false)}
           onSuccess={(response) => {
             setShowCreateModal(false);
-            setSuccessModal({ isOpen: true, campaign: response });
             loadCampaigns();
           }}
         />
