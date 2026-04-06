@@ -56,18 +56,21 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
         <div style={{
           padding: "12px 16px",
           marginBottom: 20,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
         }}>
+          <img src="/logo.jpeg" alt="SelfieStar" style={{ width: 40, height: 40, objectFit: "contain", flexShrink: 0 }} />
           <div style={{
-            fontSize: 24,
+            fontSize: 18,
             fontWeight: 900,
             background: `linear-gradient(135deg, ${T.pri}, ${T.dark})`,
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
           }}>
-            WorqPost
+            SelfieStar
           </div>
-          <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>ወorqPost</div>
         </div>
 
         {/* Menu Items */}

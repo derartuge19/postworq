@@ -67,22 +67,27 @@ class ReelSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'votes', 'comment_count', 'created_at', 'is_liked', 'is_saved']
     
     def _build_url(self, field, request):
-        """Build absolute URL for a file field, handling legacy Cloudinary IDs."""
+        """Build absolute URL for a file field, handling both local and Cloudinary storage."""
         if not field or not field.name:
             return None
-        name = field.name
-        # Detect legacy Cloudinary public_id (no file extension)
-        import os
-        _, ext = os.path.splitext(name)
-        if not ext:
-            return None  # Cloudinary ID without Cloudinary configured — skip
+        # If name is already a full URL (e.g. Cloudinary secure_url stored directly)
+        if field.name.startswith('http://') or field.name.startswith('https://'):
+            return field.name
         try:
             url = field.url
+            # Storage backend returned an absolute URL (Cloudinary storage)
+            if url.startswith('http://') or url.startswith('https://'):
+                return url
+            # Local file — prepend backend host
+            import os
+            _, ext = os.path.splitext(field.name)
+            if not ext:
+                return None  # Cloudinary public_id stored without Cloudinary configured
+            if request:
+                return request.build_absolute_uri(url)
+            return url
         except Exception:
             return None
-        if request:
-            return request.build_absolute_uri(url)
-        return url
 
     def get_image(self, obj):
         return self._build_url(obj.image, self.context.get('request'))
