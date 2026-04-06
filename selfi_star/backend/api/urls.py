@@ -54,22 +54,26 @@ def cleanup_broken_reels(request):
     from django.db.models import Q
     
     try:
-        deleted_count = 0
-        kept = []
+        fixed_count = 0
 
         for reel in Reel.objects.all():
             image_name = reel.image.name if reel.image else ''
             media_name = reel.media.name if reel.media else ''
 
-            # A reel is valid only if at least one field has a Cloudinary https URL
             image_ok = image_name.startswith('https://')
             media_ok = media_name.startswith('https://')
 
-            if not image_ok and not media_ok:
-                reel.delete()
-                deleted_count += 1
-            else:
-                kept.append(reel.id)
+            changed = False
+            if image_name and not image_ok:
+                reel.image = None
+                changed = True
+            if media_name and not media_ok:
+                reel.media = None
+                changed = True
+
+            if changed:
+                reel.save()
+                fixed_count += 1
 
         # Also clear broken campaign images (not https URLs)
         campaign_fixed = 0
@@ -81,10 +85,9 @@ def cleanup_broken_reels(request):
                 campaign_fixed += 1
 
         return Response({
-            'deleted_reels': deleted_count,
-            'kept_reels': len(kept),
+            'fixed_reels': fixed_count,
             'fixed_campaigns': campaign_fixed,
-            'remaining_reels': Reel.objects.count()
+            'total_reels': Reel.objects.count()
         })
     except Exception as e:
         import traceback
