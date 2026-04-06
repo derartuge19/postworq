@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from .views import (
-    register, login, create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
+    register, login, reset_password, create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
     get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail, admin_reports_stats
 )
@@ -104,6 +104,7 @@ urlpatterns = [
     path('health/', health_check, name='health-check'),
     path('auth/register/', register, name='auth-register'),
     path('auth/login/', login, name='auth-login'),
+    path('auth/reset-password/', reset_password, name='auth-reset-password'),
     path('setup-admin/', setup_admin, name='setup-admin'),
     path('posts/create/', create_post, name='create-post'),
     path('notifications/', get_user_notifications, name='user-notifications'),
