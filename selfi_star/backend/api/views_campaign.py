@@ -396,40 +396,47 @@ def user_campaign_enter(request, campaign_id):
             print(f"[CAMPAIGN ENTER] Existing entry reused: {entry.id}")
         
         # Bridge to new PostScore system so post appears in feed
-        # Auto-assign active theme if exists
-        active_theme = campaign.themes.filter(is_active=True).first()
-        
-        # Mark reel as campaign post
-        reel.campaign = campaign
-        reel.theme = active_theme
-        reel.is_campaign_post = True
-        reel.save(update_fields=['campaign', 'theme', 'is_campaign_post'])
-        
-        # Create PostScore (auto-approved so it appears in feed immediately)
-        post_score, ps_created = PostScore.objects.get_or_create(
-            reel=reel,
-            defaults={
-                'campaign': campaign,
-                'theme': active_theme,
-                'user': user,
-                'moderation_status': 'approved',
-            }
-        )
-        if not ps_created and post_score.moderation_status != 'approved':
-            post_score.moderation_status = 'approved'
-            post_score.save(update_fields=['moderation_status'])
-        
-        # Update user campaign stats
-        stats, _ = UserCampaignStats.objects.get_or_create(user=user, campaign=campaign)
-        stats.total_posts = PostScore.objects.filter(user=user, campaign=campaign).count()
-        stats.approved_posts = PostScore.objects.filter(user=user, campaign=campaign, moderation_status='approved').count()
-        stats.save(update_fields=['total_posts', 'approved_posts'])
-        
-        print(f"[CAMPAIGN ENTER] Success! PostScore id={post_score.id}, approved={post_score.moderation_status}")
+        post_score_id = None
+        try:
+            active_theme = campaign.themes.filter(is_active=True).first()
+
+            # Mark reel as campaign post using attnames for FK fields
+            reel.campaign_id = campaign.pk
+            reel.theme_id = active_theme.pk if active_theme else None
+            reel.is_campaign_post = True
+            reel.save(update_fields=['campaign_id', 'theme_id', 'is_campaign_post'])
+
+            # Create PostScore (auto-approved so it appears in feed immediately)
+            post_score, ps_created = PostScore.objects.get_or_create(
+                reel=reel,
+                defaults={
+                    'campaign': campaign,
+                    'theme': active_theme,
+                    'user': user,
+                    'moderation_status': 'approved',
+                }
+            )
+            if not ps_created and post_score.moderation_status != 'approved':
+                post_score.moderation_status = 'approved'
+                post_score.save(update_fields=['moderation_status'])
+
+            # Update user campaign stats
+            stats, _ = UserCampaignStats.objects.get_or_create(user=user, campaign=campaign)
+            stats.total_posts = PostScore.objects.filter(user=user, campaign=campaign).count()
+            stats.approved_posts = PostScore.objects.filter(user=user, campaign=campaign, moderation_status='approved').count()
+            stats.save(update_fields=['total_posts', 'approved_posts'])
+
+            post_score_id = post_score.id
+            print(f"[CAMPAIGN ENTER] PostScore id={post_score_id}, approved={post_score.moderation_status}")
+        except Exception as bridge_err:
+            import traceback
+            print(f"[CAMPAIGN ENTER] PostScore bridge error (entry still created): {bridge_err}")
+            traceback.print_exc()
+
         return Response({
             'message': 'Successfully entered campaign',
             'entry_id': entry.id,
-            'post_score_id': post_score.id,
+            'post_score_id': post_score_id,
         }, status=status.HTTP_201_CREATED)
         
     except Campaign.DoesNotExist:

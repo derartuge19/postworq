@@ -130,10 +130,7 @@ class PostScore(models.Model):
         from .models import Vote, Comment
         
         # Get scoring config for this campaign
-        config = CampaignScoringConfig.objects.filter(campaign=self.campaign).first()
-        if not config:
-            # Create default config if not exists
-            config = CampaignScoringConfig.objects.create(campaign=self.campaign)
+        config, _ = CampaignScoringConfig.objects.get_or_create(campaign=self.campaign)
         
         likes = Vote.objects.filter(reel=self.reel).count()
         comments = Comment.objects.filter(reel=self.reel).count()

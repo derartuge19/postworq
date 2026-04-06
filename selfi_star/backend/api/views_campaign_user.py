@@ -392,19 +392,29 @@ def update_engagement_scores(request, campaign_id):
     )
     
     updated_count = 0
+    errors = []
     for post in posts:
-        post.update_engagement_score()
-        updated_count += 1
-    
+        try:
+            post.update_engagement_score()
+            updated_count += 1
+        except Exception as e:
+            errors.append(f'post {post.id}: {str(e)}')
+
     # Update all user stats
     stats = UserCampaignStats.objects.filter(campaign=campaign)
+    stats_updated = 0
     for stat in stats:
-        stat.update_stats()
-    
+        try:
+            stat.update_stats()
+            stats_updated += 1
+        except Exception as e:
+            errors.append(f'stat {stat.id}: {str(e)}')
+
     return Response({
         'message': 'Engagement scores updated',
         'posts_updated': updated_count,
-        'users_updated': stats.count(),
+        'users_updated': stats_updated,
+        'errors': errors,
     })
 
 # ==================== CONSISTENCY SCORING ====================
