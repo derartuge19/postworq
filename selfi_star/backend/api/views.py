@@ -355,22 +355,36 @@ class ReelViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
     
     def perform_create(self, serializer):
+        print(f"[REEL CREATE] User: {self.request.user}, Files: {list(self.request.FILES.keys())}")
         media_file = self.request.FILES.get('media') or self.request.FILES.get('file')
         image_file = self.request.FILES.get('image')
         kwargs = {'user': self.request.user}
+        
         if media_file:
+            print(f"[REEL CREATE] Media file: {media_file.name}, type: {getattr(media_file, 'content_type', 'unknown')}, size: {media_file.size}")
             # Detect if it's a video or image
             is_video = (
                 getattr(media_file, 'content_type', '').startswith('video/') or
                 media_file.name.lower().endswith(('.mp4', '.webm', '.mov', '.avi'))
             )
+            print(f"[REEL CREATE] Detected as video: {is_video}")
             if is_video:
                 kwargs['media'] = media_file
             else:
                 kwargs['image'] = media_file
+        else:
+            print("[REEL CREATE] No media file received!")
+            
         if image_file:
+            print(f"[REEL CREATE] Image file: {image_file.name}")
             kwargs['image'] = image_file
-        serializer.save(**kwargs)
+            
+        try:
+            reel = serializer.save(**kwargs)
+            print(f"[REEL CREATE] Success! Reel ID: {reel.id}, image: {reel.image.name if reel.image else None}, media: {reel.media.name if reel.media else None}")
+        except Exception as e:
+            print(f"[REEL CREATE] Error: {e}")
+            raise
     
     @action(detail=True, methods=['post'])
     def vote(self, request, pk=None):
