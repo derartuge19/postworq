@@ -6,6 +6,7 @@ import api from '../../api';
 export function GamificationDashboard({ userId, theme }) {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showSpinModal, setShowSpinModal] = useState(false);
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [spinning, setSpinning] = useState(false);
@@ -17,10 +18,13 @@ export function GamificationDashboard({ userId, theme }) {
 
   const loadStatus = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await api.request('/gamification/status/');
       setStatus(response);
-    } catch (error) {
-      console.error('Failed to load gamification status:', error);
+    } catch (err) {
+      console.error('Failed to load gamification status:', err);
+      setError(err.message || 'Failed to load gamification data');
     } finally {
       setLoading(false);
     }
@@ -57,8 +61,37 @@ export function GamificationDashboard({ userId, theme }) {
     }
   };
 
-  if (loading) return <div style={{ padding: 20, textAlign: 'center', color: theme.sub }}>Loading...</div>;
-  if (!status) return null;
+  if (loading) return <div style={{ padding: 20, textAlign: 'center', color: theme.sub }}>Loading gamification...</div>;
+  
+  if (error) return (
+    <div style={{ padding: 20, textAlign: 'center' }}>
+      <div style={{ fontSize: 32, marginBottom: 8 }}>⚠️</div>
+      <div style={{ color: theme.red, fontSize: 14, marginBottom: 12 }}>
+        {error}
+      </div>
+      <button 
+        onClick={loadStatus}
+        style={{
+          padding: '10px 20px',
+          borderRadius: 8,
+          border: 'none',
+          background: theme.pri,
+          color: 'white',
+          cursor: 'pointer',
+          fontSize: 14
+        }}
+      >
+        Retry
+      </button>
+    </div>
+  );
+  
+  if (!status) return (
+    <div style={{ padding: 20, textAlign: 'center', color: theme.sub }}>
+      <div style={{ fontSize: 32, marginBottom: 8 }}>🎮</div>
+      <div>Gamification data not available</div>
+    </div>
+  );
 
   return (
     <div style={{ padding: '20px 0' }}>
