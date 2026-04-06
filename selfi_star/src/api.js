@@ -2,7 +2,8 @@ import config from './config.js';
 
 const API_BASE_URL = config.API_BASE_URL;
 
-let authToken = localStorage.getItem('authToken');
+let authToken =
+  localStorage.getItem('authToken') || localStorage.getItem('adminToken');
 
 // --- Lightweight GET cache & request deduplication ---
 const _cache = new Map();
@@ -32,10 +33,9 @@ const api = {
     } else {
       localStorage.removeItem('authToken');
     }
-    _cache.clear();
+    _cache.clear(); // Clear cache on auth change
   },
 
-  // Used by admin panel only - does NOT touch the user's authToken in localStorage
   setAdminToken: (token) => {
     authToken = token;
     if (token) {
@@ -50,6 +50,10 @@ const api = {
     return authToken || localStorage.getItem('authToken');
   },
 
+  hasToken: () => {
+    return !!(authToken || localStorage.getItem('authToken'));
+  },
+
   clearToken: () => {
     authToken = null;
     localStorage.removeItem('authToken');
@@ -57,64 +61,80 @@ const api = {
   },
 
   async request(endpoint, options = {}) {
-    const method = options.method || 'GET';
-    const headers = { ...options.headers };
+    // Cache logic
+    const isGet = !options.method || options.method.toUpperCase() === 'GET';
+    const cacheKey = isGet ? endpoint : null;
+    
+    // Return cached data for GET requests
+    if (isGet && cacheKey) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        console.log(`📦 Cache hit: ${cacheKey}`);
+        return cached;
+      }
+    }
+
+    const headers = {
+      ...options.headers,
+    };
 
     if (!options.isFormData) {
       headers['Content-Type'] = 'application/json';
     }
 
-    // Always get fresh token from localStorage to ensure it's current
-    const currentToken = localStorage.getItem('authToken') || authToken;
+    // Only add token if it exists AND it's not an auth endpoint
+    const currentToken = authToken || localStorage.getItem('authToken');
     if (currentToken && !endpoint.includes('/auth/')) {
       headers['Authorization'] = `Token ${currentToken}`;
+      console.log(`🔐 Using token for request: ${currentToken.substring(0, 10)}...`);
+    } else {
+      console.log('⚠️ No token available for request');
     }
 
-    // GET request caching + deduplication
-    const isGet = method === 'GET';
-    const cacheKey = isGet ? endpoint : null;
+    console.log(`📡 API Request: ${options.method || 'GET'} ${endpoint}`, { headers, isFormData: options.isFormData });
 
-    if (isGet && !options.noCache) {
-      const cached = getCached(cacheKey);
-      if (cached) return cached;
-      // Deduplicate: reuse in-flight promise for same endpoint
-      if (_inflight.has(cacheKey)) return _inflight.get(cacheKey);
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      data = { error: 'Failed to parse response' };
     }
 
-    const fetchPromise = (async () => {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        method,
-        headers,
-      });
-
-      let data;
-      try {
-        data = await response.json();
-      } catch (e) {
-        data = { error: 'Failed to parse response' };
+    if (!response.ok) {
+      // If token is invalid/expired, clear it and retry without auth (for public endpoints)
+      if (response.status === 401 && data?.detail === 'Invalid token.') {
+        console.warn('⚠️ Invalid token detected — clearing stored credentials');
+        authToken = null;
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        // Retry the same request without the Authorization header
+        const retryHeaders = { ...headers };
+        delete retryHeaders['Authorization'];
+        const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+          ...options,
+          headers: retryHeaders,
+        });
+        let retryData;
+        try { retryData = await retryResponse.json(); } catch (e) { retryData = {}; }
+        if (retryResponse.ok) {
+          if (isGet && cacheKey) setCache(cacheKey, retryData);
+          return retryData;
+        }
+        throw new Error(JSON.stringify(retryData) || `API Error: ${retryResponse.status}`);
       }
-
-      if (!response.ok) {
-        console.error('API Error:', response.status, data);
-        const error = new Error(JSON.stringify(data) || `API Error: ${response.status}`);
-        error.status = response.status;  // Preserve status code
-        error.response = response;
-        throw error;
-      }
-
-      // Cache successful GET responses
-      if (isGet && cacheKey) setCache(cacheKey, data);
-      return data;
-    })();
-
-    // Track in-flight for dedup
-    if (isGet && cacheKey) {
-      _inflight.set(cacheKey, fetchPromise);
-      fetchPromise.finally(() => _inflight.delete(cacheKey));
+      console.error('API Error:', response.status, data);
+      console.error('Full error response:', JSON.stringify(data, null, 2));
+      throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
     }
 
-    return fetchPromise;
+    // Cache successful GET responses
+    if (isGet && cacheKey) setCache(cacheKey, data);
+    return data;
   },
 
   // Invalidate cache for specific patterns (call after mutations)

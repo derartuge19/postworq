@@ -1,10 +1,17 @@
 import { useState, useEffect } from "react";
 import { Heart, MessageCircle, UserPlus, Trophy, Bell, ArrowLeft } from "lucide-react";
 import api from "../api";
+import config from "../config.js";
 import { getRelativeTime } from "../utils/timeUtils";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { ModernSidebar } from "./ModernSidebar";
+
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${config.API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, onLogout, onShowProfile, onShowSettings, onShowCampaigns }) {
   const { colors: T } = useTheme();
@@ -261,7 +268,7 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
                 {notif.user ? (
                   notif.user.profile_photo ? (
                     <img
-                      src={notif.user.profile_photo}
+                      src={mediaUrl(notif.user.profile_photo)}
                       alt={notif.user.username}
                       style={{
                         width: 40,

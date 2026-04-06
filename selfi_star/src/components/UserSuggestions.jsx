@@ -10,7 +10,12 @@ export function UserSuggestions({ onUserClick }) {
   const [followingStates, setFollowingStates] = useState({});
 
   useEffect(() => {
-    fetchSuggestions();
+    // Only fetch suggestions if user is authenticated
+    if (api.hasToken()) {
+      fetchSuggestions();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const fetchSuggestions = async () => {

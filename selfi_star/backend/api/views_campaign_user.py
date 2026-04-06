@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
@@ -16,7 +16,7 @@ from .models_campaign_extended import (
 # ==================== CAMPAIGN DISCOVERY ====================
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_active_campaigns(request):
     """Get all active campaigns"""
     now = timezone.now()
@@ -35,7 +35,7 @@ def get_active_campaigns(request):
         user_stats = UserCampaignStats.objects.filter(
             user=request.user,
             campaign=campaign
-        ).first()
+        ).first() if request.user.is_authenticated else None
         
         data.append({
             'id': campaign.id,
@@ -61,7 +61,7 @@ def get_active_campaigns(request):
     return Response(data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_campaign_detail_extended(request, campaign_id):
     """Get detailed campaign information including themes and user stats"""
     try:
@@ -86,13 +86,13 @@ def get_campaign_detail_extended(request, campaign_id):
     user_stats = UserCampaignStats.objects.filter(
         user=request.user,
         campaign=campaign
-    ).first()
+    ).first() if request.user.is_authenticated else None
     
     # Get user's posts in this campaign
     user_posts = PostScore.objects.filter(
         user=request.user,
         campaign=campaign
-    ).select_related('reel', 'theme')
+    ).select_related('reel', 'theme') if request.user.is_authenticated else []
     
     user_posts_data = [{
         'id': score.id,
@@ -230,7 +230,7 @@ def create_campaign_post(request):
 # ==================== CAMPAIGN FEED ====================
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_campaign_feed(request, campaign_id):
     """Get feed of approved campaign posts"""
     try:
@@ -271,7 +271,7 @@ def get_campaign_feed(request, campaign_id):
         comments_count = Comment.objects.filter(reel=post.reel).count()
         
         # Check if current user liked
-        user_liked = Vote.objects.filter(reel=post.reel, user=request.user).exists()
+        user_liked = Vote.objects.filter(reel=post.reel, user=request.user).exists() if request.user.is_authenticated else False
         
         data.append({
             'id': post.id,

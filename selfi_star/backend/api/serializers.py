@@ -66,31 +66,29 @@ class ReelSerializer(serializers.ModelSerializer):
         model = Reel
         fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'votes', 'comment_count', 'created_at', 'is_liked', 'is_saved']
     
+    def _build_url(self, field, request):
+        """Build absolute URL for a file field, handling legacy Cloudinary IDs."""
+        if not field or not field.name:
+            return None
+        name = field.name
+        # Detect legacy Cloudinary public_id (no file extension)
+        import os
+        _, ext = os.path.splitext(name)
+        if not ext:
+            return None  # Cloudinary ID without Cloudinary configured — skip
+        try:
+            url = field.url
+        except Exception:
+            return None
+        if request:
+            return request.build_absolute_uri(url)
+        return url
+
     def get_image(self, obj):
-        if obj.image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return None
-    
+        return self._build_url(obj.image, self.context.get('request'))
+
     def get_media(self, obj):
-        if obj.media:
-            # For Cloudinary videos, build the URL manually with resource_type=video
-            if obj.media.name and not obj.media.name.startswith('http'):
-                # It's a public_id, build Cloudinary video URL
-                from django.conf import settings
-                cloudinary_storage = getattr(settings, 'CLOUDINARY_STORAGE', None)
-                if cloudinary_storage:
-                    cloud_name = cloudinary_storage.get('CLOUD_NAME')
-                    # Build video URL: https://res.cloudinary.com/{cloud_name}/video/upload/{public_id}
-                    return f"https://res.cloudinary.com/{cloud_name}/video/upload/{obj.media.name}"
-            # Fallback to storage backend URL (for old full URLs)
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.media.url)
-            return obj.media.url
-        return None
+        return self._build_url(obj.media, self.context.get('request'))
     
     def get_comment_count(self, obj):
         # Use DB annotation if available (set by ReelViewSet.get_queryset)

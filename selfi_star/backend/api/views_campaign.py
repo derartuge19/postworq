@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
@@ -13,12 +13,14 @@ from .models import Reel, Follow
 from .models_campaign_extended import CampaignTheme, PostScore, UserCampaignStats
 
 def get_image_url(image_field, request=None):
-    """Get image URL without using build_absolute_uri"""
+    """Get absolute image URL"""
     if not image_field:
         return None
     try:
-        # Return relative URL which works with any domain
-        return image_field.url
+        url = image_field.url
+        if request:
+            return request.build_absolute_uri(url)
+        return url
     except:
         return None
 
@@ -47,7 +49,7 @@ def admin_campaigns_list(request):
     
     data = []
     for c in campaigns_page:
-        image_url = get_image_url(c.image)
+        image_url = get_image_url(c.image, request)
         
         data.append({
             'id': c.id,
@@ -210,7 +212,7 @@ def admin_campaign_entries(request, campaign_id):
             'reel': {
                 'id': entry.reel.id,
                 'caption': entry.reel.caption,
-                'image': entry.reel.image.url if entry.reel.image else None,
+                'image': request.build_absolute_uri(entry.reel.image.url) if entry.reel.image else None,
             },
             'vote_count': entry.vote_count,
             'rank': entry.rank,
@@ -312,7 +314,7 @@ def user_campaigns_list(request):
                 is_eligible = False
             has_entered = CampaignEntry.objects.filter(campaign=c, user=user).exists()
         
-        image_url = get_image_url(c.image)
+        image_url = get_image_url(c.image, request)
         
         data.append({
             'id': c.id,
@@ -475,7 +477,7 @@ def user_campaign_vote(request, entry_id):
         return Response({'error': 'Entry not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def user_campaign_detail(request, campaign_id):
     """Get campaign details with entries"""
     try:
@@ -486,7 +488,8 @@ def user_campaign_detail(request, campaign_id):
             disqualified=False
         ).select_related('user', 'reel').order_by('-vote_count')
         
-        user = request.user
+        is_authenticated = request.user.is_authenticated
+        user = request.user if is_authenticated else None
         
         entries_data = [{
             'id': entry.id,
@@ -497,16 +500,16 @@ def user_campaign_detail(request, campaign_id):
             'reel': {
                 'id': entry.reel.id,
                 'caption': entry.reel.caption,
-                'image': entry.reel.image.url if entry.reel.image else None,
-                'media': entry.reel.media.url if entry.reel.media else None,
+                'image': request.build_absolute_uri(entry.reel.image.url) if entry.reel.image else None,
+                'media': request.build_absolute_uri(entry.reel.media.url) if entry.reel.media else None,
             },
             'vote_count': entry.vote_count,
             'rank': entry.rank,
             'is_winner': entry.is_winner,
-            'user_voted': CampaignVote.objects.filter(entry=entry, user=user).exists(),
+            'user_voted': CampaignVote.objects.filter(entry=entry, user=user).exists() if user else False,
         } for entry in entries]
         
-        image_url = get_image_url(campaign.image)
+        image_url = get_image_url(campaign.image, request)
         
         return Response({
             'id': campaign.id,
@@ -529,7 +532,7 @@ def user_campaign_detail(request, campaign_id):
             'min_level': campaign.min_level,
             'min_votes_per_reel': campaign.min_votes_per_reel,
             'required_hashtags': campaign.required_hashtags,
-            'current_user_id': user.id,
+            'current_user_id': user.id if user else None,
             'entries': entries_data,
         })
         

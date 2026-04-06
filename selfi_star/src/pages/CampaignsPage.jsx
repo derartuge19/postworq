@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Trophy, Calendar, Award, Users, Clock, ChevronRight } from 'lucide-react';
 import api from '../api';
+import config from '../config.js';
+
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${config.API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 // Add CSS animations
 const style = document.createElement('style');
@@ -91,7 +98,7 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
         overflow: 'hidden',
       }}>
         <div style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           width: 56,
@@ -99,9 +106,6 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
           margin: '0 auto 16px',
           background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
           borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           boxShadow: `0 4px 16px ${theme.pri}40`,
         }}>
           <Trophy size={28} color="#fff" strokeWidth={2.5} />
@@ -120,12 +124,11 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
           Prize Campaigns
         </h1>
         <p style={{
-          margin: 0,
           fontSize: 14,
           color: theme.sub,
           maxWidth: 500,
           margin: '0 auto',
-          lineHeight: 1.5,
+          lineHeight: 1.5
         }}>
           Participate in exciting competitions and win amazing prizes!
         </p>
@@ -308,7 +311,7 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
                     <div style={{
                       width: '100%',
                       height: 160,
-                      background: `url(${campaign.image}) center/cover`,
+                      background: `url(${mediaUrl(campaign.image)}) center/cover`,
                       position: 'relative',
                     }}>
                       <div style={{

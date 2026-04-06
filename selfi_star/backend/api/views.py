@@ -103,37 +103,45 @@ def create_post(request):
         
         # Create the reel with appropriate field
         if is_video:
-            # For videos, upload directly to Cloudinary with resource_type='video'
-            print("📹 Uploading video to Cloudinary...")
+            # For videos, try Cloudinary first, fall back to local storage
+            print("📹 Processing video...")
             try:
                 import cloudinary
                 import cloudinary.uploader
                 # Verify cloudinary config
-                print(f"Cloudinary config - cloud_name: {cloudinary.config().cloud_name}")
-                print(f"Cloudinary config - api_key: {cloudinary.config().api_key}")
-                print(f"Cloudinary config - api_secret present: {bool(cloudinary.config().api_secret)}")
-                
-                upload_result = cloudinary.uploader.upload(
-                    file,
-                    resource_type='video',
-                    folder='reels'
-                )
-                print(f"✅ Video uploaded: {upload_result.get('secure_url')}")
-                print(f"Public ID: {upload_result.get('public_id')}")
-                
-                # Create reel with public_id stored in media field (not full URL)
-                from django.core.files.base import ContentFile
-                reel = Reel(
+                cloudinary_config = cloudinary.config()
+                if cloudinary_config.cloud_name and cloudinary_config.api_key and cloudinary_config.api_secret:
+                    print(f"Cloudinary config - cloud_name: {cloudinary_config.cloud_name}")
+                    print(f"Cloudinary config - api_key: {cloudinary_config.api_key}")
+                    print(f"Cloudinary config - api_secret present: {bool(cloudinary_config.api_secret)}")
+                    
+                    upload_result = cloudinary.uploader.upload(
+                        file,
+                        resource_type='video',
+                        folder='reels'
+                    )
+                    print(f"✅ Video uploaded to Cloudinary: {upload_result.get('secure_url')}")
+                    print(f"Public ID: {upload_result.get('public_id')}")
+                    
+                    # Create reel with public_id stored in media field
+                    reel = Reel(
+                        user=request.user,
+                        caption=caption,
+                        hashtags=hashtags
+                    )
+                    reel.media.name = upload_result.get('public_id')
+                    reel.save()
+                else:
+                    raise ImportError("Cloudinary not configured")
+            except (ImportError, Exception) as video_error:
+                print(f"⚠️ Cloudinary not available or failed ({type(video_error).__name__}), using local storage")
+                # Fall back to local storage for videos
+                reel = Reel.objects.create(
                     user=request.user,
+                    media=file,  # Store video locally
                     caption=caption,
                     hashtags=hashtags
                 )
-                # Store just the public_id path (e.g., 'reels/abc123')
-                reel.media.name = upload_result.get('public_id')
-                reel.save()
-            except Exception as video_error:
-                print(f"❌ Video upload failed: {type(video_error).__name__}: {str(video_error)}")
-                raise
         else:
             # Images work fine with the storage backend
             reel = Reel.objects.create(
@@ -305,7 +313,22 @@ class ReelViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
     
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        media_file = self.request.FILES.get('media') or self.request.FILES.get('file')
+        image_file = self.request.FILES.get('image')
+        kwargs = {'user': self.request.user}
+        if media_file:
+            # Detect if it's a video or image
+            is_video = (
+                getattr(media_file, 'content_type', '').startswith('video/') or
+                media_file.name.lower().endswith(('.mp4', '.webm', '.mov', '.avi'))
+            )
+            if is_video:
+                kwargs['media'] = media_file
+            else:
+                kwargs['image'] = media_file
+        if image_file:
+            kwargs['image'] = image_file
+        serializer.save(**kwargs)
     
     @action(detail=True, methods=['post'])
     def vote(self, request, pk=None):

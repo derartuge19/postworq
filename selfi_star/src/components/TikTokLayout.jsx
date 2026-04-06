@@ -806,7 +806,7 @@ export function TikTokLayout({
                   key={video.id}
                   className="video-card-snap"
                   style={{
-                    background: isMobile ? '#fff' : '#000',
+                    background: isMobile ? '#fff' : 'transparent',
                     borderRadius: isMobile ? 0 : 12,
                     overflow: 'hidden',
                     aspectRatio: isMobile ? undefined : '9/16',
@@ -900,15 +900,14 @@ export function TikTokLayout({
                                   : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`)
                               : undefined
                           }
-                          poster={getVideoPoster(
-                            video.imageUrl.startsWith('http')
-                              ? video.imageUrl
-                              : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
-                          )}
                           preload={videos.indexOf(video) === 0 ? 'auto' : 'none'}
+                          autoPlay
                           loop
                           playsInline
-                          muted={!audioEnabled}
+                          muted
+                          onLoadedData={(e) => {
+                            e.target.play().catch(() => {});
+                          }}
                           style={{
                             width: '100%',
                             height: '100%',

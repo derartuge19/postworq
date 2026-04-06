@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Trophy, Calendar, Award, Users, Clock, Upload, Video, Check, X, Heart, Share2, ArrowLeft, AlertCircle, Star, Zap, TrendingUp, Medal, Crown, Target, Flame, List, BarChart3 } from 'lucide-react';
 import api from '../api';
+import config from '../config.js';
+
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${config.API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboard, onShowFeed }) {
   const [campaign, setCampaign] = useState(null);
@@ -204,7 +211,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
             <div style={{
               width: '100%',
               height: 300,
-              background: `url(${campaign.image}) center/cover`,
+              background: `url(${mediaUrl(campaign.image)}) center/cover`,
             }} />
           )}
           
@@ -255,7 +262,13 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {canSubmit() ? (
                   <button
-                    onClick={() => setShowSubmitModal(true)}
+                    onClick={() => {
+                      if (!api.hasToken()) {
+                        alert('Please log in to submit a campaign entry.');
+                        return;
+                      }
+                      setShowSubmitModal(true);
+                    }}
                     style={{
                       padding: '16px 32px',
                       background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
@@ -1037,7 +1050,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
         <div style={{ position: 'relative' }}>
           {entry.reel.media.endsWith('.mp4') || entry.reel.media.endsWith('.mov') ? (
             <video
-              src={entry.reel.media}
+              src={mediaUrl(entry.reel.media)}
               style={{
                 width: '100%',
                 height: 280,
@@ -1048,7 +1061,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
             />
           ) : (
             <img
-              src={entry.reel.media}
+              src={mediaUrl(entry.reel.media)}
               alt="Entry"
               style={{
                 width: '100%',
@@ -1060,7 +1073,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
         </div>
       ) : entry.reel?.image && (
         <img
-          src={entry.reel.image}
+          src={mediaUrl(entry.reel.image)}
           alt="Entry"
           style={{
             width: '100%',
@@ -1249,6 +1262,11 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
   }, []);
 
   const loadUserReels = async () => {
+    if (!api.hasToken()) {
+      setLoading(false);
+      setError('Please log in to submit a campaign entry.');
+      return;
+    }
     try {
       // Get current user's ID first
       const userResponse = await api.request('/profile/me/');
@@ -1296,6 +1314,10 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
   };
 
   const handleCreateAndSubmit = async () => {
+    if (!api.hasToken()) {
+      setError('Please log in to submit a campaign entry.');
+      return;
+    }
     if (!newReelFile) {
       setError('Please select a file to upload');
       return;
@@ -1683,7 +1705,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               >
                 {reel.image ? (
                   <img
-                    src={reel.image}
+                    src={mediaUrl(reel.image)}
                     alt=""
                     style={{
                       width: '100%',

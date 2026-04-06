@@ -36,8 +36,6 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Must be first
     'api.middleware.CustomCorsMiddleware',  # Custom CORS for Vercel
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.middleware.gzip.GZipMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -67,48 +65,34 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-if config('DATABASE_URL', default=None):
-    import dj_database_url
-    import socket
-    from urllib.parse import urlparse
-    db_url = config('DATABASE_URL')
-    db_config = dj_database_url.config(
-        default=db_url,
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=True
-    )
-    # Force IPv4 to avoid Render IPv6 connectivity issues
-    try:
-        parsed = urlparse(db_url)
-        hostname = parsed.hostname or db_config.get('HOST')
-        port = parsed.port or db_config.get('PORT')
-        if hostname:
-            ipv4_addr = socket.getaddrinfo(
-                hostname,
-                port,
-                socket.AF_INET,
-                socket.SOCK_STREAM
-            )[0][4][0]
-            db_config['HOST'] = ipv4_addr
-            db_config['OPTIONS'] = db_config.get('OPTIONS', {})
-            db_config['OPTIONS']['hostaddr'] = ipv4_addr
-    except Exception:
-        pass  # Fallback to default if resolution fails
-    DATABASES = {'default': db_config}
-else:
+DB_ENGINE = config('DB_ENGINE', default='django.db.backends.sqlite3')
+
+if DB_ENGINE == 'django.db.backends.sqlite3':
     DATABASES = {
         'default': {
-            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+            'ENGINE': DB_ENGINE,
+            'NAME': config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
+        }
+    }
+else:
+    db_host = config('DB_HOST', default='ep-rough-math-anwwqd2n-pooler.c-6.us-east-1.aws.neon.tech')
+    db_options = {
+        'sslmode': config('DB_SSLMODE', default='require'),
+    }
+
+    if 'neon.tech' in db_host:
+        endpoint_id = db_host.split('.')[0]
+        db_options['options'] = config('DB_OPTIONS', default=f'endpoint={endpoint_id}')
+
+    DATABASES = {
+        'default': {
+            'ENGINE': DB_ENGINE,
             'NAME': config('DB_NAME', default='neondb'),
             'USER': config('DB_USER', default='neondb_owner'),
             'PASSWORD': config('DB_PASSWORD', default='npg_gQpuHj7IBoC1'),
-            'HOST': config('DB_HOST', default='ep-rough-math-anwwqd2n-pooler.c-6.us-east-1.aws.neon.tech'),
+            'HOST': db_host,
             'PORT': config('DB_PORT', default='5432'),
-            'OPTIONS': {
-                'sslmode': 'require',
-                'connect_timeout': 10,
-            },
+            'OPTIONS': db_options,
         }
     }
 
@@ -173,37 +157,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10,
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/minute',
-        'user': '300/minute',
-    },
-}
-
-# Whitenoise for static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Database connection pooling - keep connections alive
-CONN_MAX_AGE = 600
-CONN_HEALTH_CHECKS = True
-
-# Cache: use database cache (works on free tier without Redis)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'postworq-cache',
-        'TIMEOUT': 300,
-    }
 }
 
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='https://postworqq.vercel.app,https://postworqq-r2dk2d6qu-derartunigatu-6629s-projects.vercel.app,https://postworq.onrender.com,http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:3000,http://127.0.0.1:3000',
+    default='https://postworqq.vercel.app,https://postworq.onrender.com,http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:3000,http://127.0.0.1:3000',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
