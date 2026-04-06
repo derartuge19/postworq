@@ -24,7 +24,15 @@ export function GamificationDashboard({ userId, theme }) {
       setStatus(response);
     } catch (err) {
       console.error('Failed to load gamification status:', err);
-      setError(err.message || 'Failed to load gamification data');
+      
+      // Better error messages
+      if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        setError('Please log in to access gamification features');
+      } else if (err.message?.includes('403') || err.message?.includes('Forbidden')) {
+        setError('Access denied. Please check your account status.');
+      } else {
+        setError(err.message || 'Failed to load gamification data');
+      }
     } finally {
       setLoading(false);
     }
