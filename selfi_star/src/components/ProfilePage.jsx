@@ -7,6 +7,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { TikTokPostViewer } from "./TikTokPostViewer";
 import CampaignStats from "./CampaignStats";
+import { GamificationDashboard } from "./GamificationDashboard";
 
 export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
@@ -371,26 +372,49 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         )}
 
         {isOwnProfile && (
-          <button
-            onClick={() => onEditProfile?.()}
-            style={{
-              width: "100%",
-              padding: "10px 20px",
-              border: `1px solid ${T.border}`,
-              background: "#fff",
-              borderRadius: 8,
-              cursor: "pointer",
-              fontSize: 14,
-              fontWeight: 700,
-              color: T.txt,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
+          <>
+            {/* Gamification Dashboard */}
+            <div style={{ 
+              margin: "20px 0",
+              background: T.bg,
+              borderRadius: 16,
+              padding: 16
             }}>
-            <Edit size={16} />
-            Edit Profile
-          </button>
+              <div style={{ 
+                fontSize: 16, 
+                fontWeight: 700, 
+                color: T.txt, 
+                marginBottom: 12,
+                display: "flex",
+                alignItems: "center",
+                gap: 8
+              }}>
+                <span>🎮</span> Gamification Hub
+              </div>
+              <GamificationDashboard userId={userId} theme={T} />
+            </div>
+
+            <button
+              onClick={() => onEditProfile?.()}
+              style={{
+                width: "100%",
+                padding: "10px 20px",
+                border: `1px solid ${T.border}`,
+                background: "#fff",
+                borderRadius: 8,
+                cursor: "pointer",
+                fontSize: 14,
+                fontWeight: 700,
+                color: T.txt,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}>
+              <Edit size={16} />
+              Edit Profile
+            </button>
+          </>
         )}
       </div>
 

@@ -18,6 +18,28 @@ class UserProfile(models.Model):
     streak = models.IntegerField(default=0)
     last_checkin = models.DateTimeField(null=True, blank=True)
     language = models.CharField(max_length=10, default='en')
+    
+    # Gamification - Coins
+    coins = models.IntegerField(default=0, help_text='User coin balance')
+    coins_earned_total = models.IntegerField(default=0, help_text='Total coins earned lifetime')
+    coins_spent_total = models.IntegerField(default=0, help_text='Total coins spent lifetime')
+    
+    # Gamification - Daily Spin
+    last_spin_date = models.DateField(null=True, blank=True, help_text='Last daily spin date')
+    spins_total = models.IntegerField(default=0, help_text='Total spins done')
+    
+    # Gamification - Login Streak
+    login_streak = models.IntegerField(default=0, help_text='Consecutive login days')
+    last_login_date = models.DateField(null=True, blank=True)
+    longest_login_streak = models.IntegerField(default=0)
+    
+    # Gamification - Gifts
+    gifts_sent_today = models.IntegerField(default=0)
+    gifts_received_today = models.IntegerField(default=0)
+    gifts_sent_total = models.IntegerField(default=0)
+    gifts_received_total = models.IntegerField(default=0)
+    last_gift_reset = models.DateField(null=True, blank=True, help_text='Last daily gift counter reset')
+    
     # Privacy settings
     is_private = models.BooleanField(default=False)
     show_activity = models.BooleanField(default=True)

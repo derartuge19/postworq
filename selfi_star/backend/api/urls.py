@@ -132,6 +132,10 @@ from .views_scoring import (
     admin_get_finalists, admin_qualify_finalists, admin_submit_judge_score,
     admin_calculate_final_scores, get_finalists_for_voting, cast_vote, get_user_votes
 )
+from .views_gamification import (
+    get_gamification_status, daily_spin, claim_login_bonus,
+    send_coin_gift, get_gift_history, get_recent_activity, check_in
+)
 from .views_reels import reels_following, reels_saved, reels_trending
 from .views_contest import (
     get_user_subscription, upgrade_subscription, get_coin_packages, get_coin_balance,
@@ -232,7 +236,14 @@ urlpatterns = [
     # Grand Campaign Phase 2 - Public Voting
     path('campaigns/<int:campaign_id>/finalists/voting/', get_finalists_for_voting, name='get-finalists-voting'),
     path('campaigns/<int:campaign_id>/vote/', cast_vote, name='cast-vote'),
-    path('campaigns/<int:campaign_id>/my-votes/', get_user_votes, name='get-user-votes'),
+    # Gamification
+    path('gamification/status/', get_gamification_status, name='gamification-status'),
+    path('gamification/spin/', daily_spin, name='daily-spin'),
+    path('gamification/login-bonus/', claim_login_bonus, name='claim-login-bonus'),
+    path('gamification/gift/', send_coin_gift, name='send-coin-gift'),
+    path('gamification/gifts/history/', get_gift_history, name='gift-history'),
+    path('gamification/activity/', get_recent_activity, name='recent-activity'),
+    path('gamification/checkin/', check_in, name='check-in'),
     
     # Campaign (User)
     path('campaigns/', user_campaigns_list, name='campaigns-list'),
