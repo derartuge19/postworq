@@ -379,21 +379,15 @@ class ReelViewSet(viewsets.ModelViewSet):
                 filename = media_file.name.lower()
                 print(f"[REEL CREATE] File: {media_file.name}, content_type: {content_type}, size: {media_file.size}")
                 
-                # Check if it's a video
-                is_video = (
-                    content_type.startswith('video/') or
-                    filename.endswith(('.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'))
-                )
-                print(f"[REEL CREATE] Detected as video: {is_video}")
-                
-                if is_video:
-                    reel_data['media'] = media_file
-                else:
-                    reel_data['image'] = media_file
+                # ALWAYS use media field (FileField) to avoid ImageField validation issues
+                # The media field accepts any file type including images and videos
+                reel_data['media'] = media_file
+                print(f"[REEL CREATE] Assigned to media field (FileField)")
             
             if image_file:
+                # For explicit image uploads, also use media field to avoid validation
                 print(f"[REEL CREATE] Separate image file: {image_file.name}")
-                reel_data['image'] = image_file
+                reel_data['media'] = image_file
             
             # Create reel directly without serializer file validation
             reel = Reel.objects.create(**reel_data)
