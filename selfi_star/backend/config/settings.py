@@ -78,19 +78,13 @@ if DATABASE_URL:
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
     }
 elif IS_RENDER:
-    # Fallback: Use individual env vars on Render
+    # Neon PostgreSQL - use the exact connection string from Neon dashboard
+    import dj_database_url
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='neondb'),
-            'USER': config('DB_USER', default='neondb_owner'),
-            'PASSWORD': config('DB_PASSWORD', default='npg_gQpuHj7IBoC1'),
-            'HOST': config('DB_HOST', default='ep-rough-math-a0wwqd2n-pooler.us-east-2.aws.neon.tech'),
-            'PORT': config('DB_PORT', default='5432'),
-            'OPTIONS': {
-                'sslmode': 'require',
-            },
-        }
+        'default': dj_database_url.parse(
+            'postgresql://neondb_owner:npg_gQpuHj7IBoC1@ep-rough-math-anwwqd2n-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require',
+            conn_max_age=600
+        )
     }
 else:
     # Local development: SQLite
