@@ -37,7 +37,10 @@ def login(request):
     username = request.data.get('username')
     password = request.data.get('password')
     
+    print(f"[LOGIN] Attempt - username: {username}, has_password: {bool(password)}")
+    
     if not username or not password:
+        print(f"[LOGIN] Missing credentials - username: {bool(username)}, password: {bool(password)}")
         return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
     
     # Try to find user by username or email
@@ -45,20 +48,28 @@ def login(request):
     try:
         # First try username
         user = User.objects.get(username=username)
+        print(f"[LOGIN] Found user by username: {user.username} (id={user.id})")
     except User.DoesNotExist:
         # Then try email
         try:
             user = User.objects.get(email=username)
+            print(f"[LOGIN] Found user by email: {user.username} (id={user.id})")
         except User.DoesNotExist:
+            print(f"[LOGIN] User not found: {username}")
             pass
     
     if user and user.check_password(password):
         token, _ = Token.objects.get_or_create(user=user)
+        print(f"[LOGIN] Success - user: {user.username}, token: {token.key[:8]}...")
         return Response({
             'user': UserSerializer(user).data,
             'token': token.key
         })
     else:
+        if user:
+            print(f"[LOGIN] Password check failed for user: {user.username}")
+        else:
+            print(f"[LOGIN] User not found for: {username}")
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
