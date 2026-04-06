@@ -26,8 +26,8 @@ def clear_broken_reel_media(apps, schema_editor):
     fixed = 0
     for reel in Reel.objects.all():
         changed = False
-        img = reel.image or ''
-        med = reel.media or ''
+        img = str(reel.image) if reel.image else ''
+        med = str(reel.media) if reel.media else ''
         if is_broken(img, BROKEN_PATTERNS):
             reel.image = ''
             changed = True
@@ -45,7 +45,7 @@ def clear_broken_campaign_images(apps, schema_editor):
         Campaign = apps.get_model('api', 'Campaign')
         fixed = 0
         for campaign in Campaign.objects.all():
-            img = campaign.image or ''
+            img = str(campaign.image) if campaign.image else ''
             if is_broken(img, BROKEN_CAMPAIGN_PATTERNS):
                 campaign.image = ''
                 campaign.save()
