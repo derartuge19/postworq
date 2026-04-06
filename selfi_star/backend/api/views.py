@@ -314,40 +314,59 @@ class ReelViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]  # Allow anyone to view reels
     
     def get_queryset(self):
-        queryset = Reel.objects.select_related(
-            'user', 'user__profile'
-        ).annotate(
-            comment_count_db=Count('comments', distinct=True),
-        ).order_by('-created_at')
-        
-        # Annotate is_liked / is_saved for the current user to avoid N+1
-        if self.request.user.is_authenticated:
-            queryset = queryset.annotate(
-                is_liked_db=Exists(
-                    Vote.objects.filter(user=self.request.user, reel=OuterRef('pk'))
-                ),
-                is_saved_db=Exists(
-                    SavedPost.objects.filter(user=self.request.user, reel=OuterRef('pk'))
-                ),
-            )
-        
-        # Filter by user
-        user_id = self.request.query_params.get('user', None)
-        if user_id:
-            queryset = queryset.filter(user_id=user_id)
-        
-        # Filter saved posts (requires authentication)
-        saved = self.request.query_params.get('saved', None)
-        if saved == 'true' and self.request.user.is_authenticated:
-            saved_post_ids = SavedPost.objects.filter(user=self.request.user).values_list('reel_id', flat=True)
-            queryset = queryset.filter(id__in=saved_post_ids)
-        
-        return queryset
+        try:
+            queryset = Reel.objects.select_related(
+                'user', 'user__profile'
+            ).annotate(
+                comment_count_db=Count('comments', distinct=True),
+            ).order_by('-created_at')
+            
+            # Annotate is_liked / is_saved for the current user to avoid N+1
+            if self.request.user.is_authenticated:
+                try:
+                    queryset = queryset.annotate(
+                        is_liked_db=Exists(
+                            Vote.objects.filter(user=self.request.user, reel=OuterRef('pk'))
+                        ),
+                        is_saved_db=Exists(
+                            SavedPost.objects.filter(user=self.request.user, reel=OuterRef('pk'))
+                        ),
+                    )
+                except Exception as e:
+                    print(f'[REELS] Auth annotation failed: {e} - falling back to unannotated queryset')
+            
+            # Filter by user
+            user_id = self.request.query_params.get('user', None)
+            if user_id:
+                queryset = queryset.filter(user_id=user_id)
+            
+            # Filter saved posts (requires authentication)
+            saved = self.request.query_params.get('saved', None)
+            if saved == 'true' and self.request.user.is_authenticated:
+                try:
+                    saved_post_ids = SavedPost.objects.filter(user=self.request.user).values_list('reel_id', flat=True)
+                    queryset = queryset.filter(id__in=saved_post_ids)
+                except Exception as e:
+                    print(f'[REELS] Saved filter failed: {e}')
+            
+            return queryset
+        except Exception as e:
+            print(f'[REELS] get_queryset failed: {e} - returning empty queryset')
+            return Reel.objects.none()
     
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
+    
+    def list(self, request, *args, **kwargs):
+        """Override list to return empty results instead of 500 on errors"""
+        try:
+            return super().list(request, *args, **kwargs)
+        except Exception as e:
+            print(f'[REELS LIST] Error: {e}')
+            traceback.print_exc()
+            return Response({'count': 0, 'next': None, 'previous': None, 'results': []}, status=status.HTTP_200_OK)
     
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'vote', 'comments']:

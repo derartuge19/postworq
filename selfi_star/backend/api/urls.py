@@ -50,16 +50,24 @@ def health_check(request):
 def cleanup_broken_reels(request):
     """Delete reels with no valid media (both image and media are null or empty)"""
     from .models import Reel
+    from django.db.models import Q
     
-    # Find reels with no media
-    broken_reels = Reel.objects.filter(image='', media='') | Reel.objects.filter(image__isnull=True, media__isnull=True)
-    count = broken_reels.count()
-    broken_reels.delete()
-    
-    return Response({
-        'message': f'Deleted {count} reels with no media',
-        'remaining_reels': Reel.objects.count()
-    })
+    try:
+        # Find reels where BOTH image and media are empty/null
+        broken_reels = Reel.objects.filter(
+            Q(image='') | Q(image__isnull=True)
+        ).filter(
+            Q(media='') | Q(media__isnull=True)
+        )
+        count = broken_reels.count()
+        broken_reels.delete()
+        
+        return Response({
+            'message': f'Deleted {count} reels with no media',
+            'remaining_reels': Reel.objects.count()
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
 from .views_extended import CommentViewSet, SavedPostViewSet, ProfilePhotoViewSet
 from .views_admin import (
     admin_dashboard_stats, admin_users_list, admin_user_detail, admin_user_update, 
