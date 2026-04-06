@@ -134,7 +134,8 @@ from .views_scoring import (
 )
 from .views_gamification import (
     get_gamification_status, daily_spin, claim_login_bonus,
-    send_coin_gift, get_gift_history, get_recent_activity, check_in
+    send_coin_gift, get_gift_history, get_recent_activity, check_in,
+    debug_gamification
 )
 from .views_reels import reels_following, reels_saved, reels_trending
 from .views_contest import (
@@ -238,6 +239,7 @@ urlpatterns = [
     path('campaigns/<int:campaign_id>/vote/', cast_vote, name='cast-vote'),
     # Gamification
     path('gamification/status/', get_gamification_status, name='gamification-status'),
+    path('gamification/debug/', debug_gamification, name='gamification-debug'),
     path('gamification/spin/', daily_spin, name='daily-spin'),
     path('gamification/login-bonus/', claim_login_bonus, name='claim-login-bonus'),
     path('gamification/gift/', send_coin_gift, name='send-coin-gift'),

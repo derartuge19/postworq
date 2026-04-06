@@ -14,6 +14,49 @@ from django.contrib.auth.models import User
 from .models import UserProfile
 from .models_campaign_extended import GamificationActivity
 
+
+@api_view(['GET'])
+def debug_gamification(request):
+    """Debug endpoint to check if gamification system is working"""
+    try:
+        # Check if UserProfile model exists and has gamification fields
+        user_count = User.objects.count()
+        profile_count = UserProfile.objects.count()
+        
+        # Test creating a profile
+        test_user = User.objects.first()
+        if test_user:
+            profile, created = UserProfile.objects.get_or_create(user=test_user)
+            
+            return Response({
+                'status': 'success',
+                'debug_info': {
+                    'total_users': user_count,
+                    'total_profiles': profile_count,
+                    'test_user': test_user.username,
+                    'profile_created': created,
+                    'profile_fields': {
+                        'coins': profile.coins,
+                        'login_streak': profile.login_streak,
+                        'last_spin_date': profile.last_spin_date,
+                        'spins_total': profile.spins_total,
+                    },
+                    'has_gamification_fields': True
+                }
+            })
+        else:
+            return Response({
+                'status': 'error',
+                'message': 'No users found in database'
+            })
+            
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Gamification system not working'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 # Spin reward tiers
 SPIN_REWARDS = [
     {'type': 'coins_small', 'amount': 10, 'weight': 40, 'label': '10 Coins', 'emoji': '🪙'},
@@ -39,7 +82,16 @@ DAILY_LOGIN_BONUS = {
 @permission_classes([IsAuthenticated])
 def get_gamification_status(request):
     """Get user's gamification status - coins, streaks, spin availability"""
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    try:
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        if created:
+            print(f"Created new UserProfile for user {request.user.username}")
+    except Exception as e:
+        print(f"Error creating UserProfile for {request.user.username}: {e}")
+        return Response(
+            {'error': 'Failed to create user profile'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     
     today = timezone.now().date()
     

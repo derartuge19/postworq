@@ -69,6 +69,9 @@ export function GamificationDashboard({ userId, theme }) {
       <div style={{ color: theme.red, fontSize: 14, marginBottom: 12 }}>
         {error}
       </div>
+      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 12 }}>
+        Make sure you're logged in and the gamification system is active
+      </div>
       <button 
         onClick={loadStatus}
         style={{
