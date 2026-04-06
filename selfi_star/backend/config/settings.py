@@ -65,7 +65,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DB_ENGINE = config('DB_ENGINE', default='django.db.backends.sqlite3')
+# Auto-detect Render environment (RENDER env var is set automatically by Render)
+IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER', False)
+
+# Use PostgreSQL on Render, SQLite locally (unless DB_ENGINE is explicitly set)
+if IS_RENDER:
+    DB_ENGINE = 'django.db.backends.postgresql'
+else:
+    DB_ENGINE = config('DB_ENGINE', default='django.db.backends.sqlite3')
 
 if DB_ENGINE == 'django.db.backends.sqlite3':
     DATABASES = {
@@ -75,7 +82,8 @@ if DB_ENGINE == 'django.db.backends.sqlite3':
         }
     }
 else:
-    db_host = config('DB_HOST', default='ep-rough-math-anwwqd2n-pooler.c-6.us-east-1.aws.neon.tech')
+    # PostgreSQL / Neon configuration
+    db_host = config('DB_HOST', default='ep-rough-math-anwwqd2n-pooler.us-east-2.aws.neon.tech')
     db_options = {
         'sslmode': config('DB_SSLMODE', default='require'),
     }
