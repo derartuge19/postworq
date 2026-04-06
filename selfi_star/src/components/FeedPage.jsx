@@ -15,52 +15,27 @@ export function FeedPage({ tab }) {
   const loadVideos = async () => {
     setLoading(true);
     try {
-      // Mock videos for now - replace with API call
-      const mockVideos = [
-        {
-          id: 1,
-          creator: "Sarah Creator",
-          handle: "sarahcreator",
-          caption: "Just finished my morning workout! 💪 #fitness #motivation",
-          likes: 1234,
-          comments: 89,
-          shares: 45,
-          image: "https://via.placeholder.com/400x600?text=Video+1",
-        },
-        {
-          id: 2,
-          creator: "Tech Guru",
-          handle: "techguru",
-          caption: "New iPhone 15 Pro Max unboxing! 📱✨",
-          likes: 5678,
-          comments: 234,
-          shares: 123,
-          image: "https://via.placeholder.com/400x600?text=Video+2",
-        },
-        {
-          id: 3,
-          creator: "Cooking with Love",
-          handle: "cookingwithlove",
-          caption: "Easy 5-minute pasta recipe 🍝 #cooking #recipe",
-          likes: 3456,
-          comments: 156,
-          shares: 78,
-          image: "https://via.placeholder.com/400x600?text=Video+3",
-        },
-        {
-          id: 4,
-          creator: "Travel Vlogger",
-          handle: "travelvlogger",
-          caption: "Hidden gem in Bali 🏝️ #travel #bali",
-          likes: 8901,
-          comments: 567,
-          shares: 234,
-          image: "https://via.placeholder.com/400x600?text=Video+4",
-        },
-      ];
-      setVideos(mockVideos);
+      const response = await api.request('/reels/');
+      const reels = response.results || response || [];
+      
+      // Transform reels to match VideoCard expected format
+      const transformedVideos = reels.map(reel => ({
+        id: reel.id,
+        creator: reel.user?.username || reel.user?.first_name || 'User',
+        handle: reel.user?.username || 'user',
+        caption: reel.caption || '',
+        likes: reel.votes || 0,
+        comments: reel.comments_count || 0,
+        shares: 0,
+        image: reel.image,
+        media: reel.media,
+        user: reel.user,
+      }));
+      
+      setVideos(transformedVideos);
     } catch (error) {
       console.error("Error loading videos:", error);
+      setVideos([]);
     } finally {
       setLoading(false);
     }

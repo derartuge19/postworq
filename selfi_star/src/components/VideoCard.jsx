@@ -1,6 +1,13 @@
 import { useState } from "react";
+import config from "../config";
 
 const T = { pri:"#DA9B2A", txt:"#1C1917", sub:"#78716C", bg:"#FAFAF7", dark:"#0C1A12", border:"#E7E5E4", red:"#EF4444" };
+
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${config.API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 export function VideoCard({ video, onLike, onComment, onShare }) {
   const [liked, setLiked] = useState(false);
@@ -33,27 +40,39 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
         position: "relative",
         overflow: "hidden",
       }}>
-        {video?.image ? (
-          <img src={video.image} alt="video" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        {video?.media ? (
+          <video
+            src={mediaUrl(video.media)}
+            controls
+            playsInline
+            autoPlay
+            muted
+            loop
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : video?.image ? (
+          <img src={mediaUrl(video.image)} alt="video" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
           <div style={{ textAlign: "center", color: "#666" }}>
             <div style={{ fontSize: 60, marginBottom: 10 }}>🎬</div>
-            <div>Video coming soon</div>
+            <div>No media available</div>
           </div>
         )}
 
-        {/* Play Button Overlay */}
-        <div style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          fontSize: 60,
-          opacity: 0.7,
-          pointerEvents: "none",
-        }}>
-          ▶️
-        </div>
+        {/* Play Button Overlay - only show for images */}
+        {video?.image && !video?.media && (
+          <div style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            fontSize: 60,
+            opacity: 0.7,
+            pointerEvents: "none",
+          }}>
+            ▶️
+          </div>
+        )}
 
         {/* Creator Info Overlay */}
         <div style={{
