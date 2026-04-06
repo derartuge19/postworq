@@ -68,23 +68,22 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Auto-detect Render environment (RENDER env var is set automatically by Render)
 IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER', False)
 
-# Check for DATABASE_URL first (recommended for Render + Neon)
-DATABASE_URL = config('DATABASE_URL', default='')
-
-if DATABASE_URL:
-    # Parse DATABASE_URL for Neon/PostgreSQL connection
-    import dj_database_url
+# Database configuration
+if IS_RENDER:
+    # Neon PostgreSQL on Render
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
-    }
-elif IS_RENDER:
-    # Neon PostgreSQL - use the exact connection string from Neon dashboard
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.parse(
-            'postgresql://neondb_owner:npg_gQpuHj7IBoC1@ep-rough-math-anwwqd2n-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require',
-            conn_max_age=600
-        )
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'neondb',
+            'USER': 'neondb_owner',
+            'PASSWORD': 'npg_gQpuHj7IBoC1',
+            'HOST': 'ep-rough-math-anwwqd2n-pooler.c-6.us-east-1.aws.neon.tech',
+            'PORT': '5432',
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+            'CONN_MAX_AGE': 600,
+        }
     }
 else:
     # Local development: SQLite
