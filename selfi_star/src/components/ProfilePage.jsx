@@ -7,7 +7,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { TikTokPostViewer } from "./TikTokPostViewer";
 import CampaignStats from "./CampaignStats";
-import { GamificationDashboard } from "./GamificationDashboard";
+import { GamificationBar } from "./GamificationBar";
 
 export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
@@ -373,26 +373,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
 
         {isOwnProfile && (
           <>
-            {/* Gamification Dashboard */}
-            <div style={{ 
-              margin: "20px 0",
-              background: T.bg,
-              borderRadius: 16,
-              padding: 16
-            }}>
-              <div style={{ 
-                fontSize: 16, 
-                fontWeight: 700, 
-                color: T.txt, 
-                marginBottom: 12,
-                display: "flex",
-                alignItems: "center",
-                gap: 8
-              }}>
-                <span>🎮</span> Gamification Hub
-              </div>
-              <GamificationDashboard userId={userId} theme={T} />
-            </div>
+            {/* Mobile-Style Gamification Bar */}
+            <GamificationBar userId={userId} theme={T} />
 
             <button
               onClick={() => onEditProfile?.()}
