@@ -121,12 +121,10 @@ const api = {
     }
 
     if (!response.ok) {
-      // If 401 error and we sent a token, clear it and retry without auth (for public endpoints like /reels/)
-      if (response.status === 401 && headers['Authorization']) {
-        console.warn('⚠️ 401 with token — clearing credentials and retrying without auth');
-        authToken = null;
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+      // If 401 error on a GET request with token, retry without auth (for public endpoints like /reels/)
+      // DON'T clear token for POST/PUT/DELETE requests - those require auth
+      if (response.status === 401 && headers['Authorization'] && isGet) {
+        console.warn('⚠️ 401 on GET with token — retrying without auth (public endpoint)');
         // Retry the same request without the Authorization header
         const retryHeaders = { ...headers };
         delete retryHeaders['Authorization'];
@@ -140,9 +138,17 @@ const api = {
           if (isGet && cacheKey) setCache(cacheKey, retryData);
           return retryData;
         }
-        // If still failing, throw the error
+        // If still failing after retry, NOW clear the token as it's likely invalid
+        console.warn('⚠️ Retry also failed — clearing credentials');
+        authToken = null;
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
         console.error('API Error after retry:', retryResponse.status, retryData);
         throw new Error(JSON.stringify(retryData) || `API Error: ${retryResponse.status}`);
+      }
+      // For non-GET 401 errors, don't auto-clear - let the user know they need to login
+      if (response.status === 401) {
+        console.error('🔒 401 Unauthorized - authentication required');
       }
       console.error('API Error:', response.status, data);
       throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
