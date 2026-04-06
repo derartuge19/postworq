@@ -13,6 +13,16 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
   const [liked, setLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
 
+  console.log('[VideoCard] Rendering video:', {
+    id: video?.id,
+    hasImage: !!video?.image,
+    hasMedia: !!video?.media,
+    imageUrl: video?.image,
+    mediaUrl: video?.media,
+    imageProcessed: mediaUrl(video?.image),
+    mediaProcessed: mediaUrl(video?.media)
+  });
+
   const handleLike = () => {
     setLiked(!liked);
     onLike?.();

@@ -15,26 +15,39 @@ export function FeedPage({ tab }) {
   const loadVideos = async () => {
     setLoading(true);
     try {
+      console.log('[FEED] Loading reels from API...');
       const response = await api.request('/reels/');
+      console.log('[FEED] API response:', response);
+      
       const reels = response.results || response || [];
+      console.log('[FEED] Reels count:', reels.length);
       
       // Transform reels to match VideoCard expected format
-      const transformedVideos = reels.map(reel => ({
-        id: reel.id,
-        creator: reel.user?.username || reel.user?.first_name || 'User',
-        handle: reel.user?.username || 'user',
-        caption: reel.caption || '',
-        likes: reel.votes || 0,
-        comments: reel.comments_count || 0,
-        shares: 0,
-        image: reel.image,
-        media: reel.media,
-        user: reel.user,
-      }));
+      const transformedVideos = reels.map(reel => {
+        console.log('[FEED] Reel:', {
+          id: reel.id,
+          image: reel.image,
+          media: reel.media,
+          user: reel.user?.username
+        });
+        return {
+          id: reel.id,
+          creator: reel.user?.username || reel.user?.first_name || 'User',
+          handle: reel.user?.username || 'user',
+          caption: reel.caption || '',
+          likes: reel.votes || 0,
+          comments: reel.comments_count || 0,
+          shares: 0,
+          image: reel.image,
+          media: reel.media,
+          user: reel.user,
+        };
+      });
       
+      console.log('[FEED] Transformed videos:', transformedVideos);
       setVideos(transformedVideos);
     } catch (error) {
-      console.error("Error loading videos:", error);
+      console.error("[FEED] Error loading videos:", error);
       setVideos([]);
     } finally {
       setLoading(false);
