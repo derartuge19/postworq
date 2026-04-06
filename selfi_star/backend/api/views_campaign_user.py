@@ -281,8 +281,21 @@ def get_campaign_feed(request, campaign_id):
         # Check if current user liked
         user_liked = Vote.objects.filter(reel=post.reel, user=request.user).exists() if request.user.is_authenticated else False
         
-        image_url = post.reel.image.url if post.reel.image else None
-        media_url = post.reel.media.url if post.reel.media else None
+        def _abs_url(field):
+            if not field or not field.name:
+                return None
+            try:
+                url = field.url
+                if not url:
+                    return None
+                if url.startswith('http'):
+                    return url
+                return request.build_absolute_uri(url)
+            except Exception:
+                return None
+
+        image_url = _abs_url(post.reel.image)
+        media_url = _abs_url(post.reel.media)
         
         print(f"[CAMPAIGN FEED] Post {post.id}: image={image_url}, media={media_url}, user={post.user.username}")
         

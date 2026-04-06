@@ -67,22 +67,24 @@ class ReelSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'votes', 'comment_count', 'created_at', 'is_liked', 'is_saved']
     
     def _build_url(self, field, request):
-        """Build absolute URL for a file field, handling legacy Cloudinary IDs."""
+        """Build absolute URL for a file field."""
         if not field or not field.name:
             return None
-        name = field.name
-        # Detect legacy Cloudinary public_id (no file extension)
-        import os
-        _, ext = os.path.splitext(name)
-        if not ext:
-            return None  # Cloudinary ID without Cloudinary configured — skip
         try:
             url = field.url
         except Exception:
             return None
+        if not url:
+            return None
+        # Already absolute (Cloudinary, S3, etc.)
+        if url.startswith('http'):
+            return url
+        # Relative — make absolute using request or settings
         if request:
             return request.build_absolute_uri(url)
-        return url
+        from django.conf import settings
+        base = getattr(settings, 'BACKEND_URL', 'https://postworq.onrender.com')
+        return f"{base}{url}"
 
     def get_image(self, obj):
         return self._build_url(obj.image, self.context.get('request'))

@@ -33,7 +33,7 @@ if (!document.head.querySelector('style[data-campaigns]')) {
 export function CampaignsPage({ theme, onCampaignClick, onBack }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('active');
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     loadCampaigns();
@@ -143,6 +143,7 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
         marginBottom: 28,
       }}>
           {[
+            { id: 'all', label: 'All', icon: Trophy, color: '#DA9B2A' },
             { id: 'active', label: 'Active Now', icon: Trophy, color: theme.green },
             { id: 'voting', label: 'Voting Open', icon: Award, color: theme.blue },
             { id: 'upcoming', label: 'Coming Soon', icon: Clock, color: theme.orange },

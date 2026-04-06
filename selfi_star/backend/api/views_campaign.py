@@ -13,14 +13,18 @@ from .models import Reel, Follow
 from .models_campaign_extended import CampaignTheme, PostScore, UserCampaignStats
 
 def get_image_url(image_field, request=None):
-    """Get absolute image URL"""
+    """Get absolute image URL - handles both local files and Cloudinary URLs"""
     if not image_field:
         return None
     try:
         url = image_field.url
+        if not url:
+            return None
+        if url.startswith('http'):
+            return url  # Already absolute (Cloudinary, S3, etc.)
         if request:
             return request.build_absolute_uri(url)
-        return url
+        return f"https://postworq.onrender.com{url}"
     except:
         return None
 
@@ -277,23 +281,21 @@ def user_campaigns_list(request):
     now = timezone.now()
     
     # Get status filter from query params
-    status_filter = request.GET.get('status', 'active')
+    status_filter = request.GET.get('status', 'all')
     
     if status_filter == 'active':
-        # Show all active campaigns, including upcoming ones (users can see and prepare)
         campaigns = Campaign.objects.filter(status='active').order_by('-created_at')
     elif status_filter == 'voting':
         campaigns = Campaign.objects.filter(status='voting').order_by('-created_at')
     elif status_filter == 'upcoming':
-        # Show draft campaigns with future start dates
         campaigns = Campaign.objects.filter(status='draft', start_date__gt=now).order_by('start_date')
     elif status_filter == 'completed':
         campaigns = Campaign.objects.filter(status='completed').order_by('-voting_end')
+    elif status_filter == 'draft':
+        campaigns = Campaign.objects.filter(status='draft').order_by('-created_at')
     else:
-        # Default: show all active and voting campaigns
-        campaigns = Campaign.objects.filter(
-            Q(status='active') | Q(status='voting')
-        ).order_by('-created_at')
+        # 'all' or any unknown value — show everything except cancelled
+        campaigns = Campaign.objects.exclude(status='cancelled').order_by('-created_at')
     
     # Check if user is authenticated
     is_authenticated = request.user and request.user.is_authenticated
