@@ -355,51 +355,59 @@ class ReelViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
     
     def create(self, request, *args, **kwargs):
-        """Override create to add error handling and logging"""
+        """Override create to handle file uploads directly, bypassing serializer file validation"""
         print(f"[REEL CREATE] Starting - User: {request.user}, Auth: {request.user.is_authenticated}")
         print(f"[REEL CREATE] Files received: {list(request.FILES.keys())}")
         print(f"[REEL CREATE] Data received: {dict(request.data)}")
+        
         try:
-            response = super().create(request, *args, **kwargs)
-            print(f"[REEL CREATE] Success - Response: {response.data}")
-            return response
+            # Get file from request
+            media_file = request.FILES.get('media') or request.FILES.get('file')
+            image_file = request.FILES.get('image')
+            caption = request.data.get('caption', '')
+            hashtags = request.data.get('hashtags', '')
+            
+            # Determine file type
+            reel_data = {
+                'user': request.user,
+                'caption': caption,
+                'hashtags': hashtags,
+            }
+            
+            if media_file:
+                content_type = getattr(media_file, 'content_type', '')
+                filename = media_file.name.lower()
+                print(f"[REEL CREATE] File: {media_file.name}, content_type: {content_type}, size: {media_file.size}")
+                
+                # Check if it's a video
+                is_video = (
+                    content_type.startswith('video/') or
+                    filename.endswith(('.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'))
+                )
+                print(f"[REEL CREATE] Detected as video: {is_video}")
+                
+                if is_video:
+                    reel_data['media'] = media_file
+                else:
+                    reel_data['image'] = media_file
+            
+            if image_file:
+                print(f"[REEL CREATE] Separate image file: {image_file.name}")
+                reel_data['image'] = image_file
+            
+            # Create reel directly without serializer file validation
+            reel = Reel.objects.create(**reel_data)
+            print(f"[REEL CREATE] Success! Reel ID: {reel.id}")
+            
+            # Serialize for response
+            serializer = self.get_serializer(reel)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
         except Exception as e:
             print(f"[REEL CREATE] ERROR: {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    def perform_create(self, serializer):
-        print(f"[REEL CREATE] User: {self.request.user}, Files: {list(self.request.FILES.keys())}")
-        media_file = self.request.FILES.get('media') or self.request.FILES.get('file')
-        image_file = self.request.FILES.get('image')
-        kwargs = {'user': self.request.user}
-        
-        if media_file:
-            print(f"[REEL CREATE] Media file: {media_file.name}, type: {getattr(media_file, 'content_type', 'unknown')}, size: {media_file.size}")
-            # Detect if it's a video or image
-            is_video = (
-                getattr(media_file, 'content_type', '').startswith('video/') or
-                media_file.name.lower().endswith(('.mp4', '.webm', '.mov', '.avi'))
-            )
-            print(f"[REEL CREATE] Detected as video: {is_video}")
-            if is_video:
-                kwargs['media'] = media_file
-            else:
-                kwargs['image'] = media_file
-        else:
-            print("[REEL CREATE] No media file received!")
-            
-        if image_file:
-            print(f"[REEL CREATE] Image file: {image_file.name}")
-            kwargs['image'] = image_file
-            
-        try:
-            reel = serializer.save(**kwargs)
-            print(f"[REEL CREATE] Success! Reel ID: {reel.id}, image: {reel.image.name if reel.image else None}, media: {reel.media.name if reel.media else None}")
-        except Exception as e:
-            print(f"[REEL CREATE] Error: {e}")
-            raise
     
     @action(detail=True, methods=['post'])
     def vote(self, request, pk=None):
