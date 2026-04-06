@@ -354,6 +354,21 @@ class ReelViewSet(viewsets.ModelViewSet):
             self.permission_classes = [IsAuthenticated]  # Require auth for modifying operations
         return super().get_permissions()
     
+    def create(self, request, *args, **kwargs):
+        """Override create to add error handling and logging"""
+        print(f"[REEL CREATE] Starting - User: {request.user}, Auth: {request.user.is_authenticated}")
+        print(f"[REEL CREATE] Files received: {list(request.FILES.keys())}")
+        print(f"[REEL CREATE] Data received: {dict(request.data)}")
+        try:
+            response = super().create(request, *args, **kwargs)
+            print(f"[REEL CREATE] Success - Response: {response.data}")
+            return response
+        except Exception as e:
+            print(f"[REEL CREATE] ERROR: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     def perform_create(self, serializer):
         print(f"[REEL CREATE] User: {self.request.user}, Files: {list(self.request.FILES.keys())}")
         media_file = self.request.FILES.get('media') or self.request.FILES.get('file')
