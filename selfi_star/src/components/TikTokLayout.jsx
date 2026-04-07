@@ -77,7 +77,7 @@ export function TikTokLayout({
   const [playingVideos, setPlayingVideos] = useState({});
   const [showPauseIcon, setShowPauseIcon] = useState({});
   const [isMobile, setIsMobile] = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const [likeAnimations, setLikeAnimations] = useState({});
   const [doubleTapLike, setDoubleTapLike] = useState({});
   const [alertModal, setAlertModal] = useState({
@@ -301,12 +301,10 @@ export function TikTokLayout({
   };
 
   const toggleAudio = () => {
-    setAudioEnabled(!audioEnabled);
-    // Update all video elements
+    const next = !audioEnabled;
+    setAudioEnabled(next);
     Object.values(videoRefs.current).forEach(video => {
-      if (video) {
-        video.muted = audioEnabled;
-      }
+      if (video) video.muted = !next;
     });
   };
 
@@ -904,7 +902,7 @@ export function TikTokLayout({
                           autoPlay
                           loop
                           playsInline
-                          muted
+                          muted={!audioEnabled}
                           onLoadedData={(e) => {
                             e.target.play().catch(() => {});
                           }}
