@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import api from '../api';
 
 /* ─── CONSTANTS ─────────────────────────────── */
@@ -19,11 +21,12 @@ function Modal({ onClose, children }) {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, []);
-  return (
+  return createPortal(
     <div onClick={onClose} style={{
-      position:'fixed',inset:0,background:'rgba(0,0,0,.6)',
+      position:'fixed',top:0,left:0,right:0,bottom:0,
+      background:'rgba(0,0,0,.6)',
       display:'flex',alignItems:'flex-end',justifyContent:'center',
-      zIndex:9999,backdropFilter:'blur(4px)'
+      zIndex:99999,
     }}>
       <div onClick={e=>e.stopPropagation()} style={{
         background:'#fff',borderRadius:'24px 24px 0 0',
@@ -31,11 +34,11 @@ function Modal({ onClose, children }) {
         overflowY:'auto',padding:'8px 0 32px',
         boxShadow:'0 -8px 40px rgba(0,0,0,.25)'
       }}>
-        {/* drag handle */}
         <div style={{width:40,height:4,background:'#E7E5E4',borderRadius:4,margin:'12px auto 0'}}/>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -438,14 +441,21 @@ export function GamificationBar({ userId, theme }) {
     } catch { /* ignore */ }
   };
 
+  const { coins={}, spin={}, login_streak={}, gifts={} } = status || {};
+
   if (loading) return (
-    <div style={{padding:'16px',textAlign:'center',color:pri,fontWeight:600,fontSize:13}}>
-      🎮 Loading…
+    <div style={{display:'flex',justifyContent:'space-around',padding:'12px 0',
+      background:'linear-gradient(135deg,#FFF8F0 0%,#FFFFFF 100%)',
+      borderTop:`1px solid ${pri}20`,borderBottom:`1px solid ${pri}20`}}>
+      {['🪙','🔥','🎰','🎁'].map(e=>(
+        <div key={e} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'8px 16px'}}>
+          <div style={{width:52,height:52,borderRadius:'50%',background:'#F5F5F4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>{e}</div>
+          <div style={{width:24,height:8,background:'#F5F5F4',borderRadius:4,marginTop:2}}/>
+          <div style={{width:32,height:6,background:'#F5F5F4',borderRadius:4}}/>
+        </div>
+      ))}
     </div>
   );
-  if (!status) return null;
-
-  const { coins, spin, login_streak, gifts } = status;
   const hasBonus = login_streak?.bonus_available;
   const canSpin  = spin?.can_spin;
 
