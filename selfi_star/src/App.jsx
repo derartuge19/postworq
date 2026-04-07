@@ -261,6 +261,10 @@ export default function WerqRoot() {
   };
 
   const handleShowProfile = (userId = null) => {
+    if (!authUser) {
+      setShowLogin(true);
+      return;
+    }
     setProfileUserId(userId);
     setShowProfile(true);
     setShowPostPage(false);
@@ -320,6 +324,10 @@ export default function WerqRoot() {
   };
 
   const handleShowCampaigns = () => {
+    if (!authUser) {
+      setShowLogin(true);
+      return;
+    }
     setShowCampaigns(true);
     setShowProfile(false);
     setShowPostPage(false);

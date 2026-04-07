@@ -653,8 +653,8 @@ export function TikTokLayout({
           ...(isMobile ? { scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch' } : {}),
         }}
       >
-        {/* Feed Header */}
-        <div
+        {/* Feed Header - desktop only; hiding on mobile fixes scroll-snap offset */}
+        {!isMobile && <div
           style={{
             width: '100%',
             maxWidth: 600,
@@ -689,7 +689,7 @@ export function TikTokLayout({
               }}
             />
           )}
-        </div>
+        </div>}
 
         {/* Messages/Inbox Tab */}
         {activeTab === 'inbox' ? (
@@ -1210,9 +1210,16 @@ export function TikTokLayout({
                       }}
                     >
                       <span
+                        onClick={() => {
+                          if (!user) { onRequireAuth(); return; }
+                          onShowProfile?.(video.user?.id);
+                        }}
                         style={{
                           fontSize: 16,
                           fontWeight: 700,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          textDecorationColor: 'rgba(255,255,255,0.5)',
                         }}
                       >
                         {video.creator}
