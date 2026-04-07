@@ -99,7 +99,7 @@ from .views_admin import (
     admin_dashboard_stats, admin_users_list, admin_user_detail, admin_user_update, 
     admin_user_delete, admin_reels_list, admin_reel_delete, admin_reel_boost, 
     admin_subscription_upgrade, admin_comments_list, admin_comment_delete, 
-    admin_analytics_export
+    admin_analytics_export, admin_wipe_all_posts
 )
 from .views_settings import (
     get_platform_settings, update_platform_settings, get_api_keys, create_api_key,
@@ -191,6 +191,7 @@ urlpatterns = [
     path('admin/comments/', admin_comments_list, name='admin-comments-list'),
     path('admin/comments/<int:comment_id>/delete/', admin_comment_delete, name='admin-comment-delete'),
     path('admin/analytics/export/', admin_analytics_export, name='admin-analytics-export'),
+    path('admin/wipe-all-posts/', admin_wipe_all_posts, name='admin-wipe-all-posts'),
     # Settings & Configuration
     path('admin/settings/', get_platform_settings, name='admin-settings'),
     path('admin/settings/update/', update_platform_settings, name='admin-settings-update'),

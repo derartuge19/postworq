@@ -419,3 +419,25 @@ def admin_analytics_export(request):
         return Response(list(reels))
     
     return Response({'error': 'Invalid export type'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def admin_wipe_all_posts(request):
+    """Wipe all reels/posts and related data (comments, votes, saves, campaign entries)."""
+    from .models import CommentLike, CommentReply
+    from .models_campaign import CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
+    
+    results = {}
+    results['campaign_votes'] = CampaignVote.objects.all().delete()[0]
+    results['campaign_winners'] = CampaignWinner.objects.all().delete()[0]
+    results['campaign_notifications'] = CampaignNotification.objects.all().delete()[0]
+    results['campaign_entries'] = CampaignEntry.objects.all().delete()[0]
+    results['comment_likes'] = CommentLike.objects.all().delete()[0]
+    results['comment_replies'] = CommentReply.objects.all().delete()[0]
+    results['comments'] = Comment.objects.all().delete()[0]
+    results['saved_posts'] = SavedPost.objects.all().delete()[0]
+    results['votes'] = Vote.objects.all().delete()[0]
+    results['reels'] = Reel.objects.all().delete()[0]
+    
+    return Response({'message': 'All posts wiped!', 'deleted': results})
