@@ -1,29 +1,37 @@
-from django.db import migrations
+from django.db import migrations, connection
 
 
 def wipe_all_posts(apps, schema_editor):
-    """One-time data migration: delete all reels/posts and related data."""
-    CampaignVote = apps.get_model('api', 'CampaignVote')
-    CampaignWinner = apps.get_model('api', 'CampaignWinner')
-    CampaignNotification = apps.get_model('api', 'CampaignNotification')
-    CampaignEntry = apps.get_model('api', 'CampaignEntry')
-    CommentLike = apps.get_model('api', 'CommentLike')
-    CommentReply = apps.get_model('api', 'CommentReply')
-    Comment = apps.get_model('api', 'Comment')
-    SavedPost = apps.get_model('api', 'SavedPost')
-    Vote = apps.get_model('api', 'Vote')
-    Reel = apps.get_model('api', 'Reel')
-
-    CampaignVote.objects.all().delete()
-    CampaignWinner.objects.all().delete()
-    CampaignNotification.objects.all().delete()
-    CampaignEntry.objects.all().delete()
-    CommentLike.objects.all().delete()
-    CommentReply.objects.all().delete()
-    Comment.objects.all().delete()
-    SavedPost.objects.all().delete()
-    Vote.objects.all().delete()
-    Reel.objects.all().delete()
+    """One-time data migration: delete all reels/posts and related data using raw SQL."""
+    tables_to_wipe = [
+        'api_campaignvote',
+        'api_campaignwinner',
+        'api_campaignnotification',
+        'api_campaignentry',
+        'api_commentlike',
+        'api_commentreply',
+        'api_comment',
+        'api_savedpost',
+        'api_vote',
+        # Tables from contest models that may or may not exist
+        'contest_post_scores',
+        'contest_judge_scores',
+        'contest_finalist',
+        'contest_boost',
+        'contest_gift',
+        # Finally the reels
+        'api_reel',
+    ]
+    existing = set(connection.introspection.table_names())
+    with connection.cursor() as cursor:
+        # Use TRUNCATE CASCADE on api_reel — Postgres will auto-cascade
+        # to ALL tables that reference it, even ones we didn't list
+        if 'api_reel' in existing:
+            cursor.execute('TRUNCATE TABLE "api_reel" CASCADE')
+        # Clean up any remaining child-only data
+        for table in tables_to_wipe:
+            if table in existing and table != 'api_reel':
+                cursor.execute(f'TRUNCATE TABLE "{table}" CASCADE')
 
 
 class Migration(migrations.Migration):
