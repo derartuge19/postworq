@@ -505,6 +505,17 @@ class ReelViewSet(viewsets.ModelViewSet):
                 )
             
             print(f"[REEL DELETE] Deleting reel {reel.id}...")
+            
+            # Explicitly delete related PostScore if exists (to avoid cascade issues)
+            try:
+                from .models_campaign_extended import PostScore
+                if hasattr(reel, 'campaign_score'):
+                    print(f"[REEL DELETE] Deleting related PostScore...")
+                    reel.campaign_score.delete()
+            except Exception as score_err:
+                print(f"[REEL DELETE] PostScore deletion warning: {score_err}")
+            
+            # Now delete the reel (cascade will handle comments, votes, etc.)
             reel.delete()
             print(f"[REEL DELETE] Successfully deleted reel {reel.id}")
             return Response(status=status.HTTP_204_NO_CONTENT)
