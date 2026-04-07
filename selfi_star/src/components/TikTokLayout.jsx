@@ -67,8 +67,24 @@ export function TikTokLayout({
     }
   }, [propActiveTab]);
 
-  const [videos, setVideos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // ── Feed cache helpers (stale-while-revalidate) ──────────────────────────
+  const CACHE_KEY = (tab) => `feed_cache_${tab}`;
+  const CACHE_TTL = 5 * 60 * 1000; // 5 min
+  const readFeedCache = (tab) => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY(tab));
+      if (!raw) return null;
+      const { ts, data } = JSON.parse(raw);
+      if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem(CACHE_KEY(tab)); return null; }
+      return data;
+    } catch { return null; }
+  };
+  const writeFeedCache = (tab, data) => {
+    try { localStorage.setItem(CACHE_KEY(tab), JSON.stringify({ ts: Date.now(), data })); } catch {}
+  };
+
+  const [videos, setVideos] = useState(() => readFeedCache('foryou') || []);
+  const [loading, setLoading] = useState(() => !(readFeedCache('foryou')?.length > 0));
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
@@ -77,7 +93,7 @@ export function TikTokLayout({
   const [showComments, setShowComments] = useState(null);
   const [playingVideos, setPlayingVideos] = useState({});
   const [showPauseIcon, setShowPauseIcon] = useState({});
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [likeAnimations, setLikeAnimations] = useState({});
   const [doubleTapLike, setDoubleTapLike] = useState({});
@@ -113,10 +129,21 @@ export function TikTokLayout({
 
   // Fetch videos based on active tab with pagination
   const fetchVideos = async (pageNum = 1, append = false) => {
+    const isFirst = pageNum === 1 && !append;
+
     if (append) {
       setLoadingMore(true);
     } else {
-      setLoading(true);
+      // Show cached data immediately so LCP fires without waiting for API
+      if (isFirst) {
+        const cached = readFeedCache(activeTab);
+        if (cached?.length > 0) {
+          setVideos(cached);
+          setLoading(false); // content visible instantly
+        } else {
+          setLoading(true);
+        }
+      }
     }
     
     try {
@@ -185,12 +212,17 @@ export function TikTokLayout({
         setVideos(prev => [...prev, ...formattedVideos]);
       } else {
         setVideos(formattedVideos);
+        // Persist fresh data so next load is instant (stale-while-revalidate)
+        if (formattedVideos.length > 0) {
+          writeFeedCache(activeTab, formattedVideos);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch videos:', error);
-      // Don't use fallback data - show error instead
+      // Keep cached data visible if API fails - don't blank the screen
       if (!append) {
-        setVideos([]);
+        const cached = readFeedCache(activeTab);
+        if (!cached?.length) setVideos([]);
       }
     } finally {
       if (append) {

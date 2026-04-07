@@ -1,7 +1,8 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { AppShell } from './components/AppShell';
-import { TikTokLayout } from './components/TikTokLayout';
 import api from './api';
+
+const TikTokLayout = lazy(() => import('./components/TikTokLayout').then(m => ({ default: m.TikTokLayout })));
 
 // Lazy load ALL non-critical components for smaller initial bundle
 const ModernLoginScreen = lazy(() => import('./components/ModernLoginScreen').then(m => ({ default: m.ModernLoginScreen })));
@@ -23,6 +24,7 @@ const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.A
 
 // Prefetch all lazy chunks after initial load so navigation is instant
 const prefetchComponents = () => {
+  import('./components/TikTokLayout');
   import('./components/ProfilePage');
   import('./components/EditProfilePage');
   import('./components/SettingsPage');
@@ -637,18 +639,22 @@ export default function WerqRoot() {
           </LazyLoadErrorBoundary>
         )}
         {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && (
-          <TikTokLayout
-            user={authUser}
-            activeTab={activeTab}
-            onLogout={handleLogout}
-            onRequireAuth={handleRequireAuth}
-            onShowPostPage={handleShowPostPage}
-            onShowProfile={handleShowProfile}
-            onShowSettings={handleShowSettings}
-            onShowNotifications={handleShowNotifications}
-            onShowVideoDetail={handleShowVideoDetail}
-            onShowExplorer={handleShowExplorer}
-          />
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={null}>
+              <TikTokLayout
+                user={authUser}
+                activeTab={activeTab}
+                onLogout={handleLogout}
+                onRequireAuth={handleRequireAuth}
+                onShowPostPage={handleShowPostPage}
+                onShowProfile={handleShowProfile}
+                onShowSettings={handleShowSettings}
+                onShowNotifications={handleShowNotifications}
+                onShowVideoDetail={handleShowVideoDetail}
+                onShowExplorer={handleShowExplorer}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
         )}
       </AppShell>
       {showLogin && (
