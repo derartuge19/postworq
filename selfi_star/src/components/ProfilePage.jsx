@@ -496,10 +496,23 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               overflow: "hidden",
             }}
             onClick={() => setSelectedPost(post)}
+            onMouseEnter={(e) => {
+              if (isOwnProfile && window.innerWidth > 768) {
+                const btn = e.currentTarget.querySelector('.post-menu-btn');
+                if (btn) btn.style.opacity = '1';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (isOwnProfile && window.innerWidth > 768) {
+                const btn = e.currentTarget.querySelector('.post-menu-btn');
+                if (btn) btn.style.opacity = '0';
+              }
+            }}
           >
-            {/* Three-dot menu - always visible on mobile, own profile only */}
+            {/* Three-dot menu - hover on desktop, always visible on mobile */}
             {isOwnProfile && (
               <button
+                className="post-menu-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   setPostMenuId(postMenuId === post.id ? null : post.id);
@@ -519,6 +532,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   justifyContent: "center",
                   color: "#fff",
                   zIndex: 10,
+                  opacity: window.innerWidth <= 768 ? 1 : 0,
+                  transition: "opacity 0.2s",
                 }}
               >
                 <MoreVertical size={13} />
