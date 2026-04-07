@@ -112,7 +112,7 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
             {notifications.some(n => !n.read) && (
               <button
                 onClick={() => {
-                  api.request('/notifications/mark-all-read/', { method: 'POST' }).catch(() => {});
+                  api.request('/notifications/read/', { method: 'POST', body: JSON.stringify({}) }).catch(() => {});
                   setNotifications(prev => prev.map(n => ({ ...n, read: true })));
                 }}
                 style={{
