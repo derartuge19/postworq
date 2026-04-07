@@ -490,30 +490,43 @@ class ReelViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """Delete a reel - only owner can delete"""
         try:
+            print(f"[REEL DELETE] Request from user: {request.user}, authenticated: {request.user.is_authenticated}")
+            print(f"[REEL DELETE] PK: {kwargs.get('pk')}")
+            
             reel = self.get_object()
+            print(f"[REEL DELETE] Reel found: ID={reel.id}, owner={reel.user.username}")
             
             # Check ownership
             if reel.user != request.user:
+                print(f"[REEL DELETE] Permission denied: reel.user={reel.user.id}, request.user={request.user.id}")
                 return Response(
                     {'error': 'You can only delete your own posts'},
                     status=status.HTTP_403_FORBIDDEN
                 )
             
+            print(f"[REEL DELETE] Deleting reel {reel.id}...")
             reel.delete()
+            print(f"[REEL DELETE] Successfully deleted reel {reel.id}")
             return Response(status=status.HTTP_204_NO_CONTENT)
             
         except Exception as e:
             print(f"[REEL DELETE] Error: {type(e).__name__}: {e}")
             traceback.print_exc()
             return Response(
-                {'error': str(e)},
+                {'error': str(e), 'type': type(e).__name__},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     def partial_update(self, request, *args, **kwargs):
         """Update a reel (caption, hashtags, and/or media) - only owner can update"""
         try:
+            print(f"[REEL UPDATE] Request from user: {request.user}, authenticated: {request.user.is_authenticated}")
+            print(f"[REEL UPDATE] PK: {kwargs.get('pk')}")
+            print(f"[REEL UPDATE] Data: {request.data}")
+            print(f"[REEL UPDATE] Files: {list(request.FILES.keys())}")
+            
             reel = self.get_object()
+            print(f"[REEL UPDATE] Reel found: ID={reel.id}, owner={reel.user.username}")
             
             # Check ownership
             if reel.user != request.user:
