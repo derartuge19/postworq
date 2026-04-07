@@ -45,20 +45,67 @@ export function EnhancedPostPage({ user, onBack }) {
   
   // Refs
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const animFrameRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const timerRef = useRef(null);
   const chunksRef = useRef([]);
+  // Stable ref so rAF loop never captures stale filter/facingMode
+  const liveRef = useRef({ filter: 'none', facingMode: 'user' });
 
-  // Start camera
+  // Keep liveRef in sync so the rAF loop never captures stale values
+  useEffect(() => { liveRef.current.filter = selectedFilter; }, [selectedFilter]);
+  useEffect(() => { liveRef.current.facingMode = facingMode; }, [facingMode]);
+
+  // Canvas draw loop — renders filtered frames from hidden <video> into visible <canvas>
+  const startDrawLoop = () => {
+    const draw = () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas) {
+        animFrameRef.current = requestAnimationFrame(draw);
+        return;
+      }
+      if (video.readyState >= 2 && video.videoWidth > 0) {
+        if (canvas.width !== video.videoWidth) canvas.width = video.videoWidth;
+        if (canvas.height !== video.videoHeight) canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.save();
+        const filterStr = FILTERS.find(f => f.id === liveRef.current.filter)?.filter || 'none';
+        ctx.filter = filterStr;
+        if (liveRef.current.facingMode === 'user') {
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+      }
+      animFrameRef.current = requestAnimationFrame(draw);
+    };
+    animFrameRef.current = requestAnimationFrame(draw);
+  };
+
+  const stopDrawLoop = () => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+  };
+
+  // Start camera — stream goes to hidden <video>, draw loop renders filtered frames to <canvas>
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode },
-        audio: true
+        video: { facingMode, width: { ideal: 1080 }, height: { ideal: 1920 } },
+        audio: true,
       });
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current.play();
+          startDrawLoop();
+        };
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -68,6 +115,7 @@ export function EnhancedPostPage({ user, onBack }) {
 
   // Stop camera
   const stopCamera = () => {
+    stopDrawLoop();
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
@@ -80,20 +128,10 @@ export function EnhancedPostPage({ user, onBack }) {
     setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
   };
 
-  // Capture photo from camera stream
+  // Capture photo — canvas already has the filtered frame baked in
   const capturePhoto = () => {
-    if (!videoRef.current || !stream) return;
-    const video = videoRef.current;
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    // Mirror if front camera
-    if (facingMode === 'user') {
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-    }
-    ctx.drawImage(video, 0, 0);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     canvas.toBlob((blob) => {
       if (blob) {
         const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
@@ -106,75 +144,54 @@ export function EnhancedPostPage({ user, onBack }) {
     }, 'image/jpeg', 0.92);
   };
 
-  // Start recording
+  // Start recording — record from canvas stream (filtered) + audio from original stream
   const startRecording = () => {
-    if (!stream) return;
-    
-    // Clear previous chunks
+    if (!stream || !canvasRef.current) return;
+
     chunksRef.current = [];
-    
-    const mediaRecorder = new MediaRecorder(stream, {
-      mimeType: 'video/webm;codecs=vp8,opus'
-    });
-    
+
+    // Capture filtered canvas at 30fps
+    const canvasStream = canvasRef.current.captureStream(30);
+
+    // Add audio tracks from original camera stream
+    stream.getAudioTracks().forEach(track => canvasStream.addTrack(track));
+
+    // Pick best supported mime type
+    const mimeType = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+    ].find(t => MediaRecorder.isTypeSupported(t)) || '';
+
+    const mediaRecorder = new MediaRecorder(canvasStream, mimeType ? { mimeType } : {});
     mediaRecorderRef.current = mediaRecorder;
-    
+
     mediaRecorder.ondataavailable = (event) => {
-      console.log('📹 Data available:', event.data.size, 'bytes');
-      if (event.data && event.data.size > 0) {
-        chunksRef.current.push(event.data);
-        console.log('📦 Total chunks collected:', chunksRef.current.length);
-      }
+      if (event.data && event.data.size > 0) chunksRef.current.push(event.data);
     };
-    
+
     mediaRecorder.onstop = () => {
-      console.log('🛑 Recording stopped. Total chunks:', chunksRef.current.length);
-      
       if (chunksRef.current.length === 0) {
-        console.error('❌ No chunks recorded!');
         alert('Recording failed. Please try again.');
         return;
       }
-      
       const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-      console.log('📦 Blob created, size:', blob.size, 'bytes');
-      
       if (blob.size === 0) {
-        console.error('❌ Blob is empty!');
-        alert('Recording failed - empty video. Please try again.');
+        alert('Recording failed — empty video. Please try again.');
         return;
       }
-      
       const file = new File([blob], `recorded-${Date.now()}.webm`, { type: 'video/webm' });
-      
-      console.log('✅ Recording complete:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        chunks: chunksRef.current.length
-      });
-      
       setSelectedFile(file);
-      
-      const url = URL.createObjectURL(blob);
-      setPreview(url);
+      setPreview(URL.createObjectURL(blob));
       setActiveTab('upload');
     };
-    
-    mediaRecorder.onerror = (event) => {
-      console.error('❌ MediaRecorder error:', event.error);
-      alert('Recording error: ' + event.error);
-    };
-    
-    console.log('▶️ Starting recording...');
-    mediaRecorder.start(100); // Collect data every 100ms for better reliability
+
+    mediaRecorder.onerror = (e) => alert('Recording error: ' + e.error);
+
+    mediaRecorder.start(100);
     setIsRecording(true);
     setRecordingTime(0);
-    
-    // Start timer
-    timerRef.current = setInterval(() => {
-      setRecordingTime(prev => prev + 1);
-    }, 1000);
+    timerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
   };
 
   // Stop recording
@@ -572,16 +589,22 @@ export function EnhancedPostPage({ user, onBack }) {
               overflow: "hidden",
               position: "relative",
             }}>
+              {/* Hidden video — raw camera stream source */}
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
+                style={{ display: 'none' }}
+              />
+              {/* Visible canvas — filtered output drawn by rAF loop */}
+              <canvas
+                ref={canvasRef}
                 style={{
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  filter: FILTERS.find(f => f.id === selectedFilter)?.filter,
+                  display: "block",
                 }}
               />
               
@@ -766,31 +789,60 @@ export function EnhancedPostPage({ user, onBack }) {
             </div>
 
             {/* Filter selection for camera */}
-            <div style={{ marginTop: 24 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 12 }}>
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 10 }}>
                 Live Filters
               </div>
-              <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8 }}>
-                {FILTERS.map(filter => (
-                  <button
-                    key={filter.id}
-                    onClick={() => setSelectedFilter(filter.id)}
-                    style={{
-                      minWidth: 80,
-                      padding: "8px 16px",
-                      background: selectedFilter === filter.id ? T.pri : T.bg,
-                      border: `1px solid ${selectedFilter === filter.id ? T.pri : T.border}`,
-                      borderRadius: 20,
-                      color: selectedFilter === filter.id ? "#fff" : T.txt,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {filter.name}
-                  </button>
-                ))}
+              <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8, scrollbarWidth: 'none' }}>
+                {FILTERS.map(filter => {
+                  const swatchColors = {
+                    none: 'linear-gradient(135deg, #f5a623, #e91e8c, #7b2ff7)',
+                    grayscale: 'linear-gradient(135deg, #888, #bbb, #444)',
+                    sepia: 'linear-gradient(135deg, #c8a27a, #a0784e, #7a5a34)',
+                    warm: 'linear-gradient(135deg, #ff8c42, #ffb347, #e8521a)',
+                    cool: 'linear-gradient(135deg, #4fc3f7, #7986cb, #26c6da)',
+                    vibrant: 'linear-gradient(135deg, #ff1744, #00e676, #2979ff)',
+                    fade: 'linear-gradient(135deg, #d4a0c0, #b8c4d4, #c0d4b8)',
+                    dramatic: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)',
+                  };
+                  const isActive = selectedFilter === filter.id;
+                  return (
+                    <button
+                      key={filter.id}
+                      onClick={() => setSelectedFilter(filter.id)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 6,
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px 2px',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div style={{
+                        width: 58,
+                        height: 58,
+                        borderRadius: 12,
+                        background: swatchColors[filter.id] || swatchColors.none,
+                        border: isActive ? `3px solid ${T.pri}` : '3px solid transparent',
+                        boxShadow: isActive ? `0 0 0 2px ${T.pri}40` : '0 2px 8px rgba(0,0,0,0.15)',
+                        transition: 'all 0.2s',
+                        transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                      }} />
+                      <span style={{
+                        fontSize: 11,
+                        fontWeight: isActive ? 700 : 500,
+                        color: isActive ? T.pri : T.sub,
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {filter.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
