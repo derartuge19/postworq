@@ -1,4 +1,5 @@
 // Admin App - Complete with Campaign Management
+// Force rebuild: 2026-04-07
 import { useState, useEffect } from 'react';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { UserManagement } from './pages/UserManagement';
