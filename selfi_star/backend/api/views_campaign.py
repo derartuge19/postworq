@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
 from django.utils import timezone
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.conf import settings
 from datetime import timedelta
 from .models_campaign import Campaign, CampaignEntry, CampaignVote, CampaignWinner, CampaignNotification
@@ -42,6 +42,12 @@ def admin_campaigns_list(request):
     if status_filter:
         campaigns = campaigns.filter(status=status_filter)
     
+    # Annotate with live counts from the database
+    campaigns = campaigns.annotate(
+        live_entries=Count('entries', distinct=True),
+        live_votes=Sum('entries__vote_count'),
+    )
+
     # Pagination
     page = int(request.GET.get('page', 1))
     page_size = int(request.GET.get('page_size', 20))
@@ -68,8 +74,8 @@ def admin_campaigns_list(request):
             'entry_deadline': c.entry_deadline,
             'voting_start': c.voting_start,
             'voting_end': c.voting_end,
-            'total_entries': c.total_entries,
-            'total_votes': c.total_votes,
+            'total_entries': c.live_entries or 0,
+            'total_votes': c.live_votes or 0,
             'winner_count': c.winner_count,
             'winners_announced': c.winners_announced,
             'created_at': c.created_at,
@@ -305,24 +311,36 @@ def user_campaigns_list(request):
         # 'all' or any unknown value — show everything except cancelled
         campaigns = Campaign.objects.exclude(status='cancelled').order_by('-created_at')
     
+    # Annotate with live counts
+    campaigns = campaigns.annotate(
+        live_entries=Count('entries', distinct=True),
+        live_votes=Sum('entries__vote_count'),
+    )
+
     # Check if user is authenticated
     is_authenticated = request.user and request.user.is_authenticated
     user = request.user if is_authenticated else None
     user_profile = user.profile if (user and hasattr(user, 'profile')) else None
     follower_count = Follow.objects.filter(following=user).count() if user else 0
+
+    # Bulk-check entered campaigns for this user to avoid N+1
+    entered_ids = set()
+    if is_authenticated:
+        entered_ids = set(
+            CampaignEntry.objects.filter(user=user, campaign__in=campaigns)
+            .values_list('campaign_id', flat=True)
+        )
     
     data = []
     for c in campaigns:
         # Check if user is eligible (only if authenticated)
         is_eligible = True
-        has_entered = False
         
         if is_authenticated:
             if c.min_followers > 0 and follower_count < c.min_followers:
                 is_eligible = False
             if user_profile and c.min_level > user_profile.level:
                 is_eligible = False
-            has_entered = CampaignEntry.objects.filter(campaign=c, user=user).exists()
         
         image_url = get_image_url(c.image, request)
         
@@ -339,10 +357,10 @@ def user_campaigns_list(request):
             'entry_deadline': c.entry_deadline,
             'voting_start': c.voting_start,
             'voting_end': c.voting_end,
-            'total_entries': c.total_entries,
-            'total_votes': c.total_votes,
+            'total_entries': c.live_entries or 0,
+            'total_votes': c.live_votes or 0,
             'is_eligible': is_eligible,
-            'has_entered': has_entered,
+            'has_entered': c.id in entered_ids,
             'is_active': c.is_active(),
             'is_voting_open': c.is_voting_open(),
         })

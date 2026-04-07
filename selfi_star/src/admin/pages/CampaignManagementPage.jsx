@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Plus, Edit, Trash2, Users, Award } from 'lucide-react';
+import { Trophy, Plus, Edit, Trash2, Users, Award, BarChart3, X, TrendingUp, Star, CheckCircle, Clock, XCircle, Crown } from 'lucide-react';
 import api from '../../api';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { EditCampaignModal } from './EditCampaignModal';
@@ -12,6 +12,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [analyticsCampaign, setAnalyticsCampaign] = useState(null);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false });
   const [successModal, setSuccessModal] = useState({ isOpen: false, campaign: null });
 
@@ -435,6 +436,27 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
                       <Users size={14} />
                       View Entries
                     </button>
+                    <button
+                      onClick={() => setAnalyticsCampaign(campaign)}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        background: theme.purple + '15',
+                        border: 'none',
+                        borderRadius: 6,
+                        color: theme.purple,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <BarChart3 size={14} />
+                      Analytics
+                    </button>
                     {campaign.status === 'voting' && !campaign.winners_announced && (
                       <button
                         onClick={() => handleAnnounceWinners(campaign)}
@@ -596,6 +618,15 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
           theme={theme}
           campaign={selectedCampaign}
           onClose={() => setSelectedCampaign(null)}
+        />
+      )}
+
+      {/* Campaign Analytics Modal */}
+      {analyticsCampaign && (
+        <CampaignAnalyticsModal
+          theme={theme}
+          campaign={analyticsCampaign}
+          onClose={() => setAnalyticsCampaign(null)}
         />
       )}
 
@@ -1735,6 +1766,207 @@ function SuccessModal({ theme, campaign, onClose }) {
         >
           Got it!
         </button>
+      </div>
+    </div>
+  );
+}
+
+function CampaignAnalyticsModal({ theme, campaign, onClose }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    api.request(`/admin/campaigns/${campaign.id}/analytics/`)
+      .then(res => { setData(res); setLoading(false); })
+      .catch(err => { setError(err.message || 'Failed to load analytics'); setLoading(false); });
+  }, [campaign.id]);
+
+  const isMobile = window.innerWidth < 768;
+
+  const StatBox = ({ icon, label, value, color }) => (
+    <div style={{
+      background: theme.bg,
+      border: `1.5px solid ${theme.border}`,
+      borderRadius: 10,
+      padding: '14px 16px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+    }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: '50%',
+        background: (color || theme.pri) + '20',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        {icon}
+      </div>
+      <div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: theme.txt }}>{value}</div>
+        <div style={{ fontSize: 11, color: theme.sub, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.6)',
+        display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center',
+        zIndex: 9999, padding: isMobile ? 0 : 20,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: theme.card,
+          borderRadius: isMobile ? '20px 20px 0 0' : 16,
+          padding: isMobile ? 20 : 32,
+          width: '100%', maxWidth: 860,
+          maxHeight: isMobile ? '92vh' : '85vh',
+          overflowY: 'auto',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <BarChart3 size={22} color={theme.purple} />
+              <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: theme.txt }}>Campaign Analytics</h2>
+            </div>
+            <div style={{ fontSize: 14, color: theme.sub, marginTop: 4 }}>{campaign.title}</div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+            <X size={20} color={theme.sub} />
+          </button>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: 60, textAlign: 'center', color: theme.sub }}>Loading analytics…</div>
+        ) : error ? (
+          <div style={{ padding: 40, textAlign: 'center', color: theme.red }}>{error}</div>
+        ) : (
+          <>
+            {/* ── Participation Stats ── */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: theme.sub, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>
+                Participation
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+                <StatBox icon={<Users size={18} color={theme.blue} />}        label="Participants"  value={data.participation.total_participants} color={theme.blue} />
+                <StatBox icon={<TrendingUp size={18} color={theme.pri} />}    label="Total Posts"   value={data.participation.total_posts}        color={theme.pri} />
+                <StatBox icon={<CheckCircle size={18} color={theme.green} />} label="Approved"      value={data.participation.approved_posts}     color={theme.green} />
+                <StatBox icon={<Clock size={18} color={theme.orange} />}      label="Pending"       value={data.participation.pending_posts}      color={theme.orange} />
+                <StatBox icon={<XCircle size={18} color={theme.red} />}       label="Rejected"      value={data.participation.rejected_posts}     color={theme.red} />
+              </div>
+            </div>
+
+            {/* ── Score Statistics ── */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: theme.sub, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>
+                Average Scores (approved posts)
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+                {[
+                  { label: 'Total Score',  value: data.score_statistics.average_total_score.toFixed(1),   color: theme.pri },
+                  { label: 'Creativity',   value: data.score_statistics.average_creativity.toFixed(1),     color: theme.purple },
+                  { label: 'Engagement',   value: data.score_statistics.average_engagement.toFixed(1),     color: theme.blue },
+                  { label: 'Quality',      value: data.score_statistics.average_quality.toFixed(1),        color: theme.green },
+                ].map(s => (
+                  <div key={s.label} style={{
+                    background: s.color + '10',
+                    border: `1.5px solid ${s.color}30`,
+                    borderRadius: 10,
+                    padding: '14px 16px',
+                    textAlign: 'center',
+                  }}>
+                    <div style={{ fontSize: 26, fontWeight: 900, color: s.color }}>{s.value}</div>
+                    <div style={{ fontSize: 11, color: theme.sub, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Top Performers ── */}
+            {data.top_performers?.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: theme.sub, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>
+                  Top 10 Performers
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {data.top_performers.map((p, idx) => (
+                    <div key={p.username} style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 14px',
+                      background: idx < 3 ? theme.pri + '10' : theme.bg,
+                      border: `1px solid ${idx < 3 ? theme.pri + '30' : theme.border}`,
+                      borderRadius: 8,
+                    }}>
+                      <div style={{
+                        width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                        background: idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : idx === 2 ? '#CD7F32' : theme.border,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 12, fontWeight: 900,
+                        color: idx < 3 ? '#000' : theme.sub,
+                      }}>
+                        {idx < 3 ? <Crown size={13} /> : idx + 1}
+                      </div>
+                      <div style={{ flex: 1, fontWeight: 600, color: theme.txt, fontSize: 14 }}>@{p.username}</div>
+                      <div style={{ fontSize: 12, color: theme.sub }}>{p.posts_count} posts</div>
+                      {p.rank && <div style={{ fontSize: 12, color: theme.sub }}>Rank #{p.rank}</div>}
+                      <div style={{
+                        background: theme.pri + '20', color: theme.pri,
+                        padding: '4px 10px', borderRadius: 20,
+                        fontSize: 13, fontWeight: 700,
+                      }}>
+                        {p.total_score.toFixed(0)} pts
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Themes Breakdown ── */}
+            {data.themes?.length > 0 && (
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: theme.sub, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>
+                  Theme Participation
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {data.themes.map(t => (
+                    <div key={t.week_number} style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 14px',
+                      background: t.is_active ? theme.green + '10' : theme.bg,
+                      border: `1px solid ${t.is_active ? theme.green + '40' : theme.border}`,
+                      borderRadius: 8,
+                    }}>
+                      <div style={{
+                        fontSize: 11, fontWeight: 700, color: t.is_active ? theme.green : theme.sub,
+                        background: (t.is_active ? theme.green : theme.sub) + '20',
+                        padding: '3px 8px', borderRadius: 10,
+                        flexShrink: 0,
+                      }}>
+                        {t.is_active ? '● ACTIVE' : `Week ${t.week_number}`}
+                      </div>
+                      <div style={{ flex: 1, fontWeight: 600, color: theme.txt, fontSize: 14 }}>{t.title}</div>
+                      <div style={{
+                        background: theme.blue + '20', color: theme.blue,
+                        padding: '4px 10px', borderRadius: 20,
+                        fontSize: 13, fontWeight: 700,
+                      }}>
+                        {t.posts_count} posts
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
