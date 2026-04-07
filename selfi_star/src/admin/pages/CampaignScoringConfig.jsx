@@ -1,2 +1,8 @@
-// Compatibility re-export - Vercel cache may reference this old filename
-export { TypeSpecificScoringConfig as default, TypeSpecificScoringConfig } from './TypeSpecificScoringConfig';
+import { CampaignScoringConfigPage } from './TypeSpecificScoringConfig';
+
+// Compatibility shim - re-exports TypeSpecificScoringConfig under old filename
+export default function CampaignScoringConfig(props) {
+  return <CampaignScoringConfigPage {...props} />;
+}
+
+export { CampaignScoringConfig, CampaignScoringConfigPage };
