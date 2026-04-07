@@ -375,15 +375,15 @@ export default function WerqRoot() {
   };
 
   const handleShowVideoDetail = (reelId) => {
+    resetAllPages();
     setVideoDetailId(reelId);
     setShowVideoDetail(true);
-    resetAllPages();
     pushHistoryState({ showVideoDetail: true, videoDetailId: reelId });
   };
 
   const handleShowExplorer = () => {
-    setShowExplorer(true);
     resetAllPages();
+    setShowExplorer(true);
     pushHistoryState({ showExplorer: true });
   };
 
