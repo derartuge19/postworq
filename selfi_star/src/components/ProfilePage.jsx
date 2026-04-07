@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical } from "lucide-react";
+import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy } from "lucide-react";
 import { GamificationBar } from "./GamificationBar";
 import api from "../api";
 import config from "../config";
@@ -408,6 +408,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           { id: "posts", icon: Grid, label: "Posts" },
           { id: "reels", icon: Film, label: "Reels" },
           { id: "saved", icon: Bookmark, label: "Saved" },
+          { id: "campaigns", icon: Trophy, label: "Campaigns" },
         ].filter(tab => isOwnProfile || (tab.id !== "saved")).map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -439,7 +440,16 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         })}
       </div>
 
+      {/* Campaign Stats Tab */}
+      {activeTab === "campaigns" && (
+        <div style={{ padding: "20px" }}>
+          <CampaignStats userId={userId || user?.id} />
+        </div>
+      )}
+
       {/* Posts Grid */}
+      {activeTab !== "campaigns" && (
+      <>
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
@@ -628,13 +638,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           </div>
         ))}
       </div>
-
       {posts.length === 0 && (
-        <div style={{
-          padding: 40,
-          textAlign: "center",
-          color: T.sub,
-        }}>
+        <div style={{ padding: 40, textAlign: "center", color: T.sub }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>📷</div>
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>No posts yet</div>
           <div style={{ fontSize: 13 }}>
@@ -642,11 +647,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           </div>
         </div>
       )}
-
-      {/* Campaign Stats */}
-      <div style={{ padding: "0 20px", marginTop: 20 }}>
-        <CampaignStats userId={userId || user?.id} />
-      </div>
+      </>
+      )}
 
       {/* TikTok-Style Post Detail Viewer */}
       {selectedPost && (
