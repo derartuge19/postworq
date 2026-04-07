@@ -438,17 +438,39 @@ class ReelViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def vote(self, request, pk=None):
+        from .models import Notification
         reel = self.get_object()
         vote, created = Vote.objects.get_or_create(user=request.user, reel=reel)
         
         if created:
             reel.votes += 1
             reel.save()
+            
+            # Create notification for reel owner (don't notify self)
+            if reel.user != request.user:
+                Notification.objects.create(
+                    recipient=reel.user,
+                    sender=request.user,
+                    notification_type='like',
+                    reel=reel,
+                    message=f"{request.user.username} liked your post"
+                )
+            
             return Response({'voted': True, 'votes': reel.votes})
         else:
             vote.delete()
             reel.votes -= 1
             reel.save()
+            
+            # Delete notification when unliked
+            if reel.user != request.user:
+                Notification.objects.filter(
+                    recipient=reel.user,
+                    sender=request.user,
+                    notification_type='like',
+                    reel=reel
+                ).delete()
+            
             return Response({'voted': False, 'votes': reel.votes})
     
     @action(detail=True, methods=['post'])
@@ -483,6 +505,18 @@ class ReelViewSet(viewsets.ModelViewSet):
                 reel=reel,
                 text=text
             )
+            
+            # Create notification for reel owner (don't notify self)
+            from .models import Notification
+            if reel.user != request.user:
+                Notification.objects.create(
+                    recipient=reel.user,
+                    sender=request.user,
+                    notification_type='comment',
+                    reel=reel,
+                    comment=comment,
+                    message=f"{request.user.username} commented: {text[:50]}{'...' if len(text) > 50 else ''}"
+                )
             
             serializer = CommentSerializer(comment)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -754,7 +788,25 @@ class FollowViewSet(viewsets.ModelViewSet):
             
             if not created:
                 follow.delete()
+                
+                # Delete follow notification when unfollowed
+                from .models import Notification
+                Notification.objects.filter(
+                    recipient=following_user,
+                    sender=request.user,
+                    notification_type='follow'
+                ).delete()
+                
                 return Response({'following': False, 'message': 'Unfollowed'})
+            
+            # Create notification for followed user
+            from .models import Notification
+            Notification.objects.create(
+                recipient=following_user,
+                sender=request.user,
+                notification_type='follow',
+                message=f"{request.user.username} started following you"
+            )
             
             return Response({'following': True, 'message': 'Followed'})
         except Exception as e:
