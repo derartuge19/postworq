@@ -511,7 +511,7 @@ class ReelViewSet(viewsets.ModelViewSet):
             )
     
     def partial_update(self, request, *args, **kwargs):
-        """Update a reel (e.g., caption) - only owner can update"""
+        """Update a reel (caption, hashtags, and/or media) - only owner can update"""
         try:
             reel = self.get_object()
             
@@ -522,13 +522,59 @@ class ReelViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_403_FORBIDDEN
                 )
             
-            # Update allowed fields
+            # Update text fields
             if 'caption' in request.data:
                 reel.caption = request.data['caption']
             if 'hashtags' in request.data:
                 reel.hashtags = request.data['hashtags']
             
+            # Handle media file replacement
+            new_file = request.FILES.get('file') or request.FILES.get('media') or request.FILES.get('image')
+            if new_file:
+                print(f"[REEL UPDATE] New media file: {new_file.name}, type: {new_file.content_type}")
+                
+                content_type = getattr(new_file, 'content_type', '')
+                filename = new_file.name.lower()
+                is_video = (
+                    content_type.startswith('video/') or
+                    filename.endswith(('.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'))
+                )
+                
+                try:
+                    import cloudinary.uploader
+                    import cloudinary
+                    cfg = cloudinary.config()
+                    if cfg.cloud_name and cfg.api_key and cfg.api_secret:
+                        resource_type = 'video' if is_video else 'image'
+                        result = cloudinary.uploader.upload(
+                            new_file,
+                            resource_type=resource_type,
+                            folder='reels'
+                        )
+                        secure_url = result.get('secure_url', '')
+                        print(f"[REEL UPDATE] Cloudinary upload OK: {secure_url}")
+                        
+                        # Clear old media and set new one
+                        if is_video:
+                            reel.image = None
+                            reel.media.name = secure_url
+                        else:
+                            reel.media = None
+                            reel.image.name = secure_url
+                    else:
+                        raise Exception("Cloudinary not configured")
+                except Exception as cloud_err:
+                    print(f"[REEL UPDATE] Cloudinary failed ({cloud_err}), saving locally")
+                    # Fallback: save via Django FileField
+                    if is_video:
+                        reel.image = None
+                        reel.media = new_file
+                    else:
+                        reel.media = None
+                        reel.image = new_file
+            
             reel.save()
+            print(f"[REEL UPDATE] Reel {reel.id} updated successfully")
             
             serializer = self.get_serializer(reel)
             return Response(serializer.data)

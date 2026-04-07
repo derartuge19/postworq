@@ -32,6 +32,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   const [editingPost, setEditingPost] = useState(null);
   const [editCaption, setEditCaption] = useState('');
   const [editHashtags, setEditHashtags] = useState('');
+  const [editMediaFile, setEditMediaFile] = useState(null);
+  const [editMediaPreview, setEditMediaPreview] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -61,22 +63,52 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
     setEditingPost(post);
     setEditCaption(post.caption || '');
     setEditHashtags(post.hashtags || '');
+    setEditMediaFile(null);
+    setEditMediaPreview(null);
+  };
+
+  const handleEditMediaChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setEditMediaFile(file);
+    
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setEditMediaPreview(previewUrl);
   };
 
   const handleEditSave = async () => {
     if (!editingPost) return;
     setIsSaving(true);
     try {
-      await api.updatePost(editingPost.id, { 
-        caption: editCaption,
-        hashtags: editHashtags 
-      });
-      setPosts(prev => prev.map(p => p.id === editingPost.id ? { 
-        ...p, 
-        caption: editCaption,
-        hashtags: editHashtags 
-      } : p));
+      // If there's a new media file, use FormData
+      if (editMediaFile) {
+        const formData = new FormData();
+        formData.append('caption', editCaption);
+        formData.append('hashtags', editHashtags);
+        formData.append('file', editMediaFile);
+        
+        await api.request(`/reels/${editingPost.id}/`, {
+          method: 'PATCH',
+          body: formData,
+          isFormData: true,
+        });
+      } else {
+        // No new media, just update text fields
+        await api.updatePost(editingPost.id, { 
+          caption: editCaption,
+          hashtags: editHashtags 
+        });
+      }
+      
+      // Refresh posts to get updated data
+      const updatedPosts = await api.request(`/reels/?user=${userId || user?.id}`);
+      setPosts(Array.isArray(updatedPosts) ? updatedPosts : updatedPosts.results || []);
+      
       setEditingPost(null);
+      setEditMediaFile(null);
+      setEditMediaPreview(null);
       setSuccessMsg('Post updated!');
       setTimeout(() => setSuccessMsg(''), 2500);
     } catch (err) {
@@ -748,16 +780,23 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 width: '100%', aspectRatio: '1', borderRadius: 12,
                 overflow: 'hidden', background: T.bg,
                 border: `1px solid ${T.border}`,
+                position: 'relative',
               }}>
                 {(() => {
-                  const mediaUrl = editingPost.media || editingPost.image || '';
-                  const fullUrl = mediaUrl.startsWith('http') ? mediaUrl : `${config.API_BASE_URL.replace('/api', '')}${mediaUrl}`;
-                  const isVideo = mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i) || mediaUrl.includes('video');
+                  // Show new preview if file selected, otherwise show original
+                  const displayUrl = editMediaPreview || (() => {
+                    const mediaUrl = editingPost.media || editingPost.image || '';
+                    return mediaUrl.startsWith('http') ? mediaUrl : `${config.API_BASE_URL.replace('/api', '')}${mediaUrl}`;
+                  })();
+                  
+                  const isVideo = editMediaFile 
+                    ? editMediaFile.type.startsWith('video/')
+                    : (editingPost.media || '').match(/\.(mp4|webm|ogg|mov)$/i) || (editingPost.media || '').includes('video');
                   
                   if (isVideo) {
                     return (
                       <video
-                        src={fullUrl}
+                        src={displayUrl}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         controls
                       />
@@ -765,7 +804,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   } else {
                     return (
                       <img
-                        src={fullUrl}
+                        src={displayUrl}
                         alt="Post media"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
@@ -773,9 +812,37 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   }
                 })()}
               </div>
-              <div style={{ fontSize: 12, color: T.sub, marginTop: 6, fontStyle: 'italic' }}>
-                Media cannot be changed after posting
-              </div>
+              <input
+                type="file"
+                id="edit-media-input"
+                accept="image/*,video/*"
+                onChange={handleEditMediaChange}
+                style={{ display: 'none' }}
+              />
+              <button
+                onClick={() => document.getElementById('edit-media-input').click()}
+                style={{
+                  marginTop: 10,
+                  padding: '10px 16px',
+                  background: T.bg,
+                  border: `1.5px solid ${T.border}`,
+                  borderRadius: 10,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: T.txt,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                📷 {editMediaFile ? 'Change Media Again' : 'Change Media'}
+              </button>
+              {editMediaFile && (
+                <div style={{ fontSize: 12, color: T.pri, marginTop: 6, fontWeight: 600 }}>
+                  ✓ New media selected: {editMediaFile.name}
+                </div>
+              )}
             </div>
 
             {/* Caption */}
