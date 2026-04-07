@@ -1014,3 +1014,66 @@ def admin_reports_stats(request):
         'dismissed_reports': dismissed_reports,
         'reports_by_type': list(reports_by_type),
     })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_trending_reels(request):
+    """Get trending reels with engagement-based algorithm and category filtering"""
+    from django.db.models import Q, F, ExpressionWrapper, FloatField, Count
+    from datetime import datetime, timedelta
+    
+    # Get query parameters
+    category = request.GET.get('category', 'all')  # all, dance, comedy, beauty, sports, etc.
+    time_range = request.GET.get('time_range', '7d')  # 24h, 7d, 30d, all
+    limit = int(request.GET.get('limit', 20))
+    
+    # Calculate time threshold
+    now = timezone.now()
+    if time_range == '24h':
+        time_threshold = now - timedelta(hours=24)
+    elif time_range == '7d':
+        time_threshold = now - timedelta(days=7)
+    elif time_range == '30d':
+        time_threshold = now - timedelta(days=30)
+    else:
+        time_threshold = now - timedelta(days=365)  # all time
+    
+    # Base queryset
+    queryset = Reel.objects.filter(created_at__gte=time_threshold)
+    
+    # Category filtering (based on hashtags)
+    if category != 'all':
+        category_hashtags = {
+            'dance': ['dance', 'dancing', 'dancer', 'choreography'],
+            'comedy': ['funny', 'comedy', 'humor', 'laugh', 'meme'],
+            'beauty': ['beauty', 'makeup', 'skincare', 'fashion', 'style'],
+            'sports': ['sports', 'fitness', 'workout', 'gym', 'athlete'],
+            'food': ['food', 'cooking', 'recipe', 'foodie', 'chef'],
+            'travel': ['travel', 'adventure', 'explore', 'wanderlust'],
+            'music': ['music', 'singing', 'song', 'cover', 'musician'],
+            'art': ['art', 'artist', 'drawing', 'painting', 'creative'],
+        }
+        
+        if category in category_hashtags:
+            hashtag_filter = Q()
+            for tag in category_hashtags[category]:
+                hashtag_filter |= Q(hashtags__icontains=f'#{tag}')
+            queryset = queryset.filter(hashtag_filter)
+    
+    # Annotate with engagement score
+    # Score = (votes * 2) + (comment_count * 3) - (age_in_hours * 0.1)
+    queryset = queryset.annotate(
+        comment_count=Count('comments'),
+        age_hours=ExpressionWrapper(
+            (now - F('created_at')).total_seconds() / 3600,
+            output_field=FloatField()
+        ),
+        engagement_score=ExpressionWrapper(
+            (F('votes') * 2.0) + (F('comment_count') * 3.0) - (F('age_hours') * 0.1),
+            output_field=FloatField()
+        )
+    ).select_related('user', 'user__profile').order_by('-engagement_score')[:limit]
+    
+    # Serialize
+    serializer = ReelSerializer(queryset, many=True, context={'request': request})
+    return Response(serializer.data)

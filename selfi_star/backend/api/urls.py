@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from .views import (
     register, login, reset_password, create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
-    get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail, admin_reports_stats
+    get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail, admin_reports_stats,
+    get_trending_reels
 )
 
 @api_view(['GET'])
@@ -268,6 +269,7 @@ urlpatterns = [
     path('reels/following/', reels_following, name='reels-following'),
     path('reels/saved/', reels_saved, name='reels-saved'),
     path('reels/trending/', reels_trending, name='reels-trending'),
+    path('explorer/trending/', get_trending_reels, name='explorer-trending'),
     # Contest System - User
     path('subscription/details/', get_user_subscription, name='subscription-details'),
     path('subscription/upgrade/', upgrade_subscription, name='subscription-upgrade'),

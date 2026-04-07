@@ -18,6 +18,7 @@ const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage').then(
 const CampaignLeaderboard = lazy(() => import('./pages/CampaignLeaderboard'));
 const CampaignFeed = lazy(() => import('./pages/CampaignFeed'));
 const VideoDetailPage = lazy(() => import('./components/VideoDetailPage').then(m => ({ default: m.VideoDetailPage })));
+const ExplorerPage = lazy(() => import('./components/ExplorerPage').then(m => ({ default: m.ExplorerPage })));
 const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
 
 // Prefetch all lazy chunks after initial load so navigation is instant
@@ -35,6 +36,7 @@ const prefetchComponents = () => {
   import('./pages/CampaignLeaderboard');
   import('./pages/CampaignFeed');
   import('./components/VideoDetailPage');
+  import('./components/ExplorerPage');
 };
 
 // Error boundary for lazy loading failures
@@ -142,6 +144,7 @@ export default function WerqRoot() {
   const [showCampaignFeed, setShowCampaignFeed] = useState(false);
   const [showVideoDetail, setShowVideoDetail] = useState(false);
   const [videoDetailId, setVideoDetailId] = useState(null);
+  const [showExplorer, setShowExplorer] = useState(false);
 
   // Browser history support
   useEffect(() => {
@@ -165,6 +168,7 @@ export default function WerqRoot() {
       setShowCampaignFeed(state.showCampaignFeed || false);
       setShowVideoDetail(state.showVideoDetail || false);
       setVideoDetailId(state.videoDetailId || null);
+      setShowExplorer(state.showExplorer || false);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -191,6 +195,7 @@ export default function WerqRoot() {
       showCampaignFeed: newState.showCampaignFeed !== undefined ? newState.showCampaignFeed : showCampaignFeed,
       showVideoDetail: newState.showVideoDetail !== undefined ? newState.showVideoDetail : showVideoDetail,
       videoDetailId: newState.videoDetailId !== undefined ? newState.videoDetailId : videoDetailId,
+      showExplorer: newState.showExplorer !== undefined ? newState.showExplorer : showExplorer,
     };
     window.history.pushState(state, '');
   };
@@ -210,7 +215,8 @@ export default function WerqRoot() {
     setShowCampaignLeaderboard(false);
     setShowCampaignFeed(false);
     setShowVideoDetail(false);
-  };
+    setShowExplorer(false);
+};
 
   // Load user from localStorage on mount + prefetch lazy components
   useEffect(() => {
@@ -375,6 +381,12 @@ export default function WerqRoot() {
     pushHistoryState({ showVideoDetail: true, videoDetailId: reelId });
   };
 
+  const handleShowExplorer = () => {
+    setShowExplorer(true);
+    resetAllPages();
+    pushHistoryState({ showExplorer: true });
+  };
+
   const handleProfileSaved = (updatedUser) => {
     setAuthUser(updatedUser);
   };
@@ -398,6 +410,7 @@ export default function WerqRoot() {
         onShowSettings={handleShowSettings}
         onShowNotifications={handleShowNotifications}
         onShowCampaigns={handleShowCampaigns}
+        onShowExplorer={handleShowExplorer}
       >
         {/* Each lazy page gets its own Suspense so only one loads at a time */}
         {showSettings && (
@@ -596,7 +609,23 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen === 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && (
+        {showExplorer && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
+              <ExplorerPage
+                user={authUser}
+                onBack={() => setShowExplorer(false)}
+                onShowProfile={handleShowProfile}
+                onShowVideoDetail={handleShowVideoDetail}
+                onRequireAuth={handleRequireAuth}
+                onShowPostPage={handleShowPostPage}
+                onShowSettings={handleShowSettings}
+                onShowNotifications={handleShowNotifications}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {screen === 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && (
           <LazyLoadErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
               <LandingPage
@@ -607,7 +636,7 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && (
+        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && (
           <TikTokLayout
             user={authUser}
             activeTab={activeTab}
@@ -618,6 +647,7 @@ export default function WerqRoot() {
             onShowSettings={handleShowSettings}
             onShowNotifications={handleShowNotifications}
             onShowVideoDetail={handleShowVideoDetail}
+            onShowExplorer={handleShowExplorer}
           />
         )}
       </AppShell>

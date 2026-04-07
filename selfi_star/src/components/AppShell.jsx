@@ -23,6 +23,7 @@ export function AppShell({
   onShowSettings,
   onShowNotifications,
   onShowCampaigns,
+  onShowExplorer,
   children,
 }) {
   const { colors: T } = useTheme();
@@ -37,7 +38,7 @@ export function AppShell({
 
   const menuItems = [
     { id: 'home', icon: Home, label: t('home') },
-    { id: 'explore', icon: Compass, label: t('explore') },
+    { id: 'explore', icon: Compass, label: t('explore'), action: onShowExplorer },
     {
       id: 'notifications',
       icon: Bell,
