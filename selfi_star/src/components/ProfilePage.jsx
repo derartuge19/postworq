@@ -31,6 +31,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   const [postMenuId, setPostMenuId] = useState(null);
   const [editingPost, setEditingPost] = useState(null);
   const [editCaption, setEditCaption] = useState('');
+  const [editHashtags, setEditHashtags] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -59,14 +60,22 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
     setPostMenuId(null);
     setEditingPost(post);
     setEditCaption(post.caption || '');
+    setEditHashtags(post.hashtags || '');
   };
 
   const handleEditSave = async () => {
     if (!editingPost) return;
     setIsSaving(true);
     try {
-      await api.updatePost(editingPost.id, { caption: editCaption });
-      setPosts(prev => prev.map(p => p.id === editingPost.id ? { ...p, caption: editCaption } : p));
+      await api.updatePost(editingPost.id, { 
+        caption: editCaption,
+        hashtags: editHashtags 
+      });
+      setPosts(prev => prev.map(p => p.id === editingPost.id ? { 
+        ...p, 
+        caption: editCaption,
+        hashtags: editHashtags 
+      } : p));
       setEditingPost(null);
       setSuccessMsg('Post updated!');
       setTimeout(() => setSuccessMsg(''), 2500);
@@ -709,7 +718,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         </div>
       )}
 
-      {/* Edit Caption Modal */}
+      {/* Edit Post Modal */}
       {editingPost && (
         <div
           onClick={() => setEditingPost(null)}
@@ -717,32 +726,98 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
             background: 'rgba(0,0,0,0.5)', zIndex: 2100,
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+            overflowY: 'auto',
           }}
         >
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              width: '100%', maxWidth: 480, background: '#fff',
+              width: '100%', maxWidth: 520, background: '#fff',
               borderRadius: 20, padding: 24,
               boxShadow: '0 8px 40px rgba(0,0,0,0.2)',
+              maxHeight: '90vh', overflowY: 'auto',
             }}
           >
-            <div style={{ fontSize: 18, fontWeight: 700, color: T.txt, marginBottom: 4 }}>Edit Caption</div>
-            <div style={{ fontSize: 13, color: T.sub, marginBottom: 16 }}>Update your post caption below.</div>
-            <textarea
-              value={editCaption}
-              onChange={e => setEditCaption(e.target.value)}
-              rows={4}
-              style={{
-                width: '100%', padding: 12, fontSize: 15, color: T.txt,
-                border: `1.5px solid ${T.border}`, borderRadius: 12,
-                resize: 'none', outline: 'none', fontFamily: 'inherit',
-                boxSizing: 'border-box', lineHeight: 1.5,
-              }}
-              placeholder="Write a caption..."
-              autoFocus
-            />
-            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.txt, marginBottom: 4 }}>Edit Post</div>
+            <div style={{ fontSize: 13, color: T.sub, marginBottom: 20 }}>Update your post details below.</div>
+            
+            {/* Media Preview */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 8 }}>Media</div>
+              <div style={{
+                width: '100%', aspectRatio: '1', borderRadius: 12,
+                overflow: 'hidden', background: T.bg,
+                border: `1px solid ${T.border}`,
+              }}>
+                {(() => {
+                  const mediaUrl = editingPost.media || editingPost.image || '';
+                  const fullUrl = mediaUrl.startsWith('http') ? mediaUrl : `${config.API_BASE_URL.replace('/api', '')}${mediaUrl}`;
+                  const isVideo = mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i) || mediaUrl.includes('video');
+                  
+                  if (isVideo) {
+                    return (
+                      <video
+                        src={fullUrl}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        controls
+                      />
+                    );
+                  } else {
+                    return (
+                      <img
+                        src={fullUrl}
+                        alt="Post media"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    );
+                  }
+                })()}
+              </div>
+              <div style={{ fontSize: 12, color: T.sub, marginTop: 6, fontStyle: 'italic' }}>
+                Media cannot be changed after posting
+              </div>
+            </div>
+
+            {/* Caption */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 8 }}>Caption</div>
+              <textarea
+                value={editCaption}
+                onChange={e => setEditCaption(e.target.value)}
+                rows={4}
+                style={{
+                  width: '100%', padding: 12, fontSize: 15, color: T.txt,
+                  border: `1.5px solid ${T.border}`, borderRadius: 12,
+                  resize: 'none', outline: 'none', fontFamily: 'inherit',
+                  boxSizing: 'border-box', lineHeight: 1.5,
+                }}
+                placeholder="Write a caption..."
+                autoFocus
+              />
+            </div>
+
+            {/* Hashtags */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 8 }}>Hashtags</div>
+              <input
+                type="text"
+                value={editHashtags}
+                onChange={e => setEditHashtags(e.target.value)}
+                style={{
+                  width: '100%', padding: 12, fontSize: 15, color: T.txt,
+                  border: `1.5px solid ${T.border}`, borderRadius: 12,
+                  outline: 'none', fontFamily: 'inherit',
+                  boxSizing: 'border-box',
+                }}
+                placeholder="#hashtag1 #hashtag2"
+              />
+              <div style={{ fontSize: 12, color: T.sub, marginTop: 6 }}>
+                Separate hashtags with spaces (e.g., #travel #photography)
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 12 }}>
               <button
                 onClick={() => setEditingPost(null)}
                 style={{
@@ -764,7 +839,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   cursor: 'pointer', color: '#fff', opacity: isSaving ? 0.7 : 1,
                 }}
               >
-                {isSaving ? 'Saving...' : 'Save'}
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
