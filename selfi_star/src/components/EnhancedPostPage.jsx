@@ -50,6 +50,8 @@ export function EnhancedPostPage({ user, onBack }) {
   const mediaRecorderRef = useRef(null);
   const timerRef = useRef(null);
   const chunksRef = useRef([]);
+  // streamRef always holds the live MediaStream so cleanup never reads stale state
+  const streamRef = useRef(null);
   // Stable ref so rAF loop never captures stale filter/facingMode
   const liveRef = useRef({ filter: 'none', facingMode: 'user' });
 
@@ -99,6 +101,7 @@ export function EnhancedPostPage({ user, onBack }) {
         video: { facingMode, width: { ideal: 1080 }, height: { ideal: 1920 } },
         audio: true,
       });
+      streamRef.current = mediaStream;
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -113,12 +116,16 @@ export function EnhancedPostPage({ user, onBack }) {
     }
   };
 
-  // Stop camera
+  // Stop camera — reads from streamRef so it always has the current stream
   const stopCamera = () => {
     stopDrawLoop();
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setStream(null);
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
   };
 
@@ -299,21 +306,35 @@ export function EnhancedPostPage({ user, onBack }) {
     }
   };
 
-  // Cleanup
+  // Start/stop camera when tab or facing mode changes
   useEffect(() => {
     if (activeTab === 'camera') {
       startCamera();
     } else {
       stopCamera();
     }
-    
+    return () => stopCamera();
+  }, [activeTab, facingMode]);
+
+  // Guaranteed cleanup on unmount — stops camera/mic even if tab never changed
+  useEffect(() => {
     return () => {
-      stopCamera();
+      stopDrawLoop();
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
     };
-  }, [activeTab, facingMode]);
+  }, []); // empty deps = runs only on unmount
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
