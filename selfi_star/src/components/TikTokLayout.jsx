@@ -112,9 +112,23 @@ export function TikTokLayout({
 
   // Generate Cloudinary poster thumbnail from video URL
   const getVideoPoster = (url) => {
-    // Disabled: Cloudinary poster URLs were causing 400 errors
-    // Videos will load without poster attribute (browser will show first frame when ready)
-    return undefined;
+    if (!url || !url.includes('res.cloudinary.com')) return undefined;
+    try {
+      // Cloudinary: insert transformation after /video/upload/ or /upload/
+      // Result: serve the first frame as a compressed JPG (much smaller than video)
+      const marker = '/upload/';
+      const idx = url.indexOf(marker);
+      if (idx === -1) return undefined;
+      const base = url.slice(0, idx + marker.length);
+      const rest = url.slice(idx + marker.length);
+      // Strip any existing transformation chain (starts with non-v-number segments)
+      const cleanRest = rest.replace(/^([^/]+\/)*v\d+/, (m) => m);
+      const thumb = base + 'so_0,w_480,q_60,f_jpg/' + rest;
+      // Change extension to .jpg
+      return thumb.replace(/\.(mp4|webm|ogg|mov)(\?.*)?$/i, '.jpg');
+    } catch {
+      return undefined;
+    }
   };
 
   // Mobile detection - runs once on mount and on resize
@@ -247,6 +261,25 @@ export function TikTokLayout({
     setHasMore(true);
     fetchVideos(1, false);
   }, [activeTab]);
+
+  // Preload first video's poster as soon as we have the URL (from cache or API)
+  // so the browser starts fetching the thumbnail before the <video> element renders
+  useEffect(() => {
+    if (!videos.length) return;
+    const firstUrl = videos[0]?.imageUrl;
+    if (!firstUrl) return;
+    const poster = getVideoPoster(firstUrl);
+    if (!poster) return;
+    const existing = document.head.querySelector(`link[data-video-poster]`);
+    if (existing) existing.remove();
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = poster;
+    link.setAttribute('data-video-poster', '1');
+    document.head.appendChild(link);
+    return () => { try { link.remove(); } catch {} };
+  }, [videos[0]?.id]);
 
   // Scroll listener for infinite scroll
   useEffect(() => {
@@ -940,7 +973,8 @@ export function TikTokLayout({
                                   : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`)
                               : undefined
                           }
-                          preload={videos.indexOf(video) === 0 ? 'auto' : 'none'}
+                          poster={getVideoPoster(video.imageUrl)}
+                          preload={videos.indexOf(video) === 0 ? 'metadata' : 'none'}
                           autoPlay
                           loop
                           playsInline
