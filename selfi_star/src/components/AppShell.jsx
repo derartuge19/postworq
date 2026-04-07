@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import config from '../config';
 
 export function AppShell({
   user,
@@ -164,21 +165,71 @@ export function AppShell({
                 borderTop: `1px solid ${T.border}`,
               }}
             >
+              {/* Profile image + name */}
+              <button
+                onClick={onShowProfile}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  width: '100%',
+                  padding: '8px',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  borderRadius: 10,
+                  marginBottom: 8,
+                  textAlign: 'left',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = T.bg}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                {user.profile_photo ? (
+                  <img
+                    src={user.profile_photo.startsWith('http') ? user.profile_photo : `${config.API_BASE_URL.replace('/api', '')}${user.profile_photo}`}
+                    alt={user.username}
+                    style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                  />
+                ) : (
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: T.pri + '30',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 18, flexShrink: 0,
+                  }}>
+                    👤
+                  </div>
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user.username}
+                  </div>
+                  <div style={{ fontSize: 11, color: T.sub }}>
+                    @{user.username}
+                  </div>
+                </div>
+              </button>
+              {/* Logout */}
               <button
                 onClick={onLogout}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 12,
+                  gap: 10,
                   width: '100%',
-                  padding: '12px',
+                  padding: '10px 12px',
                   border: 'none',
                   background: 'transparent',
-                  color: T.txt,
+                  color: T.sub,
                   cursor: 'pointer',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 500,
                 }}
+                onMouseEnter={e => e.currentTarget.style.background = T.bg}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                <LogOut size={20} />
+                <LogOut size={18} />
                 <span>{t('logout')}</span>
               </button>
             </div>

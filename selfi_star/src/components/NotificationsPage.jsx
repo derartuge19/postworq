@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { Heart, MessageCircle, UserPlus, Trophy, Bell, ArrowLeft } from "lucide-react";
+import { Heart, MessageCircle, UserPlus, Trophy, Bell, ArrowLeft, Check } from "lucide-react";
 import api from "../api";
 import config from "../config.js";
 import { getRelativeTime } from "../utils/timeUtils";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import { ModernSidebar } from "./ModernSidebar";
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -87,66 +86,54 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
     return notif.type === activeFilter;
   });
 
-  const handleTabChange = (tab) => {
-    // Navigate to different pages based on tab
-    if (tab === 'home' || tab === 'foryou') {
-      onBack(); // Go back to home feed
-    } else if (tab === 'search') {
-      onBack(); // Will need to handle search separately
-    } else if (tab === 'profile') {
-      onShowProfile();
-    } else if (tab === 'settings') {
-      onShowSettings();
-    } else if (tab === 'campaigns') {
-      onShowCampaigns();
-    } else if (tab === 'post') {
-      onShowPostPage();
-    }
-  };
-
   return (
-    <div style={{ display: "flex", height: "100vh", background: T.bg }}>
-      {/* Sidebar */}
-      <ModernSidebar
-        user={user}
-        activeTab="notifications"
-        onTabChange={handleTabChange}
-        onShowPostPage={onShowPostPage}
-        onLogout={onLogout}
-        onShowProfile={onShowProfile}
-        onShowSettings={onShowSettings}
-        onShowCampaigns={onShowCampaigns}
-        onShowNotifications={() => {}}
-      />
-
-      {/* Main Content */}
-      <div style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: "20px",
-      }}>
-        <div style={{
-          maxWidth: 600,
-          margin: "0 auto",
-        }}>
+    <div style={{ height: "100%", overflowY: "auto", background: T.bg }}>
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 20px" }}>
           {/* Header */}
           <div style={{
             marginBottom: 24,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
           }}>
-            <h1 style={{
-              fontSize: 28,
-              fontWeight: 800,
-              color: T.txt,
-              marginBottom: 8,
-            }}>
-              {t('notifications')}
-            </h1>
-            <p style={{
-              fontSize: 14,
-              color: T.sub,
-            }}>
-              Stay updated with your activity
-            </p>
+            <div>
+              <h1 style={{
+                fontSize: 28,
+                fontWeight: 800,
+                color: T.txt,
+                marginBottom: 4,
+              }}>
+                {t('notifications')}
+              </h1>
+              <p style={{ fontSize: 14, color: T.sub }}>
+                Stay updated with your activity
+              </p>
+            </div>
+            {notifications.some(n => !n.read) && (
+              <button
+                onClick={() => {
+                  api.request('/notifications/mark-all-read/', { method: 'POST' }).catch(() => {});
+                  setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 14px',
+                  background: 'none',
+                  border: `1px solid ${T.border}`,
+                  borderRadius: 20,
+                  color: T.pri,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  marginTop: 4,
+                }}
+              >
+                <Check size={14} />
+                Mark all read
+              </button>
+            )}
           </div>
 
           {/* Filters */}
@@ -397,7 +384,6 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
             ))}
           </div>
         )}
-        </div>
       </div>
     </div>
   );
