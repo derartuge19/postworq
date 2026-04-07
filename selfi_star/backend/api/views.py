@@ -321,6 +321,14 @@ class ReelViewSet(viewsets.ModelViewSet):
                 comment_count_db=Count('comments', distinct=True),
             ).order_by('-created_at')
             
+            # Exclude reels marked as not interested by current user
+            if self.request.user.is_authenticated:
+                from .models import NotInterested
+                not_interested_ids = NotInterested.objects.filter(
+                    user=self.request.user
+                ).values_list('reel_id', flat=True)
+                queryset = queryset.exclude(id__in=not_interested_ids)
+            
             # Annotate is_liked / is_saved for the current user to avoid N+1
             if self.request.user.is_authenticated:
                 try:
@@ -1077,3 +1085,36 @@ def get_trending_reels(request):
     # Serialize
     serializer = ReelSerializer(queryset, many=True, context={'request': request})
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_not_interested(request):
+    """Mark a reel as not interested to hide from user's feed"""
+    reel_id = request.data.get('reel_id')
+    if not reel_id:
+        return Response({'error': 'reel_id required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        reel = Reel.objects.get(id=reel_id)
+    except Reel.DoesNotExist:
+        return Response({'error': 'Reel not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    from .models import NotInterested
+    NotInterested.objects.get_or_create(user=request.user, reel=reel)
+    
+    return Response({'message': 'Marked as not interested', 'reel_id': reel_id})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def undo_not_interested(request):
+    """Undo marking a reel as not interested"""
+    reel_id = request.data.get('reel_id')
+    if not reel_id:
+        return Response({'error': 'reel_id required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    from .models import NotInterested
+    NotInterested.objects.filter(user=request.user, reel_id=reel_id).delete()
+    
+    return Response({'message': 'Removed from not interested', 'reel_id': reel_id})

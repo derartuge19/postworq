@@ -547,8 +547,14 @@ export function TikTokLayout({
   const submitReport = async (videoId, category) => {
     setShowReportModal(null);
     try {
-      // Add report API call here when backend is ready
-      console.log('Reported video:', videoId, 'Category:', category);
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_reel: videoId,
+          report_type: category,
+          description: `Reported as ${category}`,
+        }),
+      });
       setAlertModal({
         isOpen: true,
         title: 'Report Submitted',
@@ -570,18 +576,28 @@ export function TikTokLayout({
     }
   };
 
-  const handleNotInterested = (videoId) => {
+  const handleNotInterested = async (videoId) => {
     setShowMenu(null);
-    // Remove video from feed
-    setVideos((prev) => prev.filter((v) => v.id !== videoId));
-    setAlertModal({
-      isOpen: true,
-      title: 'Video Removed',
-      message: 'This video has been removed from your feed.',
-      type: 'info',
-      onConfirm: null,
-      showCancel: false,
-    });
+    try {
+      await api.request('/reels/not-interested/', {
+        method: 'POST',
+        body: JSON.stringify({ reel_id: videoId }),
+      });
+      // Remove video from feed locally too
+      setVideos((prev) => prev.filter((v) => v.id !== videoId));
+      setAlertModal({
+        isOpen: true,
+        title: 'Video Removed',
+        message: "This video won't appear in your feed anymore.",
+        type: 'info',
+        onConfirm: null,
+        showCancel: false,
+      });
+    } catch (error) {
+      console.error('Failed to mark not interested:', error);
+      // Still remove from local feed even if API fails
+      setVideos((prev) => prev.filter((v) => v.id !== videoId));
+    }
   };
 
   const handleShowVideoInfo = (video) => {

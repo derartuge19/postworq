@@ -9,6 +9,7 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
     { id: 'users', icon: Users, label: 'Users' },
     { id: 'content', icon: FileVideo, label: 'Content' },
     { id: 'campaigns', icon: Trophy, label: 'Campaigns' },
+    { id: 'reports', icon: Flag, label: 'Reports' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
     { id: 'subscriptions', icon: CreditCard, label: 'Subscriptions' },
     { id: 'performance', icon: Activity, label: 'Performance' },

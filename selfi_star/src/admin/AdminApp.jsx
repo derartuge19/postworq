@@ -21,7 +21,9 @@ import CampaignThemeManagement from './pages/CampaignThemeManagement';
 import CampaignPostModeration from './pages/CampaignPostModeration';
 import { AdminSidebar } from './components/AdminSidebar';
 import { AdminLogin } from './pages/AdminLogin';
+import { ReportsPage } from './pages/ReportsPage';
 import api from '../api';
+import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Trophy, Target, Zap, Award, Flag } from 'lucide-react';
 
 const T = {
   pri: "#DA9B2A",
@@ -163,6 +165,8 @@ export function AdminApp() {
         return <JudgingPortalPage theme={T} />;
       case 'anti-cheat':
         return <AntiCheatPage theme={T} />;
+      case 'reports':
+        return <ReportsPage theme={T} />;
       default:
         return <AdminDashboard theme={T} />;
     }

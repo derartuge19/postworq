@@ -305,3 +305,21 @@ class Notification(models.Model):
     
     def __str__(self):
         return f"{self.notification_type} notification for {self.recipient.username}"
+
+
+class NotInterested(models.Model):
+    """Tracks reels a user marked as 'not interested' to hide from their feed"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='not_interested_reels')
+    reel = models.ForeignKey(Reel, on_delete=models.CASCADE, related_name='not_interested_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'reel')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'reel']),
+            models.Index(fields=['user', '-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} not interested in reel {self.reel.id}"

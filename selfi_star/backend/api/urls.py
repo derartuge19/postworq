@@ -7,7 +7,7 @@ from .views import (
     register, login, reset_password, create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
     get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail, admin_reports_stats,
-    get_trending_reels
+    get_trending_reels, mark_not_interested, undo_not_interested
 )
 
 @api_view(['GET'])
@@ -270,6 +270,8 @@ urlpatterns = [
     path('reels/following/', reels_following, name='reels-following'),
     path('reels/saved/', reels_saved, name='reels-saved'),
     path('reels/trending/', reels_trending, name='reels-trending'),
+    path('reels/not-interested/', mark_not_interested, name='mark-not-interested'),
+    path('reels/not-interested/undo/', undo_not_interested, name='undo-not-interested'),
     path('explorer/trending/', get_trending_reels, name='explorer-trending'),
     # Contest System - User
     path('subscription/details/', get_user_subscription, name='subscription-details'),
