@@ -405,34 +405,35 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         borderBottom: `1px solid ${T.border}`,
       }}>
         {[
-          { id: "posts", icon: Grid, label: "Posts" },
-          { id: "reels", icon: Film, label: "Reels" },
-          { id: "saved", icon: Bookmark, label: "Saved" },
-          { id: "campaigns", icon: Trophy, label: "Campaigns" },
-        ].filter(tab => isOwnProfile || (tab.id !== "saved")).map(tab => {
+          { id: "posts",     icon: Grid,     label: "Posts"     },
+          { id: "reels",     icon: Film,     label: "Reels"     },
+          { id: "saved",     icon: Bookmark, label: "Saved"     },
+          { id: "campaigns", icon: Trophy,   label: "Campaigns" },
+        ].filter(tab => isOwnProfile || tab.id !== "saved").map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
+              title={tab.label}
               style={{
                 flex: 1,
-                padding: "12px",
+                padding: "14px 8px",
                 border: "none",
                 background: "none",
                 cursor: "pointer",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 8,
-                borderBottom: isActive ? `2px solid ${T.pri}` : "2px solid transparent",
-                color: isActive ? T.txt : T.sub,
+                gap: 3,
+                borderBottom: isActive ? `3px solid ${T.pri}` : "3px solid transparent",
+                color: isActive ? T.pri : T.sub,
               }}
             >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span style={{ fontSize: 13, fontWeight: isActive ? 700 : 500 }}>
+              <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
+              <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 400, letterSpacing: 0.3 }}>
                 {tab.label}
               </span>
             </button>
