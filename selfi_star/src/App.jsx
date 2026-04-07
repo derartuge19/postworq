@@ -426,6 +426,10 @@ export default function WerqRoot() {
                 onShowProfile={() => handleShowProfile(null)}
                 onShowSettings={handleShowSettings}
                 onShowCampaigns={handleShowCampaigns}
+                onShowVideoDetail={(reelId) => {
+                  setShowNotifications(false);
+                  handleShowVideoDetail(reelId);
+                }}
               />
             </Suspense>
           </LazyLoadErrorBoundary>

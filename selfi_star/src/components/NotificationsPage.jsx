@@ -13,7 +13,7 @@ const mediaUrl = (url) => {
   return `${config.API_BASE_URL.replace('/api', '')}${url}`;
 };
 
-export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, onLogout, onShowProfile, onShowSettings, onShowCampaigns }) {
+export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, onLogout, onShowProfile, onShowSettings, onShowCampaigns, onShowVideoDetail }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const [notifications, setNotifications] = useState([]);
@@ -41,12 +41,21 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
       // Transform backend data to match component structure
       const transformedNotifications = data.map(notif => ({
         id: notif.id,
-        type: notif.type || 'campaign',
+        type: notif.notification_type || 'campaign',
         message: notif.message,
-        notification_type: notif.notification_type,
-        read: notif.read,
-        timestamp: new Date(notif.timestamp),
-        campaign_id: notif.campaign_id,
+        read: notif.is_read || false,
+        timestamp: new Date(notif.created_at),
+        user: notif.sender ? {
+          id: notif.sender.id,
+          username: notif.sender.username,
+          profile_photo: notif.sender.profile_photo,
+        } : null,
+        post: notif.reel ? {
+          id: notif.reel.id,
+          thumbnail: notif.reel.image || notif.reel.media,
+        } : null,
+        comment: notif.comment ? notif.comment.text : null,
+        reel_id: notif.reel?.id,
       }));
       
       setNotifications(transformedNotifications);
@@ -231,8 +240,27 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
                 <div
                   key={notif.id}
                 onClick={() => {
-                  if (notif.user && onUserClick) {
-                    onUserClick(notif.user.id);
+                  // Navigate based on notification type
+                  if (notif.type === 'like' || notif.type === 'comment') {
+                    // Go to the post
+                    if (notif.reel_id && onShowVideoDetail) {
+                      onShowVideoDetail(notif.reel_id);
+                    }
+                  } else if (notif.type === 'follow') {
+                    // Go to the user's profile
+                    if (notif.user && onUserClick) {
+                      onUserClick(notif.user.id);
+                    }
+                  }
+                  
+                  // Mark as read
+                  if (!notif.read) {
+                    api.request(`/notifications/${notif.id}/read/`, { method: 'POST' }).catch(err => {
+                      console.error('Failed to mark notification as read:', err);
+                    });
+                    setNotifications(prev => prev.map(n => 
+                      n.id === notif.id ? { ...n, read: true } : n
+                    ));
                   }
                 }}
                 style={{
