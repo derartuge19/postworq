@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical } from "lucide-react";
+import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Coins, Flame, Gift, Target } from "lucide-react";
 import api from "../api";
 import config from "../config";
 import { getRelativeTime } from "../utils/timeUtils";
@@ -7,7 +7,6 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { TikTokPostViewer } from "./TikTokPostViewer";
 import CampaignStats from "./CampaignStats";
-import { GamificationBar } from "./GamificationBar";
 
 export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
@@ -28,6 +27,12 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   const [followingCount, setFollowingCount] = useState(0);
   const [showPostMenu, setShowPostMenu] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
+  
+  // Gamification state
+  const [gamification, setGamification] = useState(null);
+  const [gamificationLoading, setGamificationLoading] = useState(true);
+  const [showSpinModal, setShowSpinModal] = useState(false);
+  const [showGiftModal, setShowGiftModal] = useState(false);
 
   const handleDeletePost = async (postId) => {
     if (!confirm('Are you sure you want to delete this post?')) return;
@@ -81,6 +86,17 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
     const fetchProfile = async () => {
       try {
         const targetUserId = userId || user?.id;
+        
+        // Load gamification data for own profile
+        if (isOwnProfile) {
+          try {
+            const gamData = await api.request('/gamification/status/');
+            setGamification(gamData);
+          } catch (e) {
+            console.log('Gamification not available:', e);
+          }
+          setGamificationLoading(false);
+        }
         
         if (isOwnProfile) {
           // Own profile: already initialized from cache, just refresh counts in background
@@ -266,20 +282,108 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         )}
       </div>
 
-      {/* Mobile-Style Gamification Bar - Only for own profile */}
-      {isOwnProfile && <GamificationBar userId={userId} theme={T} />}
-      
-      {/* DEBUG: Add visual indicator */}
+      {/* GAMIFICATION ICONS BAR - TOP OF PROFILE */}
       {isOwnProfile && (
         <div style={{
-          padding: '8px 16px',
-          background: '#FF6B35',
-          color: 'white',
-          fontSize: 12,
-          textAlign: 'center',
-          fontWeight: 600
+          display: 'flex',
+          justifyContent: 'space-around',
+          padding: '12px 16px',
+          background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
+          borderBottom: `2px solid ${T.pri}20`,
+          marginBottom: 0
         }}>
-          🎮 GAMIFICATION SECTION ABOVE
+          {/* Coins */}
+          <button 
+            onClick={() => alert(`💰 You have ${gamification?.coins?.balance || 0} coins!`)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+              background: `${T.pri}15`,
+              border: `2px solid ${T.pri}30`,
+              borderRadius: 12,
+              padding: '10px 16px',
+              cursor: 'pointer',
+              minWidth: 70
+            }}
+          >
+            <Coins size={22} color={T.pri} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>
+              {gamificationLoading ? '...' : (gamification?.coins?.balance || 0)}
+            </span>
+            <span style={{ fontSize: 10, color: '#666', textTransform: 'uppercase' }}>Coins</span>
+          </button>
+
+          {/* Streak */}
+          <button 
+            onClick={() => alert(`🔥 ${gamification?.login_streak?.current || 0} day streak!`)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+              background: '#EF444415',
+              border: '2px solid #EF444430',
+              borderRadius: 12,
+              padding: '10px 16px',
+              cursor: 'pointer',
+              minWidth: 70
+            }}
+          >
+            <Flame size={22} color="#EF4444" />
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>
+              {gamificationLoading ? '...' : (gamification?.login_streak?.current || 0)}
+            </span>
+            <span style={{ fontSize: 10, color: '#666', textTransform: 'uppercase' }}>Streak</span>
+          </button>
+
+          {/* Daily Spin */}
+          <button 
+            onClick={() => setShowSpinModal(true)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+              background: gamification?.spin?.can_spin ? `${T.pri}15` : '#F5F5F5',
+              border: gamification?.spin?.can_spin ? `2px solid ${T.pri}30` : '2px solid #E5E5E5',
+              borderRadius: 12,
+              padding: '10px 16px',
+              cursor: 'pointer',
+              minWidth: 70,
+              opacity: gamification?.spin?.can_spin ? 1 : 0.6
+            }}
+          >
+            <Target size={22} color={gamification?.spin?.can_spin ? T.pri : '#999'} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: gamification?.spin?.can_spin ? '#333' : '#999' }}>
+              {gamification?.spin?.can_spin ? '✓' : '✗'}
+            </span>
+            <span style={{ fontSize: 10, color: '#666', textTransform: 'uppercase' }}>Spin</span>
+          </button>
+
+          {/* Gifts */}
+          <button 
+            onClick={() => setShowGiftModal(true)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+              background: '#8B5CF615',
+              border: '2px solid #8B5CF630',
+              borderRadius: 12,
+              padding: '10px 16px',
+              cursor: 'pointer',
+              minWidth: 70
+            }}
+          >
+            <Gift size={22} color="#8B5CF6" />
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>
+              {gamificationLoading ? '...' : (gamification?.gifts?.received_today || 0)}
+            </span>
+            <span style={{ fontSize: 10, color: '#666', textTransform: 'uppercase' }}>Gifts</span>
+          </button>
         </div>
       )}
 
