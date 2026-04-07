@@ -15,16 +15,13 @@ root.render(
   </React.StrictMode>,
 );
 
-// Remove the inline skeleton overlay after React has painted its first frame.
-// Using requestAnimationFrame × 2 ensures the browser has committed the paint
-// before we fade out the skeleton — preventing any flash of unstyled content.
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    const skeleton = document.getElementById('app-skeleton');
-    if (skeleton) {
-      skeleton.style.transition = 'opacity 0.2s ease';
-      skeleton.style.opacity = '0';
-      setTimeout(() => skeleton.remove(), 220);
-    }
-  });
-});
+// Skeleton removal is handled by TikTokLayout when content is ready.
+// Fallback: remove after 12s max so it never stays forever (e.g. error paths).
+setTimeout(() => {
+  const skeleton = document.getElementById('app-skeleton');
+  if (skeleton) {
+    skeleton.style.transition = 'opacity 0.3s ease';
+    skeleton.style.opacity = '0';
+    setTimeout(() => skeleton.remove(), 320);
+  }
+}, 12000);

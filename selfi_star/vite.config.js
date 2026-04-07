@@ -28,9 +28,6 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react')) {
             return 'vendor-icons';
           }
-          if (id.includes('TikTokLayout') || id.includes('TikTokLayout.css')) {
-            return 'chunk-feed';
-          }
           if (
             id.includes('ProfilePage') ||
             id.includes('EditProfilePage') ||

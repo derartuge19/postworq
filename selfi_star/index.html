@@ -231,12 +231,14 @@
         // Only warm up in production (not localhost)
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
         try {
+          var headers = { 'Accept': 'application/json' };
+          // Include auth token so the backend returns full data (is_liked, is_saved, etc.)
+          var token = localStorage.getItem('authToken');
+          if (token) headers['Authorization'] = 'Token ' + token;
           var p = fetch(BACKEND + '/api/reels/?limit=5&offset=0', {
             method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            credentials: 'omit',
-          }).then(function(r) { return r.json(); }).catch(function() { return null; });
-          // Expose promise on window so React can await it instead of making a second request
+            headers: headers,
+          }).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
           window.__warmupFeed = p;
         } catch(e) {}
       })();

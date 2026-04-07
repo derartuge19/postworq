@@ -69,7 +69,7 @@ export function TikTokLayout({
 
   // ── Feed cache helpers (stale-while-revalidate) ──────────────────────────
   const CACHE_KEY = (tab) => `feed_cache_${tab}`;
-  const CACHE_TTL = 5 * 60 * 1000; // 5 min
+  const CACHE_TTL = 30 * 60 * 1000; // 30 min
   const readFeedCache = (tab) => {
     try {
       const raw = localStorage.getItem(CACHE_KEY(tab));
@@ -265,6 +265,18 @@ export function TikTokLayout({
     setHasMore(true);
     fetchVideos(1, false);
   }, [activeTab]);
+
+  // Remove the HTML skeleton overlay as soon as we have content to show
+  useEffect(() => {
+    if (videos.length > 0 || !loading) {
+      const skeleton = document.getElementById('app-skeleton');
+      if (skeleton) {
+        skeleton.style.transition = 'opacity 0.2s ease';
+        skeleton.style.opacity = '0';
+        setTimeout(() => skeleton.remove(), 220);
+      }
+    }
+  }, [videos.length, loading]);
 
   // Preload first video's poster as soon as we have the URL (from cache or API)
   // so the browser starts fetching the thumbnail before the <video> element renders
