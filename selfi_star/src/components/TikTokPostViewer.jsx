@@ -400,9 +400,7 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (confirm('Delete this post?')) {
-                    onDeletePost?.(currentPost.id);
-                  }
+                  onDeletePost?.(currentPost.id);
                 }}
                 style={{
                   background: 'none',

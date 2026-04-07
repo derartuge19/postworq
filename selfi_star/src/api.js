@@ -301,6 +301,12 @@ const api = {
       method: 'DELETE',
     }).then(r => { invalidateCache('/reels'); return r; }),
 
+  updatePost: (reelId, data) =>
+    api.request(`/reels/${reelId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }).then(r => { invalidateCache('/reels'); return r; }),
+
   updateNotificationSettings: (settings) =>
     api.request('/notifications/me/', {
       method: 'PUT',

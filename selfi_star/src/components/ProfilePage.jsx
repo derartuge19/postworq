@@ -28,25 +28,53 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   const [followingCount, setFollowingCount] = useState(0);
   const [showPostMenu, setShowPostMenu] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [postMenuId, setPostMenuId] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
+  const [editCaption, setEditCaption] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   
   const handleDeletePost = async (postId) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
-    
+    setConfirmDeleteId(null);
     try {
       await api.deletePost(postId);
       setPosts(prev => prev.filter(p => p.id !== postId));
-      setShowPostMenu(null);
-      alert('Post deleted successfully!');
+      if (selectedPost?.id === postId) setSelectedPost(null);
+      setSuccessMsg('Post deleted!');
+      setTimeout(() => setSuccessMsg(''), 2500);
     } catch (error) {
       console.error('Failed to delete post:', error);
-      alert('Failed to delete post. Please try again.');
     }
   };
 
-  const handleEditPost = (postId) => {
-    setShowPostMenu(null);
-    // TODO: Implement edit post functionality
-    alert('Edit post functionality coming soon!');
+  const handleRequestDelete = (postId) => {
+    setPostMenuId(null);
+    setConfirmDeleteId(postId);
+  };
+
+  const handleEditPost = (postIdOrPost) => {
+    const post = typeof postIdOrPost === 'object' ? postIdOrPost : posts.find(p => p.id === postIdOrPost);
+    if (!post) return;
+    setPostMenuId(null);
+    setEditingPost(post);
+    setEditCaption(post.caption || '');
+  };
+
+  const handleEditSave = async () => {
+    if (!editingPost) return;
+    setIsSaving(true);
+    try {
+      await api.updatePost(editingPost.id, { caption: editCaption });
+      setPosts(prev => prev.map(p => p.id === editingPost.id ? { ...p, caption: editCaption } : p));
+      setEditingPost(null);
+      setSuccessMsg('Post updated!');
+      setTimeout(() => setSuccessMsg(''), 2500);
+    } catch (err) {
+      console.error('Failed to update post:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const fetchFollowCounts = async (targetUserId) => {
@@ -468,75 +496,33 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               overflow: "hidden",
             }}
             onClick={() => setSelectedPost(post)}
-            onMouseEnter={(e) => {
-              if (isOwnProfile) {
-                e.currentTarget.querySelector('.post-actions').style.opacity = '1';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (isOwnProfile) {
-                e.currentTarget.querySelector('.post-actions').style.opacity = '0';
-              }
-            }}
           >
-            {/* Edit/Delete Actions - Only for own profile */}
+            {/* Three-dot menu - always visible on mobile, own profile only */}
             {isOwnProfile && (
-              <div
-                className="post-actions"
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPostMenuId(postMenuId === post.id ? null : post.id);
+                }}
                 style={{
                   position: "absolute",
-                  top: 8,
-                  right: 8,
+                  top: 6,
+                  right: 6,
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  background: "rgba(0,0,0,0.55)",
+                  border: "none",
+                  cursor: "pointer",
                   display: "flex",
-                  gap: 8,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
                   zIndex: 10,
-                  opacity: 0,
-                  transition: "opacity 0.2s",
                 }}
               >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEditPost(post.id);
-                  }}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "rgba(0,0,0,0.7)",
-                    border: "none",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                  }}
-                  title="Edit post"
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeletePost(post.id);
-                  }}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "rgba(220,38,38,0.9)",
-                    border: "none",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                  }}
-                  title="Delete post"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+                <MoreVertical size={13} />
+              </button>
             )}
             
             {(() => {
@@ -659,10 +645,178 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           user={user}
           profileUser={profileUser}
           onClose={() => setSelectedPost(null)}
-          onDeletePost={handleDeletePost}
+          onDeletePost={handleRequestDelete}
           onEditPost={handleEditPost}
           isOwnProfile={isOwnProfile}
         />
+      )}
+
+      {/* Post Menu Bottom Sheet */}
+      {postMenuId && (
+        <div
+          onClick={() => setPostMenuId(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.45)', zIndex: 2000,
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: 480, background: '#fff',
+              borderRadius: '20px 20px 0 0', padding: '8px 0 40px',
+              boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
+            }}
+          >
+            <div style={{ width: 36, height: 4, background: '#E7E5E4', borderRadius: 4, margin: '12px auto 20px' }} />
+            <button
+              onClick={() => { const p = posts.find(p => p.id === postMenuId); handleEditPost(p); }}
+              style={{
+                width: '100%', padding: '16px 24px', background: 'none', border: 'none',
+                textAlign: 'left', fontSize: 16, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 14, color: T.txt,
+              }}
+            >
+              <Edit2 size={20} style={{ color: T.pri }} /> Edit Caption
+            </button>
+            <button
+              onClick={() => { setConfirmDeleteId(postMenuId); setPostMenuId(null); }}
+              style={{
+                width: '100%', padding: '16px 24px', background: 'none', border: 'none',
+                textAlign: 'left', fontSize: 16, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 14, color: '#EF4444',
+              }}
+            >
+              <Trash2 size={20} /> Delete Post
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Caption Modal */}
+      {editingPost && (
+        <div
+          onClick={() => setEditingPost(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.5)', zIndex: 2100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: 480, background: '#fff',
+              borderRadius: 20, padding: 24,
+              boxShadow: '0 8px 40px rgba(0,0,0,0.2)',
+            }}
+          >
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.txt, marginBottom: 4 }}>Edit Caption</div>
+            <div style={{ fontSize: 13, color: T.sub, marginBottom: 16 }}>Update your post caption below.</div>
+            <textarea
+              value={editCaption}
+              onChange={e => setEditCaption(e.target.value)}
+              rows={4}
+              style={{
+                width: '100%', padding: 12, fontSize: 15, color: T.txt,
+                border: `1.5px solid ${T.border}`, borderRadius: 12,
+                resize: 'none', outline: 'none', fontFamily: 'inherit',
+                boxSizing: 'border-box', lineHeight: 1.5,
+              }}
+              placeholder="Write a caption..."
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+              <button
+                onClick={() => setEditingPost(null)}
+                style={{
+                  flex: 1, padding: '12px 20px',
+                  border: `1px solid ${T.border}`, background: '#fff',
+                  borderRadius: 12, fontSize: 15, fontWeight: 600,
+                  cursor: 'pointer', color: T.txt,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditSave}
+                disabled={isSaving}
+                style={{
+                  flex: 1, padding: '12px 20px',
+                  border: 'none', background: T.pri,
+                  borderRadius: 12, fontSize: 15, fontWeight: 700,
+                  cursor: 'pointer', color: '#fff', opacity: isSaving ? 0.7 : 1,
+                }}
+              >
+                {isSaving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete Modal */}
+      {confirmDeleteId && (
+        <div
+          onClick={() => setConfirmDeleteId(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.5)', zIndex: 2100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: '100%', maxWidth: 360, background: '#fff',
+              borderRadius: 20, padding: 28, textAlign: 'center',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.2)',
+            }}
+          >
+            <div style={{ fontSize: 44, marginBottom: 12 }}>🗑️</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.txt, marginBottom: 8 }}>Delete Post?</div>
+            <div style={{ fontSize: 14, color: T.sub, marginBottom: 24 }}>This cannot be undone.</div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                style={{
+                  flex: 1, padding: '12px 20px',
+                  border: `1px solid ${T.border}`, background: '#fff',
+                  borderRadius: 12, fontSize: 15, fontWeight: 600,
+                  cursor: 'pointer', color: T.txt,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeletePost(confirmDeleteId)}
+                style={{
+                  flex: 1, padding: '12px 20px',
+                  border: 'none', background: '#EF4444',
+                  borderRadius: 12, fontSize: 15, fontWeight: 700,
+                  cursor: 'pointer', color: '#fff',
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Toast */}
+      {successMsg && (
+        <div style={{
+          position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
+          background: '#1C1917', color: '#fff',
+          padding: '12px 24px', borderRadius: 24,
+          fontSize: 14, fontWeight: 600, zIndex: 2200,
+          whiteSpace: 'nowrap', boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          ✓ {successMsg}
+        </div>
       )}
         </>
       )}

@@ -986,149 +986,6 @@ export function TikTokLayout({
                             {playingVideos[video.id] ? '▶' : '❚❚'}
                           </div>
                         )}
-
-                        {/* Three Dots Menu - Top Right */}
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: 10,
-                            right: 10,
-                            zIndex: 10,
-                          }}
-                        >
-                          <button
-                            onClick={() => setShowMenu(video.id)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              display: isMobile ? 'none' : 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              padding: 6,
-                              color: '#fff',
-                            }}
-                          >
-                            <MoreVertical size={24} strokeWidth={2} />
-                          </button>
-
-                          {/* Dropdown Menu */}
-                          {showMenu === video.id && (
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: 50,
-                                right: 0,
-                                background: '#fff',
-                                borderRadius: 8,
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                minWidth: 200,
-                                zIndex: 1000,
-                              }}
-                            >
-                              <button
-                                onClick={() => handleShowVideoInfo(video)}
-                                style={{
-                                  width: '100%',
-                                  padding: '12px 16px',
-                                  border: 'none',
-                                  background: 'none',
-                                  textAlign: 'left',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 8,
-                                  fontSize: 14,
-                                  color: T.txt,
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.background = '#f5f5f5')
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.background = 'none')
-                                }
-                              >
-                                <Info size={16} />
-                                Video Info
-                              </button>
-                              <button
-                                onClick={() => handleShare(video.id)}
-                                style={{
-                                  width: '100%',
-                                  padding: '12px 16px',
-                                  border: 'none',
-                                  background: 'none',
-                                  textAlign: 'left',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 8,
-                                  fontSize: 14,
-                                  color: T.txt,
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.background = '#f5f5f5')
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.background = 'none')
-                                }
-                              >
-                                <Share2 size={16} />
-                                Share
-                              </button>
-                              <button
-                                onClick={() => handleNotInterested(video.id)}
-                                style={{
-                                  width: '100%',
-                                  padding: '12px 16px',
-                                  border: 'none',
-                                  background: 'none',
-                                  textAlign: 'left',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 8,
-                                  fontSize: 14,
-                                  color: T.txt,
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.background = '#f5f5f5')
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.background = 'none')
-                                }
-                              >
-                                <Flag size={16} />
-                                Not Interested
-                              </button>
-                              <button
-                                onClick={() => setShowReportModal(video.id)}
-                                style={{
-                                  width: '100%',
-                                  padding: '12px 16px',
-                                  border: 'none',
-                                  background: 'none',
-                                  textAlign: 'left',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 8,
-                                  fontSize: 14,
-                                  color: '#e74c3c',
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.background = '#ffe5e5')
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.background = 'none')
-                                }
-                              >
-                                <Flag size={16} />
-                                Report
-                              </button>
-                            </div>
-                          )}
-                        </div>
                       </div>
                     ) : (
                       <>
@@ -1186,6 +1043,151 @@ export function TikTokLayout({
                       }}
                     >
                       🎬
+                    </div>
+                  )}
+
+                  {/* Three Dots Menu - Top Right (Desktop) */}
+                  {!isMobile && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        zIndex: 10,
+                      }}
+                    >
+                      <button
+                        onClick={() => setShowMenu(video.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          padding: 6,
+                          color: '#fff',
+                        }}
+                      >
+                        <MoreVertical size={24} strokeWidth={2} />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {showMenu === video.id && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 50,
+                            right: 0,
+                            background: '#fff',
+                            borderRadius: 8,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            minWidth: 200,
+                            zIndex: 1000,
+                          }}
+                        >
+                          <button
+                            onClick={() => handleShowVideoInfo(video)}
+                            style={{
+                              width: '100%',
+                              padding: '12px 16px',
+                              border: 'none',
+                              background: 'none',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 14,
+                              color: T.txt,
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = '#f5f5f5')
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.background = 'none')
+                            }
+                          >
+                            <Info size={16} />
+                            Post Info
+                          </button>
+                          <button
+                            onClick={() => handleShare(video.id)}
+                            style={{
+                              width: '100%',
+                              padding: '12px 16px',
+                              border: 'none',
+                              background: 'none',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 14,
+                              color: T.txt,
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = '#f5f5f5')
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.background = 'none')
+                            }
+                          >
+                            <Share2 size={16} />
+                            Share
+                          </button>
+                          <button
+                            onClick={() => handleNotInterested(video.id)}
+                            style={{
+                              width: '100%',
+                              padding: '12px 16px',
+                              border: 'none',
+                              background: 'none',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 14,
+                              color: T.txt,
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = '#f5f5f5')
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.background = 'none')
+                            }
+                          >
+                            <Flag size={16} />
+                            Not Interested
+                          </button>
+                          <button
+                            onClick={() => setShowReportModal(video.id)}
+                            style={{
+                              width: '100%',
+                              padding: '12px 16px',
+                              border: 'none',
+                              background: 'none',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 14,
+                              color: '#e74c3c',
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = '#ffe5e5')
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.background = 'none')
+                            }
+                          >
+                            <Flag size={16} />
+                            Report
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
