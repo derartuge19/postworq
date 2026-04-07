@@ -36,6 +36,7 @@ export function TikTokLayout({
   onShowSettings,
   onShowCampaigns,
   onShowNotifications,
+  onShowVideoDetail,
 }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
@@ -520,24 +521,31 @@ export function TikTokLayout({
     navigator.clipboard
       .writeText(postUrl)
       .then(() => {
-        setAlertModal({
-          isOpen: true,
-          title: 'Link Copied',
-          message: 'Video link has been copied to clipboard.',
-          type: 'success',
-          onConfirm: null,
-          showCancel: false,
-        });
+        // Show success toast
+        const toast = document.createElement('div');
+        toast.textContent = '✓ Link copied to clipboard!';
+        toast.style.cssText = `
+          position: fixed;
+          bottom: 80px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 12px 24px;
+          border-radius: 24px;
+          font-size: 14px;
+          font-weight: 600;
+          z-index: 10000;
+          animation: fadeInOut 2s ease-in-out;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+        
+        console.log('Link copied to clipboard:', postUrl);
       })
-      .catch(() => {
-        setAlertModal({
-          isOpen: true,
-          title: 'Error',
-          message: 'Failed to copy link. Please try again.',
-          type: 'error',
-          onConfirm: null,
-          showCancel: false,
-        });
+      .catch((err) => {
+        console.error('Failed to copy link:', err);
+        alert('Failed to copy link');
       });
   };
 
