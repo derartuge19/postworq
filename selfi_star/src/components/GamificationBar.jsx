@@ -1,738 +1,492 @@
-import { useState, useEffect } from 'react';
-import { Gift, Coins, Flame, Calendar, RotateCw, Sparkles, CheckCircle, X, TrendingUp, Target } from 'lucide-react';
-import api from '../../api';
+import { useState, useEffect, useRef } from 'react';
+import api from '../api';
 
-// Mobile App Style Gamification Bar
-export function GamificationBar({ userId, theme }) {
-  const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeModal, setActiveModal] = useState(null);
-  const [spinning, setSpinning] = useState(false);
-  const [spinResult, setSpinResult] = useState(null);
+/* ─── CONSTANTS ─────────────────────────────── */
+const SPIN_SEGMENTS = [
+  { label: '10 Coins',  emoji: '🪙', color: '#F59E0B', coins: 10 },
+  { label: '25 Coins',  emoji: '💰', color: '#DA9B2A', coins: 25 },
+  { label: '5 Coins',   emoji: '🪙', color: '#FCD34D', coins: 5  },
+  { label: '50 Coins',  emoji: '🏆', color: '#EF4444', coins: 50 },
+  { label: '15 Coins',  emoji: '🪙', color: '#F59E0B', coins: 15 },
+  { label: '100 Coins', emoji: '💎', color: '#8B5CF6', coins: 100 },
+  { label: '20 Coins',  emoji: '🪙', color: '#DA9B2A', coins: 20 },
+  { label: 'XP Boost',  emoji: '⚡', color: '#10B981', coins: 0  },
+];
 
-  // Add console log for debugging
-  console.log('GamificationBar rendering for userId:', userId);
-
+/* ─── FULL-SCREEN MODAL WRAPPER ──────────────── */
+function Modal({ onClose, children }) {
   useEffect(() => {
-    loadStatus();
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
   }, []);
-
-  const loadStatus = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.request('/gamification/status/');
-      setStatus(response);
-    } catch (err) {
-      console.error('Failed to load gamification status:', err);
-      
-      if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
-        setError('Please log in to access gamification features');
-      } else if (err.message?.includes('403') || err.message?.includes('Forbidden')) {
-        setError('Access denied. Please check your account status.');
-      } else {
-        setError(err.message || 'Failed to load gamification data');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSpin = async () => {
-    if (spinning) return;
-    setSpinning(true);
-    try {
-      const response = await api.request('/gamification/spin/', { method: 'POST' });
-      setSpinResult(response);
-      setStatus(prev => ({
-        ...prev,
-        coins: { ...prev.coins, balance: response.new_balance },
-        spin: { ...prev.spin, can_spin: false, spins_total: response.spins_total }
-      }));
-    } catch (error) {
-      console.error('Spin failed:', error);
-    } finally {
-      setSpinning(false);
-    }
-  };
-
-  const handleClaimLogin = async () => {
-    try {
-      const response = await api.request('/gamification/login-bonus/', { method: 'POST' });
-      setStatus(prev => ({
-        ...prev,
-        coins: { ...prev.coins, balance: response.new_balance },
-        login_streak: { ...prev.login_streak, bonus_available: false, current: response.login_streak }
-      }));
-    } catch (error) {
-      console.error('Claim failed:', error);
-    }
-  };
-
-  if (loading) return (
-    <div style={{ 
-      padding: '16px',
-      background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
-      borderRadius: 16,
-      margin: '0 16px 16px',
-      border: `2px solid ${theme.pri}20`,
-      textAlign: 'center',
-      color: theme.pri,
-      fontWeight: 600
+  return (
+    <div onClick={onClose} style={{
+      position:'fixed',inset:0,background:'rgba(0,0,0,.6)',
+      display:'flex',alignItems:'flex-end',justifyContent:'center',
+      zIndex:9999,backdropFilter:'blur(4px)'
     }}>
-      🎮 Loading Gamification...
-    </div>
-  );
-  
-  if (error) return (
-    <div style={{ 
-      padding: '12px 16px', 
-      background: theme.red + '10', 
-      borderRadius: 12, 
-      margin: '0 16px 12px',
-      textAlign: 'center',
-      border: `1px solid ${theme.red}20`
-    }}>
-      <div style={{ fontSize: 12, color: theme.red, marginBottom: 8 }}>{error}</div>
-      <button 
-        onClick={loadStatus}
-        style={{
-          padding: '6px 12px',
-          borderRadius: 6,
-          border: 'none',
-          background: theme.pri,
-          color: 'white',
-          cursor: 'pointer',
-          fontSize: 12
-        }}
-      >
-        Retry
-      </button>
-    </div>
-  );
-
-  if (!status) return null;
-
-  return (
-    <div style={{ 
-      background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
-      borderRadius: 16,
-      margin: '0 16px 16px',
-      padding: '16px',
-      border: `2px solid ${theme.pri}20`,
-      boxShadow: '0 4px 12px rgba(218, 155, 42, 0.1)'
-    }}>
-      {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        marginBottom: 16
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:'#fff',borderRadius:'24px 24px 0 0',
+        width:'100%',maxWidth:480,maxHeight:'85vh',
+        overflowY:'auto',padding:'8px 0 32px',
+        boxShadow:'0 -8px 40px rgba(0,0,0,.25)'
       }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 8,
-          fontSize: 16,
-          fontWeight: 700,
-          color: theme.txt
-        }}>
-          <span style={{ fontSize: 20 }}>🎮</span>
-          Gamification Hub
-        </div>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          padding: '4px 8px',
-          background: theme.pri + '15',
-          borderRadius: 20,
-          fontSize: 12,
-          color: theme.pri,
-          fontWeight: 600
-        }}>
-          <Flame size={14} />
-          {status.login_streak.current} day streak
-        </div>
-      </div>
-
-      {/* Icon Bar */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 12,
-        marginBottom: 16
-      }}>
-        <GameIcon
-          icon={<Coins size={20} />}
-          value={status.coins.balance}
-          label="Coins"
-          color={theme.pri}
-          onClick={() => setActiveModal('coins')}
-        />
-        <GameIcon
-          icon={<Flame size={20} />}
-          value={status.login_streak.current}
-          label="Streak"
-          color="#EF4444"
-          onClick={() => setActiveModal('streak')}
-        />
-        <GameIcon
-          icon={<Target size={20} />}
-          value={status.spin.can_spin ? '✓' : '✗'}
-          label="Spin"
-          color={status.spin.can_spin ? theme.pri : theme.sub}
-          onClick={() => status.spin.can_spin && setActiveModal('spin')}
-          disabled={!status.spin.can_spin}
-        />
-        <GameIcon
-          icon={<Gift size={20} />}
-          value={status.gifts.received_today}
-          label="Gifts"
-          color="#8B5CF6"
-          onClick={() => setActiveModal('gift')}
-        />
-      </div>
-
-      {/* Quick Actions */}
-      <div style={{
-        display: 'flex',
-        gap: 8,
-        justifyContent: 'space-between'
-      }}>
-        {status.spin.can_spin && (
-          <QuickButton
-            icon={<RotateCw size={16} />}
-            label="Daily Spin"
-            color={theme.pri}
-            onClick={() => setActiveModal('spin')}
-          />
-        )}
-        {status.login_streak.bonus_available && (
-          <QuickButton
-            icon={<CheckCircle size={16} />}
-            label={`Day ${status.login_streak.current + 1} Bonus`}
-            color="#10B981"
-            onClick={handleClaimLogin}
-          />
-        )}
-        <QuickButton
-          icon={<Gift size={16} />}
-          label="Send Gift"
-          color="#8B5CF6"
-          onClick={() => setActiveModal('gift')}
-        />
-      </div>
-
-      {/* Modals */}
-      {activeModal === 'spin' && (
-        <SpinModal
-          theme={theme}
-          onClose={() => setActiveModal(null)}
-          onSpin={handleSpin}
-          spinning={spinning}
-          result={spinResult}
-          canSpin={status.spin.can_spin}
-          rewards={status.spin.rewards_preview}
-        />
-      )}
-
-      {activeModal === 'gift' && (
-        <GiftModal
-          theme={theme}
-          onClose={() => setActiveModal(null)}
-          onSuccess={loadStatus}
-          coins={status.coins.balance}
-        />
-      )}
-
-      {activeModal === 'coins' && (
-        <CoinsModal
-          theme={theme}
-          onClose={() => setActiveModal(null)}
-          coins={status.coins}
-        />
-      )}
-
-      {activeModal === 'streak' && (
-        <StreakModal
-          theme={theme}
-          onClose={() => setActiveModal(null)}
-          streak={status.login_streak}
-          onClaim={handleClaimLogin}
-        />
-      )}
-    </div>
-  );
-}
-
-function GameIcon({ icon, value, label, color, onClick, disabled }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        background: disabled ? '#F5F5F5' : color + '10',
-        border: disabled ? '1px solid #E5E5E5' : `2px solid ${color}30`,
-        borderRadius: 12,
-        padding: '12px 8px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 4,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        transition: 'all 0.2s',
-        opacity: disabled ? 0.6 : 1,
-        minWidth: 0
-      }}
-    >
-      <div style={{ color: disabled ? '#999' : color }}>
-        {icon}
-      </div>
-      <div style={{ 
-        fontSize: 14, 
-        fontWeight: 700, 
-        color: disabled ? '#999' : '#333' 
-      }}>
-        {value}
-      </div>
-      <div style={{ 
-        fontSize: 10, 
-        color: disabled ? '#999' : '#666',
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px'
-      }}>
-        {label}
-      </div>
-    </button>
-  );
-}
-
-function QuickButton({ icon, label, color, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1,
-        background: color + '15',
-        border: `1px solid ${color}30`,
-        borderRadius: 8,
-        padding: '8px 12px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        fontSize: 12,
-        color: color,
-        fontWeight: 600
-      }}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
-
-function CoinsModal({ theme, onClose, coins }) {
-  return (
-    <MobileModal theme={theme} onClose={onClose} title="💰 Coins Balance">
-      <div style={{ textAlign: 'center', padding: '20px 0' }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>🪙</div>
-        <div style={{ fontSize: 32, fontWeight: 700, color: theme.pri, marginBottom: 8 }}>
-          {coins.balance}
-        </div>
-        <div style={{ fontSize: 14, color: theme.sub, marginBottom: 24 }}>
-          Current Balance
-        </div>
-        
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 16,
-          marginBottom: 24
-        }}>
-          <div style={{
-            background: '#10B98110',
-            padding: 12,
-            borderRadius: 8,
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#10B981' }}>
-              {coins.earned_total}
-            </div>
-            <div style={{ fontSize: 11, color: theme.sub }}>Total Earned</div>
-          </div>
-          <div style={{
-            background: '#EF444410',
-            padding: 12,
-            borderRadius: 8,
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#EF4444' }}>
-              {coins.spent_total}
-            </div>
-            <div style={{ fontSize: 11, color: theme.sub }}>Total Spent</div>
-          </div>
-        </div>
-      </div>
-    </MobileModal>
-  );
-}
-
-function StreakModal({ theme, onClose, streak, onClaim }) {
-  return (
-    <MobileModal theme={theme} onClose={onClose} title="🔥 Login Streak">
-      <div style={{ textAlign: 'center', padding: '20px 0' }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>🔥</div>
-        <div style={{ fontSize: 32, fontWeight: 700, color: '#EF4444', marginBottom: 8 }}>
-          {streak.current} Days
-        </div>
-        <div style={{ fontSize: 14, color: theme.sub, marginBottom: 16 }}>
-          Current Streak
-        </div>
-        
-        <div style={{
-          background: '#F59E0B10',
-          padding: 16,
-          borderRadius: 12,
-          marginBottom: 20
-        }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-            Best Streak: {streak.longest} days
-          </div>
-          <div style={{ fontSize: 12, color: theme.sub }}>
-            Keep logging in daily to maintain your streak!
-          </div>
-        </div>
-
-        {streak.bonus_available && (
-          <button
-            onClick={() => {
-              onClaim();
-              onClose();
-            }}
-            style={{
-              width: '100%',
-              padding: 14,
-              borderRadius: 10,
-              border: 'none',
-              background: '#10B981',
-              color: 'white',
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Claim Day {streak.current + 1} Bonus
-          </button>
-        )}
-      </div>
-    </MobileModal>
-  );
-}
-
-function MobileModal({ theme, onClose, title, children }) {
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0,0,0,0.7)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: 20
-    }} onClick={onClose}>
-      <div style={{
-        background: 'white',
-        borderRadius: 20,
-        padding: 24,
-        maxWidth: 400,
-        width: '100%',
-        maxHeight: '80vh',
-        overflow: 'auto'
-      }} onClick={e => e.stopPropagation()}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginBottom: 20
-        }}>
-          <h2 style={{ margin: 0, fontSize: 20, color: theme.txt }}>{title}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            <X size={24} color={theme.sub} />
-          </button>
-        </div>
+        {/* drag handle */}
+        <div style={{width:40,height:4,background:'#E7E5E4',borderRadius:4,margin:'12px auto 0'}}/>
         {children}
       </div>
     </div>
   );
 }
 
-// Reuse existing SpinModal and GiftModal but adapt styling
-function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards }) {
-  const [rotation, setRotation] = useState(0);
-
-  const handleSpinClick = () => {
-    if (!canSpin || spinning) return;
-    const randomRotation = 1440 + Math.random() * 1440;
-    setRotation(prev => prev + randomRotation);
-    onSpin();
-  };
-
+function ModalHeader({ title, onClose }) {
   return (
-    <MobileModal theme={theme} onClose={onClose} title="🎰 Daily Spin">
-      {!result ? (
-        <>
-          <div style={{
-            width: 200,
-            height: 200,
-            margin: '0 auto 24px',
-            position: 'relative'
-          }}>
-            <div style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '50%',
-              background: `conic-gradient(
-                ${theme.pri} 0deg 60deg,
-                #3B82F6 60deg 120deg,
-                #10B981 120deg 180deg,
-                #F59E0B 180deg 240deg,
-                #EF4444 240deg 300deg,
-                #8B5CF6 300deg 360deg
-              )`,
-              transform: `rotate(${rotation}deg)`,
-              transition: spinning ? 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)' : 'none',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
-            }} />
-            <div style={{
-              position: 'absolute',
-              top: -10,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 0,
-              height: 0,
-              borderLeft: '15px solid transparent',
-              borderRight: '15px solid transparent',
-              borderTop: '30px solid ' + theme.txt
-            }} />
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 50,
-              height: 50,
-              borderRadius: '50%',
-              background: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-            }}>
-              <Sparkles size={24} color={theme.pri} />
-            </div>
-          </div>
-
-          <button
-            onClick={handleSpinClick}
-            disabled={!canSpin || spinning}
-            style={{
-              width: '100%',
-              padding: 16,
-              borderRadius: 12,
-              border: 'none',
-              background: canSpin ? theme.pri : theme.border,
-              color: canSpin ? 'white' : theme.sub,
-              fontSize: 18,
-              fontWeight: 600,
-              cursor: canSpin ? 'pointer' : 'not-allowed'
-            }}
-          >
-            {spinning ? 'Spinning...' : canSpin ? 'SPIN!' : 'Already Spun Today'}
-          </button>
-        </>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>
-            {result.reward.emoji}
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: theme.pri, marginBottom: 8 }}>
-            {result.reward.label}
-          </div>
-          <div style={{ fontSize: 16, color: theme.txt, marginBottom: 16 }}>
-            +{result.coins_earned} coins added!
-          </div>
-          <div style={{ fontSize: 14, color: theme.sub, marginBottom: 20 }}>
-            New balance: <strong>{result.new_balance}</strong> coins
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              width: '100%',
-              padding: 14,
-              borderRadius: 10,
-              border: 'none',
-              background: theme.pri,
-              color: 'white',
-              fontSize: 16,
-              cursor: 'pointer'
-            }}
-          >
-            Awesome!
-          </button>
-        </div>
-      )}
-    </MobileModal>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px 8px'}}>
+      <span style={{fontSize:18,fontWeight:800,color:'#1C1917'}}>{title}</span>
+      <button onClick={onClose} style={{background:'#F5F5F4',border:'none',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+        <X size={16} color='#78716C'/>
+      </button>
+    </div>
   );
 }
 
-function GiftModal({ theme, onClose, onSuccess, coins }) {
-  const [recipient, setRecipient] = useState('');
-  const [amount, setAmount] = useState(10);
-  const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
+/* ─── COINS MODAL ────────────────────────────── */
+function CoinsModal({ coins, onClose }) {
+  return (
+    <Modal onClose={onClose}>
+      <ModalHeader title="💰 Coin Balance" onClose={onClose}/>
+      <div style={{padding:'12px 20px'}}>
+        <div style={{background:'linear-gradient(135deg,#DA9B2A,#F59E0B)',borderRadius:20,padding:'28px 20px',textAlign:'center',marginBottom:20}}>
+          <div style={{fontSize:56,marginBottom:4}}>🪙</div>
+          <div style={{fontSize:48,fontWeight:900,color:'#fff',lineHeight:1}}>{coins?.balance ?? 0}</div>
+          <div style={{fontSize:14,color:'rgba(255,255,255,.85)',marginTop:4}}>Available Coins</div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+          {[
+            {label:'Total Earned',value:coins?.earned_total??0,color:'#10B981',emoji:'📈'},
+            {label:'Total Spent',value:coins?.spent_total??0,color:'#EF4444',emoji:'📉'},
+          ].map(s=>(
+            <div key={s.label} style={{background:s.color+'12',border:`1.5px solid ${s.color}25`,borderRadius:14,padding:'14px 16px',textAlign:'center'}}>
+              <div style={{fontSize:24,marginBottom:4}}>{s.emoji}</div>
+              <div style={{fontSize:22,fontWeight:800,color:s.color}}>{s.value}</div>
+              <div style={{fontSize:11,color:'#78716C',marginTop:2}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:16,background:'#FFF8F0',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#78716C',textAlign:'center'}}>
+          💡 Earn coins by spinning daily, receiving gifts, and logging in every day!
+        </div>
+      </div>
+    </Modal>
+  );
+}
 
-  const handleSend = async () => {
-    if (!recipient || amount < 1 || amount > coins) {
-      setError('Invalid recipient or amount');
-      return;
-    }
-    
-    setSending(true);
-    setError('');
-    
-    try {
-      const response = await api.request('/gamification/gift/', {
-        method: 'POST',
-        body: JSON.stringify({
-          recipient_id: recipient,
-          amount: amount,
-          message: message
-        })
-      });
-      setResult(response);
-      onSuccess();
-    } catch (err) {
-      setError(err.message || 'Failed to send gift');
-    } finally {
-      setSending(false);
-    }
+/* ─── STREAK MODAL ───────────────────────────── */
+function StreakModal({ streak, onClaim, onClose }) {
+  const [claimed, setClaimed] = useState(false);
+  const days = ['M','T','W','T','F','S','S'];
+  const cur = streak?.current ?? 0;
+
+  const handleClaim = async () => {
+    await onClaim();
+    setClaimed(true);
   };
 
   return (
-    <MobileModal theme={theme} onClose={onClose} title="🎁 Send Gift">
-      {result ? (
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
-          <div style={{ fontSize: 16, color: theme.txt, marginBottom: 8 }}>
-            Gift sent to {result.recipient.username}!
-          </div>
-          <div style={{ color: theme.sub }}>{result.amount} coins</div>
-        </div>
-      ) : (
-        <div>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 13, color: theme.sub, marginBottom: 6 }}>
-              Your Balance
-            </label>
-            <div style={{ fontSize: 24, fontWeight: 600, color: theme.pri }}>
-              {coins} coins
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 13, color: theme.sub, marginBottom: 6 }}>
-              Recipient User ID
-            </label>
-            <input
-              type="text"
-              value={recipient}
-              onChange={e => setRecipient(e.target.value)}
-              placeholder="Enter user ID"
-              style={{
-                width: '100%',
-                padding: 12,
-                border: `1px solid ${theme.border}`,
-                borderRadius: 8,
-                fontSize: 14
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 13, color: theme.sub, marginBottom: 6 }}>
-              Amount (1-100)
-            </label>
-            <input
-              type="number"
-              value={amount}
-              onChange={e => setAmount(parseInt(e.target.value) || 0)}
-              min={1}
-              max={100}
-              style={{
-                width: '100%',
-                padding: 12,
-                border: `1px solid ${theme.border}`,
-                borderRadius: 8,
-                fontSize: 14
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontSize: 13, color: theme.sub, marginBottom: 6 }}>
-              Message (optional)
-            </label>
-            <input
-              type="text"
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              placeholder="Add a friendly message..."
-              style={{
-                width: '100%',
-                padding: 12,
-                border: `1px solid ${theme.border}`,
-                borderRadius: 8,
-                fontSize: 14
-              }}
-            />
-          </div>
-
-          {error && (
-            <div style={{ color: theme.red, fontSize: 13, marginBottom: 16 }}>
-              {error}
-            </div>
+    <Modal onClose={onClose}>
+      <ModalHeader title="🔥 Login Streak" onClose={onClose}/>
+      <div style={{padding:'8px 20px 0'}}>
+        <div style={{background:'linear-gradient(135deg,#EF4444,#F97316)',borderRadius:20,padding:'24px 20px',textAlign:'center',marginBottom:20}}>
+          <div style={{fontSize:52}}>🔥</div>
+          <div style={{fontSize:44,fontWeight:900,color:'#fff',lineHeight:1}}>{cur}</div>
+          <div style={{fontSize:14,color:'rgba(255,255,255,.9)',marginTop:4}}>Day Streak</div>
+          {(streak?.longest??0) > 0 && (
+            <div style={{fontSize:12,color:'rgba(255,255,255,.75)',marginTop:6}}>Best: {streak.longest} days 🏆</div>
           )}
-
-          <button
-            onClick={handleSend}
-            disabled={sending || !recipient || amount < 1 || amount > coins}
-            style={{
-              width: '100%',
-              padding: 14,
-              borderRadius: 10,
-              border: 'none',
-              background: theme.pri,
-              color: 'white',
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: sending ? 'not-allowed' : 'pointer',
-              opacity: sending ? 0.7 : 1
-            }}
-          >
-            {sending ? 'Sending...' : `Send ${amount} Coins`}
-          </button>
         </div>
+
+        {/* 7-day progress dots */}
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:20,padding:'0 4px'}}>
+          {days.map((d,i)=>{
+            const active = i < (cur % 7);
+            const isToday = i === (cur % 7 === 0 ? 6 : (cur % 7) - 1);
+            return (
+              <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+                <div style={{
+                  width:36,height:36,borderRadius:'50%',
+                  background: active ? 'linear-gradient(135deg,#EF4444,#F97316)' : '#F5F5F4',
+                  border: isToday ? '2px solid #EF4444' : '2px solid transparent',
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  fontSize:16,boxShadow: active ? '0 2px 8px rgba(239,68,68,.35)' : 'none'
+                }}>
+                  {active ? '✓' : ''}
+                </div>
+                <span style={{fontSize:10,color: active ? '#EF4444' : '#A8A29E',fontWeight:600}}>{d}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {(streak?.bonus_available && !claimed) ? (
+          <button onClick={handleClaim} style={{
+            width:'100%',padding:'16px',borderRadius:14,border:'none',
+            background:'linear-gradient(135deg,#10B981,#059669)',
+            color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer',
+            boxShadow:'0 4px 16px rgba(16,185,129,.4)'
+          }}>
+            🎁 Claim Day {cur + 1} Bonus!
+          </button>
+        ) : claimed ? (
+          <div style={{textAlign:'center',padding:'16px',background:'#ECFDF5',borderRadius:14,color:'#10B981',fontWeight:700}}>
+            ✅ Bonus Claimed!
+          </div>
+        ) : (
+          <div style={{textAlign:'center',padding:'16px',background:'#F5F5F4',borderRadius:14,color:'#78716C',fontSize:14}}>
+            Come back tomorrow for your next bonus 🌙
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+/* ─── SPIN MODAL ─────────────────────────────── */
+function SpinModal({ spin, onSpin, onClose }) {
+  const [angle, setAngle] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const [result, setResult] = useState(null);
+  const wheelRef = useRef(null);
+  const n = SPIN_SEGMENTS.length;
+  const segAngle = 360 / n;
+
+  const doSpin = async () => {
+    if (spinning || !spin?.can_spin) return;
+    setSpinning(true);
+    setResult(null);
+    const extra = 1440 + Math.floor(Math.random() * 360);
+    const newAngle = angle + extra;
+    setAngle(newAngle);
+
+    // wait for animation
+    setTimeout(async () => {
+      try {
+        const res = await onSpin();
+        setResult(res);
+      } catch {
+        setResult({ reward: { label: 'Try again!', emoji: '😅' }, coins_earned: 0, new_balance: spin?.spins_total ?? 0 });
+      } finally {
+        setSpinning(false);
+      }
+    }, 3200);
+  };
+
+  return (
+    <Modal onClose={onClose}>
+      <ModalHeader title="🎰 Daily Spin" onClose={onClose}/>
+      <div style={{padding:'8px 20px 0',textAlign:'center'}}>
+        {result ? (
+          <div style={{padding:'20px 0'}}>
+            <div style={{fontSize:72,marginBottom:12}}>{result.reward?.emoji ?? '🎉'}</div>
+            <div style={{fontSize:26,fontWeight:800,color:'#DA9B2A',marginBottom:4}}>{result.reward?.label}</div>
+            {result.coins_earned > 0 && (
+              <div style={{fontSize:16,color:'#10B981',fontWeight:600,marginBottom:4}}>+{result.coins_earned} coins added!</div>
+            )}
+            <div style={{fontSize:13,color:'#78716C',marginBottom:24}}>New balance: <b>{result.new_balance}</b> 🪙</div>
+            <button onClick={onClose} style={{
+              width:'100%',padding:'16px',borderRadius:14,border:'none',
+              background:'linear-gradient(135deg,#DA9B2A,#F59E0B)',color:'#fff',
+              fontSize:16,fontWeight:700,cursor:'pointer',
+              boxShadow:'0 4px 16px rgba(218,155,42,.4)'
+            }}>
+              Awesome! 🎉
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Wheel */}
+            <div style={{position:'relative',width:240,height:240,margin:'0 auto 20px'}}>
+              {/* pointer */}
+              <div style={{position:'absolute',top:-10,left:'50%',transform:'translateX(-50%)',zIndex:10,fontSize:24}}>▼</div>
+              <svg ref={wheelRef} width={240} height={240} style={{
+                transform:`rotate(${angle}deg)`,
+                transition: spinning ? 'transform 3.2s cubic-bezier(.17,.67,.12,.99)' : 'none',
+                borderRadius:'50%',boxShadow:'0 8px 32px rgba(0,0,0,.2)'
+              }}>
+                {SPIN_SEGMENTS.map((seg, i) => {
+                  const startAngle = (i * segAngle - 90) * (Math.PI / 180);
+                  const endAngle = ((i + 1) * segAngle - 90) * (Math.PI / 180);
+                  const x1 = 120 + 115 * Math.cos(startAngle);
+                  const y1 = 120 + 115 * Math.sin(startAngle);
+                  const x2 = 120 + 115 * Math.cos(endAngle);
+                  const y2 = 120 + 115 * Math.sin(endAngle);
+                  const midAngle = ((i + 0.5) * segAngle - 90) * (Math.PI / 180);
+                  const tx = 120 + 75 * Math.cos(midAngle);
+                  const ty = 120 + 75 * Math.sin(midAngle);
+                  return (
+                    <g key={i}>
+                      <path d={`M120,120 L${x1},${y1} A115,115 0 0,1 ${x2},${y2} Z`} fill={seg.color} stroke="#fff" strokeWidth={2}/>
+                      <text x={tx} y={ty} textAnchor="middle" dominantBaseline="middle" fontSize={18}>{seg.emoji}</text>
+                    </g>
+                  );
+                })}
+                <circle cx={120} cy={120} r={20} fill="#fff" stroke="#DA9B2A" strokeWidth={3}/>
+                <text x={120} y={120} textAnchor="middle" dominantBaseline="middle" fontSize={16}>⭐</text>
+              </svg>
+            </div>
+
+            {spin?.can_spin ? (
+              <button onClick={doSpin} disabled={spinning} style={{
+                width:'100%',padding:'18px',borderRadius:14,border:'none',
+                background: spinning ? '#E7E5E4' : 'linear-gradient(135deg,#DA9B2A,#F59E0B)',
+                color: spinning ? '#78716C' : '#fff',
+                fontSize:18,fontWeight:800,cursor: spinning ? 'not-allowed' : 'pointer',
+                boxShadow: spinning ? 'none' : '0 4px 20px rgba(218,155,42,.5)',
+                letterSpacing:1
+              }}>
+                {spinning ? '🌀 Spinning...' : '🎰 SPIN!'}
+              </button>
+            ) : (
+              <div style={{background:'#F5F5F4',borderRadius:14,padding:'16px',color:'#78716C',fontSize:14}}>
+                ✅ You already spun today! Come back tomorrow 🌙
+              </div>
+            )}
+            <div style={{fontSize:12,color:'#A8A29E',marginTop:12}}>Total spins: {spin?.spins_total ?? 0}</div>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+/* ─── GIFT MODAL ─────────────────────────────── */
+function GiftModal({ coins, onClose, onRefresh }) {
+  const [recipientId, setRecipientId] = useState('');
+  const [amount, setAmount] = useState(10);
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(null);
+  const [error, setError] = useState('');
+
+  const send = async () => {
+    if (!recipientId.trim()) { setError('Enter a recipient username or ID'); return; }
+    if (amount < 1 || amount > (coins?.balance ?? 0)) { setError('Invalid amount'); return; }
+    setSending(true); setError('');
+    try {
+      const res = await api.request('/gamification/gift/', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ recipient_id: recipientId, amount, message })
+      });
+      setDone(res);
+      onRefresh();
+    } catch(e) { setError(e.message || 'Failed to send gift'); }
+    finally { setSending(false); }
+  };
+
+  return (
+    <Modal onClose={onClose}>
+      <ModalHeader title="🎁 Send Coin Gift" onClose={onClose}/>
+      <div style={{padding:'8px 20px 0'}}>
+        {done ? (
+          <div style={{textAlign:'center',padding:'24px 0'}}>
+            <div style={{fontSize:64,marginBottom:12}}>🎉</div>
+            <div style={{fontSize:20,fontWeight:800,color:'#1C1917',marginBottom:4}}>Gift Sent!</div>
+            <div style={{fontSize:14,color:'#78716C',marginBottom:24}}>
+              You sent <b>{done.amount} coins</b> to <b>@{done.recipient?.username}</b>
+            </div>
+            <button onClick={onClose} style={{width:'100%',padding:'16px',borderRadius:14,border:'none',background:'linear-gradient(135deg,#8B5CF6,#7C3AED)',color:'#fff',fontSize:16,fontWeight:700,cursor:'pointer'}}>
+              Done 🎊
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* balance chip */}
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#FFF8F0',borderRadius:12,padding:'10px 14px',marginBottom:16}}>
+              <span style={{fontSize:13,color:'#78716C'}}>Your balance</span>
+              <span style={{fontWeight:800,color:'#DA9B2A',fontSize:16}}>🪙 {coins?.balance ?? 0}</span>
+            </div>
+
+            <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Recipient (username or ID)</label>
+            <input value={recipientId} onChange={e=>setRecipientId(e.target.value)}
+              placeholder="e.g. john_doe or 42"
+              style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid #E7E5E4',fontSize:15,marginBottom:14,boxSizing:'border-box',outline:'none'}}
+            />
+
+            <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:8}}>Amount</label>
+            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
+              <button onClick={()=>setAmount(a=>Math.max(1,a-5))}
+                style={{width:40,height:40,borderRadius:10,border:'1.5px solid #E7E5E4',background:'#F5F5F4',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>
+                −
+              </button>
+              <div style={{flex:1,textAlign:'center',fontSize:28,fontWeight:800,color:'#DA9B2A'}}>
+                🪙 {amount}
+              </div>
+              <button onClick={()=>setAmount(a=>Math.min(coins?.balance??100,a+5))}
+                style={{width:40,height:40,borderRadius:10,border:'1.5px solid #E7E5E4',background:'#F5F5F4',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>
+                +
+              </button>
+            </div>
+            {/* quick amounts */}
+            <div style={{display:'flex',gap:8,marginBottom:14}}>
+              {[10,25,50,100].map(v=>(
+                <button key={v} onClick={()=>setAmount(Math.min(v,coins?.balance??0))}
+                  style={{flex:1,padding:'8px 0',borderRadius:8,border:`1.5px solid ${amount===v?'#DA9B2A':'#E7E5E4'}`,background:amount===v?'#FFF8F0':'#fff',color:amount===v?'#DA9B2A':'#78716C',fontWeight:600,cursor:'pointer',fontSize:13}}>
+                  {v}
+                </button>
+              ))}
+            </div>
+
+            <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Message (optional)</label>
+            <input value={message} onChange={e=>setMessage(e.target.value)}
+              placeholder="Say something nice ✨"
+              style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid #E7E5E4',fontSize:15,marginBottom:16,boxSizing:'border-box',outline:'none'}}
+            />
+
+            {error && <div style={{color:'#EF4444',fontSize:13,marginBottom:12,padding:'10px 14px',background:'#FEF2F2',borderRadius:10}}>{error}</div>}
+
+            <button onClick={send} disabled={sending}
+              style={{width:'100%',padding:'16px',borderRadius:14,border:'none',
+                background: sending ? '#E7E5E4' : 'linear-gradient(135deg,#8B5CF6,#7C3AED)',
+                color: sending ? '#78716C':'#fff',fontSize:16,fontWeight:700,cursor:sending?'not-allowed':'pointer',
+                boxShadow: sending?'none':'0 4px 20px rgba(139,92,246,.4)'}}>
+              {sending ? 'Sending...' : `🎁 Send ${amount} Coins`}
+            </button>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+/* ─── ICON CARD ──────────────────────────────── */
+function IconCard({ emoji, value, label, color, badge, onClick, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{
+      flex:1,
+      display:'flex',flexDirection:'column',alignItems:'center',gap:4,
+      padding:'12px 4px',
+      background:'transparent',
+      border:'none',
+      cursor: disabled ? 'default' : 'pointer',
+      position:'relative',
+      opacity: disabled ? 0.55 : 1,
+    }}>
+      {/* icon circle */}
+      <div style={{
+        width:52,height:52,borderRadius:'50%',
+        background:`${color}18`,
+        border:`2.5px solid ${color}40`,
+        display:'flex',alignItems:'center',justifyContent:'center',
+        fontSize:24,
+        boxShadow:`0 2px 12px ${color}25`,
+        transition:'transform .15s',
+      }}>
+        {emoji}
+      </div>
+      {/* badge */}
+      {badge && (
+        <div style={{
+          position:'absolute',top:6,right:'18%',
+          width:12,height:12,borderRadius:'50%',
+          background:'#EF4444',border:'2px solid #fff',
+          boxShadow:'0 1px 4px rgba(239,68,68,.5)'
+        }}/>
       )}
-    </MobileModal>
+      <div style={{fontSize:15,fontWeight:800,color:'#1C1917',lineHeight:1}}>{value}</div>
+      <div style={{fontSize:10,color:'#78716C',textTransform:'uppercase',letterSpacing:.5,fontWeight:600}}>{label}</div>
+    </button>
+  );
+}
+
+/* ─── MAIN BAR ───────────────────────────────── */
+export function GamificationBar({ userId, theme }) {
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState(null); // 'coins' | 'streak' | 'spin' | 'gift'
+  const [spinResult, setSpinResult] = useState(null);
+  const pri = theme?.pri || '#DA9B2A';
+
+  useEffect(() => { load(); }, []);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await api.request('/gamification/status/');
+      setStatus(res);
+    } catch { /* silently fail */ }
+    setLoading(false);
+  };
+
+  const handleSpin = async () => {
+    const res = await api.request('/gamification/spin/', { method:'POST' });
+    setStatus(prev => prev ? {
+      ...prev,
+      coins:{ ...prev.coins, balance: res.new_balance },
+      spin:{ ...prev.spin, can_spin: false, spins_total: res.spins_total }
+    } : prev);
+    return res;
+  };
+
+  const handleLoginBonus = async () => {
+    try {
+      const res = await api.request('/gamification/login-bonus/', { method:'POST' });
+      setStatus(prev => prev ? {
+        ...prev,
+        coins:{ ...prev.coins, balance: res.new_balance },
+        login_streak:{ ...prev.login_streak, bonus_available: false, current: res.login_streak }
+      } : prev);
+    } catch { /* ignore */ }
+  };
+
+  if (loading) return (
+    <div style={{padding:'16px',textAlign:'center',color:pri,fontWeight:600,fontSize:13}}>
+      🎮 Loading…
+    </div>
+  );
+  if (!status) return null;
+
+  const { coins, spin, login_streak, gifts } = status;
+  const hasBonus = login_streak?.bonus_available;
+  const canSpin  = spin?.can_spin;
+
+  return (
+    <>
+      {/* Bar */}
+      <div style={{
+        display:'flex',
+        background:'linear-gradient(135deg,#FFF8F0 0%,#FFFFFF 100%)',
+        borderTop:`1px solid ${pri}20`,
+        borderBottom:`1px solid ${pri}20`,
+        padding:'4px 0',
+      }}>
+        <IconCard
+          emoji="🪙" value={coins?.balance ?? 0} label="Coins" color={pri}
+          onClick={()=>setModal('coins')}
+        />
+        <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
+        <IconCard
+          emoji="🔥" value={`${login_streak?.current ?? 0}d`} label="Streak" color="#EF4444"
+          badge={hasBonus}
+          onClick={()=>setModal('streak')}
+        />
+        <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
+        <IconCard
+          emoji="🎰" value={canSpin ? 'SPIN' : 'Done'} label="Daily" color={canSpin ? pri : '#A8A29E'}
+          badge={canSpin}
+          onClick={()=>{ setSpinResult(null); setModal('spin'); }}
+        />
+        <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
+        <IconCard
+          emoji="🎁" value={gifts?.received_today ?? 0} label="Gifts" color="#8B5CF6"
+          onClick={()=>setModal('gift')}
+        />
+      </div>
+
+      {/* Modals */}
+      {modal === 'coins'  && <CoinsModal  coins={coins}  onClose={()=>setModal(null)}/>}
+      {modal === 'streak' && <StreakModal streak={login_streak} onClaim={handleLoginBonus} onClose={()=>setModal(null)}/>}
+      {modal === 'spin'   && <SpinModal  spin={spin} onSpin={handleSpin} onClose={()=>setModal(null)}/>}
+      {modal === 'gift'   && <GiftModal  coins={coins} onClose={()=>setModal(null)} onRefresh={load}/>}
+    </>
   );
 }
