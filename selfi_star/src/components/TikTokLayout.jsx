@@ -167,17 +167,21 @@ export function TikTokLayout({
 
       // Fetch different content based on active tab
       if (activeTab === 'following') {
-        // Fetch reels from followed users
         reelsData = await api.request(`/reels/following/?limit=${limit}&offset=${offset}`);
       } else if (activeTab === 'bookmarks') {
-        // Fetch saved/bookmarked reels
         reelsData = await api.request(`/reels/saved/?limit=${limit}&offset=${offset}`);
       } else if (activeTab === 'explore') {
-        // Fetch trending/popular reels
         reelsData = await api.request(`/reels/trending/?limit=${limit}&offset=${offset}`);
       } else {
-        // Default: fetch all reels (For You page)
-        reelsData = await api.request(`/reels/?limit=${limit}&offset=${offset}`);
+        // For the initial foryou load, reuse the warm-up fetch fired in index.html
+        // so we don't pay the cost of a second cold-start round-trip
+        if (isFirst && window.__warmupFeed) {
+          const warmup = window.__warmupFeed;
+          window.__warmupFeed = null; // consume once
+          reelsData = (await warmup) || [];
+        } else {
+          reelsData = await api.request(`/reels/?limit=${limit}&offset=${offset}`);
+        }
       }
 
 

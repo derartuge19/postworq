@@ -223,6 +223,24 @@
       <style>@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}</style>
     </div>
     <div id="root"></div>
+    <!-- Fire API warm-up BEFORE any bundle downloads so Render cold-start runs in parallel.
+         We store the response in a global so the app can use it without a duplicate request. -->
+    <script>
+      (function() {
+        var BACKEND = 'https://postworq.onrender.com';
+        // Only warm up in production (not localhost)
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+        try {
+          var p = fetch(BACKEND + '/api/reels/?limit=5&offset=0', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            credentials: 'omit',
+          }).then(function(r) { return r.json(); }).catch(function() { return null; });
+          // Expose promise on window so React can await it instead of making a second request
+          window.__warmupFeed = p;
+        } catch(e) {}
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
