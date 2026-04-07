@@ -15,7 +15,6 @@ import { ContestDashboardPage } from './pages/ContestDashboardPage';
 import { JudgingPortalPage } from './pages/JudgingPortalPage';
 import { AntiCheatPage } from './pages/AntiCheatPage';
 import { CampaignManagementPage } from './pages/CampaignManagementPage';
-import CampaignScoringConfig from './pages/CampaignScoringConfig';
 import { TypeSpecificScoringConfig } from './pages/TypeSpecificScoringConfig';
 import CampaignThemeManagement from './pages/CampaignThemeManagement';
 import CampaignPostModeration from './pages/CampaignPostModeration';
