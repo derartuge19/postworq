@@ -77,7 +77,7 @@ export function TikTokLayout({
   const [playingVideos, setPlayingVideos] = useState({});
   const [showPauseIcon, setShowPauseIcon] = useState({});
   const [isMobile, setIsMobile] = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
   const [likeAnimations, setLikeAnimations] = useState({});
   const [doubleTapLike, setDoubleTapLike] = useState({});
   const [alertModal, setAlertModal] = useState({
@@ -249,6 +249,8 @@ export function TikTokLayout({
           if (!videoElement) return;
 
           if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
+            // Unmute when video becomes visible
+            videoElement.muted = !audioEnabled;
             videoElement
               .play()
               .catch((err) => console.log('Play prevented:', err));
