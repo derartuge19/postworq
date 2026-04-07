@@ -486,6 +486,60 @@ class ReelViewSet(viewsets.ModelViewSet):
             
             serializer = CommentSerializer(comment)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, *args, **kwargs):
+        """Delete a reel - only owner can delete"""
+        try:
+            reel = self.get_object()
+            
+            # Check ownership
+            if reel.user != request.user:
+                return Response(
+                    {'error': 'You can only delete your own posts'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            reel.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+            
+        except Exception as e:
+            print(f"[REEL DELETE] Error: {type(e).__name__}: {e}")
+            traceback.print_exc()
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def partial_update(self, request, *args, **kwargs):
+        """Update a reel (e.g., caption) - only owner can update"""
+        try:
+            reel = self.get_object()
+            
+            # Check ownership
+            if reel.user != request.user:
+                return Response(
+                    {'error': 'You can only edit your own posts'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Update allowed fields
+            if 'caption' in request.data:
+                reel.caption = request.data['caption']
+            if 'hashtags' in request.data:
+                reel.hashtags = request.data['hashtags']
+            
+            reel.save()
+            
+            serializer = self.get_serializer(reel)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            print(f"[REEL UPDATE] Error: {type(e).__name__}: {e}")
+            traceback.print_exc()
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class QuestViewSet(viewsets.ModelViewSet):
     queryset = Quest.objects.filter(is_active=True)
