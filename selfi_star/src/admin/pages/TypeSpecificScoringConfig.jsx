@@ -427,3 +427,6 @@ function getTypeDescription(type) {
   };
   return desc[type] || '';
 }
+
+// Alias export so AdminApp.jsx can import as { TypeSpecificScoringConfig }
+export const TypeSpecificScoringConfig = CampaignScoringConfigPage;
