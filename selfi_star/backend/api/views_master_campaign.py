@@ -108,15 +108,24 @@ def master_campaign_stats(request, pk):
     """Get detailed statistics for a master campaign"""
     try:
         campaign = MasterCampaign.objects.get(pk=pk)
+        print(f"[MASTER_CAMPAIGN_STATS] Getting stats for campaign {pk}: {campaign.title}")
         
         # Get sub-campaigns stats
         sub_campaigns = campaign.sub_campaigns.all()
+        print(f"[MASTER_CAMPAIGN_STATS] Found {sub_campaigns.count()} total sub-campaigns")
+        
+        # Debug: Print all sub-campaigns
+        for sub in sub_campaigns:
+            print(f"[MASTER_CAMPAIGN_STATS] Sub-campaign: {sub.title} - Type: {sub.campaign_type}")
+        
         campaign_stats = {
             'daily': sub_campaigns.filter(campaign_type='daily').count(),
             'weekly': sub_campaigns.filter(campaign_type='weekly').count(),
             'monthly': sub_campaigns.filter(campaign_type='monthly').count(),
             'grand': sub_campaigns.filter(campaign_type='grand').count(),
         }
+        
+        print(f"[MASTER_CAMPAIGN_STATS] Campaign stats: {campaign_stats}")
         
         # Get participant stats
         participants = campaign.participants.all()
@@ -161,7 +170,14 @@ def generate_sub_campaigns(request, pk):
         if campaign.auto_generate_daily and request.data.get('generate_daily', True):
             current_date = campaign.start_date.date()
             end_date = campaign.end_date.date()
-            print(f"[GENERATE_SUB_CAMPAIGNS] Generating daily campaigns from {current_date} to {end_date}")
+            today = timezone.now().date()
+            print(f"[GENERATE_SUB_CAMPAIGNS] Generating daily campaigns from {current_date} to {end_date} (today: {today})")
+            print(f"[GENERATE_SUB_CAMPAIGNS] Date range days: {(end_date - current_date).days + 1}")
+            
+            # Check if the date range makes sense
+            if current_date > end_date:
+                print(f"[GENERATE_SUB_CAMPAIGNS] ERROR: Start date {current_date} is after end date {end_date}")
+                return Response({'error': 'Start date cannot be after end date'}, status=status.HTTP_400_BAD_REQUEST)
             
             while current_date <= end_date:
                 try:
@@ -189,7 +205,14 @@ def generate_sub_campaigns(request, pk):
                             created_by=request.user
                         )
                         generated_campaigns.append(daily_campaign)
-                        print(f"[GENERATE_SUB_CAMPAIGNS] Created daily campaign: {daily_campaign.title}")
+                        print(f"[GENERATE_SUB_CAMPAIGNS] Created daily campaign: {daily_campaign.title} (ID: {daily_campaign.id})")
+                        
+                        # Verify the campaign was actually saved
+                        try:
+                            verify_campaign = Campaign.objects.get(id=daily_campaign.id)
+                            print(f"[GENERATE_SUB_CAMPAIGNS] Verified campaign exists: {verify_campaign.title}, Master: {verify_campaign.master_campaign}")
+                        except Campaign.DoesNotExist:
+                            print(f"[GENERATE_SUB_CAMPAIGNS] ERROR: Campaign was not saved properly!")
                     else:
                         print(f"[GENERATE_SUB_CAMPAIGNS] Daily campaign for {current_date} already exists, skipping")
                     
