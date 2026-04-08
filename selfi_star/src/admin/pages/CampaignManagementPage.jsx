@@ -183,7 +183,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
   };
 
   return (
-    <div style={{ marginLeft: 240, padding: '20px 40px' }}>
+    <div>
       {/* Header */}
       <div style={{
         display: 'flex',

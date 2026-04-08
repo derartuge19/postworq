@@ -46,7 +46,7 @@ export function SystemLogsPage({ theme }) {
   };
 
   return (
-    <div style={{ marginLeft: 240, padding: '20px 40px' }}>
+    <div>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <h1 style={{

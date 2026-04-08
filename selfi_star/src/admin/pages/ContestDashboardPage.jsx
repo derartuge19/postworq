@@ -44,7 +44,7 @@ export function ContestDashboardPage({ theme }) {
 
   if (loading) {
     return (
-      <div style={{ marginLeft: 240, padding: 40, color: theme.txt }}>
+      <div style={{ padding: 40, color: theme.txt }}>
         Loading contest dashboard...
       </div>
     );
@@ -55,7 +55,7 @@ export function ContestDashboardPage({ theme }) {
   const daysRemaining = contestData?.days_remaining || 0;
 
   return (
-    <div style={{ marginLeft: 240, padding: '20px 40px' }}>
+    <div>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ margin: 0, fontSize: 32, fontWeight: 700, color: theme.txt, marginBottom: 8 }}>

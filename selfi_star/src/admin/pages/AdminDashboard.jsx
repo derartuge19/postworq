@@ -23,7 +23,7 @@ export function AdminDashboard({ theme }) {
 
   if (loading) {
     return (
-      <div style={{ marginLeft: 240, padding: 40, textAlign: 'center', color: theme.sub }}>
+      <div style={{ padding: 40, textAlign: 'center', color: theme.sub }}>
         Loading dashboard...
       </div>
     );
@@ -81,7 +81,7 @@ export function AdminDashboard({ theme }) {
   ];
 
   return (
-    <div style={{ marginLeft: 240, padding: '20px 40px' }}>
+    <div>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <h1 style={{

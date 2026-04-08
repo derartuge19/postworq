@@ -47,7 +47,7 @@ export function SettingsPage({ theme }) {
 
   if (loading) {
     return (
-      <div style={{ marginLeft: 240, padding: 40, textAlign: 'center', color: theme.sub }}>
+      <div style={{ padding: 40, textAlign: 'center', color: theme.sub }}>
         Loading settings...
       </div>
     );
@@ -63,7 +63,7 @@ export function SettingsPage({ theme }) {
   ];
 
   return (
-    <div style={{ marginLeft: 240, padding: '20px 40px' }}>
+    <div>
       {/* Header */}
       <div style={{
         display: 'flex',

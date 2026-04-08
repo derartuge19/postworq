@@ -78,7 +78,7 @@ export function CampaignScoringConfigPage({ campaignId, campaignType, onBack, th
   const typeConfig = config[campaignType];
 
   return (
-    <div style={{ marginLeft: 240, padding: '20px 40px', maxWidth: 1000 }}>
+    <div>
       <div style={{ marginBottom: 24 }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: theme.pri, cursor: 'pointer', fontSize: 14, marginBottom: 16 }}>
           ← Back to Campaign
