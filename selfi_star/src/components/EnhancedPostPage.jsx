@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Camera, Upload, Sparkles, X, Play, Square, RotateCw, Check, Image, Video, RefreshCw } from "lucide-react";
+import { Camera, Upload, Sparkles, X, Play, Square, RotateCw, Check, Image, Video, RefreshCw, Music, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import api from "../api";
 
 const T = { pri:"#DA9B2A", txt:"#1C1917", sub:"#78716C", bg:"#FAFAF7", dark:"#0C1A12", border:"#E7E5E4" };
@@ -43,6 +43,14 @@ export function EnhancedPostPage({ user, onBack }) {
   const [selectedFilter, setSelectedFilter] = useState('none');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   
+  // TikTok-style features
+  const [selectedPhotos, setSelectedPhotos] = useState([]); // Multiple photos
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0); // For horizontal scrolling
+  const [backgroundSound, setBackgroundSound] = useState(null); // Background sound file
+  const [soundPreview, setSoundPreview] = useState(null); // Sound preview URL
+  const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const [showSoundSelector, setShowSoundSelector] = useState(false);
+  
   // Refs
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -50,10 +58,21 @@ export function EnhancedPostPage({ user, onBack }) {
   const mediaRecorderRef = useRef(null);
   const timerRef = useRef(null);
   const chunksRef = useRef([]);
+  const audioRef = useRef(null);
   // streamRef always holds the live MediaStream so cleanup never reads stale state
   const streamRef = useRef(null);
   // Stable ref so rAF loop never captures stale filter/facingMode
   const liveRef = useRef({ filter: 'none', facingMode: 'user' });
+
+// Sample background sounds (TikTok-style)
+const SAMPLE_SOUNDS = [
+  { id: 'trending1', name: 'Trending Beat 1', duration: '15s', url: '/sounds/trending1.mp3' },
+  { id: 'trending2', name: 'Trending Beat 2', duration: '15s', url: '/sounds/trending2.mp3' },
+  { id: 'viral1', name: 'Viral Sound', duration: '10s', url: '/sounds/viral1.mp3' },
+  { id: 'chill1', name: 'Chill Vibes', duration: '12s', url: '/sounds/chill1.mp3' },
+  { id: 'energetic1', name: 'Energetic', duration: '15s', url: '/sounds/energetic1.mp3' },
+  { id: 'romantic1', name: 'Romantic', duration: '14s', url: '/sounds/romantic1.mp3' },
+];
 
   // Keep liveRef in sync so the rAF loop never captures stale values
   useEffect(() => { liveRef.current.filter = selectedFilter; }, [selectedFilter]);
@@ -260,22 +279,35 @@ export function EnhancedPostPage({ user, onBack }) {
       alert("Please select or record a video/image to post");
       return;
     }
-
-    console.log('📤 Starting post upload...');
-    console.log('👤 Current user:', user);
-    console.log('🔑 Current token:', api.getToken() ? api.getToken().substring(0, 10) + '...' : 'NONE');
-    console.log('💾 LocalStorage authToken:', localStorage.getItem('authToken') ? localStorage.getItem('authToken').substring(0, 10) + '...' : 'NONE');
-    console.log('👥 LocalStorage user:', localStorage.getItem('user'));
-
+    
     setIsUploading(true);
     
     try {
       const formData = new FormData();
-      formData.append("file", selectedFile);
+      
+      // Handle multiple photos or single file
+      if (selectedPhotos.length > 0) {
+        selectedPhotos.forEach((photo, index) => {
+          formData.append(`photos_${index}`, photo.file);
+        });
+        formData.append("media_type", "photos");
+        formData.append("photo_count", selectedPhotos.length);
+      } else {
+        formData.append("file", selectedFile);
+        formData.append("media_type", selectedFile.type.startsWith('video/') ? "video" : "photo");
+      }
+      
+      // Add background sound if selected
+      if (backgroundSound && backgroundSound.file) {
+        formData.append("background_sound", backgroundSound.file);
+      } else if (backgroundSound && backgroundSound.id !== 'custom') {
+        formData.append("background_sound_id", backgroundSound.id);
+      }
+      
       formData.append("caption", caption);
       formData.append("hashtags", hashtags);
       
-      console.log('📦 FormData prepared, calling api.createPost...');
+      console.log('TikTok-style FormData prepared, calling api.createPost...');
       const response = await api.createPost(formData);
       console.log('Post created successfully:', response);
       
@@ -288,6 +320,10 @@ export function EnhancedPostPage({ user, onBack }) {
         setHashtags("");
         setSelectedFile(null);
         setPreview(null);
+        setSelectedPhotos([]);
+        setCurrentPhotoIndex(0);
+        setBackgroundSound(null);
+        setSoundPreview(null);
         setSelectedFilter('none');
         setShowSuccessModal(false);
         
@@ -298,15 +334,12 @@ export function EnhancedPostPage({ user, onBack }) {
         onBack();
       }, 2000);
     } catch (error) {
-      console.error("Upload error:", error);
-      setShowSuccessModal(false);
-      alert("Failed to upload post: " + (error.message || 'Please try again.'));
-    } finally {
+      console.error('Upload error:', error);
       setIsUploading(false);
     }
   };
 
-  // Start/stop camera when tab or facing mode changes
+    // Start/stop camera when tab or facing mode changes
   useEffect(() => {
     if (activeTab === 'camera') {
       startCamera();
@@ -470,7 +503,90 @@ export function EnhancedPostPage({ user, onBack }) {
               marginBottom: 24,
               position: "relative",
             }}>
-              {preview ? (
+              {selectedPhotos.length > 0 ? (
+                <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                  {/* Multiple Photos with Horizontal Scrolling */}
+                  <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                    <img
+                      src={selectedPhotos[currentPhotoIndex]?.preview}
+                      alt={`Photo ${currentPhotoIndex + 1}`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        filter: FILTERS.find(f => f.id === selectedFilter)?.filter,
+                      }}
+                    />
+                    
+                    {/* Navigation Arrows */}
+                    {selectedPhotos.length > 1 && (
+                      <>
+                        <button
+                          onClick={() => navigatePhoto('prev')}
+                          disabled={currentPhotoIndex === 0}
+                          style={{
+                            position: "absolute",
+                            left: 10,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            background: "rgba(0,0,0,0.5)",
+                            border: "none",
+                            color: "white",
+                            cursor: currentPhotoIndex === 0 ? "not-allowed" : "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
+                        
+                        <button
+                          onClick={() => navigatePhoto('next')}
+                          disabled={currentPhotoIndex === selectedPhotos.length - 1}
+                          style={{
+                            position: "absolute",
+                            right: 10,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            background: "rgba(0,0,0,0.5)",
+                            border: "none",
+                            color: "white",
+                            cursor: currentPhotoIndex === selectedPhotos.length - 1 ? "not-allowed" : "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* Photo Counter */}
+                    {selectedPhotos.length > 1 && (
+                      <div style={{
+                        position: "absolute",
+                        bottom: 10,
+                        right: 10,
+                        background: "rgba(0,0,0,0.7)",
+                        color: "white",
+                        padding: "4px 8px",
+                        borderRadius: 12,
+                        fontSize: 12,
+                      }}>
+                        {currentPhotoIndex + 1}/{selectedPhotos.length}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : preview ? (
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
                   {selectedFile?.type.startsWith('video/') ? (
                     <video
@@ -512,12 +628,21 @@ export function EnhancedPostPage({ user, onBack }) {
                     Click to upload
                   </div>
                   <div style={{ fontSize: 13, color: T.sub }}>
-                    Video or Image (Max 50MB)
+                    Video, Images (Multiple photos supported)
                   </div>
                   <input
                     type="file"
                     accept="video/*,image/*"
-                    onChange={handleFileSelect}
+                    multiple
+                    onChange={(e) => {
+                      if (e.target.files.length > 1) {
+                        // Multiple photos
+                        handleMultiplePhotoUpload(e.target.files);
+                      } else if (e.target.files.length === 1) {
+                        // Single file
+                        handleFileSelect(e);
+                      }
+                    }}
                     style={{ display: "none" }}
                   />
                 </label>
@@ -554,6 +679,95 @@ export function EnhancedPostPage({ user, onBack }) {
                 </div>
               </div>
             )}
+
+            {/* Background Sound (TikTok-style) */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 12 }}>
+                <Music size={16} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                Background Sound
+              </div>
+              
+              {backgroundSound ? (
+                <div style={{
+                  background: "#FFFFFF",
+                  border: `2px solid ${T.border}`,
+                  borderRadius: 12,
+                  padding: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                }}>
+                  <Music size={20} color={T.pri} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
+                      {backgroundSound.name}
+                    </div>
+                    <div style={{ fontSize: 12, color: T.sub }}>
+                      {backgroundSound.duration}
+                    </div>
+                  </div>
+                  <button
+                    onClick={toggleSoundPreview}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      background: T.pri,
+                      border: "none",
+                      color: "white",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {isPlayingSound ? <Square size={16} /> : <Play size={16} />}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setBackgroundSound(null);
+                      setSoundPreview(null);
+                      setIsPlayingSound(false);
+                    }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      background: "#F5F5F5",
+                      border: "none",
+                      color: T.txt,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowSoundSelector(true)}
+                  style={{
+                    width: "100%",
+                    padding: 16,
+                    background: "#FFFFFF",
+                    border: `2px solid ${T.border}`,
+                    borderRadius: 12,
+                    color: T.txt,
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  <Plus size={16} />
+                  Add Background Sound
+                </button>
+              )}
+            </div>
 
             {/* Caption */}
             <div style={{ marginBottom: 16 }}>
@@ -939,6 +1153,123 @@ export function EnhancedPostPage({ user, onBack }) {
           </div>
         </div>
       )}
+
+      {/* Sound Selector Modal */}
+      {showSoundSelector && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.7)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: 20,
+        }} onClick={() => setShowSoundSelector(false)}>
+          <div style={{
+            background: "#FFFFFF",
+            borderRadius: 20,
+            padding: 24,
+            maxWidth: 500,
+            width: "100%",
+            maxHeight: "80vh",
+            overflowY: "auto",
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ margin: 0, color: T.txt, fontSize: 18 }}>
+                <Music size={20} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                Choose Background Sound
+              </h3>
+              <button
+                onClick={() => setShowSoundSelector(false)}
+                style={{ background: "none", border: "none", cursor: "pointer" }}
+              >
+                <X size={24} color={T.sub} />
+              </button>
+            </div>
+
+            {/* Sample Sounds */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 12 }}>
+                Trending Sounds
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {SAMPLE_SOUNDS.map(sound => (
+                  <button
+                    key={sound.id}
+                    onClick={() => handleSoundSelection(sound)}
+                    style={{
+                      width: "100%",
+                      padding: 12,
+                      background: "#FAFAF7",
+                      border: `1px solid ${T.border}`,
+                      borderRadius: 8,
+                      color: T.txt,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      textAlign: "left",
+                    }}
+                  >
+                    <Music size={16} color={T.pri} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600 }}>{sound.name}</div>
+                      <div style={{ fontSize: 12, color: T.sub }}>{sound.duration}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Upload */}
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 12 }}>
+                Upload Your Own
+              </div>
+              <label style={{
+                width: "100%",
+                padding: 16,
+                background: "#FAFAF7",
+                border: `2px dashed ${T.border}`,
+                borderRadius: 8,
+                color: T.txt,
+                fontSize: 14,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}>
+                <Upload size={16} />
+                Upload Audio File
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={(e) => {
+                    if (e.target.files[0]) {
+                      handleCustomSoundUpload(e.target.files[0]);
+                    }
+                  }}
+                  style={{ display: "none" }}
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden Audio Element for Sound Preview */}
+      <audio
+        ref={audioRef}
+        src={soundPreview}
+        onEnded={() => setIsPlayingSound(false)}
+        style={{ display: "none" }}
+      />
     </div>
   );
 }
