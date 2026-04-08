@@ -159,12 +159,29 @@ def generate_sub_campaigns(request, pk):
         print(f"[GENERATE_SUB_CAMPAIGNS] Starting generation for master campaign {pk}")
         campaign = MasterCampaign.objects.get(pk=pk)
         print(f"[GENERATE_SUB_CAMPAIGNS] Found campaign: {campaign.title}")
+        print(f"[GENERATE_SUB_CAMPAIGNS] Campaign settings:")
+        print(f"  - auto_generate_daily: {campaign.auto_generate_daily}")
+        print(f"  - auto_generate_weekly: {campaign.auto_generate_weekly}")
+        print(f"  - auto_generate_monthly: {campaign.auto_generate_monthly}")
+        print(f"  - auto_generate_grand: {campaign.auto_generate_grand}")
+        print(f"  - start_date: {campaign.start_date}")
+        print(f"  - end_date: {campaign.end_date}")
+        print(f"  - status: {campaign.status}")
+        print(f"  - min_followers: {campaign.min_followers}")
+        print(f"  - min_level: {campaign.min_level}")
         
         if not campaign.start_date or not campaign.end_date:
             print(f"[GENERATE_SUB_CAMPAIGNS] Missing dates: start_date={campaign.start_date}, end_date={campaign.end_date}")
             return Response({'error': 'Master campaign must have start and end dates'}, status=status.HTTP_400_BAD_REQUEST)
         
         generated_campaigns = []
+        
+        # Check request data
+        print(f"[GENERATE_SUB_CAMPAIGNS] Request data: {request.data}")
+        print(f"[GENERATE_SUB_CAMPAIGNS] generate_daily: {request.data.get('generate_daily')}")
+        print(f"[GENERATE_SUB_CAMPAIGNS] generate_weekly: {request.data.get('generate_weekly')}")
+        print(f"[GENERATE_SUB_CAMPAIGNS] generate_monthly: {request.data.get('generate_monthly')}")
+        print(f"[GENERATE_SUB_CAMPAIGNS] generate_grand: {request.data.get('generate_grand')}")
         
         # Generate daily campaigns
         if campaign.auto_generate_daily and request.data.get('generate_daily', True):
@@ -188,24 +205,47 @@ def generate_sub_campaigns(request, pk):
                     ).exists():
                         
                         print(f"[GENERATE_SUB_CAMPAIGNS] Creating daily campaign for {current_date}")
-                        daily_campaign = Campaign.objects.create(
-                            title=f"{campaign.title} - Daily {current_date.strftime('%b %d')}",
-                            description=f"Daily campaign for {current_date.strftime('%B %d, %Y')}",
-                            campaign_type='daily',
-                            master_campaign=campaign,
-                            start_date=timezone.make_aware(datetime.combine(current_date, datetime.min.time()).replace(hour=0, minute=0)),
-                            end_date=timezone.make_aware(datetime.combine(current_date, datetime.min.time()).replace(hour=23, minute=59)),
-                            entry_deadline=timezone.make_aware(datetime.combine(current_date, datetime.min.time()).replace(hour=20, minute=0)),
-                            status='active' if current_date <= timezone.now().date() else 'upcoming',
-                            prize_title="Daily Winner",
-                            prize_description="Daily campaign winner",
-                            min_followers=campaign.min_followers,
-                            min_level=campaign.min_level,
-                            required_hashtags=campaign.required_hashtags,
-                            created_by=request.user
-                        )
-                        generated_campaigns.append(daily_campaign)
-                        print(f"[GENERATE_SUB_CAMPAIGNS] Created daily campaign: {daily_campaign.title} (ID: {daily_campaign.id})")
+                        
+                        # Prepare campaign data
+                        campaign_data = {
+                            'title': f"{campaign.title} - Daily {current_date.strftime('%b %d')}",
+                            'description': f"Daily campaign for {current_date.strftime('%B %d, %Y')}",
+                            'campaign_type': 'daily',
+                            'master_campaign': campaign,
+                            'prize_title': "Daily Winner",
+                            'prize_description': "Daily campaign winner",
+                            'min_followers': campaign.min_followers,
+                            'min_level': campaign.min_level,
+                            'required_hashtags': campaign.required_hashtags,
+                            'created_by': request.user
+                        }
+                        
+                        # Handle dates with error checking
+                        try:
+                            start_datetime = datetime.combine(current_date, datetime.min.time()).replace(hour=0, minute=0)
+                            end_datetime = datetime.combine(current_date, datetime.min.time()).replace(hour=23, minute=59)
+                            deadline_datetime = datetime.combine(current_date, datetime.min.time()).replace(hour=20, minute=0)
+                            
+                            campaign_data['start_date'] = timezone.make_aware(start_datetime)
+                            campaign_data['end_date'] = timezone.make_aware(end_datetime)
+                            campaign_data['entry_deadline'] = timezone.make_aware(deadline_datetime)
+                            campaign_data['status'] = 'active' if current_date <= timezone.now().date() else 'upcoming'
+                            
+                            print(f"[GENERATE_SUB_CAMPAIGNS] Campaign data prepared: {campaign_data}")
+                        except Exception as date_error:
+                            print(f"[GENERATE_SUB_CAMPAIGNS] Date error: {str(date_error)}")
+                            continue
+                        
+                        # Create campaign
+                        try:
+                            daily_campaign = Campaign.objects.create(**campaign_data)
+                            generated_campaigns.append(daily_campaign)
+                            print(f"[GENERATE_SUB_CAMPAIGNS] Created daily campaign: {daily_campaign.title} (ID: {daily_campaign.id})")
+                        except Exception as create_error:
+                            print(f"[GENERATE_SUB_CAMPAIGNS] Campaign creation error: {str(create_error)}")
+                            import traceback
+                            traceback.print_exc()
+                            continue
                         
                         # Verify the campaign was actually saved
                         try:
