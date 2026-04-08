@@ -191,7 +191,8 @@ export function TikTokLayout({
         : reelsData.results || [];
       
       // Check if there are more videos to load using DRF pagination
-      const hasMoreVideos = reelsData.next ? true : (reelsList.length === limit);
+      // Only continue if we got a full page AND there's a next link, or if it's the first page with exactly limit items
+      const hasMoreVideos = reelsData.next ? true : (pageNum === 1 && reelsList.length === limit);
       setHasMore(hasMoreVideos);
 
       // Transform backend data to match frontend format
