@@ -84,6 +84,19 @@ export function MasterCampaignManagementPage({ theme }) {
       showCancel: true,
       onConfirm: async () => {
         console.log('[GENERATE_SUB_CAMPAIGNS] Confirm button clicked');
+        
+        // First test the endpoint
+        try {
+          console.log('[TEST] Testing connectivity...');
+          const testResponse = await api.request(`/admin/master-campaigns/${campaign.id}/test/`);
+          console.log('[TEST] Test response:', testResponse);
+        } catch (testError) {
+          console.error('[TEST] Test failed:', testError);
+          alert('Backend connectivity test failed. Check console for details.');
+          return;
+        }
+        
+        // Then try the actual generation
         try {
           console.log('[GENERATE_SUB_CAMPAIGNS] Making API request...');
           const response = await api.request(`/admin/master-campaigns/${campaign.id}/generate/`, {

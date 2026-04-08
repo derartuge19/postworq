@@ -151,6 +151,24 @@ def master_campaign_stats(request, pk):
     except MasterCampaign.DoesNotExist:
         return Response({'error': 'Master campaign not found'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def test_generate_endpoint(request, pk):
+    """Test endpoint to verify CORS and basic functionality"""
+    try:
+        print(f"[TEST] Test endpoint called for campaign {pk}")
+        return Response({
+            'message': 'Test endpoint working',
+            'campaign_id': pk,
+            'timestamp': timezone.now().isoformat()
+        })
+    except Exception as e:
+        print(f"[TEST] Test endpoint error: {str(e)}")
+        return Response({
+            'error': 'Test endpoint failed',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def generate_sub_campaigns(request, pk):
