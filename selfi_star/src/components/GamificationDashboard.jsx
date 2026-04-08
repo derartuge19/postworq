@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Gift, Coins, Flame, Calendar, RotateCw, Sparkles, CheckCircle, X } from 'lucide-react';
+import { Gift, Coins, Flame, Calendar, RotateCw, Sparkles, CheckCircle, X, RefreshCw, Crown, Star } from 'lucide-react';
 import api from '../../api';
 
 // Gamification Dashboard Component
@@ -149,7 +149,7 @@ export function GamificationDashboard({ userId, theme }) {
         <ActionCard
           title="Daily Spin"
           subtitle={status.spin.can_spin ? "Spin for free coins!" : "Come back tomorrow"}
-          icon={<RotateCw size={32} color={status.spin.can_spin ? theme.pri : theme.sub} />}
+          icon={<RefreshCw size={32} color={status.spin.can_spin ? theme.pri : theme.sub} />}
           disabled={!status.spin.can_spin}
           onClick={() => setShowSpinModal(true)}
           theme={theme}
@@ -287,11 +287,18 @@ function ActionCard({ title, subtitle, icon, disabled, onClick, theme, highlight
 
 function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards }) {
   const [rotation, setRotation] = useState(0);
+  const [nameRotation, setNameRotation] = useState(0);
 
   const handleSpinClick = () => {
     if (!canSpin || spinning) return;
-    const randomRotation = 1440 + Math.random() * 1440; // 4-8 full rotations
-    setRotation(prev => prev + randomRotation);
+    
+    // Real random rotation: 5-10 full rotations plus random position
+    const baseRotations = 5 + Math.floor(Math.random() * 6); // 5-10 rotations
+    const randomPosition = Math.random() * 360; // Random final position
+    const totalRotation = baseRotations * 360 + randomPosition;
+    
+    setRotation(prev => prev + totalRotation);
+    setNameRotation(prev => prev + totalRotation);
     onSpin();
   };
 
@@ -363,7 +370,7 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
                 borderRight: '15px solid transparent',
                 borderTop: '30px solid ' + theme.txt
               }} />
-              {/* Center */}
+              {/* Center with spinning icon */}
               <div style={{
                 position: 'absolute',
                 top: '50%',
@@ -378,7 +385,14 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
                 justifyContent: 'center',
                 boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
               }}>
-                <Sparkles size={28} color={theme.pri} />
+                <RefreshCw 
+                  size={28} 
+                  color={theme.pri}
+                  style={{
+                    transform: `rotate(${rotation}deg)`,
+                    transition: spinning ? 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)' : 'none'
+                  }}
+                />
               </div>
             </div>
 
@@ -431,7 +445,17 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
             <div style={{ fontSize: 64, marginBottom: 16 }}>
               {result.reward.emoji}
             </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: theme.pri, marginBottom: 8 }}>
+            <div 
+              style={{ 
+                fontSize: 28, 
+                fontWeight: 700, 
+                color: theme.pri, 
+                marginBottom: 8,
+                transform: `rotate(${nameRotation}deg)`,
+                transition: 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)',
+                display: 'inline-block'
+              }}
+            >
               {result.reward.label}
             </div>
             <div style={{ fontSize: 16, color: theme.txt, marginBottom: 16 }}>
@@ -444,21 +468,84 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
         )}
 
         {result && (
-          <button
-            onClick={onClose}
-            style={{
-              width: '100%',
-              padding: 14,
-              borderRadius: 10,
-              border: `1px solid ${theme.border}`,
-              background: 'white',
-              color: theme.txt,
-              fontSize: 16,
-              cursor: 'pointer'
-            }}
-          >
-            Awesome!
-          </button>
+          <>
+            {/* Upsell Section */}
+            <div style={{
+              background: `linear-gradient(135deg, ${theme.pri}15, ${theme.pri}05)`,
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 20,
+              textAlign: 'left'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <Crown size={20} color={theme.pri} />
+                <h4 style={{ margin: 0, fontSize: 16, color: theme.txt, fontWeight: 600 }}>
+                  Want More Spins?
+                </h4>
+              </div>
+              <p style={{ margin: '0 0 12px 0', fontSize: 13, color: theme.sub, lineHeight: 1.4 }}>
+                Get unlimited spins and bonus rewards with our premium features!
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  style={{
+                    flex: 1,
+                    padding: 8,
+                    borderRadius: 8,
+                    border: `1px solid ${theme.pri}`,
+                    background: 'white',
+                    color: theme.pri,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    // Navigate to coin purchase
+                    window.location.href = '/coins';
+                  }}
+                >
+                  <Coins size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                  Buy Coins
+                </button>
+                <button
+                  style={{
+                    flex: 1,
+                    padding: 8,
+                    borderRadius: 8,
+                    border: 'none',
+                    background: theme.pri,
+                    color: 'white',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    // Navigate to subscription
+                    window.location.href = '/subscription';
+                  }}
+                >
+                  <Star size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                  Go Premium
+                </button>
+              </div>
+            </div>
+            
+            <button
+              onClick={onClose}
+              style={{
+                width: '100%',
+                padding: 14,
+                borderRadius: 10,
+                border: `1px solid ${theme.border}`,
+                background: 'white',
+                color: theme.txt,
+                fontSize: 16,
+                cursor: 'pointer'
+              }}
+            >
+              Awesome!
+            </button>
+          </>
         )}
       </div>
     </div>

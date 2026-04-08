@@ -154,14 +154,20 @@ def daily_spin(request):
             'next_spin': 'tomorrow'
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    # Weighted random selection
+    # Improved weighted random selection with better randomness
     weights = [r['weight'] for r in SPIN_REWARDS]
     total_weight = sum(weights)
-    random_num = random.uniform(0, total_weight)
+    
+    # Use cryptographically secure random for better randomness
+    random_num = random.SystemRandom().uniform(0, total_weight)
+    
+    # Shuffle rewards to avoid pattern bias
+    shuffled_rewards = SPIN_REWARDS.copy()
+    random.SystemRandom().shuffle(shuffled_rewards)
     
     cumulative = 0
     selected_reward = None
-    for reward in SPIN_REWARDS:
+    for reward in shuffled_rewards:
         cumulative += reward['weight']
         if random_num <= cumulative:
             selected_reward = reward
