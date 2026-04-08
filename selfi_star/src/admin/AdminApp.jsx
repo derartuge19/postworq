@@ -191,6 +191,7 @@ export function AdminApp() {
         flex: 1,
         overflow: 'auto',
         padding: '32px',
+        marginLeft: 240,
       }}>
         {renderPage()}
       </div>
