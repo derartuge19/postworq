@@ -573,8 +573,8 @@ function GiftModal({ theme, onClose, onSuccess, coins }) {
       const response = await api.request('/gamification/gift/', {
         method: 'POST',
         body: JSON.stringify({
-          recipient_id: recipient,
-          amount: amount,
+          recipient_username: recipient,
+          amount: parseInt(amount),
           message: message
         })
       });
@@ -636,13 +636,13 @@ function GiftModal({ theme, onClose, onSuccess, coins }) {
 
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: 13, color: theme.sub, marginBottom: 6 }}>
-                Recipient User ID
+                Recipient Username
               </label>
               <input
                 type="text"
                 value={recipient}
                 onChange={e => setRecipient(e.target.value)}
-                placeholder="Enter user ID"
+                placeholder="Enter username (e.g., johndoe)"
                 style={{
                   width: '100%',
                   padding: 12,

@@ -278,7 +278,7 @@ function GiftModal({ coins, onClose, onRefresh }) {
       const res = await api.request('/gamification/gift/', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ recipient_id: recipientId, amount, message })
+        body: JSON.stringify({ recipient_username: recipientId, amount, message })
       });
       setDone(res);
       onRefresh();
@@ -309,9 +309,9 @@ function GiftModal({ coins, onClose, onRefresh }) {
               <span style={{fontWeight:800,color:'#DA9B2A',fontSize:16}}>🪙 {coins?.balance ?? 0}</span>
             </div>
 
-            <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Recipient (username or ID)</label>
+            <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Recipient Username</label>
             <input value={recipientId} onChange={e=>setRecipientId(e.target.value)}
-              placeholder="e.g. john_doe or 42"
+              placeholder="e.g. johndoe"
               style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid #E7E5E4',fontSize:15,marginBottom:14,boxSizing:'border-box',outline:'none'}}
             />
 

@@ -295,19 +295,22 @@ def claim_login_bonus(request):
 def send_coin_gift(request):
     """Send coin gift to another user"""
     recipient_id = request.data.get('recipient_id')
+    recipient_username = request.data.get('recipient_username') or request.data.get('recipient_id')
     amount = request.data.get('amount', 10)
     message = request.data.get('message', '')
     
-    if not recipient_id:
-        return Response({'error': 'Recipient required'}, status=status.HTTP_400_BAD_REQUEST)
+    if not recipient_username:
+        return Response({'error': 'Recipient username required'}, status=status.HTTP_400_BAD_REQUEST)
     
     if amount < 1 or amount > 100:
         return Response({'error': 'Gift amount must be between 1-100 coins'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        recipient = User.objects.get(id=recipient_id)
+        # Try to find user by username first (remove @ if present)
+        clean_username = recipient_username.lstrip('@')
+        recipient = User.objects.get(username__iexact=clean_username)
     except User.DoesNotExist:
-        return Response({'error': 'Recipient not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': f'User "{recipient_username}" not found'}, status=status.HTTP_404_NOT_FOUND)
     
     if recipient == request.user:
         return Response({'error': 'Cannot gift yourself'}, status=status.HTTP_400_BAD_REQUEST)
