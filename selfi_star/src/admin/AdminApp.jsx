@@ -16,6 +16,7 @@ import { ContestDashboardPage } from './pages/ContestDashboardPage';
 import { JudgingPortalPage } from './pages/JudgingPortalPage';
 import { AntiCheatPage } from './pages/AntiCheatPage';
 import { CampaignManagementPage } from './pages/CampaignManagementPage';
+import { MasterCampaignManagementPage } from './pages/MasterCampaignManagementPage';
 import { TypeSpecificScoringConfig } from './pages/TypeSpecificScoringConfig';
 import CampaignThemeManagement from './pages/CampaignThemeManagement';
 import CampaignPostModeration from './pages/CampaignPostModeration';
@@ -140,6 +141,8 @@ export function AdminApp() {
         return <NotificationsPage theme={T} />;
       case 'admins':
         return <AdminManagementPage theme={T} />;
+      case 'master-campaigns':
+        return <MasterCampaignManagementPage theme={T} />;
       case 'campaigns':
         return <CampaignManagementPage theme={T} onManageCampaign={(id, action, type) => {
           setSelectedCampaignId(id);

@@ -24,6 +24,9 @@ class Campaign(models.Model):
     image = models.ImageField(upload_to='campaigns/', null=True, blank=True)
     campaign_type = models.CharField(max_length=20, choices=CAMPAIGN_TYPES, default='grand', help_text='Determines rules and scoring logic')
     
+    # Link to Master Campaign (Season)
+    master_campaign = models.ForeignKey('MasterCampaign', on_delete=models.CASCADE, related_name='sub_campaigns', null=True, blank=True, help_text='Master Campaign this belongs to')
+    
     # Prize information
     prize_title = models.CharField(max_length=200)
     prize_description = models.TextField()

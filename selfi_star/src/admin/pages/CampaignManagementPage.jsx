@@ -6,6 +6,8 @@ import { EditCampaignModal } from './EditCampaignModal';
 
 export function CampaignManagementPage({ theme, onManageCampaign }) {
   const [campaigns, setCampaigns] = useState([]);
+  const [masterCampaigns, setMasterCampaigns] = useState([]);
+  const [selectedMasterCampaign, setSelectedMasterCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -18,12 +20,17 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
 
   useEffect(() => {
     loadCampaigns();
-  }, [statusFilter]);
+    loadMasterCampaigns();
+  }, [statusFilter, selectedMasterCampaign]);
 
   const loadCampaigns = async () => {
     try {
       setLoading(true);
-      const filterParam = statusFilter !== 'all' ? `?status=${statusFilter}` : '';
+      let filterParams = [];
+      if (statusFilter !== 'all') filterParams.push(`status=${statusFilter}`);
+      if (selectedMasterCampaign) filterParams.push(`master_campaign=${selectedMasterCampaign}`);
+      
+      const filterParam = filterParams.length > 0 ? `?${filterParams.join('&')}` : '';
       const response = await api.request(`/admin/campaigns/${filterParam}`);
       setCampaigns(response.campaigns || []);
     } catch (error) {
@@ -32,6 +39,20 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
       setCampaigns([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMasterCampaigns = async () => {
+    try {
+      const response = await api.request('/admin/master-campaigns/');
+      setMasterCampaigns(response.master_campaigns || []);
+      // Auto-select first master campaign if none selected
+      if (!selectedMasterCampaign && response.master_campaigns && response.master_campaigns.length > 0) {
+        setSelectedMasterCampaign(response.master_campaigns[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to load master campaigns:', error);
+      setMasterCampaigns([]);
     }
   };
 
@@ -208,25 +229,78 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
             fontSize: window.innerWidth < 768 ? 14 : 16,
             color: theme.sub,
           }}>
-            Create and manage prize campaigns
+            Create and manage sub-campaigns under master campaigns
           </p>
+          
+          {/* Master Campaign Selector */}
+          {masterCampaigns.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <label style={{ 
+                display: 'block', 
+                fontSize: 12, 
+                fontWeight: 600, 
+                color: theme.txt, 
+                marginBottom: 4 
+              }}>
+                Master Campaign:
+              </label>
+              <select
+                value={selectedMasterCampaign || ''}
+                onChange={(e) => setSelectedMasterCampaign(parseInt(e.target.value) || null)}
+                style={{
+                  padding: '8px 12px',
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: 6,
+                  fontSize: 14,
+                  background: theme.bg,
+                  color: theme.txt,
+                  minWidth: 200,
+                }}
+              >
+                <option value="">Select Master Campaign</option>
+                {masterCampaigns.map((mc) => (
+                  <option key={mc.id} value={mc.id}>
+                    {mc.title} ({mc.status})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          
+          {masterCampaigns.length === 0 && (
+            <div style={{
+              marginTop: 12,
+              padding: 8,
+              background: `${theme.orange}15`,
+              border: `1px solid ${theme.orange}`,
+              borderRadius: 6,
+              fontSize: 12,
+              color: theme.orange,
+            }}>
+              <strong>No Master Campaigns Found</strong><br />
+              Please create a Master Campaign first to manage sub-campaigns.
+            </div>
+          )}
         </div>
+        
         <button
           onClick={() => setShowCreateModal(true)}
+          disabled={!selectedMasterCampaign}
           style={{
             padding: '12px 24px',
-            background: theme.pri,
+            background: selectedMasterCampaign ? theme.pri : theme.sub,
             border: 'none',
             borderRadius: 8,
             color: '#fff',
             fontSize: 14,
             fontWeight: 600,
-            cursor: 'pointer',
+            cursor: selectedMasterCampaign ? 'pointer' : 'not-allowed',
             display: 'flex',
             alignItems: 'center',
             gap: 8,
             width: window.innerWidth < 768 ? '100%' : 'auto',
             justifyContent: 'center',
+            opacity: selectedMasterCampaign ? 1 : 0.6,
           }}
         >
           <Plus size={16} />

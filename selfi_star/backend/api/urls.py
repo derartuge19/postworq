@@ -9,6 +9,10 @@ from .views import (
     get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail, admin_reports_stats,
     get_trending_reels, mark_not_interested, undo_not_interested
 )
+from .views_master_campaign import (
+    master_campaign_list, master_campaign_detail, master_campaign_participants,
+    join_master_campaign, master_campaign_stats, generate_sub_campaigns
+)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -210,6 +214,12 @@ urlpatterns = [
     path('admin/notifications/send/', send_platform_notification, name='admin-send-notification'),
     # Bulk Actions
     path('admin/users/bulk/', bulk_user_action, name='admin-bulk-action'),
+    # Master Campaign Management (Admin)
+    path('admin/master-campaigns/', master_campaign_list, name='admin-master-campaigns-list'),
+    path('admin/master-campaigns/<int:pk>/', master_campaign_detail, name='admin-master-campaign-detail'),
+    path('admin/master-campaigns/<int:pk>/participants/', master_campaign_participants, name='admin-master-campaign-participants'),
+    path('admin/master-campaigns/<int:pk>/stats/', master_campaign_stats, name='admin-master-campaign-stats'),
+    path('admin/master-campaigns/<int:pk>/generate/', generate_sub_campaigns, name='admin-generate-sub-campaigns'),
     # Campaign Management (Admin)
     path('admin/campaigns/', admin_campaigns_list, name='admin-campaigns-list'),
     path('admin/campaigns/create/', admin_campaign_create, name='admin-campaign-create'),
