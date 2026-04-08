@@ -282,6 +282,9 @@ export function AppShell({
             menuItems[6],
           ].map((item) => {
             const Icon = item.icon;
+            // Debug logging
+            console.log('Mobile Nav Debug - activeTab:', activeTab, 'item.id:', item.id);
+            
             // Handle special cases for active tab detection
             let isActive = activeTab === item.id;
             
@@ -298,9 +301,14 @@ export function AppShell({
             if (item.id === 'messages' && activeTab === 'messages') {
               isActive = true;
             }
+            if (item.id === 'create' && activeTab === 'create') {
+              isActive = true;
+            }
             if (item.id === 'campaigns' && activeTab === 'campaigns') {
               isActive = true;
             }
+            
+            console.log('Mobile Nav - Final isActive:', isActive, 'for item:', item.id);
             return (
               <button
                 key={item.id}
@@ -315,7 +323,7 @@ export function AppShell({
                   gap: 4,
                 }}
               >
-                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} color={isActive ? T.pri : T.txt} />
               </button>
             );
           })}
