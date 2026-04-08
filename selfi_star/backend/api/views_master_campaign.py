@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Count, Q
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from .models_master_campaign import MasterCampaign, MasterCampaignParticipant
 from .serializers_master_campaign import MasterCampaignSerializer, MasterCampaignParticipantSerializer
@@ -147,9 +147,12 @@ def master_campaign_stats(request, pk):
 def generate_sub_campaigns(request, pk):
     """Generate sub-campaigns for a master campaign"""
     try:
+        print(f"[GENERATE_SUB_CAMPAIGNS] Starting generation for master campaign {pk}")
         campaign = MasterCampaign.objects.get(pk=pk)
+        print(f"[GENERATE_SUB_CAMPAIGNS] Found campaign: {campaign.title}")
         
         if not campaign.start_date or not campaign.end_date:
+            print(f"[GENERATE_SUB_CAMPAIGNS] Missing dates: start_date={campaign.start_date}, end_date={campaign.end_date}")
             return Response({'error': 'Master campaign must have start and end dates'}, status=status.HTTP_400_BAD_REQUEST)
         
         generated_campaigns = []
@@ -158,33 +161,43 @@ def generate_sub_campaigns(request, pk):
         if campaign.auto_generate_daily and request.data.get('generate_daily', True):
             current_date = campaign.start_date.date()
             end_date = campaign.end_date.date()
+            print(f"[GENERATE_SUB_CAMPAIGNS] Generating daily campaigns from {current_date} to {end_date}")
             
             while current_date <= end_date:
-                # Check if daily campaign already exists
-                if not campaign.sub_campaigns.filter(
-                    campaign_type='daily',
-                    start_date__date=current_date
-                ).exists():
-                    
-                    daily_campaign = Campaign.objects.create(
-                        title=f"{campaign.title} - Daily {current_date.strftime('%b %d')}",
-                        description=f"Daily campaign for {current_date.strftime('%B %d, %Y')}",
+                try:
+                    # Check if daily campaign already exists
+                    if not campaign.sub_campaigns.filter(
                         campaign_type='daily',
-                        master_campaign=campaign,
-                        start_date=timezone.make_aware(timezone.datetime.combine(current_date, timezone.datetime.min.time()).replace(hour=0, minute=0)),
-                        end_date=timezone.make_aware(timezone.datetime.combine(current_date, timezone.datetime.min.time()).replace(hour=23, minute=59)),
-                        entry_deadline=timezone.make_aware(timezone.datetime.combine(current_date, timezone.datetime.min.time()).replace(hour=20, minute=0)),
-                        status='active' if current_date <= timezone.now().date() else 'upcoming',
-                        prize_title="Daily Winner",
-                        prize_description="Daily campaign winner",
-                        min_followers=campaign.min_followers,
-                        min_level=campaign.min_level,
-                        required_hashtags=campaign.required_hashtags,
-                        created_by=request.user
-                    )
-                    generated_campaigns.append(daily_campaign)
-                
-                current_date += timedelta(days=1)
+                        start_date__date=current_date
+                    ).exists():
+                        
+                        print(f"[GENERATE_SUB_CAMPAIGNS] Creating daily campaign for {current_date}")
+                        daily_campaign = Campaign.objects.create(
+                            title=f"{campaign.title} - Daily {current_date.strftime('%b %d')}",
+                            description=f"Daily campaign for {current_date.strftime('%B %d, %Y')}",
+                            campaign_type='daily',
+                            master_campaign=campaign,
+                            start_date=timezone.make_aware(datetime.combine(current_date, datetime.min.time()).replace(hour=0, minute=0)),
+                            end_date=timezone.make_aware(datetime.combine(current_date, datetime.min.time()).replace(hour=23, minute=59)),
+                            entry_deadline=timezone.make_aware(datetime.combine(current_date, datetime.min.time()).replace(hour=20, minute=0)),
+                            status='active' if current_date <= timezone.now().date() else 'upcoming',
+                            prize_title="Daily Winner",
+                            prize_description="Daily campaign winner",
+                            min_followers=campaign.min_followers,
+                            min_level=campaign.min_level,
+                            required_hashtags=campaign.required_hashtags,
+                            created_by=request.user
+                        )
+                        generated_campaigns.append(daily_campaign)
+                        print(f"[GENERATE_SUB_CAMPAIGNS] Created daily campaign: {daily_campaign.title}")
+                    else:
+                        print(f"[GENERATE_SUB_CAMPAIGNS] Daily campaign for {current_date} already exists, skipping")
+                    
+                    current_date += timedelta(days=1)
+                except Exception as e:
+                    print(f"[GENERATE_SUB_CAMPAIGNS] Error creating daily campaign for {current_date}: {str(e)}")
+                    current_date += timedelta(days=1)
+                    continue
         
         # Generate weekly campaigns
         if campaign.auto_generate_weekly and request.data.get('generate_weekly', True):
@@ -198,38 +211,59 @@ def generate_sub_campaigns(request, pk):
         
         # Generate grand campaign
         if campaign.auto_generate_grand and request.data.get('generate_grand', True):
-            if not campaign.sub_campaigns.filter(campaign_type='grand').exists():
-                grand_campaign = Campaign.objects.create(
-                    title=f"{campaign.title} - Grand Finale",
-                    description=f"Grand campaign finale for {campaign.title}",
-                    campaign_type='grand',
-                    master_campaign=campaign,
-                    start_date=campaign.end_date - timedelta(days=7),
-                    end_date=campaign.end_date,
-                    entry_deadline=campaign.end_date - timedelta(days=3),
-                    voting_start=campaign.end_date - timedelta(days=3),
-                    voting_end=campaign.end_date,
-                    status='upcoming',
-                    prize_title="Grand Champion",
-                    prize_description="Ultimate winner of the season",
-                    min_followers=campaign.min_followers,
-                    min_level=campaign.min_level,
-                    required_hashtags=campaign.required_hashtags,
-                    created_by=request.user
-                )
-                generated_campaigns.append(grand_campaign)
+            try:
+                if not campaign.sub_campaigns.filter(campaign_type='grand').exists():
+                    print(f"[GENERATE_SUB_CAMPAIGNS] Creating grand campaign")
+                    grand_campaign = Campaign.objects.create(
+                        title=f"{campaign.title} - Grand Finale",
+                        description=f"Grand campaign finale for {campaign.title}",
+                        campaign_type='grand',
+                        master_campaign=campaign,
+                        start_date=campaign.end_date - timedelta(days=7),
+                        end_date=campaign.end_date,
+                        entry_deadline=campaign.end_date - timedelta(days=3),
+                        voting_start=campaign.end_date - timedelta(days=3),
+                        voting_end=campaign.end_date,
+                        status='upcoming',
+                        prize_title="Grand Champion",
+                        prize_description="Ultimate winner of the season",
+                        min_followers=campaign.min_followers,
+                        min_level=campaign.min_level,
+                        required_hashtags=campaign.required_hashtags,
+                        created_by=request.user
+                    )
+                    generated_campaigns.append(grand_campaign)
+                    print(f"[GENERATE_SUB_CAMPAIGNS] Created grand campaign: {grand_campaign.title}")
+                else:
+                    print(f"[GENERATE_SUB_CAMPAIGNS] Grand campaign already exists, skipping")
+            except Exception as e:
+                print(f"[GENERATE_SUB_CAMPAIGNS] Error creating grand campaign: {str(e)}")
         
         # Update campaign stats
-        campaign.total_daily_campaigns = campaign.sub_campaigns.filter(campaign_type='daily').count()
-        campaign.total_weekly_campaigns = campaign.sub_campaigns.filter(campaign_type='weekly').count()
-        campaign.total_monthly_campaigns = campaign.sub_campaigns.filter(campaign_type='monthly').count()
-        campaign.total_grand_campaigns = campaign.sub_campaigns.filter(campaign_type='grand').count()
-        campaign.save()
+        try:
+            campaign.total_daily_campaigns = campaign.sub_campaigns.filter(campaign_type='daily').count()
+            campaign.total_weekly_campaigns = campaign.sub_campaigns.filter(campaign_type='weekly').count()
+            campaign.total_monthly_campaigns = campaign.sub_campaigns.filter(campaign_type='monthly').count()
+            campaign.total_grand_campaigns = campaign.sub_campaigns.filter(campaign_type='grand').count()
+            campaign.save()
+            print(f"[GENERATE_SUB_CAMPAIGNS] Updated campaign stats")
+        except Exception as e:
+            print(f"[GENERATE_SUB_CAMPAIGNS] Error updating stats: {str(e)}")
         
+        print(f"[GENERATE_SUB_CAMPAIGNS] Successfully generated {len(generated_campaigns)} sub-campaigns")
         return Response({
             'message': f'Generated {len(generated_campaigns)} sub-campaigns',
             'campaigns': [c.title for c in generated_campaigns]
         })
         
     except MasterCampaign.DoesNotExist:
+        print(f"[GENERATE_SUB_CAMPAIGNS] Master campaign {pk} not found")
         return Response({'error': 'Master campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"[GENERATE_SUB_CAMPAIGNS] Unexpected error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return Response({
+            'error': 'Internal server error while generating sub-campaigns',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
