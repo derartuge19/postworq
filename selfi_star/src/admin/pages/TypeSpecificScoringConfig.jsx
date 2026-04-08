@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import api from '../../api';
 
+// Debug logging to help identify the issue
+console.log('[TypeSpecificScoringConfig] Component loading...');
+
 // Section component for consistent styling
 function Section({ theme, icon, title, children, color }) {
+  console.log('[Section] Rendering Section component');
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
@@ -419,6 +423,7 @@ function Section({ theme, icon, title, color, children }) {
 }
 
 function NumberInput({ label, value, onChange, suffix, step = '0.1', theme }) {
+  console.log('[NumberInput] Rendering NumberInput component for:', label);
   return (
     <div>
       <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: theme.sub, marginBottom: 6 }}>{label}</label>
