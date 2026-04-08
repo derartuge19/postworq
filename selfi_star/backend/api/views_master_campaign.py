@@ -223,17 +223,21 @@ def generate_sub_campaigns(request, pk):
                         # Handle dates with error checking
                         try:
                             start_datetime = datetime.combine(current_date, datetime.min.time()).replace(hour=0, minute=0)
-                            end_datetime = datetime.combine(current_date, datetime.min.time()).replace(hour=23, minute=59)
                             deadline_datetime = datetime.combine(current_date, datetime.min.time()).replace(hour=20, minute=0)
+                            voting_start_datetime = datetime.combine(current_date, datetime.min.time()).replace(hour=21, minute=0)
+                            voting_end_datetime = datetime.combine(current_date, datetime.min.time()).replace(hour=23, minute=59)
                             
                             campaign_data['start_date'] = timezone.make_aware(start_datetime)
-                            campaign_data['end_date'] = timezone.make_aware(end_datetime)
                             campaign_data['entry_deadline'] = timezone.make_aware(deadline_datetime)
+                            campaign_data['voting_start'] = timezone.make_aware(voting_start_datetime)
+                            campaign_data['voting_end'] = timezone.make_aware(voting_end_datetime)
                             campaign_data['status'] = 'active' if current_date <= timezone.now().date() else 'upcoming'
                             
                             print(f"[GENERATE_SUB_CAMPAIGNS] Campaign data prepared: {campaign_data}")
                         except Exception as date_error:
                             print(f"[GENERATE_SUB_CAMPAIGNS] Date error: {str(date_error)}")
+                            import traceback
+                            traceback.print_exc()
                             continue
                         
                         # Create campaign
@@ -283,7 +287,6 @@ def generate_sub_campaigns(request, pk):
                         campaign_type='grand',
                         master_campaign=campaign,
                         start_date=campaign.end_date - timedelta(days=7),
-                        end_date=campaign.end_date,
                         entry_deadline=campaign.end_date - timedelta(days=3),
                         voting_start=campaign.end_date - timedelta(days=3),
                         voting_end=campaign.end_date,
