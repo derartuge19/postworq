@@ -209,7 +209,25 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
       >
         {[menuItems[0], menuItems[1], menuItems[6], menuItems[4], menuItems[7]].map(item => {
           const Icon = item.icon;
-          const isActive = activeTab === item.id;
+          // Handle special cases for active tab detection
+          let isActive = activeTab === item.id;
+          
+          // Handle special cases where activeTab might be different from item.id
+          if (item.id === 'home' && (activeTab === 'foryou' || activeTab === 'feed')) {
+            isActive = true;
+          }
+          if (item.id === 'explore' && activeTab === 'explore') {
+            isActive = true;
+          }
+          if (item.id === 'campaigns' && activeTab === 'campaigns') {
+            isActive = true;
+          }
+          if (item.id === 'create' && activeTab === 'create') {
+            isActive = true;
+          }
+          if (item.id === 'settings' && activeTab === 'settings') {
+            isActive = true;
+          }
           
           return (
             <button

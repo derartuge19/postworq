@@ -262,6 +262,8 @@ export function TikTokLayout({
   };
 
   useEffect(() => {
+    // Clear current videos immediately when switching tabs to prevent mixing
+    setVideos([]);
     setPage(1);
     setHasMore(true);
     fetchVideos(1, false);

@@ -282,7 +282,25 @@ export function AppShell({
             menuItems[6],
           ].map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            // Handle special cases for active tab detection
+            let isActive = activeTab === item.id;
+            
+            // Handle special cases where activeTab might be different from item.id
+            if (item.id === 'home' && (activeTab === 'foryou' || activeTab === 'feed' || activeTab === 'home')) {
+              isActive = true;
+            }
+            if (item.id === 'explore' && (activeTab === 'explore' || activeTab === 'trending')) {
+              isActive = true;
+            }
+            if (item.id === 'notifications' && activeTab === 'inbox') {
+              isActive = true;
+            }
+            if (item.id === 'messages' && activeTab === 'messages') {
+              isActive = true;
+            }
+            if (item.id === 'campaigns' && activeTab === 'campaigns') {
+              isActive = true;
+            }
             return (
               <button
                 key={item.id}
