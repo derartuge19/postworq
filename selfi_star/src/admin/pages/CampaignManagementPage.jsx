@@ -797,7 +797,14 @@ function CreateCampaignModal({ theme, onClose, onSuccess, selectedMasterCampaign
       
       // Add image if selected
       if (imageFile) {
+        console.log('Adding image to FormData:', imageFile.name, imageFile.type, imageFile.size);
         formDataToSend.append('image', imageFile);
+        console.log('FormData entries after adding image:');
+        for (let [key, value] of formDataToSend.entries()) {
+          console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.type}, ${value.size})` : value);
+        }
+      } else {
+        console.log('No image file to upload');
       }
       
       const response = await api.request('/admin/campaigns/create/', {
@@ -818,10 +825,30 @@ function CreateCampaignModal({ theme, onClose, onSuccess, selectedMasterCampaign
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      console.log('File selected:', file.name, file.type, file.size);
+      
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/ogg', 'video/mov'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('Invalid file type. Please upload an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM, OGG, MOV).');
+        return;
+      }
+      
+      // Validate file size (50MB limit)
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        setError('File too large. Please upload a file smaller than 50MB.');
+        return;
+      }
+      
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
+        console.log('Preview set successfully');
+      };
+      reader.onerror = () => {
+        setError('Failed to preview file. Please try another file.');
       };
       reader.readAsDataURL(file);
     }

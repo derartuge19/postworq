@@ -42,6 +42,10 @@ def admin_campaigns_list(request):
     if status_filter:
         campaigns = campaigns.filter(status=status_filter)
     
+    master_campaign_filter = request.GET.get('master_campaign')
+    if master_campaign_filter:
+        campaigns = campaigns.filter(master_campaign_id=master_campaign_filter)
+    
     # Annotate with live counts from the database
     campaigns = campaigns.annotate(
         live_entries=Count('entries', distinct=True),
@@ -110,6 +114,7 @@ def admin_campaign_create(request):
             title=request.data.get('title'),
             description=request.data.get('description'),
             campaign_type=request.data.get('campaign_type', 'grand'),
+            master_campaign_id=request.data.get('master_campaign'),
             prize_title=request.data.get('prize_title'),
             prize_description=request.data.get('prize_description'),
             prize_value=request.data.get('prize_value', 0),
