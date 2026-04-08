@@ -339,6 +339,78 @@ const SAMPLE_SOUNDS = [
     }
   };
 
+  // TikTok-style functions for sound and photo handling
+  
+  // Handle multiple photo upload
+  const handleMultiplePhotoUpload = (files) => {
+    const photoFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    const newPhotos = photoFiles.map(file => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+    
+    setSelectedPhotos(prev => [...prev, ...newPhotos]);
+    if (selectedPhotos.length === 0) {
+      setCurrentPhotoIndex(0);
+    }
+  };
+
+  // Remove photo from selection
+  const removePhoto = (index) => {
+    const newPhotos = selectedPhotos.filter((_, i) => i !== index);
+    setSelectedPhotos(newPhotos);
+    
+    // Adjust current index if needed
+    if (currentPhotoIndex >= newPhotos.length && newPhotos.length > 0) {
+      setCurrentPhotoIndex(newPhotos.length - 1);
+    }
+  };
+
+  // Navigate photos
+  const navigatePhoto = (direction) => {
+    if (direction === 'next' && currentPhotoIndex < selectedPhotos.length - 1) {
+      setCurrentPhotoIndex(prev => prev + 1);
+    } else if (direction === 'prev' && currentPhotoIndex > 0) {
+      setCurrentPhotoIndex(prev => prev - 1);
+    }
+  };
+
+  // Handle background sound selection
+  const handleSoundSelection = (sound) => {
+    setBackgroundSound(sound);
+    setSoundPreview(sound.url);
+    setShowSoundSelector(false);
+  };
+
+  // Play/pause sound preview
+  const toggleSoundPreview = () => {
+    if (!audioRef.current) return;
+    
+    if (isPlayingSound) {
+      audioRef.current.pause();
+      setIsPlayingSound(false);
+    } else {
+      audioRef.current.play();
+      setIsPlayingSound(true);
+    }
+  };
+
+  // Handle custom sound upload
+  const handleCustomSoundUpload = (file) => {
+    if (file && file.type.startsWith('audio/')) {
+      const soundFile = {
+        id: 'custom',
+        name: file.name,
+        duration: 'Custom',
+        url: URL.createObjectURL(file),
+        file: file
+      };
+      setBackgroundSound(soundFile);
+      setSoundPreview(soundFile.url);
+      setShowSoundSelector(false);
+    }
+  };
+
     // Start/stop camera when tab or facing mode changes
   useEffect(() => {
     if (activeTab === 'camera') {
