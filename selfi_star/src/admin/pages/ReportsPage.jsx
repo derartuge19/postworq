@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Flag, CheckCircle, XCircle, AlertCircle, Eye, Trash2, User, FileVideo, MessageSquare, RefreshCw } from 'lucide-react';
-import api from '../api';
+import api from '../../api';
 
 export function ReportsPage({ theme }) {
   const [reports, setReports] = useState([]);

@@ -21,6 +21,13 @@ def reels_following(request):
     # Get reels from those users
     reels = Reel.objects.filter(user__in=following_users).order_by('-created_at')
     
+    # Exclude reels marked as not interested by current user
+    from .models import NotInterested
+    not_interested_ids = NotInterested.objects.filter(
+        user=user
+    ).values_list('reel_id', flat=True)
+    reels = reels.exclude(id__in=not_interested_ids)
+    
     # Serialize with user context
     serializer = ReelSerializer(reels, many=True, context={'request': request})
     return Response(serializer.data)
@@ -54,7 +61,17 @@ def reels_trending(request):
         created_at__gte=week_ago
     ).annotate(
         engagement=Count('vote') + Count('comment')
-    ).order_by('-engagement', '-created_at')[:50]
+    ).order_by('-engagement', '-created_at')
+    
+    # Exclude reels marked as not interested by current user (if authenticated)
+    if request.user.is_authenticated:
+        from .models import NotInterested
+        not_interested_ids = NotInterested.objects.filter(
+            user=request.user
+        ).values_list('reel_id', flat=True)
+        reels = reels.exclude(id__in=not_interested_ids)
+    
+    reels = reels[:50]
     
     # Serialize with user context if authenticated
     context = {'request': request} if request.user.is_authenticated else {}

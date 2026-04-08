@@ -514,11 +514,23 @@ export function TikTokLayout({
     }
   };
 
+  // Store follow states separately to persist across video refreshes
+  const [followStates, setFollowStates] = useState({});
+
   const handleFollow = async (userId) => {
     if (!user) {
       onRequireAuth();
       return;
     }
+
+    // Optimistically update local state first
+    const currentFollowing = followStates[userId] ?? videos.find(v => v.user?.id === userId)?.user?.is_following;
+    const newFollowing = !currentFollowing;
+    
+    setFollowStates(prev => ({
+      ...prev,
+      [userId]: newFollowing
+    }));
 
     try {
       const response = await api.request('/follows/toggle/', {
@@ -538,9 +550,19 @@ export function TikTokLayout({
               : video,
           ),
         );
+        // Also update followStates to match server response
+        setFollowStates(prev => ({
+          ...prev,
+          [userId]: response.following
+        }));
       }
     } catch (error) {
       console.error('Failed to follow user:', error);
+      // Revert on error
+      setFollowStates(prev => ({
+        ...prev,
+        [userId]: currentFollowing
+      }));
     }
   };
 
@@ -1336,11 +1358,11 @@ export function TikTokLayout({
                         <button
                           onClick={() => handleFollow(video.user?.id)}
                           style={{
-                            background: video.user?.is_following
+                            background: (followStates[video.user?.id] ?? video.user?.is_following)
                               ? 'rgba(255,255,255,0.15)'
                               : 'linear-gradient(135deg, #DA9B2A 0%, #f0b840 100%)',
                             color: '#fff',
-                            border: video.user?.is_following
+                            border: (followStates[video.user?.id] ?? video.user?.is_following)
                               ? '1px solid rgba(255,255,255,0.4)'
                               : 'none',
                             borderRadius: 14,
@@ -1349,15 +1371,15 @@ export function TikTokLayout({
                             fontWeight: 700,
                             cursor: 'pointer',
                             letterSpacing: 0.3,
-                            boxShadow: video.user?.is_following
+                            boxShadow: (followStates[video.user?.id] ?? video.user?.is_following)
                               ? 'none'
                               : '0 2px 8px rgba(218,155,42,0.45)',
                             transition: 'all 0.2s ease',
-                            backdropFilter: video.user?.is_following ? 'blur(8px)' : 'none',
-                            WebkitBackdropFilter: video.user?.is_following ? 'blur(8px)' : 'none',
+                            backdropFilter: (followStates[video.user?.id] ?? video.user?.is_following) ? 'blur(8px)' : 'none',
+                            WebkitBackdropFilter: (followStates[video.user?.id] ?? video.user?.is_following) ? 'blur(8px)' : 'none',
                           }}
                         >
-                          {video.user?.is_following ? 'Following' : 'Follow'}
+                          {(followStates[video.user?.id] ?? video.user?.is_following) ? 'Following' : 'Follow'}
                         </button>
                       )}
                     </div>
@@ -1634,8 +1656,9 @@ export function TikTokLayout({
           {/* User Suggestions */}
           <div>
             <UserSuggestions
-              onUserClick={(user) => {
-                console.log('User clicked:', user);
+              onUserClick={(clickedUser) => {
+                if (!user) { onRequireAuth(); return; }
+                onShowProfile?.(clickedUser.id);
               }}
               onPostClick={(post) => {
                 console.log('Post clicked:', post);

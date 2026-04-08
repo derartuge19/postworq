@@ -772,7 +772,20 @@ class FollowViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return Follow.objects.none()
-        return Follow.objects.filter(follower=self.request.user)
+        
+        # Handle query params for getting followers/following of any user
+        following_id = self.request.query_params.get('following')
+        follower_id = self.request.query_params.get('follower')
+        
+        if following_id:
+            # Get users who follow the user with following_id (i.e., following_id is being followed)
+            return Follow.objects.filter(following_id=following_id)
+        elif follower_id:
+            # Get users who the follower_id follows (i.e., follower_id is the follower)
+            return Follow.objects.filter(follower_id=follower_id)
+        else:
+            # Default: return who the current user is following
+            return Follow.objects.filter(follower=self.request.user)
     
     @action(detail=False, methods=['post'])
     def toggle(self, request):

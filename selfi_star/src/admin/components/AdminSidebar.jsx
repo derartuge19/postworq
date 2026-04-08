@@ -1,4 +1,4 @@
-import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Trophy, Target, Zap, Award } from 'lucide-react';
+import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Trophy, Target, Zap, Award, Flag } from 'lucide-react';
 
 export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLogout }) {
   const menuItems = [
