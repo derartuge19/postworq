@@ -647,6 +647,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
       {showCreateModal && (
         <CreateCampaignModal
           theme={theme}
+          selectedMasterCampaign={selectedMasterCampaign}
           onClose={() => setShowCreateModal(false)}
           onSuccess={(response) => {
             setShowCreateModal(false);
@@ -669,6 +670,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
         <EditCampaignModal
           theme={theme}
           campaign={editingCampaign}
+          selectedMasterCampaign={selectedMasterCampaign}
           onClose={() => {
             setShowEditModal(false);
             setEditingCampaign(null);
@@ -714,11 +716,13 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
   );
 }
 
-function CreateCampaignModal({ theme, onClose, onSuccess }) {
+function CreateCampaignModal({ theme, onClose, onSuccess, selectedMasterCampaign }) {
+  const [masterCampaigns, setMasterCampaigns] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     campaign_type: 'grand',
+    master_campaign: selectedMasterCampaign || '',
     prize_title: '',
     prize_description: '',
     prize_value: '',
@@ -738,6 +742,20 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    loadMasterCampaigns();
+  }, []);
+
+  const loadMasterCampaigns = async () => {
+    try {
+      const response = await api.request('/admin/master-campaigns/');
+      setMasterCampaigns(response.master_campaigns || []);
+    } catch (error) {
+      console.error('Failed to load master campaigns:', error);
+      setMasterCampaigns([]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -752,6 +770,7 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('campaign_type', formData.campaign_type);
+      formDataToSend.append('master_campaign', formData.master_campaign);
       formDataToSend.append('prize_title', formData.prize_title);
       formDataToSend.append('prize_description', formData.prize_description || formData.prize_title);
       formDataToSend.append('prize_value', formData.prize_value);
@@ -892,6 +911,46 @@ function CreateCampaignModal({ theme, onClose, onSuccess }) {
                 <option value="monthly">Monthly Campaign (Scoring Only)</option>
                 <option value="grand">Grand Campaign (Voting + Scoring)</option>
               </select>
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
+                Master Campaign *
+              </label>
+              <select
+                value={formData.master_campaign}
+                onChange={(e) => setFormData({ ...formData, master_campaign: e.target.value })}
+                required
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  border: `2px solid ${theme.border}`,
+                  borderRadius: 8,
+                  fontSize: 14,
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box',
+                  background: '#fff',
+                }}
+                onFocus={(e) => e.target.style.borderColor = theme.pri}
+                onBlur={(e) => e.target.style.borderColor = theme.border}
+              >
+                <option value="">Select Master Campaign</option>
+                {masterCampaigns.map((mc) => (
+                  <option key={mc.id} value={mc.id}>
+                    {mc.title} ({mc.status})
+                  </option>
+                ))}
+              </select>
+              {masterCampaigns.length === 0 && (
+                <div style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  color: theme.red,
+                }}>
+                  No master campaigns available. Please create one first.
+                </div>
+              )}
             </div>
             
             <div>

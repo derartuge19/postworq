@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Save, Image, Trophy, Calendar, Users, Hash, CheckCircle } from 'lucide-react';
 import api from '../../api';
 
@@ -59,12 +59,14 @@ const Field = ({ label, required, children }) => (
   </div>
 );
 
-export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
+export function EditCampaignModal({ theme, campaign, onClose, onSuccess, selectedMasterCampaign }) {
+  const [masterCampaigns, setMasterCampaigns] = useState([]);
   const [formData, setFormData] = useState({
     title:              campaign.title || '',
     description:        campaign.description || '',
     status:             campaign.status || 'draft',
     campaign_type:      campaign.campaign_type || 'grand',
+    master_campaign:    campaign.master_campaign?.id || selectedMasterCampaign || '',
     prize_title:        campaign.prize_title || '',
     prize_description:  campaign.prize_description || '',
     prize_value:        campaign.prize_value || '',
@@ -85,6 +87,20 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
   const [error, setError]             = useState('');
 
   const set = (field, value) => setFormData(p => ({ ...p, [field]: value }));
+
+  useEffect(() => {
+    loadMasterCampaigns();
+  }, []);
+
+  const loadMasterCampaigns = async () => {
+    try {
+      const response = await api.request('/admin/master-campaigns/');
+      setMasterCampaigns(response.master_campaigns || []);
+    } catch (error) {
+      console.error('Failed to load master campaigns:', error);
+      setMasterCampaigns([]);
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -107,6 +123,7 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
       fd.append('description',        formData.description);
       fd.append('status',             formData.status);
       fd.append('campaign_type',      formData.campaign_type);
+      fd.append('master_campaign',    formData.master_campaign);
       fd.append('prize_title',        formData.prize_title);
       fd.append('prize_description',  formData.prize_description || formData.prize_title);
       fd.append('prize_value',        formData.prize_value);
@@ -222,6 +239,31 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess }) {
                   <option value="monthly">Monthly Campaign (Scoring Only)</option>
                   <option value="grand">Grand Campaign (Voting + Scoring)</option>
                 </select>
+              </Field>
+
+              <Field label="Master Campaign" required>
+                <select
+                  value={formData.master_campaign}
+                  onChange={e => set('master_campaign', e.target.value)}
+                  required
+                  style={{...inp, cursor: 'pointer'}}
+                >
+                  <option value="">Select Master Campaign</option>
+                  {masterCampaigns.map((mc) => (
+                    <option key={mc.id} value={mc.id}>
+                      {mc.title} ({mc.status})
+                    </option>
+                  ))}
+                </select>
+                {masterCampaigns.length === 0 && (
+                  <div style={{
+                    marginTop: 4,
+                    fontSize: 12,
+                    color: theme.red,
+                  }}>
+                    No master campaigns available. Please create one first.
+                  </div>
+                )}
               </Field>
 
               <Field label="Description" required>
