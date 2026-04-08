@@ -1,6 +1,29 @@
 import { useState, useEffect } from 'react';
 import api from '../../api';
 
+// Section component for consistent styling
+function Section({ theme, icon, title, children, color }) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <span style={{ fontSize: 20 }}>{icon}</span>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: theme.txt }}>
+          {title}
+        </h3>
+      </div>
+      <div style={{
+        padding: 20,
+        background: theme.card,
+        borderRadius: 12,
+        border: `1px solid ${theme.border}`,
+        borderLeft: `4px solid ${color}`
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 /**
  * TYPE-SPECIFIC Scoring Configuration
  * Shows ONLY the config fields relevant to the campaign's actual type
