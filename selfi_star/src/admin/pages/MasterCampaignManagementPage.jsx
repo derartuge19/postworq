@@ -83,7 +83,9 @@ export function MasterCampaignManagementPage({ theme }) {
       type: 'warning',
       showCancel: true,
       onConfirm: async () => {
+        console.log('[GENERATE_SUB_CAMPAIGNS] Confirm button clicked');
         try {
+          console.log('[GENERATE_SUB_CAMPAIGNS] Making API request...');
           const response = await api.request(`/admin/master-campaigns/${campaign.id}/generate/`, {
             method: 'POST',
             body: JSON.stringify({
@@ -93,6 +95,7 @@ export function MasterCampaignManagementPage({ theme }) {
               generate_grand: true
             })
           });
+          console.log('[GENERATE_SUB_CAMPAIGNS] API response:', response);
           alert(`Generated ${response.campaigns.length} sub-campaigns`);
           loadMasterCampaigns();
           setConfirmModal({ isOpen: false });
@@ -578,7 +581,14 @@ export function MasterCampaignManagementPage({ theme }) {
                 </button>
               )}
               <button
-                onClick={confirmModal.onConfirm}
+                onClick={() => {
+                  console.log('[MODAL] Confirm button clicked');
+                  if (confirmModal.onConfirm) {
+                    confirmModal.onConfirm();
+                  } else {
+                    console.log('[MODAL] No onConfirm function found');
+                  }
+                }}
                 style={{
                   padding: '8px 16px',
                   background: confirmModal.type === 'danger' ? theme.red : 

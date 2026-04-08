@@ -214,6 +214,7 @@ def generate_sub_campaigns(request, pk):
                             'master_campaign': campaign,
                             'prize_title': "Daily Winner",
                             'prize_description': "Daily campaign winner",
+                            'prize_value': 0,  # Add missing prize_value field
                             'min_followers': campaign.min_followers,
                             'min_level': campaign.min_level,
                             'required_hashtags': campaign.required_hashtags,
@@ -293,6 +294,7 @@ def generate_sub_campaigns(request, pk):
                         status='upcoming',
                         prize_title="Grand Champion",
                         prize_description="Ultimate winner of the season",
+                        prize_value=0,  # Add missing prize_value field
                         min_followers=campaign.min_followers,
                         min_level=campaign.min_level,
                         required_hashtags=campaign.required_hashtags,
