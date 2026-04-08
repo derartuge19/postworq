@@ -281,23 +281,36 @@ export function TikTokLayout({
     }
   }, [videos.length, loading]);
 
-  // Preload first video's poster as soon as we have the URL (from cache or API)
-  // so the browser starts fetching the thumbnail before the <video> element renders
+  // Preload first video's poster with better timing and cleanup
   useEffect(() => {
     if (!videos.length) return;
     const firstUrl = videos[0]?.imageUrl;
     if (!firstUrl) return;
     const poster = getVideoPoster(firstUrl);
     if (!poster) return;
+    
+    // Remove any existing preload
     const existing = document.head.querySelector(`link[data-video-poster]`);
     if (existing) existing.remove();
+    
+    // Only preload if we're likely to use it soon
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
     link.href = poster;
     link.setAttribute('data-video-poster', '1');
+    
+    // Add timeout to remove preload if not used within 5 seconds
+    const timeoutId = setTimeout(() => {
+      try { link.remove(); } catch {}
+    }, 5000);
+    
     document.head.appendChild(link);
-    return () => { try { link.remove(); } catch {} };
+    
+    return () => { 
+      clearTimeout(timeoutId);
+      try { link.remove(); } catch {} 
+    };
   }, [videos[0]?.id]);
 
   // Scroll listener for infinite scroll

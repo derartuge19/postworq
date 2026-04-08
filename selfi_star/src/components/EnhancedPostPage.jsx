@@ -298,10 +298,15 @@ const SAMPLE_SOUNDS = [
       }
       
       // Add background sound if selected
+      console.log('[UPLOAD] Background sound:', backgroundSound);
       if (backgroundSound && backgroundSound.file) {
+        console.log('[UPLOAD] Adding custom background sound file:', backgroundSound.file.name);
         formData.append("background_sound", backgroundSound.file);
       } else if (backgroundSound && backgroundSound.id !== 'custom') {
+        console.log('[UPLOAD] Adding background sound ID:', backgroundSound.id);
         formData.append("background_sound_id", backgroundSound.id);
+      } else {
+        console.log('[UPLOAD] No background sound selected');
       }
       
       formData.append("caption", caption);
@@ -377,6 +382,7 @@ const SAMPLE_SOUNDS = [
 
   // Handle background sound selection
   const handleSoundSelection = (sound) => {
+    console.log('[SOUND] Selecting background sound:', sound);
     setBackgroundSound(sound);
     setSoundPreview(sound.url);
     setShowSoundSelector(false);
@@ -397,6 +403,7 @@ const SAMPLE_SOUNDS = [
 
   // Handle custom sound upload
   const handleCustomSoundUpload = (file) => {
+    console.log('[SOUND] Custom sound upload:', file);
     if (file && file.type.startsWith('audio/')) {
       const soundFile = {
         id: 'custom',
@@ -405,9 +412,12 @@ const SAMPLE_SOUNDS = [
         url: URL.createObjectURL(file),
         file: file
       };
+      console.log('[SOUND] Created sound file object:', soundFile);
       setBackgroundSound(soundFile);
       setSoundPreview(soundFile.url);
       setShowSoundSelector(false);
+    } else {
+      console.log('[SOUND] Invalid file type:', file?.type);
     }
   };
 
