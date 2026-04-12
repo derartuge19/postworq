@@ -110,6 +110,7 @@ export function EnhancedPostPage({ user, onBack }) {
   const streamRef = useRef(null);
   const liveRef = useRef({ filter: 'none' });
   const isRecordingRef = useRef(false); // sync ref so onMouseDown guard doesn't rely on stale state
+  const recordingStartRef = useRef(0);  // timestamp when recording began (for ghost-click guard)
   const fileInputRef = useRef(null);
   const audioFileInputRef = useRef(null);
   const previewContainerRef = useRef(null);
@@ -253,6 +254,7 @@ export function EnhancedPostPage({ user, onBack }) {
     mediaRecorderRef.current = mr;
     mr.start(250); // emit chunks every 250ms
     isRecordingRef.current = true;
+    recordingStartRef.current = Date.now();
     setIsRecording(true);
     setRecTime(0);
     setRecProgress(0);
@@ -275,6 +277,8 @@ export function EnhancedPostPage({ user, onBack }) {
 
   const stopRecording = () => {
     if (!isRecordingRef.current) return;
+    // Ignore stop calls within 1s of start (ghost-click from touchStart on mobile)
+    if (Date.now() - recordingStartRef.current < 1000) return;
     clearInterval(timerRef.current);
     const mr = mediaRecorderRef.current;
     if (mr && mr.state === 'recording') {
@@ -591,8 +595,10 @@ export function EnhancedPostPage({ user, onBack }) {
                     )}
                     <button className="ep-btn"
                       onMouseDown={camMode === 'video' && !isRecording ? startRecording : undefined}
-                      onTouchStart={camMode === 'video' && !isRecording ? (e) => { e.preventDefault(); startRecording(); } : undefined}
-                      onClick={camMode === 'video' ? (isRecording ? stopRecording : undefined) : takePhoto}
+                      onTouchStart={camMode === 'video' && !isRecording ? () => startRecording() : undefined}
+                      onClick={camMode === 'video'
+                        ? (isRecording ? stopRecording : undefined)
+                        : takePhoto}
                       style={{
                         width: 80, height: 80, borderRadius: '50%',
                         background: camMode === 'video' ? (isRecording ? T.red : T.white) : T.white,
