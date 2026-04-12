@@ -168,7 +168,25 @@ export function EnhancedPostPage({ user, onBack }) {
   const startRecording = () => {
     if (!streamRef.current) return;
     chunksRef.current = [];
-    // Pick the first supported mimeType — Safari needs mp4, Chrome/Firefox prefer webm
+
+    // Build a composite stream:
+    // - Video track: from the canvas (already has filter applied)
+    // - Audio track: from the camera microphone stream
+    let recordStream = streamRef.current;
+    try {
+      const canvasStream = canvasRef.current?.captureStream?.(30);
+      if (canvasStream) {
+        const audioTracks = streamRef.current.getAudioTracks();
+        const videoTrack  = canvasStream.getVideoTracks()[0];
+        const combined = new MediaStream([
+          ...(videoTrack ? [videoTrack] : []),
+          ...audioTracks,
+        ]);
+        if (combined.getTracks().length > 0) recordStream = combined;
+      }
+    } catch (_) { /* fall back to raw stream */ }
+
+    // Pick the first supported mimeType
     const MIME_CANDIDATES = [
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
@@ -178,8 +196,13 @@ export function EnhancedPostPage({ user, onBack }) {
     ];
     const mimeType = MIME_CANDIDATES.find(m => !m || MediaRecorder.isTypeSupported(m)) || '';
     const mrOptions = mimeType ? { mimeType } : {};
-    const mr = new MediaRecorder(streamRef.current, mrOptions);
-    const ext  = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    let mr;
+    try {
+      mr = new MediaRecorder(recordStream, mrOptions);
+    } catch (_) {
+      mr = new MediaRecorder(streamRef.current); // bare fallback
+    }
+    const ext     = mimeType.includes('mp4') ? 'mp4' : 'webm';
     const blobType = mimeType || 'video/webm';
     mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
     mr.onstop = () => {

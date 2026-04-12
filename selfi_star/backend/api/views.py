@@ -162,19 +162,18 @@ def create_post(request):
         if cloudinary_url:
             file_value = cloudinary_url          # already a full https:// URL
         else:
-            # Cloudinary not configured — save to Django's default storage
-            # (local filesystem on Render ephemeral disk) and get the path back.
-            from django.core.files.storage import default_storage
+            # Cloudinary not configured or failed — save to LOCAL filesystem
+            # explicitly using FileSystemStorage (ignores DEFAULT_FILE_STORAGE)
+            from django.core.files.storage import FileSystemStorage
             from django.core.files.base import ContentFile
+            from django.conf import settings as _settings
+            fs = FileSystemStorage(location=_settings.MEDIA_ROOT, base_url=_settings.MEDIA_URL)
             ext = file.name.rsplit('.', 1)[-1] if '.' in file.name else ('webm' if is_video else 'jpg')
             save_name = f"reels/fallback_{reel.pk}.{ext}"
             file.seek(0)
-            saved_name = default_storage.save(save_name, ContentFile(file.read()))
-            try:
-                file_value = default_storage.url(saved_name)
-            except Exception:
-                file_value = saved_name          # store relative path as last resort
-            print(f"[CREATE_POST] local storage saved: {file_value}")
+            saved_name = fs.save(save_name, ContentFile(file.read()))
+            file_value = fs.url(saved_name)   # e.g. /media/reels/fallback_5.webm
+            print(f"[CREATE_POST] local filesystem saved: {file_value}")
 
         column = 'media' if is_video else 'image'
         with connection.cursor() as cur:
