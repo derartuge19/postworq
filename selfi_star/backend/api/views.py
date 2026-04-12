@@ -594,10 +594,11 @@ class ReelViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
             
         except Exception as e:
-            print(f"[REEL DELETE] Error: {type(e).__name__}: {e}")
-            traceback.print_exc()
+            import traceback as _tb
+            tb = _tb.format_exc()
+            print(f"[REEL DELETE] Error: {type(e).__name__}: {e}\n{tb}")
             return Response(
-                {'error': str(e), 'type': type(e).__name__},
+                {'error': str(e), 'type': type(e).__name__, 'traceback': tb},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     

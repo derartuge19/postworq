@@ -82,6 +82,10 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       setTimeout(() => setSuccessMsg(''), 2500);
     } catch (error) {
       console.error('Failed to delete post:', error);
+      try {
+        const parsed = JSON.parse(error.message);
+        alert('Delete failed:\n' + (parsed.traceback || parsed.error || error.message));
+      } catch { alert('Delete failed: ' + error.message); }
     }
   };
 
