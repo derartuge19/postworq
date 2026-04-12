@@ -87,14 +87,14 @@ class ReelSerializer(serializers.ModelSerializer):
                 base = getattr(settings, 'BACKEND_URL', 'https://postworq.onrender.com')
                 return f"{base}{name}"
 
-            # Bare filename with no leading slash and no http prefix.
-            # This is a legacy DB entry from before the raw-SQL fix — the file was
-            # saved locally but Cloudinary is DEFAULT_FILE_STORAGE so field.url would
-            # generate a phantom Cloudinary URL that doesn't exist.  Return None.
-            if '/' not in name:
+            # Only paths we intentionally write as relative Django media paths
+            # are valid (e.g. reels/fallback_5.webm from our local fallback code).
+            # Legacy entries like "media/rec_*.webm" or any other relative path would
+            # make the Cloudinary storage backend generate a phantom URL → 404.
+            if not name.startswith('reels/'):
                 return None
 
-            # Relative path with directory component — let Django storage resolve it
+            # Known-good relative path — let Django storage resolve it
             url = field.url
             if not url:
                 return None

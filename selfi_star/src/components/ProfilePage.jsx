@@ -672,11 +672,11 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 
                 // Generate poster thumbnail from video URL
                 const getVideoPoster = (url) => {
-                  if (!url.includes('cloudinary')) return '';
-                  // Create thumbnail by replacing /video/upload/ with transformed image URL
+                  if (!url || !url.includes('cloudinary')) return '';
+                  if (!url.includes('/video/upload/')) return '';
                   return url
-                    .replace('/video/upload/', '/video/upload/so_0,w_300,h_300,c_fill,q_auto:low/')
-                    .replace(/\.mp4$/i, '.jpg');
+                    .replace('/video/upload/', '/video/upload/so_0,w_300,h_300,c_fill,q_auto:low,f_jpg/')
+                    .replace(/\.(mp4|webm|ogg|mov)(\?.*)?$/i, '.jpg');
                 };
                 
                 return (

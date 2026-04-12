@@ -573,17 +573,16 @@ class ReelViewSet(viewsets.ModelViewSet):
                 )
             
             print(f"[REEL DELETE] Deleting reel {reel.id}...")
-            
-            # Explicitly delete related PostScore if exists (to avoid cascade issues)
-            try:
-                from .models_campaign_extended import PostScore
-                if hasattr(reel, 'campaign_score'):
-                    print(f"[REEL DELETE] Deleting related PostScore...")
-                    reel.campaign_score.delete()
-            except Exception as score_err:
-                print(f"[REEL DELETE] PostScore deletion warning: {score_err}")
-            
-            # Now delete the reel (cascade will handle comments, votes, etc.)
+
+            # Clear file columns via raw SQL BEFORE deletion.
+            # Prevents Cloudinary storage backend (via post_delete signal) from trying
+            # to delete legacy file paths (e.g. media/rec_*.webm) that never existed
+            # in Cloudinary — which would otherwise raise an exception and 500.
+            from django.db import connection
+            with connection.cursor() as cur:
+                cur.execute("UPDATE api_reel SET media='', image='' WHERE id=%s", [reel.id])
+
+            # Now delete the reel (CASCADE handles comments, votes, PostScore, etc.)
             reel.delete()
             print(f"[REEL DELETE] Successfully deleted reel {reel.id}")
             return Response(status=status.HTTP_204_NO_CONTENT)
