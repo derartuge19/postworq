@@ -110,6 +110,7 @@ export function TikTokLayout({
   const videoRefs = useRef({});
   const videoContainerRefs = useRef({});
   const [visibleVideos, setVisibleVideos] = useState({});
+  const activeVideoIdRef = useRef(null); // only this video plays with sound
 
   // Generate Cloudinary poster thumbnail from video URL
   const getVideoPoster = (url) => {
@@ -348,13 +349,22 @@ export function TikTokLayout({
           if (!videoElement) return;
 
           if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
-            // Unmute when video becomes visible
+            // Mute ALL other playing videos first
+            Object.entries(videoRefs.current).forEach(([id, el]) => {
+              if (el && id !== videoId) {
+                el.muted = true;
+                el.pause();
+              }
+            });
+            // Play and optionally unmute the active video
+            activeVideoIdRef.current = videoId;
             videoElement.muted = !audioEnabled;
             videoElement
               .play()
               .catch((err) => console.log('Play prevented:', err));
             setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
           } else {
+            videoElement.muted = true;
             videoElement.pause();
             setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
           }
@@ -404,8 +414,9 @@ export function TikTokLayout({
   const toggleAudio = () => {
     const next = !audioEnabled;
     setAudioEnabled(next);
-    Object.values(videoRefs.current).forEach(video => {
-      if (video) video.muted = !next;
+    // Only unmute the currently active video — all others stay muted
+    Object.entries(videoRefs.current).forEach(([id, video]) => {
+      if (video) video.muted = id === activeVideoIdRef.current ? !next : true;
     });
   };
 
@@ -1063,12 +1074,12 @@ export function TikTokLayout({
                               ? 'metadata'
                               : 'none'
                           }
-                          autoPlay
                           loop
                           playsInline
-                          muted={!audioEnabled}
+                          muted
                           onLoadedData={(e) => {
-                            e.target.play().catch(() => {});
+                            // Keep muted on load; IntersectionObserver controls playback
+                            e.target.muted = true;
                           }}
                           onError={(e) => {
                             const code = e.target?.error?.code;
