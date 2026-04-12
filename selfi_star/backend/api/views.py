@@ -902,7 +902,9 @@ def get_user_notifications(request):
             if notif.sender:
                 profile_photo = None
                 try:
-                    profile_photo = notif.sender.userprofile.profile_photo.url if notif.sender.userprofile.profile_photo else None
+                    pf = notif.sender.profile.profile_photo
+                    if pf and pf.name:
+                        profile_photo = pf.name if pf.name.startswith('http') else pf.url
                 except Exception:
                     pass
                 sender_data = {
@@ -916,10 +918,21 @@ def get_user_notifications(request):
             reel_data = None
             if notif.reel:
                 try:
+                    def _safe_url(field):
+                        if not field or not field.name:
+                            return None
+                        name = field.name
+                        if name.startswith('http://') or name.startswith('https://'):
+                            return name
+                        try:
+                            u = field.url
+                            return u if u else None
+                        except Exception:
+                            return None
                     reel_data = {
                         'id': notif.reel.id,
-                        'media': notif.reel.media.url if notif.reel.media else None,
-                        'image': notif.reel.image.url if notif.reel.image else None,
+                        'media': _safe_url(notif.reel.media),
+                        'image': _safe_url(notif.reel.image),
                     }
                 except Exception:
                     reel_data = {'id': notif.reel.id, 'media': None, 'image': None}
