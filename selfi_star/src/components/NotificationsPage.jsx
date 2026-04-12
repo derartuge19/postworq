@@ -38,25 +38,29 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
   const [activeFilter, setActiveFilter] = useState("all");
   const pollingRef = useRef(null);
 
-  const transform = (data) => data.map(notif => ({
-    id: notif.id,
-    type: notif.notification_type || notif.type || 'system',
-    message: notif.message,
-    read: notif.read !== undefined ? notif.read : (notif.is_read || false),
-    timestamp: new Date(notif.timestamp || notif.created_at),
-    user: notif.sender ? {
-      id: notif.sender.id,
-      username: notif.sender.username,
-      profile_photo: notif.sender.profile_photo,
-    } : null,
-    post: notif.reel ? {
-      id: notif.reel.id,
-      thumbnail: notif.reel.image || notif.reel.media,
-    } : null,
-    comment: notif.comment ? (typeof notif.comment === 'string' ? notif.comment : notif.comment.text) : null,
-    reel_id: notif.reel_id || notif.reel?.id,
-    campaign_id: notif.campaign_id,
-  }));
+  const transform = (data) => data.map(notif => {
+    const isCampaign = notif.type === 'campaign' || !!notif.campaign_id;
+    return {
+      id: isCampaign ? `c_${notif.id}` : notif.id,
+      type: isCampaign ? 'campaign' : (notif.notification_type || notif.type || 'system'),
+      message: notif.message,
+      read: notif.read !== undefined ? notif.read : (notif.is_read || false),
+      timestamp: new Date(notif.timestamp || notif.created_at),
+      user: notif.sender ? {
+        id: notif.sender.id,
+        username: notif.sender.username,
+        profile_photo: notif.sender.profile_photo,
+      } : null,
+      post: notif.reel ? {
+        id: notif.reel.id,
+        thumbnail: notif.reel.image || notif.reel.media,
+      } : null,
+      comment: notif.comment ? (typeof notif.comment === 'string' ? notif.comment : notif.comment.text) : null,
+      reel_id: notif.reel_id || notif.reel?.id,
+      campaign_id: notif.campaign_id,
+      _rawId: notif.id,
+    };
+  });
 
   const fetchNotifications = useCallback(async (silent = false) => {
     if (!user) { setNotifications([]); setLoading(false); return; }
@@ -95,7 +99,7 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
 
   const handleNotifClick = (notif) => {
     if (!notif.read) {
-      api.markNotificationRead(notif.id).catch(() => {});
+      if (notif.type !== 'campaign') api.markNotificationRead(notif._rawId ?? notif.id).catch(() => {});
       setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
     }
     if (notif.type === 'follow') {
