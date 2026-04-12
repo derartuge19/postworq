@@ -26,7 +26,7 @@ const FILTERS = [
 ];
 
 const SPEEDS = ['0.3x', '0.5x', '1x', '2x', '3x'];
-const MAX_REC = 60;
+const MAX_REC = 480;
 
 const SAMPLE_SOUNDS = [
   { id: 's1', name: 'Chill Beats',    artist: 'LoFi Studio',   dur: '0:15' },
