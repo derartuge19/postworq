@@ -279,7 +279,8 @@ export function EnhancedPostPage({ user, onBack }) {
     try {
       const fd = new FormData();
       fd.append('file', selectedFile);
-      fd.append('caption', `${caption}${hashtags ? ' ' + hashtags : ''}`);
+      fd.append('caption', caption);
+      if (hashtags) fd.append('hashtags', hashtags);
       if (customAudioFile) {
         fd.append('audio_file', customAudioFile);
         fd.append('audio_volume_level', addedVol);

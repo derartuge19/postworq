@@ -165,15 +165,16 @@ def create_post(request):
                     print(f"✅ Video uploaded to Cloudinary: {upload_result.get('secure_url')}")
                     print(f"Public ID: {upload_result.get('public_id')}")
                     
-                    # Store the full secure_url directly so it works without Cloudinary on read
+                    # Store the full secure_url directly so Cloudinary storage doesn't re-upload on save()
                     secure_url = upload_result.get('secure_url')
-                    reel = Reel(
+                    reel = Reel.objects.create(
                         user=request.user,
                         caption=caption,
-                        hashtags=hashtags
+                        hashtags=hashtags,
                     )
-                    reel.media.name = secure_url
-                    reel.save()
+                    # Use update() to write the URL string directly — bypasses FileField storage backend
+                    Reel.objects.filter(pk=reel.pk).update(media=secure_url)
+                    reel.refresh_from_db()
                 else:
                     raise ImportError("Cloudinary not configured")
             except (ImportError, Exception) as video_error:
