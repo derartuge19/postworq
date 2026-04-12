@@ -574,10 +574,16 @@ class ReelViewSet(viewsets.ModelViewSet):
             
             print(f"[REEL DELETE] Deleting reel {reel.id}...")
 
-            # Clear file columns via raw SQL BEFORE deletion.
-            # Prevents Cloudinary storage backend (via post_delete signal) from trying
-            # to delete legacy file paths (e.g. media/rec_*.webm) that never existed
-            # in Cloudinary — which would otherwise raise an exception and 500.
+            # Clear file references both in-memory AND in the DB row before deleting.
+            # The Cloudinary storage backend's post_delete signal reads the in-memory
+            # FieldFile.name, not the DB column. If it sees a non-empty path it tries
+            # to delete that path from Cloudinary; for legacy paths like
+            # "media/rec_*.webm" that never existed there, it raises an exception → 500.
+            try:
+                reel.media.name = ''
+                reel.image.name = ''
+            except Exception:
+                pass
             from django.db import connection
             with connection.cursor() as cur:
                 cur.execute("UPDATE api_reel SET media='', image='' WHERE id=%s", [reel.id])
