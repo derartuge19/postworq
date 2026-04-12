@@ -145,6 +145,21 @@ export default function WerqRoot() {
   const [showVideoDetail, setShowVideoDetail] = useState(false);
   const [videoDetailId, setVideoDetailId] = useState(null);
   const [showExplorer, setShowExplorer] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+
+  // Poll unread notification count every 30s when user is logged in
+  useEffect(() => {
+    if (!authUser) { setUnreadNotifCount(0); return; }
+    const fetchCount = async () => {
+      try {
+        const data = await api.getUnreadNotificationCount();
+        setUnreadNotifCount(data.unread_count || 0);
+      } catch (_) {}
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, [authUser]);
 
   // Browser history support
   useEffect(() => {
@@ -362,6 +377,7 @@ export default function WerqRoot() {
       return;
     }
     setShowNotifications(true);
+    setUnreadNotifCount(0);
     setShowProfile(false);
     setShowPostPage(false);
     setShowEditProfile(false);
@@ -411,6 +427,7 @@ export default function WerqRoot() {
         onShowNotifications={handleShowNotifications}
         onShowCampaigns={handleShowCampaigns}
         onShowExplorer={handleShowExplorer}
+        unreadNotifCount={unreadNotifCount}
       >
         {/* Each lazy page gets its own Suspense so only one loads at a time */}
         {showSettings && (
@@ -648,6 +665,7 @@ export default function WerqRoot() {
             onShowNotifications={handleShowNotifications}
             onShowVideoDetail={handleShowVideoDetail}
             onShowExplorer={handleShowExplorer}
+            unreadNotifCount={unreadNotifCount}
           />
         )}
       </AppShell>

@@ -25,6 +25,7 @@ export function AppShell({
   onShowNotifications,
   onShowCampaigns,
   onShowExplorer,
+  unreadNotifCount = 0,
   children,
 }) {
   const { colors: T } = useTheme();
@@ -132,6 +133,7 @@ export function AppShell({
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
+              const isBell = item.id === 'notifications';
               return (
                 <button
                   key={item.id}
@@ -148,9 +150,35 @@ export function AppShell({
                     color: isActive ? T.pri : T.txt,
                     fontWeight: isActive ? 700 : 500,
                     transition: 'all 0.2s',
+                    position: 'relative',
                   }}
                 >
-                  <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                    {isBell && unreadNotifCount > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: -5,
+                        right: -6,
+                        minWidth: 16,
+                        height: 16,
+                        borderRadius: 8,
+                        background: '#EF4444',
+                        color: '#fff',
+                        fontSize: 9,
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '0 3px',
+                        boxSizing: 'border-box',
+                        border: '1.5px solid #fff',
+                        lineHeight: 1,
+                      }}>
+                        {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                      </div>
+                    )}
+                  </div>
                   <span>{item.label}</span>
                 </button>
               );
@@ -278,37 +306,15 @@ export function AppShell({
             menuItems[0],
             menuItems[1],
             menuItems[4],
-            menuItems[3],
+            menuItems[2],
             menuItems[6],
           ].map((item) => {
             const Icon = item.icon;
-            // Debug logging
-            console.log('Mobile Nav Debug - activeTab:', activeTab, 'item.id:', item.id);
-            
-            // Handle special cases for active tab detection
             let isActive = activeTab === item.id;
-            
-            // Handle special cases where activeTab might be different from item.id
-            if (item.id === 'home' && (activeTab === 'foryou' || activeTab === 'feed' || activeTab === 'home')) {
-              isActive = true;
-            }
-            if (item.id === 'explore' && (activeTab === 'explore' || activeTab === 'trending')) {
-              isActive = true;
-            }
-            if (item.id === 'notifications' && activeTab === 'inbox') {
-              isActive = true;
-            }
-            if (item.id === 'messages' && activeTab === 'messages') {
-              isActive = true;
-            }
-            if (item.id === 'create' && activeTab === 'create') {
-              isActive = true;
-            }
-            if (item.id === 'campaigns' && activeTab === 'campaigns') {
-              isActive = true;
-            }
-            
-            console.log('Mobile Nav - Final isActive:', isActive, 'for item:', item.id);
+            if (item.id === 'home' && (activeTab === 'foryou' || activeTab === 'feed' || activeTab === 'home')) isActive = true;
+            if (item.id === 'explore' && (activeTab === 'explore' || activeTab === 'trending')) isActive = true;
+            if (item.id === 'notifications' && activeTab === 'inbox') isActive = true;
+            const isBell = item.id === 'notifications';
             return (
               <button
                 key={item.id}
@@ -320,10 +326,38 @@ export function AppShell({
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 4,
+                  gap: 2,
+                  position: 'relative',
+                  padding: '4px 8px',
+                  cursor: 'pointer',
                 }}
               >
-                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} color={isActive ? T.pri : T.txt} />
+                <div style={{ position: 'relative' }}>
+                  <Icon size={24} strokeWidth={isActive ? 2.5 : 2} color={isActive ? T.pri : T.txt} />
+                  {isBell && unreadNotifCount > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: -4,
+                      right: -6,
+                      minWidth: 16,
+                      height: 16,
+                      borderRadius: 8,
+                      background: '#EF4444',
+                      color: '#fff',
+                      fontSize: 9,
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0 3px',
+                      boxSizing: 'border-box',
+                      border: '1.5px solid #fff',
+                      lineHeight: 1,
+                    }}>
+                      {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                    </div>
+                  )}
+                </div>
               </button>
             );
           })}

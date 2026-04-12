@@ -37,6 +37,7 @@ export function TikTokLayout({
   onShowCampaigns,
   onShowNotifications,
   onShowVideoDetail,
+  unreadNotifCount = 0,
 }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
@@ -995,9 +996,23 @@ export function TikTokLayout({
                           cursor: 'pointer',
                           padding: 6,
                           pointerEvents: 'all',
+                          position: 'relative',
                         }}
                       >
                         <Bell size={26} color="#fff" strokeWidth={2} />
+                        {unreadNotifCount > 0 && (
+                          <div style={{
+                            position: 'absolute', top: 0, right: 0,
+                            minWidth: 16, height: 16, borderRadius: 8,
+                            background: '#EF4444', color: '#fff',
+                            fontSize: 9, fontWeight: 800,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: '0 3px', boxSizing: 'border-box',
+                            border: '1.5px solid rgba(0,0,0,0.4)', lineHeight: 1,
+                          }}>
+                            {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                          </div>
+                        )}
                       </button>
                       <button
                         onClick={() => setShowMenu(showMenu === video.id ? null : video.id)}

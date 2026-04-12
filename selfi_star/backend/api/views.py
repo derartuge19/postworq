@@ -900,13 +900,27 @@ def get_user_notifications(request):
         for notif in notifications:
             sender_data = None
             if notif.sender:
+                profile_photo = None
+                try:
+                    profile_photo = notif.sender.userprofile.profile_photo.url if notif.sender.userprofile.profile_photo else None
+                except Exception:
+                    pass
                 sender_data = {
                     'id': notif.sender.id,
                     'username': notif.sender.username,
                     'first_name': notif.sender.first_name,
-                    'last_name': notif.sender.last_name
+                    'last_name': notif.sender.last_name,
+                    'profile_photo': profile_photo,
                 }
-            
+
+            reel_data = None
+            if notif.reel:
+                reel_data = {
+                    'id': notif.reel.id,
+                    'media': notif.reel.video_file.url if notif.reel.video_file else None,
+                    'image': notif.reel.thumbnail.url if hasattr(notif.reel, 'thumbnail') and notif.reel.thumbnail else None,
+                }
+
             result.append({
                 'id': notif.id,
                 'type': 'general',
@@ -916,7 +930,9 @@ def get_user_notifications(request):
                 'read': notif.is_read,
                 'timestamp': notif.created_at.isoformat() if notif.created_at else None,
                 'reel_id': notif.reel.id if notif.reel else None,
+                'reel': reel_data,
                 'comment_id': notif.comment.id if notif.comment else None,
+                'comment': notif.comment.text if notif.comment else None,
             })
         
         # Add campaign notifications
@@ -957,6 +973,31 @@ def mark_notifications_read(request):
         Notification.objects.filter(recipient=request.user).update(is_read=True)
     
     return Response({'message': 'Notifications marked as read'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_unread_notification_count(request):
+    """Return count of unread notifications for the bell badge"""
+    try:
+        count = Notification.objects.filter(recipient=request.user, is_read=False).count()
+        return Response({'unread_count': count})
+    except Exception as e:
+        return Response({'unread_count': 0})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mark_single_notification_read(request, notification_id):
+    """Mark a single notification as read"""
+    try:
+        Notification.objects.filter(
+            id=notification_id,
+            recipient=request.user
+        ).update(is_read=True)
+        return Response({'message': 'Marked as read'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

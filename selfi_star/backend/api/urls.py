@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from .views import (
     register, login, reset_password, create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
-    get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail,
+    get_user_notifications, mark_notifications_read, get_unread_notification_count,
+    mark_single_notification_read, create_report, admin_reports_list, admin_report_detail,
     admin_reports_stats, admin_moderate_report, get_trending_reels, mark_not_interested, undo_not_interested
 )
 from .views_master_campaign import (
@@ -175,7 +176,9 @@ urlpatterns = [
     path('setup-admin/', setup_admin, name='setup-admin'),
     path('posts/create/', create_post, name='create-post'),
     path('notifications/', get_user_notifications, name='user-notifications'),
+    path('notifications/unread-count/', get_unread_notification_count, name='notifications-unread-count'),
     path('notifications/read/', mark_notifications_read, name='mark-notifications-read'),
+    path('notifications/<int:notification_id>/read/', mark_single_notification_read, name='notification-single-read'),
     path('search/', search, name='search'),
     # Report endpoints
     path('reports/create/', create_report, name='create-report'),

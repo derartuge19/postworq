@@ -320,9 +320,16 @@ const api = {
     }),
 
   getUserNotifications: () =>
-    api.request('/notifications/', {
-      method: 'GET',
-    }),
+    api.request('/notifications/', { method: 'GET' }),
+
+  getUnreadNotificationCount: () =>
+    api.request('/notifications/unread-count/', { method: 'GET' }),
+
+  markNotificationRead: (notificationId) =>
+    api.request(`/notifications/${notificationId}/read/`, { method: 'POST' }),
+
+  markAllNotificationsRead: () =>
+    api.request('/notifications/read/', { method: 'POST', body: JSON.stringify({}) }),
 
   // Reports
   createReport: (reportData) =>
