@@ -114,19 +114,17 @@ export function TikTokLayout({
 
   // Generate Cloudinary poster thumbnail from video URL
   const getVideoPoster = (url) => {
+    // Only generate for proper Cloudinary VIDEO urls — not phantom image urls
+    // constructed by the storage backend for locally-saved files.
     if (!url || !url.includes('res.cloudinary.com')) return undefined;
+    if (!url.includes('/video/upload/')) return undefined; // skip image/upload phantom urls
     try {
-      // Cloudinary: insert transformation after /video/upload/ or /upload/
-      // Result: serve the first frame as a compressed JPG (much smaller than video)
-      const marker = '/upload/';
+      const marker = '/video/upload/';
       const idx = url.indexOf(marker);
       if (idx === -1) return undefined;
       const base = url.slice(0, idx + marker.length);
       const rest = url.slice(idx + marker.length);
-      // Strip any existing transformation chain (starts with non-v-number segments)
-      const cleanRest = rest.replace(/^([^/]+\/)*v\d+/, (m) => m);
       const thumb = base + 'so_0,w_480,q_60,f_jpg/' + rest;
-      // Change extension to .jpg
       return thumb.replace(/\.(mp4|webm|ogg|mov)(\?.*)?$/i, '.jpg');
     } catch {
       return undefined;

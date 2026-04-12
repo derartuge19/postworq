@@ -71,20 +71,35 @@ class ReelSerializer(serializers.ModelSerializer):
         try:
             if not field:
                 return None
-            # FieldFile.name is the raw value stored in the DB column
             name = field.name if hasattr(field, 'name') else str(field)
             if not name:
                 return None
-            # Value stored via raw SQL is already a full URL — return it as-is
+
+            # Already a full URL (stored via raw SQL after Cloudinary upload) — return as-is
             if name.startswith('http://') or name.startswith('https://'):
                 return name
-            # Value is a relative path — ask the storage backend for its URL
+
+            # Properly rooted local path (e.g. /media/reels/fallback_5.webm)
+            if name.startswith('/'):
+                if request:
+                    return request.build_absolute_uri(name)
+                from django.conf import settings
+                base = getattr(settings, 'BACKEND_URL', 'https://postworq.onrender.com')
+                return f"{base}{name}"
+
+            # Bare filename with no leading slash and no http prefix.
+            # This is a legacy DB entry from before the raw-SQL fix — the file was
+            # saved locally but Cloudinary is DEFAULT_FILE_STORAGE so field.url would
+            # generate a phantom Cloudinary URL that doesn't exist.  Return None.
+            if '/' not in name:
+                return None
+
+            # Relative path with directory component — let Django storage resolve it
             url = field.url
             if not url:
                 return None
             if url.startswith('http://') or url.startswith('https://'):
                 return url
-            # Relative URL — make absolute using request or settings fallback
             if request:
                 return request.build_absolute_uri(url)
             from django.conf import settings
