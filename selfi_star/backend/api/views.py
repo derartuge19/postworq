@@ -402,67 +402,73 @@ class ReelViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
     
     def create(self, request, *args, **kwargs):
-        """Override create to handle file uploads directly using Cloudinary SDK"""
-        print(f"[REEL CREATE] Starting - User: {request.user}, Auth: {request.user.is_authenticated}")
-        print(f"[REEL CREATE] Files received: {list(request.FILES.keys())}")
-        
+        """Override create to handle file uploads safely via Cloudinary + raw SQL."""
+        import traceback as _tb
+        print(f"[REEL CREATE] user={request.user} files={list(request.FILES.keys())}")
         try:
-            media_file = request.FILES.get('media') or request.FILES.get('file')
-            image_file = request.FILES.get('image')
-            caption = request.data.get('caption', '')
+            upload_file = request.FILES.get('file') or request.FILES.get('media') or request.FILES.get('image')
+            caption  = request.data.get('caption', '')
             hashtags = request.data.get('hashtags', '')
-            
-            reel = Reel(
-                user=request.user,
-                caption=caption,
-                hashtags=hashtags,
-            )
-            
-            upload_file = media_file or image_file
+
+            is_video = False
             if upload_file:
-                content_type = getattr(upload_file, 'content_type', '')
-                filename = upload_file.name.lower()
-                is_video = (
-                    content_type.startswith('video/') or
-                    filename.endswith(('.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'))
-                )
-                print(f"[REEL CREATE] File: {upload_file.name}, type: {content_type}, video: {is_video}")
-                
+                ct = getattr(upload_file, 'content_type', '')
+                fn = upload_file.name.lower()
+                is_video = ct.startswith('video/') or fn.endswith(('.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'))
+                print(f"[REEL CREATE] file={upload_file.name} size={upload_file.size} video={is_video}")
+                if upload_file.size == 0:
+                    return Response({'error': 'Uploaded file is empty.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Step 1: create row without file fields (avoids storage backend interception)
+            reel = Reel.objects.create(user=request.user, caption=caption, hashtags=hashtags)
+
+            # Step 2: upload to Cloudinary, then write URL via raw SQL
+            if upload_file:
+                file_value = None
                 try:
-                    import cloudinary.uploader
-                    import cloudinary
-                    cfg = cloudinary.config()
+                    import cloudinary.uploader as _cu, cloudinary as _cl
+                    cfg = _cl.config()
                     if cfg.cloud_name and cfg.api_key and cfg.api_secret:
-                        resource_type = 'video' if is_video else 'image'
-                        result = cloudinary.uploader.upload(
-                            upload_file,
-                            resource_type=resource_type,
-                            folder='reels'
-                        )
-                        secure_url = result.get('secure_url', '')
-                        print(f"[REEL CREATE] Cloudinary upload OK: {secure_url}")
-                        # Store URL directly in field name
-                        if is_video:
-                            reel.media.name = secure_url
-                        else:
-                            reel.image.name = secure_url
+                        res_type = 'video' if is_video else 'image'
+                        result = _cu.upload(upload_file, resource_type=res_type, folder='reels')
+                        file_value = result.get('secure_url')
+                        print(f"[REEL CREATE] Cloudinary OK: {file_value}")
                     else:
-                        raise Exception("Cloudinary not configured")
+                        print("[REEL CREATE] Cloudinary not configured")
                 except Exception as cloud_err:
-                    print(f"[REEL CREATE] Cloudinary failed ({cloud_err}), saving locally via FileField")
-                    # Fallback: save via Django FileField (works locally)
-                    reel.media = upload_file
-            
-            reel.save()
-            print(f"[REEL CREATE] Reel {reel.id} saved. image={reel.image.name if reel.image else None}, media={reel.media.name if reel.media else None}")
-            
+                    print(f"[REEL CREATE] Cloudinary failed: {cloud_err}\n{_tb.format_exc()}")
+
+                if not file_value:
+                    # Fallback: local filesystem (only reliable in dev; Render resets on deploy)
+                    from django.core.files.storage import FileSystemStorage
+                    from django.core.files.base import ContentFile
+                    from django.conf import settings as _s
+                    fs = FileSystemStorage(location=_s.MEDIA_ROOT, base_url=_s.MEDIA_URL)
+                    ext = upload_file.name.rsplit('.', 1)[-1] if '.' in upload_file.name else ('webm' if is_video else 'jpg')
+                    upload_file.seek(0)
+                    saved = fs.save(f"reels/fallback_{reel.pk}.{ext}", ContentFile(upload_file.read()))
+                    file_value = fs.url(saved)
+                    print(f"[REEL CREATE] local fallback: {file_value}")
+
+                column = 'media' if is_video else 'image'
+                from django.db import connection
+                with connection.cursor() as cur:
+                    cur.execute(f"UPDATE api_reel SET {column}=%s WHERE id=%s", [file_value, reel.pk])
+                print(f"[REEL CREATE] wrote {column}={file_value!r} for reel {reel.pk}")
+
+            # Re-fetch with annotations the serializer needs
+            from django.db.models import Count
+            reel = Reel.objects.select_related('user', 'user__profile').annotate(
+                comment_count_db=Count('comments', distinct=True)
+            ).get(pk=reel.pk)
+
             serializer = self.get_serializer(reel)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-            
+
         except Exception as e:
-            print(f"[REEL CREATE] ERROR: {type(e).__name__}: {e}")
-            traceback.print_exc()
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            tb = _tb.format_exc()
+            print(f"[REEL CREATE] ERROR {type(e).__name__}: {tb}")
+            return Response({'error': str(e), 'traceback': tb}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=True, methods=['post'])
     def vote(self, request, pk=None):
