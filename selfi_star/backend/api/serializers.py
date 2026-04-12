@@ -68,19 +68,23 @@ class ReelSerializer(serializers.ModelSerializer):
     
     def _build_url(self, field, request):
         """Build absolute URL for a file field, handling both local and Cloudinary storage."""
-        if not field or not field.name:
-            return None
-        # If name is already a full URL (e.g. Cloudinary secure_url stored directly)
-        if field.name.startswith('http://') or field.name.startswith('https://'):
-            return field.name
         try:
+            if not field:
+                return None
+            # FieldFile.name is the raw value stored in the DB column
+            name = field.name if hasattr(field, 'name') else str(field)
+            if not name:
+                return None
+            # Value stored via raw SQL is already a full URL — return it as-is
+            if name.startswith('http://') or name.startswith('https://'):
+                return name
+            # Value is a relative path — ask the storage backend for its URL
             url = field.url
             if not url:
                 return None
-            # Storage backend returned an absolute URL (Cloudinary, S3, etc.)
             if url.startswith('http://') or url.startswith('https://'):
                 return url
-            # Relative URL — make absolute
+            # Relative URL — make absolute using request or settings fallback
             if request:
                 return request.build_absolute_uri(url)
             from django.conf import settings

@@ -376,6 +376,17 @@ class ReelViewSet(viewsets.ModelViewSet):
         context['request'] = self.request
         return context
     
+    def retrieve(self, request, *args, **kwargs):
+        """Wrap retrieve so any serializer error returns a useful 500 body instead of crashing."""
+        import traceback as _tb
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except Exception as e:
+            tb = _tb.format_exc()
+            print(f'[REELS RETRIEVE] ERROR pk={kwargs.get("pk")}: {type(e).__name__}: {e}\n{tb}')
+            return Response({'error': str(e), 'type': type(e).__name__, 'traceback': tb},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def list(self, request, *args, **kwargs):
         """Override list to return empty results instead of 500 on errors"""
         try:

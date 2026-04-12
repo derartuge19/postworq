@@ -1064,9 +1064,11 @@ export function TikTokLayout({
                           key={video.id}
                           ref={(el) => (videoRefs.current[video.id] = el)}
                           src={
-                            video.imageUrl.startsWith('http')
-                              ? video.imageUrl
-                              : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
+                            !video.imageUrl
+                              ? undefined
+                              : video.imageUrl.startsWith('http')
+                                ? video.imageUrl
+                                : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
                           }
                           poster={getVideoPoster(video.imageUrl)}
                           preload={
