@@ -1050,16 +1050,19 @@ export function TikTokLayout({
                         }}
                       >
                         <video
+                          key={video.id}
                           ref={(el) => (videoRefs.current[video.id] = el)}
                           src={
-                            (videos.indexOf(video) === 0 || visibleVideos[video.id])
-                              ? (video.imageUrl.startsWith('http')
-                                  ? video.imageUrl
-                                  : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`)
-                              : undefined
+                            video.imageUrl.startsWith('http')
+                              ? video.imageUrl
+                              : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`
                           }
                           poster={getVideoPoster(video.imageUrl)}
-                          preload={videos.indexOf(video) === 0 ? 'metadata' : 'none'}
+                          preload={
+                            videos.indexOf(video) === 0 || visibleVideos[video.id]
+                              ? 'metadata'
+                              : 'none'
+                          }
                           autoPlay
                           loop
                           playsInline
@@ -1068,6 +1071,9 @@ export function TikTokLayout({
                             e.target.play().catch(() => {});
                           }}
                           onError={(e) => {
+                            const code = e.target?.error?.code;
+                            // Suppress range/abort errors — these are benign browser prefetch artifacts
+                            if (code === 3 || code === 2) return;
                             e.target.style.display = 'none';
                             const placeholder = e.target.parentElement?.querySelector('.video-error-placeholder');
                             if (placeholder) placeholder.style.display = 'flex';
