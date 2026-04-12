@@ -142,7 +142,8 @@ def create_post(request):
             else:
                 print("[CREATE_POST] Cloudinary credentials missing, using local storage")
         except Exception as cloud_err:
-            print(f"[CREATE_POST] Cloudinary upload failed: {cloud_err} — using local storage")
+            import traceback as _tb2
+            print(f"[CREATE_POST] Cloudinary upload failed: {cloud_err}\n{_tb2.format_exc()}")
 
         # ── Step 2: create Reel row ────────────────────────────────────────
         # Always create without file fields first so the storage backend
@@ -153,30 +154,32 @@ def create_post(request):
             hashtags=hashtags,
         )
 
-        # ── Step 3: attach media URL / file via raw UPDATE ─────────────────
+        # ── Step 3: attach media URL / file via raw SQL UPDATE ─────────────
+        # We ALWAYS write via raw SQL so Django's FileField / Cloudinary
+        # storage backend never intercepts the value and tries to re-upload.
+        from django.db import connection
+
         if cloudinary_url:
-            # Write the full https:// URL string directly into the DB column
-            # using UPDATE so Django's FileField/ImageField storage backend
-            # never touches the value (avoids re-upload or path mangling).
-            from django.db import connection
-            if is_video:
-                with connection.cursor() as cur:
-                    cur.execute("UPDATE api_reel SET media=%s WHERE id=%s", [cloudinary_url, reel.pk])
-            else:
-                with connection.cursor() as cur:
-                    cur.execute("UPDATE api_reel SET image=%s WHERE id=%s", [cloudinary_url, reel.pk])
+            file_value = cloudinary_url          # already a full https:// URL
         else:
-            # Fallback: let Django's storage backend handle the local file
-            # Re-fetch the reel and save with the file attached
-            if is_video:
-                Reel.objects.filter(pk=reel.pk).update(media=file.name)  # name-only placeholder
-                reel2 = Reel.objects.get(pk=reel.pk)
-                reel2.media = file
-                reel2.save(update_fields=['media'])
-            else:
-                reel2 = Reel.objects.get(pk=reel.pk)
-                reel2.image = file
-                reel2.save(update_fields=['image'])
+            # Cloudinary not configured — save to Django's default storage
+            # (local filesystem on Render ephemeral disk) and get the path back.
+            from django.core.files.storage import default_storage
+            from django.core.files.base import ContentFile
+            ext = file.name.rsplit('.', 1)[-1] if '.' in file.name else ('webm' if is_video else 'jpg')
+            save_name = f"reels/fallback_{reel.pk}.{ext}"
+            file.seek(0)
+            saved_name = default_storage.save(save_name, ContentFile(file.read()))
+            try:
+                file_value = default_storage.url(saved_name)
+            except Exception:
+                file_value = saved_name          # store relative path as last resort
+            print(f"[CREATE_POST] local storage saved: {file_value}")
+
+        column = 'media' if is_video else 'image'
+        with connection.cursor() as cur:
+            cur.execute(f"UPDATE api_reel SET {column}=%s WHERE id=%s", [file_value, reel.pk])
+        print(f"[CREATE_POST] wrote {column}={file_value!r} for reel {reel.pk}")
 
         # Re-fetch with all annotations the serializer needs
         reel = Reel.objects.select_related('user', 'user__profile').annotate(
