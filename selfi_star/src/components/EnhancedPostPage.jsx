@@ -111,6 +111,7 @@ export function EnhancedPostPage({ user, onBack }) {
   const liveRef = useRef({ filter: 'none' });
   const isRecordingRef = useRef(false); // sync ref so onMouseDown guard doesn't rely on stale state
   const recordingStartRef = useRef(0);  // timestamp when recording began (for ghost-click guard)
+  const audioCtxRef = useRef(null);     // Web Audio context for mic+bg mixing
   const fileInputRef = useRef(null);
   const audioFileInputRef = useRef(null);
   const previewContainerRef = useRef(null);
@@ -167,7 +168,7 @@ export function EnhancedPostPage({ user, onBack }) {
   }, [captureMode, facingMode]);
 
   // ── Recording ───────────────────────────────────────────────────────────
-  const startRecording = () => {
+  const startRecording = async () => {
     // CRITICAL: guard with ref (state is async and may be stale on re-render)
     if (isRecordingRef.current) return;
     if (!streamRef.current) {
@@ -177,23 +178,67 @@ export function EnhancedPostPage({ user, onBack }) {
 
     chunksRef.current = [];
 
-    // Build the record stream: canvas video (filtered) + mic audio from camera
-    let recordStream = streamRef.current;
+    // ── Step 1: get canvas video track ──────────────────────────────────
+    let videoTrack = null;
     try {
       const cvs = canvasRef.current;
       if (cvs && cvs.captureStream) {
-        const canvasStream = cvs.captureStream(30);
-        const audioTracks  = streamRef.current.getAudioTracks();
-        const videoTrack   = canvasStream.getVideoTracks()[0];
-        const tracks = [
-          ...(videoTrack ? [videoTrack] : []),
-          ...audioTracks,
-        ];
-        if (tracks.length > 0) recordStream = new MediaStream(tracks);
+        videoTrack = cvs.captureStream(30).getVideoTracks()[0] || null;
       }
-    } catch (_) { /* keep raw camera stream */ }
+    } catch (_) {}
 
-    // Pick best supported mimeType for this browser
+    // ── Step 2: build audio track ────────────────────────────────────────
+    // If a custom audio FILE is selected, mix mic + background via Web Audio API.
+    // origVol controls mic level (0 = lipsync only), addedVol controls bg level.
+    let audioTracks = streamRef.current.getAudioTracks();
+    if (customAudioFile) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtxRef.current = ctx;
+
+        const dest = ctx.createMediaStreamDestination();
+
+        // Mic — controlled by origVol slider (0 = muted for lipsync-only)
+        if (audioTracks.length > 0) {
+          const micSrc  = ctx.createMediaStreamSource(new MediaStream(audioTracks));
+          const micGain = ctx.createGain();
+          micGain.gain.value = origVol / 100;
+          micSrc.connect(micGain);
+          micGain.connect(dest);
+        }
+
+        // Background audio — decode file into AudioBuffer (avoids createMediaElementSource limit)
+        const arrayBuf = await customAudioFile.arrayBuffer();
+        const audioBuf = await ctx.decodeAudioData(arrayBuf);
+        const bgSrc  = ctx.createBufferSource();
+        bgSrc.buffer = audioBuf;
+        bgSrc.loop   = true;
+        const bgGain = ctx.createGain();
+        bgGain.gain.value = addedVol / 100;
+        bgSrc.connect(bgGain);
+        bgGain.connect(dest);         // into recorder
+        bgGain.connect(ctx.destination); // into speaker so user hears it
+        bgSrc.start(0);
+
+        audioTracks = dest.stream.getAudioTracks();
+        console.log('[RECORDER] Web Audio mix active: mic', origVol + '%', 'bg', addedVol + '%');
+      } catch (mixErr) {
+        console.warn('[RECORDER] Web Audio mix failed, using raw mic:', mixErr);
+        // fall back to raw mic
+        audioTracks = streamRef.current.getAudioTracks();
+      }
+    }
+
+    // ── Step 3: assemble record stream ──────────────────────────────────
+    const tracks = [
+      ...(videoTrack ? [videoTrack] : []),
+      ...audioTracks,
+    ];
+    const recordStream = tracks.length > 0
+      ? new MediaStream(tracks)
+      : streamRef.current;
+
+    // ── Step 4: pick mimeType ────────────────────────────────────────────
     const MIME_CANDIDATES = [
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
@@ -212,11 +257,17 @@ export function EnhancedPostPage({ user, onBack }) {
     const actualMime = mr.mimeType || mimeType || 'video/webm';
     const ext = actualMime.includes('mp4') ? 'mp4' : 'webm';
 
+    // ── Step 5: wire up events ───────────────────────────────────────────
     mr.ondataavailable = e => {
       if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
     };
 
     mr.onstop = () => {
+      // Close Web Audio context
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(() => {});
+        audioCtxRef.current = null;
+      }
       const chunks = chunksRef.current;
       if (!chunks.length) {
         alert('Recording produced no data. Please try again.');
@@ -233,7 +284,6 @@ export function EnhancedPostPage({ user, onBack }) {
       }
       const file = new File([blob], `rec_${Date.now()}.${ext}`, { type: actualMime });
       const url  = URL.createObjectURL(blob);
-      // Stop camera BEFORE setting state to avoid re-render race
       stopCamera();
       setSelectedFile(file);
       setPreview(url);
@@ -246,13 +296,15 @@ export function EnhancedPostPage({ user, onBack }) {
 
     mr.onerror = (e) => {
       console.error('[RECORDER] error', e);
+      if (audioCtxRef.current) { audioCtxRef.current.close().catch(() => {}); audioCtxRef.current = null; }
       isRecordingRef.current = false;
       setIsRecording(false);
       alert('Recording error: ' + (e.error?.message || 'unknown'));
     };
 
+    // ── Step 6: start ────────────────────────────────────────────────────
     mediaRecorderRef.current = mr;
-    mr.start(250); // emit chunks every 250ms
+    mr.start(250);
     isRecordingRef.current = true;
     recordingStartRef.current = Date.now();
     setIsRecording(true);
@@ -267,12 +319,6 @@ export function EnhancedPostPage({ user, onBack }) {
         return next;
       });
     }, 1000);
-
-    // Play background audio if a custom audio file was picked (sample sounds have no real URL)
-    if (audioRef.current && customAudioFile) {
-      audioRef.current.volume = addedVol / 100;
-      audioRef.current.play().catch(() => {});
-    }
   };
 
   const stopRecording = () => {
@@ -282,11 +328,10 @@ export function EnhancedPostPage({ user, onBack }) {
     clearInterval(timerRef.current);
     const mr = mediaRecorderRef.current;
     if (mr && mr.state === 'recording') {
-      try { mr.requestData(); } catch (_) {} // flush any buffered chunk
+      try { mr.requestData(); } catch (_) {}
       mr.stop();
     }
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
-    // isRecordingRef + setIsRecording are set inside onstop to avoid race
+    // AudioContext closed inside onstop after final chunks are written
   };
 
   // ── Photo capture ───────────────────────────────────────────────────────
@@ -594,8 +639,8 @@ export function EnhancedPostPage({ user, onBack }) {
                       <ProgressRing radius={40} stroke={4} progress={recProgress} color={T.red} />
                     )}
                     <button className="ep-btn"
-                      onMouseDown={camMode === 'video' && !isRecording ? startRecording : undefined}
-                      onTouchStart={camMode === 'video' && !isRecording ? () => startRecording() : undefined}
+                      onMouseDown={camMode === 'video' && !isRecording ? () => { startRecording().catch(console.error); } : undefined}
+                      onTouchStart={camMode === 'video' && !isRecording ? () => { startRecording().catch(console.error); } : undefined}
                       onClick={camMode === 'video'
                         ? (isRecording ? stopRecording : undefined)
                         : takePhoto}
