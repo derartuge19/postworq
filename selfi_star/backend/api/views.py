@@ -314,6 +314,26 @@ class ReelViewSet(viewsets.ModelViewSet):
     serializer_class = ReelSerializer
     permission_classes = [AllowAny]  # Allow anyone to view reels
     
+    def get_object(self):
+        """For detail lookups (retrieve/update/delete) always use the full queryset
+        so a reel the user marked 'not interested' still resolves instead of 404."""
+        from django.shortcuts import get_object_or_404
+        pk = self.kwargs.get('pk')
+        queryset = Reel.objects.select_related('user', 'user__profile').annotate(
+            comment_count_db=Count('comments', distinct=True),
+        )
+        if self.request.user.is_authenticated:
+            try:
+                queryset = queryset.annotate(
+                    is_liked_db=Exists(Vote.objects.filter(user=self.request.user, reel=OuterRef('pk'))),
+                    is_saved_db=Exists(SavedPost.objects.filter(user=self.request.user, reel=OuterRef('pk'))),
+                )
+            except Exception:
+                pass
+        obj = get_object_or_404(queryset, pk=pk)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
     def get_queryset(self):
         try:
             queryset = Reel.objects.select_related(
@@ -322,7 +342,7 @@ class ReelViewSet(viewsets.ModelViewSet):
                 comment_count_db=Count('comments', distinct=True),
             ).order_by('-created_at')
             
-            # Exclude reels marked as not interested by current user
+            # Exclude reels marked as not interested from list view only
             if self.request.user.is_authenticated:
                 from .models import NotInterested
                 not_interested_ids = NotInterested.objects.filter(
