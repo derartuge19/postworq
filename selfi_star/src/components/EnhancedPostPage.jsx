@@ -168,11 +168,23 @@ export function EnhancedPostPage({ user, onBack }) {
   const startRecording = () => {
     if (!streamRef.current) return;
     chunksRef.current = [];
-    const mr = new MediaRecorder(streamRef.current, { mimeType: 'video/webm;codecs=vp9,opus' });
+    // Pick the first supported mimeType — Safari needs mp4, Chrome/Firefox prefer webm
+    const MIME_CANDIDATES = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+      'video/mp4',
+      '',
+    ];
+    const mimeType = MIME_CANDIDATES.find(m => !m || MediaRecorder.isTypeSupported(m)) || '';
+    const mrOptions = mimeType ? { mimeType } : {};
+    const mr = new MediaRecorder(streamRef.current, mrOptions);
+    const ext  = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    const blobType = mimeType || 'video/webm';
     mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
     mr.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-      const file = new File([blob], `rec_${Date.now()}.webm`, { type: 'video/webm' });
+      const blob = new Blob(chunksRef.current, { type: blobType });
+      const file = new File([blob], `rec_${Date.now()}.${ext}`, { type: blobType });
       const url = URL.createObjectURL(blob);
       setSelectedFile(file);
       setPreview(url);
@@ -182,7 +194,7 @@ export function EnhancedPostPage({ user, onBack }) {
       setStage('details');
     };
     mediaRecorderRef.current = mr;
-    mr.start();
+    mr.start(250); // flush chunks every 250ms so blob is never empty
     setIsRecording(true);
     setRecTime(0);
     setRecProgress(0);
@@ -274,11 +286,17 @@ export function EnhancedPostPage({ user, onBack }) {
   // ── Post / upload ───────────────────────────────────────────────────────
   const handlePost = async () => {
     if (!selectedFile || isUploading) return;
+    // Guard: file must have actual content
+    if (selectedFile.size === 0) {
+      alert('The recorded file is empty. Please record again.');
+      return;
+    }
+    console.log('[POST] file:', selectedFile.name, selectedFile.type, selectedFile.size, 'bytes');
     setIsUploading(true);
     setUploadProgress(0);
     try {
       const fd = new FormData();
-      fd.append('file', selectedFile);
+      fd.append('file', selectedFile, selectedFile.name);
       fd.append('caption', caption);
       if (hashtags) fd.append('hashtags', hashtags);
       if (customAudioFile) {

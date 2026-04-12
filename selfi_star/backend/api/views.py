@@ -117,6 +117,12 @@ def create_post(request):
 
         print(f"[CREATE_POST] user={request.user.username} file={file.name} size={file.size} type={file.content_type}")
 
+        if file.size == 0:
+            return Response(
+                {'error': 'Uploaded file is empty (0 bytes). The recording may have failed — please try again.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         is_video = (
             file.content_type.startswith('video/')
             or file.name.lower().endswith(('.mp4', '.webm', '.mov', '.avi', '.mkv'))
