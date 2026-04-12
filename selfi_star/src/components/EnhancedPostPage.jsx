@@ -278,7 +278,7 @@ export function EnhancedPostPage({ user, onBack }) {
     setUploadProgress(0);
     try {
       const fd = new FormData();
-      fd.append('media', selectedFile);
+      fd.append('file', selectedFile);
       fd.append('caption', `${caption}${hashtags ? ' ' + hashtags : ''}`);
       if (customAudioFile) {
         fd.append('audio_file', customAudioFile);
