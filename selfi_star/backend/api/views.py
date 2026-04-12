@@ -886,7 +886,7 @@ def get_user_notifications(request):
         notifications = Notification.objects.filter(
             recipient=request.user
         ).select_related(
-            'sender', 'reel', 'comment'
+            'sender', 'sender__profile', 'reel', 'comment'
         ).order_by('-created_at')[:50]
         
         # Get campaign notifications
@@ -915,11 +915,14 @@ def get_user_notifications(request):
 
             reel_data = None
             if notif.reel:
-                reel_data = {
-                    'id': notif.reel.id,
-                    'media': notif.reel.video_file.url if notif.reel.video_file else None,
-                    'image': notif.reel.thumbnail.url if hasattr(notif.reel, 'thumbnail') and notif.reel.thumbnail else None,
-                }
+                try:
+                    reel_data = {
+                        'id': notif.reel.id,
+                        'media': notif.reel.media.url if notif.reel.media else None,
+                        'image': notif.reel.image.url if notif.reel.image else None,
+                    }
+                except Exception:
+                    reel_data = {'id': notif.reel.id, 'media': None, 'image': None}
 
             result.append({
                 'id': notif.id,
