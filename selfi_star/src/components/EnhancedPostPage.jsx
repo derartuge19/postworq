@@ -297,7 +297,9 @@ export function EnhancedPostPage({ user, onBack }) {
       setTimeout(() => { setShowSuccess(false); onBack?.(); }, 2000);
     } catch (e) {
       console.error('Upload failed', e);
-      alert('Upload failed. Please try again.');
+      const detail = e?.traceback || e?.error || e?.message || String(e);
+      alert(`Upload failed: ${e?.error || e?.message || 'Server error'}\n\nSee console for details.`);
+      console.error('[UPLOAD TRACEBACK]', detail);
     } finally {
       setIsUploading(false);
     }

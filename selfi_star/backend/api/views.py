@@ -106,112 +106,91 @@ def reset_password(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_post(request):
+    import traceback as _tb
     try:
-        from django.conf import settings
-        print("=== CREATE POST DEBUG ===")
-        print(f"Authenticated user: {request.user}")
-        print(f"User ID: {request.user.id}")
-        print(f"Username: {request.user.username}")
-        print(f"Is authenticated: {request.user.is_authenticated}")
-        print(f"Auth header: {request.META.get('HTTP_AUTHORIZATION', 'None')}")
-        
-        # Check Cloudinary config
-        cloudinary_storage = getattr(settings, 'CLOUDINARY_STORAGE', None)
-        default_storage = getattr(settings, 'DEFAULT_FILE_STORAGE', None)
-        print(f"DEFAULT_FILE_STORAGE: {default_storage}")
-        print(f"CLOUDINARY_STORAGE configured: {bool(cloudinary_storage)}")
-        if cloudinary_storage:
-            print(f"CLOUDINARY_STORAGE keys: {list(cloudinary_storage.keys())}")
-            print(f"Cloud name present: {bool(cloudinary_storage.get('CLOUD_NAME'))}")
-            print(f"API key present: {bool(cloudinary_storage.get('API_KEY'))}")
-            print(f"API secret present: {bool(cloudinary_storage.get('API_SECRET'))}")
-        
-        caption = request.data.get('caption', '')
+        caption  = request.data.get('caption', '')
         hashtags = request.data.get('hashtags', '')
-        file = request.FILES.get('file')
-        
+        file     = request.FILES.get('file')
+
         if not file:
             return Response({'error': 'File is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        print(f"Received file: {file.name}")
-        print(f"File type: {file.content_type}")
-        print(f"File size: {file.size}")
-        
-        # Determine if it's a video or image
-        is_video = file.content_type.startswith('video/') or file.name.lower().endswith(('.mp4', '.webm', '.mov', '.avi'))
-        is_image = file.content_type.startswith('image/') or file.name.lower().endswith(('.jpg', '.jpeg', '.png', '.gif'))
-        
-        print(f"Detected as - Video: {is_video}, Image: {is_image}")
-        
-        # Create the reel with appropriate field
-        if is_video:
-            # For videos, try Cloudinary first, fall back to local storage
-            print("📹 Processing video...")
-            try:
-                import cloudinary
-                import cloudinary.uploader
-                # Verify cloudinary config
-                cloudinary_config = cloudinary.config()
-                if cloudinary_config.cloud_name and cloudinary_config.api_key and cloudinary_config.api_secret:
-                    print(f"Cloudinary config - cloud_name: {cloudinary_config.cloud_name}")
-                    print(f"Cloudinary config - api_key: {cloudinary_config.api_key}")
-                    print(f"Cloudinary config - api_secret present: {bool(cloudinary_config.api_secret)}")
-                    
-                    upload_result = cloudinary.uploader.upload(
-                        file,
-                        resource_type='video',
-                        folder='reels'
-                    )
-                    print(f"✅ Video uploaded to Cloudinary: {upload_result.get('secure_url')}")
-                    print(f"Public ID: {upload_result.get('public_id')}")
-                    
-                    # Store the full secure_url directly so Cloudinary storage doesn't re-upload on save()
-                    secure_url = upload_result.get('secure_url')
-                    reel = Reel.objects.create(
-                        user=request.user,
-                        caption=caption,
-                        hashtags=hashtags,
-                    )
-                    # Use update() to write the URL string directly — bypasses FileField storage backend
-                    Reel.objects.filter(pk=reel.pk).update(media=secure_url)
-                    reel.refresh_from_db()
-                else:
-                    raise ImportError("Cloudinary not configured")
-            except (ImportError, Exception) as video_error:
-                print(f"⚠️ Cloudinary not available or failed ({type(video_error).__name__}), using local storage")
-                # Fall back to local storage for videos
-                reel = Reel.objects.create(
-                    user=request.user,
-                    media=file,  # Store video locally
-                    caption=caption,
-                    hashtags=hashtags
-                )
+
+        print(f"[CREATE_POST] user={request.user.username} file={file.name} size={file.size} type={file.content_type}")
+
+        is_video = (
+            file.content_type.startswith('video/')
+            or file.name.lower().endswith(('.mp4', '.webm', '.mov', '.avi', '.mkv'))
+        )
+
+        # ── Step 1: upload file to Cloudinary ──────────────────────────────
+        cloudinary_url = None
+        try:
+            import cloudinary.uploader as _cu
+            import cloudinary as _cl
+            cfg = _cl.config()
+            if cfg.cloud_name and cfg.api_key and cfg.api_secret:
+                resource_type = 'video' if is_video else 'image'
+                result = _cu.upload(file, resource_type=resource_type, folder='reels')
+                cloudinary_url = result.get('secure_url')
+                print(f"[CREATE_POST] Cloudinary OK: {cloudinary_url}")
+            else:
+                print("[CREATE_POST] Cloudinary credentials missing, using local storage")
+        except Exception as cloud_err:
+            print(f"[CREATE_POST] Cloudinary upload failed: {cloud_err} — using local storage")
+
+        # ── Step 2: create Reel row ────────────────────────────────────────
+        # Always create without file fields first so the storage backend
+        # never intercepts an already-uploaded URL and tries to re-upload it.
+        reel = Reel.objects.create(
+            user=request.user,
+            caption=caption,
+            hashtags=hashtags,
+        )
+
+        # ── Step 3: attach media URL / file via raw UPDATE ─────────────────
+        if cloudinary_url:
+            # Write the full https:// URL string directly into the DB column
+            # using UPDATE so Django's FileField/ImageField storage backend
+            # never touches the value (avoids re-upload or path mangling).
+            from django.db import connection
+            if is_video:
+                with connection.cursor() as cur:
+                    cur.execute("UPDATE api_reel SET media=%s WHERE id=%s", [cloudinary_url, reel.pk])
+            else:
+                with connection.cursor() as cur:
+                    cur.execute("UPDATE api_reel SET image=%s WHERE id=%s", [cloudinary_url, reel.pk])
         else:
-            # Images work fine with the storage backend
-            reel = Reel.objects.create(
-                user=request.user,
-                image=file,
-                caption=caption,
-                hashtags=hashtags
-            )
-        
-        # Award XP for posting (use update() to avoid triggering ImageField re-upload)
+            # Fallback: let Django's storage backend handle the local file
+            # Re-fetch the reel and save with the file attached
+            if is_video:
+                Reel.objects.filter(pk=reel.pk).update(media=file.name)  # name-only placeholder
+                reel2 = Reel.objects.get(pk=reel.pk)
+                reel2.media = file
+                reel2.save(update_fields=['media'])
+            else:
+                reel2 = Reel.objects.get(pk=reel.pk)
+                reel2.image = file
+                reel2.save(update_fields=['image'])
+
+        # Re-fetch with all annotations the serializer needs
+        reel = Reel.objects.select_related('user', 'user__profile').annotate(
+            comment_count_db=Count('comments', distinct=True)
+        ).get(pk=reel.pk)
+
+        # ── Step 4: award XP ──────────────────────────────────────────────
         UserProfile.objects.filter(user=request.user).update(xp=F('xp') + 25)
-        
-        print(f"Created reel ID: {reel.id}")
-        print(f"Reel user: {reel.user.username}")
-        print(f"Reel media: {reel.media.name if reel.media else None}")
-        print(f"Reel image: {reel.image.name if reel.image else None}")
-        
+
         serializer = ReelSerializer(reel, context={'request': request})
-        response_data = serializer.data
-        print(f"Serialized response: {response_data}")
-        
-        return Response(response_data, status=status.HTTP_201_CREATED)
-        
+        print(f"[CREATE_POST] success reel.id={reel.pk}")
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     except Exception as e:
-        print(f"CREATE POST ERROR [{type(e).__name__}]: {traceback.format_exc()}")
-        return Response({'error': str(e), 'type': type(e).__name__}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        tb = _tb.format_exc()
+        print(f"[CREATE_POST] ERROR {type(e).__name__}: {tb}")
+        return Response(
+            {'error': str(e), 'type': type(e).__name__, 'traceback': tb},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
