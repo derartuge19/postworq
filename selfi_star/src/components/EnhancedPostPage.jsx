@@ -111,7 +111,8 @@ export function EnhancedPostPage({ user, onBack }) {
   const liveRef = useRef({ filter: 'none' });
   const isRecordingRef = useRef(false); // sync ref so onMouseDown guard doesn't rely on stale state
   const recordingStartRef = useRef(0);  // timestamp when recording began (for ghost-click guard)
-  const audioCtxRef = useRef(null);     // Web Audio context for mic+bg mixing
+  const audioCtxRef = useRef(null);     // Web Audio context for mic+bg mixing into recorder
+  const monitorAudioRef = useRef(null); // separate Audio element so user hears bg WITHOUT routing through mic
   const fileInputRef = useRef(null);
   const audioFileInputRef = useRef(null);
   const previewContainerRef = useRef(null);
@@ -167,18 +168,40 @@ export function EnhancedPostPage({ user, onBack }) {
     return () => stopCamera();
   }, [captureMode, facingMode]);
 
+  // ── Cleanup helper ──────────────────────────────────────────────────────
+  const _cleanupAudio = () => {
+    // Stop monitor playback (separate element used so user hears bg during recording)
+    if (monitorAudioRef.current) {
+      monitorAudioRef.current.pause();
+      monitorAudioRef.current.src = '';
+      monitorAudioRef.current = null;
+    }
+    // Close Web Audio context (stops AudioBufferSource feeding the recorder)
+    if (audioCtxRef.current) {
+      try { audioCtxRef.current.close(); } catch (_) {}
+      audioCtxRef.current = null;
+    }
+  };
+
   // ── Recording ───────────────────────────────────────────────────────────
   const startRecording = async () => {
-    // CRITICAL: guard with ref (state is async and may be stale on re-render)
+    // ── LOCK IMMEDIATELY before any async work so no re-entrant calls slip through ──
     if (isRecordingRef.current) return;
     if (!streamRef.current) {
       alert('Camera not ready. Please wait a moment and try again.');
       return;
     }
+    isRecordingRef.current = true;   // set lock NOW — before awaits
+    recordingStartRef.current = Date.now();
 
+    // Kill any stale timer / audio from a previous session
+    clearInterval(timerRef.current);
+    _cleanupAudio();
     chunksRef.current = [];
+    setRecTime(0);
+    setRecProgress(0);
 
-    // ── Step 1: get canvas video track ──────────────────────────────────
+    // ── Step 1: canvas video track ───────────────────────────────────────
     let videoTrack = null;
     try {
       const cvs = canvasRef.current;
@@ -187,18 +210,19 @@ export function EnhancedPostPage({ user, onBack }) {
       }
     } catch (_) {}
 
-    // ── Step 2: build audio track ────────────────────────────────────────
-    // If a custom audio FILE is selected, mix mic + background via Web Audio API.
-    // origVol controls mic level (0 = lipsync only), addedVol controls bg level.
+    // ── Step 2: audio track ──────────────────────────────────────────────
+    // Strategy: mix mic (origVol%) + bg audio (addedVol%) into recorder.
+    // ECHO FIX: bg audio goes ONLY into the recorder (dest), NOT ctx.destination.
+    // A separate Audio element is used for monitoring so the user hears the music
+    // without routing it through ctx.destination → speaker → mic → echo loop.
     let audioTracks = streamRef.current.getAudioTracks();
     if (customAudioFile) {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         audioCtxRef.current = ctx;
-
         const dest = ctx.createMediaStreamDestination();
 
-        // Mic — controlled by origVol slider (0 = muted for lipsync-only)
+        // Mic at origVol (0 = full lipsync, 100 = full voice)
         if (audioTracks.length > 0) {
           const micSrc  = ctx.createMediaStreamSource(new MediaStream(audioTracks));
           const micGain = ctx.createGain();
@@ -207,38 +231,44 @@ export function EnhancedPostPage({ user, onBack }) {
           micGain.connect(dest);
         }
 
-        // Background audio — decode file into AudioBuffer (avoids createMediaElementSource limit)
+        // Decode bg file into AudioBuffer — loop it, feed ONLY into recorder (not speakers)
         const arrayBuf = await customAudioFile.arrayBuffer();
         const audioBuf = await ctx.decodeAudioData(arrayBuf);
-        const bgSrc  = ctx.createBufferSource();
+        const bgSrc = ctx.createBufferSource();
         bgSrc.buffer = audioBuf;
-        bgSrc.loop   = true;
+        bgSrc.loop = true;
         const bgGain = ctx.createGain();
         bgGain.gain.value = addedVol / 100;
         bgSrc.connect(bgGain);
-        bgGain.connect(dest);         // into recorder
-        bgGain.connect(ctx.destination); // into speaker so user hears it
+        bgGain.connect(dest); // recorder only — no ctx.destination → no mic echo
         bgSrc.start(0);
 
         audioTracks = dest.stream.getAudioTracks();
-        console.log('[RECORDER] Web Audio mix active: mic', origVol + '%', 'bg', addedVol + '%');
+
+        // Separate Audio element for monitoring (user hears music but mic doesn't double-pick it up)
+        const monitor = new Audio();
+        monitor.src = URL.createObjectURL(customAudioFile);
+        monitor.volume = addedVol / 100;
+        monitor.loop = true;
+        monitor.play().catch(() => {});
+        monitorAudioRef.current = monitor;
+
+        console.log('[RECORDER] mix: mic', origVol + '%, bg', addedVol + '%');
       } catch (mixErr) {
-        console.warn('[RECORDER] Web Audio mix failed, using raw mic:', mixErr);
-        // fall back to raw mic
+        console.warn('[RECORDER] Web Audio mix failed, raw mic fallback:', mixErr);
+        _cleanupAudio();
         audioTracks = streamRef.current.getAudioTracks();
       }
     }
 
-    // ── Step 3: assemble record stream ──────────────────────────────────
+    // ── Step 3: assemble MediaStream ─────────────────────────────────────
     const tracks = [
       ...(videoTrack ? [videoTrack] : []),
       ...audioTracks,
     ];
-    const recordStream = tracks.length > 0
-      ? new MediaStream(tracks)
-      : streamRef.current;
+    const recordStream = tracks.length > 0 ? new MediaStream(tracks) : streamRef.current;
 
-    // ── Step 4: pick mimeType ────────────────────────────────────────────
+    // ── Step 4: pick best mimeType ───────────────────────────────────────
     const MIME_CANDIDATES = [
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
@@ -251,23 +281,21 @@ export function EnhancedPostPage({ user, onBack }) {
       mr = new MediaRecorder(recordStream, mimeType ? { mimeType } : {});
     } catch (_) {
       try { mr = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : {}); }
-      catch (e2) { alert('Recording not supported on this browser: ' + e2.message); return; }
+      catch (e2) {
+        _cleanupAudio();
+        isRecordingRef.current = false;
+        alert('Recording not supported on this browser: ' + e2.message);
+        return;
+      }
     }
 
     const actualMime = mr.mimeType || mimeType || 'video/webm';
     const ext = actualMime.includes('mp4') ? 'mp4' : 'webm';
 
-    // ── Step 5: wire up events ───────────────────────────────────────────
-    mr.ondataavailable = e => {
-      if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
-    };
+    // ── Step 5: wire events ──────────────────────────────────────────────
+    mr.ondataavailable = e => { if (e.data && e.data.size > 0) chunksRef.current.push(e.data); };
 
     mr.onstop = () => {
-      // Close Web Audio context
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close().catch(() => {});
-        audioCtxRef.current = null;
-      }
       const chunks = chunksRef.current;
       if (!chunks.length) {
         alert('Recording produced no data. Please try again.');
@@ -294,22 +322,18 @@ export function EnhancedPostPage({ user, onBack }) {
       setIsRecording(false);
     };
 
-    mr.onerror = (e) => {
+    mr.onerror = e => {
       console.error('[RECORDER] error', e);
-      if (audioCtxRef.current) { audioCtxRef.current.close().catch(() => {}); audioCtxRef.current = null; }
+      _cleanupAudio();
       isRecordingRef.current = false;
       setIsRecording(false);
       alert('Recording error: ' + (e.error?.message || 'unknown'));
     };
 
-    // ── Step 6: start ────────────────────────────────────────────────────
+    // ── Step 6: go ───────────────────────────────────────────────────────
     mediaRecorderRef.current = mr;
     mr.start(250);
-    isRecordingRef.current = true;
-    recordingStartRef.current = Date.now();
     setIsRecording(true);
-    setRecTime(0);
-    setRecProgress(0);
 
     timerRef.current = setInterval(() => {
       setRecTime(t => {
@@ -323,15 +347,20 @@ export function EnhancedPostPage({ user, onBack }) {
 
   const stopRecording = () => {
     if (!isRecordingRef.current) return;
-    // Ignore stop calls within 1s of start (ghost-click from touchStart on mobile)
+    // Ghost-click guard: ignore stop calls within 1s of start
     if (Date.now() - recordingStartRef.current < 1000) return;
+
     clearInterval(timerRef.current);
+    _cleanupAudio(); // stop monitor + AudioContext immediately (no music after stop)
+
     const mr = mediaRecorderRef.current;
     if (mr && mr.state === 'recording') {
       try { mr.requestData(); } catch (_) {}
-      mr.stop();
+      mr.stop(); // triggers onstop asynchronously
+    } else {
+      isRecordingRef.current = false;
+      setIsRecording(false);
     }
-    // AudioContext closed inside onstop after final chunks are written
   };
 
   // ── Photo capture ───────────────────────────────────────────────────────
@@ -639,10 +668,8 @@ export function EnhancedPostPage({ user, onBack }) {
                       <ProgressRing radius={40} stroke={4} progress={recProgress} color={T.red} />
                     )}
                     <button className="ep-btn"
-                      onMouseDown={camMode === 'video' && !isRecording ? () => { startRecording().catch(console.error); } : undefined}
-                      onTouchStart={camMode === 'video' && !isRecording ? () => { startRecording().catch(console.error); } : undefined}
                       onClick={camMode === 'video'
-                        ? (isRecording ? stopRecording : undefined)
+                        ? () => { isRecording ? stopRecording() : startRecording().catch(console.error); }
                         : takePhoto}
                       style={{
                         width: 80, height: 80, borderRadius: '50%',
