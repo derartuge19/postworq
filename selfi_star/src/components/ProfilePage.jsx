@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy } from "lucide-react";
+import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag } from "lucide-react";
 import { GamificationBar } from "./GamificationBar";
 import api from "../api";
 import config from "../config";
@@ -37,6 +37,40 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showReportUser, setShowReportUser] = useState(false);
+  const [reportingUser, setReportingUser] = useState(false);
+  const [reportUserMsg, setReportUserMsg] = useState(null);
+
+  const USER_REPORT_REASONS = [
+    { id: 'harassment', label: 'Harassment or Bullying', icon: '😡' },
+    { id: 'spam', label: 'Spam or Fake Account', icon: '⚠️' },
+    { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
+    { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
+    { id: 'scam', label: 'Scam or Fraud', icon: '💸' },
+    { id: 'other', label: 'Other', icon: '📋' },
+  ];
+
+  const handleReportUser = async (reportType) => {
+    setShowReportUser(false);
+    setReportingUser(true);
+    try {
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_user_id: userId,
+          report_type: reportType,
+          description: `User reported as: ${reportType}`,
+          target_type: 'user',
+        }),
+      });
+      setReportUserMsg({ type: 'success', text: 'Report submitted. Thank you for keeping the community safe.' });
+    } catch (err) {
+      setReportUserMsg({ type: 'error', text: 'Failed to submit report. Please try again.' });
+    } finally {
+      setReportingUser(false);
+      setTimeout(() => setReportUserMsg(null), 4000);
+    }
+  };
   
   const handleDeletePost = async (postId) => {
     setConfirmDeleteId(null);
@@ -419,28 +453,57 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         </div>
 
         {!isOwnProfile && (
-          <button
-            onClick={handleFollowToggle}
-            style={{
-              width: "100%",
-              padding: "10px 20px",
-              border: isFollowing ? `1px solid ${T.border}` : "none",
-              background: isFollowing ? "#fff" : T.pri,
-              borderRadius: 8,
-              cursor: "pointer",
-              fontSize: 14,
-              fontWeight: 700,
-              color: isFollowing ? T.txt : "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              transition: "all 0.2s",
-            }}
-          >
-            {isFollowing ? <UserCheck size={18} /> : <UserPlus size={18} />}
-            {isFollowing ? "Following" : "Follow"}
-          </button>
+          <>
+            {/* Toast */}
+            {reportUserMsg && (
+              <div style={{ marginBottom: 10, padding: '10px 14px', borderRadius: 8, background: reportUserMsg.type === 'success' ? '#D1FAE5' : '#FEE2E2', color: reportUserMsg.type === 'success' ? '#065F46' : '#991B1B', fontSize: 13, fontWeight: 500 }}>
+                {reportUserMsg.text}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={handleFollowToggle}
+                style={{
+                  flex: 1,
+                  padding: "10px 20px",
+                  border: isFollowing ? `1px solid ${T.border}` : "none",
+                  background: isFollowing ? "#fff" : T.pri,
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: isFollowing ? T.txt : "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  transition: "all 0.2s",
+                }}
+              >
+                {isFollowing ? <UserCheck size={18} /> : <UserPlus size={18} />}
+                {isFollowing ? "Following" : "Follow"}
+              </button>
+              <button
+                onClick={() => setShowReportUser(true)}
+                disabled={reportingUser}
+                style={{
+                  padding: "10px 14px",
+                  border: `1px solid ${T.border}`,
+                  background: "#fff",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: '#EF4444',
+                  opacity: reportingUser ? 0.5 : 1,
+                }}
+                title="Report user"
+              >
+                <Flag size={18} />
+              </button>
+            </div>
+          </>
         )}
 
         {isOwnProfile && (
@@ -976,6 +1039,44 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         </div>
       )}
         </>
+      )}
+
+      {/* Report User Bottom Sheet */}
+      {showReportUser && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 3000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          onClick={() => setShowReportUser(false)}
+        >
+          <div
+            style={{ width: '100%', maxWidth: 560, background: '#fff', borderRadius: '20px 20px 0 0', padding: '20px 20px 36px', boxSizing: 'border-box' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ width: 36, height: 4, background: '#E5E7EB', borderRadius: 4, margin: '0 auto 16px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <Flag size={18} color="#EF4444" />
+              <span style={{ fontSize: 17, fontWeight: 700, color: '#111' }}>Report @{profileUser?.username}</span>
+            </div>
+            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}>
+              Why are you reporting this account?
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {USER_REPORT_REASONS.map(r => (
+                <button key={r.id} onClick={() => handleReportUser(r.id)}
+                  style={{ padding: '13px 16px', border: '1px solid #F3F4F6', borderRadius: 10, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#111', fontWeight: 500, textAlign: 'left', transition: 'background 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                >
+                  <span style={{ fontSize: 18 }}>{r.icon}</span>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setShowReportUser(false)}
+              style={{ marginTop: 12, width: '100%', padding: 12, border: 'none', borderRadius: 10, background: '#F3F4F6', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#374151' }}>
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -588,7 +588,7 @@ export function TikTokLayout({
       await api.request('/reports/create/', {
         method: 'POST',
         body: JSON.stringify({
-          reported_reel: videoId,
+          reported_reel_id: videoId,
           report_type: category,
           description: `Reported as ${category}`,
         }),
@@ -1808,7 +1808,7 @@ export function TikTokLayout({
                   icon: '😢',
                 },
                 { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
-                { id: 'hate', label: 'Hate Speech', icon: '🚫' },
+                { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
                 { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
                 { id: 'other', label: 'Other', icon: 'Ⓜ' },
               ].map((category) => (

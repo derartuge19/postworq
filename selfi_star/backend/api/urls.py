@@ -6,8 +6,8 @@ from rest_framework.response import Response
 from .views import (
     register, login, reset_password, create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
-    get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail, admin_reports_stats,
-    get_trending_reels, mark_not_interested, undo_not_interested
+    get_user_notifications, mark_notifications_read, create_report, admin_reports_list, admin_report_detail,
+    admin_reports_stats, admin_moderate_report, get_trending_reels, mark_not_interested, undo_not_interested
 )
 from .views_master_campaign import (
     master_campaign_list, master_campaign_detail, master_campaign_participants,
@@ -180,8 +180,9 @@ urlpatterns = [
     # Report endpoints
     path('reports/create/', create_report, name='create-report'),
     path('admin/reports/', admin_reports_list, name='admin-reports-list'),
-    path('admin/reports/<int:report_id>/', admin_report_detail, name='admin-report-detail'),
     path('admin/reports/stats/', admin_reports_stats, name='admin-reports-stats'),
+    path('admin/reports/<int:report_id>/', admin_report_detail, name='admin-report-detail'),
+    path('admin/reports/<int:report_id>/moderate/', admin_moderate_report, name='admin-report-moderate'),
     # Admin endpoints
     path('admin/dashboard/', admin_dashboard_stats, name='admin-dashboard'),
     path('admin/users/', admin_users_list, name='admin-users-list'),

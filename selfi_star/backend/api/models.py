@@ -235,6 +235,9 @@ class Report(models.Model):
         ('harassment', 'Harassment'),
         ('copyright', 'Copyright Violation'),
         ('scam', 'Scam/Fraud'),
+        ('hate_speech', 'Hate Speech'),
+        ('self_harm', 'Self Harm'),
+        ('violence', 'Violence'),
         ('other', 'Other'),
     ]
     
@@ -244,13 +247,29 @@ class Report(models.Model):
         ('resolved', 'Resolved'),
         ('dismissed', 'Dismissed'),
     ]
+
+    TARGET_TYPES = [
+        ('reel', 'Reel'),
+        ('comment', 'Comment'),
+        ('user', 'User'),
+    ]
+
+    PRIORITY_CHOICES = [
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('critical', 'Critical'),
+    ]
     
     reported_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_made')
     reported_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_received', null=True, blank=True)
     reported_reel = models.ForeignKey(Reel, on_delete=models.CASCADE, related_name='reports', null=True, blank=True)
+    reported_comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='reports', null=True, blank=True)
+    target_type = models.CharField(max_length=20, choices=TARGET_TYPES, default='reel')
     report_type = models.CharField(max_length=50, choices=REPORT_TYPES)
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium')
     resolution_notes = models.TextField(blank=True)
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reports_reviewed')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -262,6 +281,29 @@ class Report(models.Model):
     
     def __str__(self):
         return f"Report #{self.id} - {self.report_type} by {self.reported_by.username}"
+
+
+class ModerationAction(models.Model):
+    ACTION_CHOICES = [
+        ('warning', 'Warning Issued'),
+        ('content_removed', 'Content Removed'),
+        ('shadowban', 'Shadow Banned'),
+        ('temp_ban', 'Temporary Ban'),
+        ('permanent_ban', 'Permanent Ban'),
+        ('no_action', 'No Action Taken'),
+    ]
+
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='moderation_actions')
+    moderator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='moderation_actions_taken')
+    action_taken = models.CharField(max_length=30, choices=ACTION_CHOICES)
+    reason_details = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Action #{self.id}: {self.action_taken} on Report #{self.report_id}"
 
 class Follow(models.Model):
     follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')

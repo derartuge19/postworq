@@ -9,12 +9,13 @@ from django.db.models import F, Count, Exists, OuterRef, Subquery, Prefetch
 from django.utils import timezone
 from datetime import timedelta
 
-from .models import UserProfile, Reel, Comment, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, CommentLike, CommentReply, SavedPost, Notification
+from .models import UserProfile, Reel, Comment, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, CommentLike, CommentReply, SavedPost, Notification, Report, ModerationAction
 from .models_campaign import CampaignNotification
 from .serializers import (
     UserSerializer, UserProfileSerializer, ReelSerializer, CommentSerializer, VoteSerializer,
     QuestSerializer, UserQuestSerializer, SubscriptionSerializer,
-    NotificationPreferenceSerializer, RegisterSerializer, CompetitionSerializer, WinnerSerializer, FollowSerializer
+    NotificationPreferenceSerializer, RegisterSerializer, CompetitionSerializer, WinnerSerializer, FollowSerializer,
+    ReportSerializer
 )
 from .serializers_extended import CommentSerializer as ExtendedCommentSerializer, CommentLikeSerializer, CommentReplySerializer, SavedPostSerializer
 
@@ -961,11 +962,54 @@ def mark_notifications_read(request):
 @permission_classes([IsAuthenticated])
 def create_report(request):
     """Create a new report for inappropriate content"""
-    serializer = ReportSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(reported_by=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        data = request.data.copy()
+
+        # Map legacy field names sent by frontend (reported_reel -> reported_reel_id)
+        if 'reported_reel' in data and 'reported_reel_id' not in data:
+            data['reported_reel_id'] = data.pop('reported_reel')
+        if 'reported_user' in data and 'reported_user_id' not in data:
+            data['reported_user_id'] = data.pop('reported_user')
+        if 'reported_comment' in data and 'reported_comment_id' not in data:
+            data['reported_comment_id'] = data.pop('reported_comment')
+
+        # Auto-set target_type
+        if 'reported_reel_id' in data and data['reported_reel_id']:
+            data['target_type'] = 'reel'
+        elif 'reported_comment_id' in data and data['reported_comment_id']:
+            data['target_type'] = 'comment'
+        elif 'reported_user_id' in data and data['reported_user_id']:
+            data['target_type'] = 'user'
+
+        # Auto-set priority based on report type
+        high_priority_types = ['self_harm', 'violence', 'hate_speech']
+        report_type = data.get('report_type', '')
+        if report_type in high_priority_types:
+            data['priority'] = 'critical'
+        elif report_type in ['harassment', 'scam']:
+            data['priority'] = 'high'
+        else:
+            data['priority'] = 'medium'
+
+        serializer = ReportSerializer(data=data)
+        if serializer.is_valid():
+            report = serializer.save(reported_by=request.user)
+
+            # Auto-flag if target has 5+ pending reports
+            if report.reported_reel:
+                count = Report.objects.filter(reported_reel=report.reported_reel, status='pending').count()
+                if count >= 5:
+                    report.priority = 'critical'
+                    report.save(update_fields=['priority'])
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(f'[REPORT] Validation errors: {serializer.errors}')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f'[REPORT] Error creating report: {e}')
+        import traceback as tb
+        tb.print_exc()
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1009,6 +1053,52 @@ def admin_report_detail(request, report_id):
             serializer.save(reviewed_by=request.user)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def admin_moderate_report(request, report_id):
+    """Take a moderation action on a report (warn, remove content, ban user, etc.)"""
+    if not request.user.is_staff:
+        return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+    try:
+        report = Report.objects.select_related('reported_user', 'reported_reel').get(id=report_id)
+    except Report.DoesNotExist:
+        return Response({'error': 'Report not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    action_taken = request.data.get('action_taken')
+    reason_details = request.data.get('reason_details', '')
+
+    if not action_taken:
+        return Response({'error': 'action_taken is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    ModerationAction.objects.create(
+        report=report,
+        moderator=request.user,
+        action_taken=action_taken,
+        reason_details=reason_details,
+    )
+
+    # Execute the action
+    if action_taken == 'content_removed' and report.reported_reel:
+        report.reported_reel.delete()
+    elif action_taken in ('temp_ban', 'permanent_ban', 'shadowban') and report.reported_user:
+        profile = getattr(report.reported_user, 'profile', None)
+        if profile:
+            profile.is_shadowbanned = action_taken == 'shadowban'
+            profile.save(update_fields=['is_shadowbanned'] if hasattr(profile, 'is_shadowbanned') else [])
+        if action_taken == 'permanent_ban':
+            report.reported_user.is_active = False
+            report.reported_user.save(update_fields=['is_active'])
+
+    # Mark report resolved
+    report.status = 'resolved'
+    report.reviewed_by = request.user
+    report.resolution_notes = reason_details
+    report.resolved_at = timezone.now()
+    report.save(update_fields=['status', 'reviewed_by', 'resolution_notes', 'resolved_at'])
+
+    return Response({'success': True, 'action': action_taken})
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

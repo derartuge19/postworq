@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Heart, MessageCircle, Send, Loader } from "lucide-react";
+import { X, Heart, MessageCircle, Send, Loader, Flag } from "lucide-react";
 import api from "../api";
 import { AlertModal } from "./AlertModal";
 import { getRelativeTime } from "../utils/timeUtils";
@@ -17,6 +17,41 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [alertModal, setAlertModal] = useState({ isOpen: false, title: "", message: "", type: "info" });
+  const [reportingComment, setReportingComment] = useState(null);
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+
+  const COMMENT_REPORT_REASONS = [
+    { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
+    { id: 'harassment', label: 'Harassment or Bullying', icon: '😡' },
+    { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
+    { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
+    { id: 'other', label: 'Other', icon: '📋' },
+  ];
+
+  const handleReportComment = async (commentId, reportType) => {
+    setReportingComment(null);
+    if (!user) {
+      setAlertModal({ isOpen: true, title: 'Sign In Required', message: 'Please sign in to report comments.', type: 'info' });
+      return;
+    }
+    setReportSubmitting(true);
+    try {
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_comment_id: commentId,
+          report_type: reportType,
+          description: `Comment reported as: ${reportType}`,
+          target_type: 'comment',
+        }),
+      });
+      setAlertModal({ isOpen: true, title: 'Report Submitted', message: 'Thank you. Our team will review this comment.', type: 'success' });
+    } catch (err) {
+      setAlertModal({ isOpen: true, title: 'Error', message: 'Failed to submit report. Please try again.', type: 'error' });
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     fetchComments();
@@ -238,6 +273,28 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
                           <MessageCircle size={16} />
                           Reply {comment.replies_count > 0 && `(${comment.replies_count})`}
                         </button>
+                        {user && comment.user?.id !== user?.id && (
+                          <button
+                            onClick={() => setReportingComment(comment.id)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 4,
+                              color: T.sub,
+                              fontSize: 12,
+                              fontWeight: 600,
+                              marginLeft: "auto",
+                              opacity: 0.6,
+                            }}
+                            title="Report comment"
+                          >
+                            <Flag size={13} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -403,6 +460,42 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
         message={alertModal.message}
         type={alertModal.type}
       />
+
+      {/* Comment Report Reason Picker */}
+      {reportingComment && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 5000, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+          onClick={() => setReportingComment(null)}
+        >
+          <div
+            style={{ width: "100%", maxWidth: 600, background: "#fff", borderRadius: "20px 20px 0 0", padding: "20px 20px 32px", boxSizing: "border-box" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ width: 36, height: 4, background: "#E5E7EB", borderRadius: 4, margin: "0 auto 16px" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <Flag size={18} color="#EF4444" />
+              <span style={{ fontSize: 17, fontWeight: 700, color: "#111" }}>Report Comment</span>
+            </div>
+            <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 16 }}>Why are you reporting this comment?</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {COMMENT_REPORT_REASONS.map(r => (
+                <button key={r.id} onClick={() => handleReportComment(reportingComment, r.id)} disabled={reportSubmitting}
+                  style={{ padding: "13px 16px", border: "1px solid #F3F4F6", borderRadius: 10, background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: "#111", fontWeight: 500, textAlign: "left", transition: "background 0.15s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#F9FAFB"}
+                  onMouseLeave={e => e.currentTarget.style.background = "#fff"}
+                >
+                  <span style={{ fontSize: 18 }}>{r.icon}</span>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setReportingComment(null)}
+              style={{ marginTop: 12, width: "100%", padding: 12, border: "none", borderRadius: 10, background: "#F3F4F6", cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#374151" }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
     </>
   );

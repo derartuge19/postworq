@@ -212,15 +212,35 @@ class ReportSerializer(serializers.ModelSerializer):
     reported_user = UserSerializer(read_only=True)
     reported_reel = ReelSerializer(read_only=True)
     reviewed_by = UserSerializer(read_only=True)
-    
+    # Write-only FK fields so frontend can submit IDs
+    reported_user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), source='reported_user', write_only=True, required=False, allow_null=True
+    )
+    reported_reel_id = serializers.PrimaryKeyRelatedField(
+        queryset=Reel.objects.all(), source='reported_reel', write_only=True, required=False, allow_null=True
+    )
+    reported_comment_id = serializers.PrimaryKeyRelatedField(
+        queryset=Comment.objects.all(), source='reported_comment', write_only=True, required=False, allow_null=True
+    )
+
     class Meta:
         model = Report
-        fields = ['id', 'reported_by', 'reported_user', 'reported_reel', 'report_type', 'description', 'status', 'resolution_notes', 'reviewed_by', 'created_at', 'updated_at', 'resolved_at']
+        fields = [
+            'id', 'reported_by',
+            'reported_user', 'reported_user_id',
+            'reported_reel', 'reported_reel_id',
+            'reported_comment_id',
+            'target_type', 'report_type', 'description',
+            'status', 'priority',
+            'resolution_notes', 'reviewed_by',
+            'created_at', 'updated_at', 'resolved_at',
+        ]
+
 
 class NotificationSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
     reel = ReelSerializer(read_only=True)
-    
+
     class Meta:
         model = Notification
         fields = ['id', 'sender', 'notification_type', 'reel', 'comment', 'message', 'is_read', 'created_at']
