@@ -109,6 +109,7 @@ export function EnhancedPostPage({ user, onBack }) {
   const audioRef = useRef(null);
   const streamRef = useRef(null);
   const liveRef = useRef({ filter: 'none' });
+  const isRecordingRef = useRef(false); // sync ref so onMouseDown guard doesn't rely on stale state
   const fileInputRef = useRef(null);
   const audioFileInputRef = useRef(null);
   const previewContainerRef = useRef(null);
@@ -166,61 +167,96 @@ export function EnhancedPostPage({ user, onBack }) {
 
   // ── Recording ───────────────────────────────────────────────────────────
   const startRecording = () => {
-    if (!streamRef.current) return;
+    // CRITICAL: guard with ref (state is async and may be stale on re-render)
+    if (isRecordingRef.current) return;
+    if (!streamRef.current) {
+      alert('Camera not ready. Please wait a moment and try again.');
+      return;
+    }
+
     chunksRef.current = [];
 
-    // Build a composite stream:
-    // - Video track: from the canvas (already has filter applied)
-    // - Audio track: from the camera microphone stream
+    // Build the record stream: canvas video (filtered) + mic audio from camera
     let recordStream = streamRef.current;
     try {
-      const canvasStream = canvasRef.current?.captureStream?.(30);
-      if (canvasStream) {
-        const audioTracks = streamRef.current.getAudioTracks();
-        const videoTrack  = canvasStream.getVideoTracks()[0];
-        const combined = new MediaStream([
+      const cvs = canvasRef.current;
+      if (cvs && cvs.captureStream) {
+        const canvasStream = cvs.captureStream(30);
+        const audioTracks  = streamRef.current.getAudioTracks();
+        const videoTrack   = canvasStream.getVideoTracks()[0];
+        const tracks = [
           ...(videoTrack ? [videoTrack] : []),
           ...audioTracks,
-        ]);
-        if (combined.getTracks().length > 0) recordStream = combined;
+        ];
+        if (tracks.length > 0) recordStream = new MediaStream(tracks);
       }
-    } catch (_) { /* fall back to raw stream */ }
+    } catch (_) { /* keep raw camera stream */ }
 
-    // Pick the first supported mimeType
+    // Pick best supported mimeType for this browser
     const MIME_CANDIDATES = [
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
       'video/webm',
       'video/mp4',
-      '',
     ];
-    const mimeType = MIME_CANDIDATES.find(m => !m || MediaRecorder.isTypeSupported(m)) || '';
-    const mrOptions = mimeType ? { mimeType } : {};
+    const mimeType = MIME_CANDIDATES.find(m => MediaRecorder.isTypeSupported(m)) || '';
     let mr;
     try {
-      mr = new MediaRecorder(recordStream, mrOptions);
+      mr = new MediaRecorder(recordStream, mimeType ? { mimeType } : {});
     } catch (_) {
-      mr = new MediaRecorder(streamRef.current); // bare fallback
+      try { mr = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : {}); }
+      catch (e2) { alert('Recording not supported on this browser: ' + e2.message); return; }
     }
-    const ext     = mimeType.includes('mp4') ? 'mp4' : 'webm';
-    const blobType = mimeType || 'video/webm';
-    mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+
+    const actualMime = mr.mimeType || mimeType || 'video/webm';
+    const ext = actualMime.includes('mp4') ? 'mp4' : 'webm';
+
+    mr.ondataavailable = e => {
+      if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+    };
+
     mr.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: blobType });
-      const file = new File([blob], `rec_${Date.now()}.${ext}`, { type: blobType });
-      const url = URL.createObjectURL(blob);
+      const chunks = chunksRef.current;
+      if (!chunks.length) {
+        alert('Recording produced no data. Please try again.');
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        return;
+      }
+      const blob = new Blob(chunks, { type: actualMime });
+      if (blob.size === 0) {
+        alert('Recorded file is empty. Please try again.');
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        return;
+      }
+      const file = new File([blob], `rec_${Date.now()}.${ext}`, { type: actualMime });
+      const url  = URL.createObjectURL(blob);
+      // Stop camera BEFORE setting state to avoid re-render race
+      stopCamera();
       setSelectedFile(file);
       setPreview(url);
       setIsVideoFile(true);
-      stopCamera();
       setCaptureMode('upload');
       setStage('details');
+      isRecordingRef.current = false;
+      setIsRecording(false);
     };
+
+    mr.onerror = (e) => {
+      console.error('[RECORDER] error', e);
+      isRecordingRef.current = false;
+      setIsRecording(false);
+      alert('Recording error: ' + (e.error?.message || 'unknown'));
+    };
+
     mediaRecorderRef.current = mr;
-    mr.start(250); // flush chunks every 250ms so blob is never empty
+    mr.start(250); // emit chunks every 250ms
+    isRecordingRef.current = true;
     setIsRecording(true);
     setRecTime(0);
     setRecProgress(0);
+
     timerRef.current = setInterval(() => {
       setRecTime(t => {
         const next = t + 1;
@@ -229,17 +265,24 @@ export function EnhancedPostPage({ user, onBack }) {
         return next;
       });
     }, 1000);
-    if (audioRef.current && backgroundSound) {
+
+    // Play background audio if a custom audio file was picked (sample sounds have no real URL)
+    if (audioRef.current && customAudioFile) {
       audioRef.current.volume = addedVol / 100;
       audioRef.current.play().catch(() => {});
     }
   };
 
   const stopRecording = () => {
+    if (!isRecordingRef.current) return;
     clearInterval(timerRef.current);
-    if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.stop();
-    setIsRecording(false);
+    const mr = mediaRecorderRef.current;
+    if (mr && mr.state === 'recording') {
+      try { mr.requestData(); } catch (_) {} // flush any buffered chunk
+      mr.stop();
+    }
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
+    // isRecordingRef + setIsRecording are set inside onstop to avoid race
   };
 
   // ── Photo capture ───────────────────────────────────────────────────────
@@ -286,8 +329,8 @@ export function EnhancedPostPage({ user, onBack }) {
   const selectSound = (s) => {
     setBackgroundSound(s);
     setShowSoundSheet(false);
-    if (audioRef.current) {
-      audioRef.current.src = s.url || '';
+    if (audioRef.current && s.url) {
+      audioRef.current.src = s.url;
       audioRef.current.volume = addedVol / 100;
     }
   };
@@ -546,7 +589,9 @@ export function EnhancedPostPage({ user, onBack }) {
                     {camMode === 'video' && isRecording && (
                       <ProgressRing radius={40} stroke={4} progress={recProgress} color={T.red} />
                     )}
-                    <button className="ep-btn" onMouseDown={camMode === 'video' ? startRecording : undefined}
+                    <button className="ep-btn"
+                      onMouseDown={camMode === 'video' && !isRecording ? startRecording : undefined}
+                      onTouchStart={camMode === 'video' && !isRecording ? (e) => { e.preventDefault(); startRecording(); } : undefined}
                       onClick={camMode === 'video' ? (isRecording ? stopRecording : undefined) : takePhoto}
                       style={{
                         width: 80, height: 80, borderRadius: '50%',
