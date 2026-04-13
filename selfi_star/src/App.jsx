@@ -126,7 +126,21 @@ export default function WerqRoot() {
   }
 
   const [screen, setScreen] = useState('app');
-  const [authUser, setAuthUser] = useState(null);
+
+  // ── Restore auth synchronously so pages never receive user=null on first render
+  (() => {
+    try {
+      const t = localStorage.getItem('authToken');
+      if (t) api.setAuthToken(t);
+    } catch {}
+  })();
+  const [authUser, setAuthUser] = useState(() => {
+    try {
+      const u = localStorage.getItem('user');
+      return u ? JSON.parse(u) : null;
+    } catch { return null; }
+  });
+
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
@@ -261,12 +275,8 @@ export default function WerqRoot() {
 
   // Load user from localStorage on mount + prefetch lazy components
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const savedUser = localStorage.getItem('user');
-    if (token && savedUser) {
-      api.setAuthToken(token);
-      setAuthUser(JSON.parse(savedUser));
-    }
+    // Auth is already restored synchronously above.
+    // This effect just prefetches lazy chunks.
     // Prefetch lazy components after app is idle
     if ('requestIdleCallback' in window) {
       requestIdleCallback(prefetchComponents);
