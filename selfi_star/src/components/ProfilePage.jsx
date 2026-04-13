@@ -314,9 +314,9 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             <div style={{ width: 160, height: 36, background: "#f0f0f0", borderRadius: 20, marginTop: 8 }} />
           </div>
           {/* Skeleton grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 2, padding: "0 2px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, padding: "4px 16px 16px" }}>
             {[0,1,2,3,4,5].map(i => (
-              <div key={i} style={{ aspectRatio: "1", background: "#f5f5f5" }} />
+              <div key={i} style={{ aspectRatio: "1", background: "#f5f5f5", borderRadius: 8 }} />
             ))}
           </div>
         </>
@@ -367,6 +367,9 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               )}
             </div>
           </div>
+
+      {/* ── Centered content container (Instagram-style) ─── */}
+      <div style={{ maxWidth: 680, margin: '0 auto', width: '100%' }}>
 
       {/* Profile Info */}
       <div style={{ padding: "20px" }}>
@@ -582,8 +585,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 2,
-        padding: 2,
+        gap: 4,
+        padding: "4px 16px 16px",
       }}>
         {posts.map(post => (
           <div
@@ -594,6 +597,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               position: "relative",
               cursor: "pointer",
               overflow: "hidden",
+              borderRadius: 8,
             }}
             onClick={() => setSelectedPost(post)}
             onMouseEnter={(e) => {
@@ -751,6 +755,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       )}
       </>
       )}
+
+      </div>{/* end centered container */}
 
       {/* TikTok-Style Post Detail Viewer */}
       {selectedPost && (
