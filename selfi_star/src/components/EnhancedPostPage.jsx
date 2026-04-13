@@ -2,7 +2,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   X, Check, Music, Type, Sliders, Play, Pause, Upload, Zap, ZapOff,
-  Square, ArrowLeft, RefreshCw, ChevronLeft, Image, Video, Scissors
+  Square, ArrowLeft, RefreshCw, ChevronLeft, Image, Video, Scissors,
+  Bookmark, Eye, FileText
 } from "lucide-react";
 import api from "../api";
 
@@ -108,7 +109,7 @@ export function EnhancedPostPage({ user, onBack }) {
   const chunksRef = useRef([]);
   const audioRef = useRef(null);
   const streamRef = useRef(null);
-  const liveRef = useRef({ filter: 'none' });
+  const liveRef = useRef({ filter: 'none', overlays: [] });
   const isRecordingRef = useRef(false); // sync ref so onMouseDown guard doesn't rely on stale state
   const recordingStartRef = useRef(0);  // timestamp when recording began (for ghost-click guard)
   const audioCtxRef = useRef(null);     // Web Audio context for mic+bg mixing into recorder
@@ -117,8 +118,16 @@ export function EnhancedPostPage({ user, onBack }) {
   const audioFileInputRef = useRef(null);
   const previewContainerRef = useRef(null);
 
+  // ── Drafts state ─────────────────────────────────────────────────────────
+  const [drafts, setDrafts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ep_drafts') || '[]'); } catch { return []; }
+  });
+  const [showDrafts, setShowDrafts] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
   // ── Keep liveRef synced ──────────────────────────────────────────────────
   useEffect(() => { liveRef.current.filter = selectedFilter; }, [selectedFilter]);
+  useEffect(() => { liveRef.current.overlays = textOverlays; }, [textOverlays]);
 
   // ── Canvas draw loop ─────────────────────────────────────────────────────
   const startDrawLoop = useCallback(() => {
@@ -132,6 +141,30 @@ export function EnhancedPostPage({ user, onBack }) {
       const f = liveRef.current.filter;
       ctx.filter = f === 'none' ? 'none' : (FILTERS.find(x => x.id === f)?.css || 'none');
       ctx.drawImage(vid, 0, 0, cvs.width, cvs.height);
+      // ── Bake text overlays into the canvas frame ──
+      ctx.filter = 'none';
+      (liveRef.current.overlays || []).forEach(ov => {
+        const px = ov.x / 100 * cvs.width;
+        const py = ov.y / 100 * cvs.height;
+        const fs = ov.fontSize * (cvs.width / 360);
+        ctx.save();
+        ctx.font = `800 ${fs}px system-ui, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const tw = ctx.measureText(ov.text).width;
+        const pad = fs * 0.35;
+        ctx.fillStyle = 'rgba(0,0,0,0.28)';
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(px - tw/2 - pad, py - fs/2 - pad*0.5, tw + pad*2, fs + pad, fs*0.3);
+        else ctx.rect(px - tw/2 - pad, py - fs/2 - pad*0.5, tw + pad*2, fs + pad);
+        ctx.fill();
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 2;
+        ctx.fillStyle = ov.color;
+        ctx.fillText(ov.text, px, py);
+        ctx.restore();
+      });
       animFrameRef.current = requestAnimationFrame(draw);
     };
     draw();
@@ -388,6 +421,46 @@ export function EnhancedPostPage({ user, onBack }) {
     setPreview(url);
     setIsVideoFile(file.type.startsWith('video/'));
     setStage('details');
+  };
+
+  // ── Draft helpers ─────────────────────────────────────────────────────
+  const saveDraft = async () => {
+    const draftId = Date.now();
+    let thumbData = null;
+    if (preview && !isVideoFile) {
+      try {
+        const resp = await fetch(preview);
+        const blob = await resp.blob();
+        thumbData = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+      } catch {}
+    }
+    const draft = { id: draftId, thumbData, isVideo: isVideoFile, caption, hashtags, selectedFilter, textOverlays, createdAt: new Date().toISOString() };
+    const updated = [draft, ...drafts].slice(0, 10);
+    setDrafts(updated);
+    try {
+      localStorage.setItem('ep_drafts', JSON.stringify(updated.map(d => ({ ...d, thumbData: d.isVideo ? null : d.thumbData }))));
+    } catch { try { localStorage.setItem('ep_drafts', JSON.stringify(updated.map(d => ({ ...d, thumbData: null })))); } catch {} }
+    setSuccessMsg('Draft saved!');
+    setTimeout(() => { setSuccessMsg(''); onBack?.(); }, 1200);
+  };
+
+  const loadDraft = (draft) => {
+    setCaption(draft.caption || '');
+    setHashtags(draft.hashtags || '');
+    setSelectedFilter(draft.selectedFilter || 'none');
+    setTextOverlays(draft.textOverlays || []);
+    if (draft.thumbData) {
+      setPreview(draft.thumbData);
+      setIsVideoFile(draft.isVideo || false);
+      setStage('details');
+    }
+    setShowDrafts(false);
+  };
+
+  const deleteDraft = (id) => {
+    const updated = drafts.filter(d => d.id !== id);
+    setDrafts(updated);
+    try { localStorage.setItem('ep_drafts', JSON.stringify(updated)); } catch {}
   };
 
   // ── Text overlay ────────────────────────────────────────────────────────
@@ -726,14 +799,20 @@ export function EnhancedPostPage({ user, onBack }) {
             }}>
               {/* Header */}
               <div style={{
-                display: 'flex', alignItems: 'center', padding: '52px 20px 16px',
-                borderBottom: `1px solid ${T.border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '52px 20px 16px', borderBottom: `1px solid ${T.border}`,
               }}>
                 <button className="ep-btn" onClick={onBack}
                   style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
                   <X size={20} color={T.white} />
                 </button>
                 <span style={{ fontSize: 18, fontWeight: 800, color: T.white }}>New Post</span>
+                {drafts.length > 0 ? (
+                  <button className="ep-btn" onClick={() => setShowDrafts(true)}
+                    style={{ background: 'rgba(218,155,42,0.15)', borderRadius: 20, padding: '8px 14px', color: T.pri, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${T.pri}40` }}>
+                    <FileText size={14} /> Drafts ({drafts.length})
+                  </button>
+                ) : <div style={{ width: 40 }} />}
               </div>
 
               {/* Two big cards */}
@@ -757,7 +836,7 @@ export function EnhancedPostPage({ user, onBack }) {
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 20, fontWeight: 800, color: T.white, marginBottom: 6 }}>Record Video</div>
-                    <div style={{ fontSize: 13, color: T.sub }}>Use your camera · Up to 60s</div>
+                    <div style={{ fontSize: 13, color: T.sub }}>Use your camera · Up to 8 min</div>
                   </div>
                 </button>
 
@@ -805,15 +884,25 @@ export function EnhancedPostPage({ user, onBack }) {
               <ArrowLeft size={20} color={T.white} />
             </button>
             <span style={{ fontSize: 18, fontWeight: 800, color: T.white }}>Post</span>
-            <button className="ep-btn" onClick={handlePost} disabled={isUploading}
-              style={{
-                background: isUploading ? 'rgba(218,155,42,0.4)' : T.pri,
-                borderRadius: 24, padding: '10px 22px',
-                fontSize: 15, fontWeight: 800, color: '#000',
-                opacity: isUploading ? 0.7 : 1,
-              }}>
-              {isUploading ? 'Posting...' : 'Post'}
-            </button>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button className="ep-btn" onClick={() => setShowPreview(true)}
+                style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 20, padding: '8px 14px', color: T.white, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Eye size={15} /> Preview
+              </button>
+              <button className="ep-btn" onClick={saveDraft}
+                style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 20, padding: '8px', color: T.white, display: 'flex', alignItems: 'center' }}>
+                <Bookmark size={17} />
+              </button>
+              <button className="ep-btn" onClick={handlePost} disabled={isUploading}
+                style={{
+                  background: isUploading ? 'rgba(218,155,42,0.4)' : T.pri,
+                  borderRadius: 24, padding: '10px 22px',
+                  fontSize: 15, fontWeight: 800, color: '#000',
+                  opacity: isUploading ? 0.7 : 1,
+                }}>
+                {isUploading ? 'Posting...' : 'Post'}
+              </button>
+            </div>
           </div>
 
           {/* Upload progress bar */}
@@ -837,7 +926,19 @@ export function EnhancedPostPage({ user, onBack }) {
                     ? <video src={preview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted playsInline />
                     : <img src={preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 )}
-                {/* Filter preview overlay */}
+                {/* Text overlays on preview thumbnail */}
+                {textOverlays.map(ov => (
+                  <div key={ov.id} style={{
+                    position: 'absolute',
+                    left: `${ov.x}%`, top: `${ov.y}%`,
+                    transform: 'translate(-50%,-50%)',
+                    color: ov.color, fontSize: ov.fontSize * 0.42,
+                    fontWeight: 800, whiteSpace: 'nowrap', pointerEvents: 'none',
+                    textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+                    background: 'rgba(0,0,0,0.28)', borderRadius: 4, padding: '1px 4px',
+                  }}>{ov.text}</div>
+                ))}
+                {/* Filter label */}
                 {selectedFilter !== 'none' && (
                   <div style={{
                     position: 'absolute', inset: 0,
@@ -1118,6 +1219,133 @@ export function EnhancedPostPage({ user, onBack }) {
           </div>
           <div style={{ fontSize: 22, fontWeight: 800, color: T.white }}>Video is Live! 🎉</div>
           <div style={{ fontSize: 15, color: T.sub }}>Your post has been uploaded</div>
+        </div>
+      )}
+
+      {/* ── PREVIEW MODAL ────────────────────────────────────────────────────── */}
+      {showPreview && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: '#000' }}>
+          {/* Media background */}
+          {preview && (isVideoFile
+            ? <video src={preview} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} autoPlay loop muted playsInline />
+            : <img src={preview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          )}
+          {/* Text overlays */}
+          {textOverlays.map(ov => (
+            <div key={ov.id} style={{
+              position: 'absolute', left: `${ov.x}%`, top: `${ov.y}%`,
+              transform: 'translate(-50%,-50%)', color: ov.color,
+              fontSize: ov.fontSize, fontWeight: 800, whiteSpace: 'nowrap',
+              textShadow: '0 1px 8px rgba(0,0,0,0.8)',
+              background: 'rgba(0,0,0,0.28)', borderRadius: 6, padding: '2px 8px',
+              pointerEvents: 'none',
+            }}>{ov.text}</div>
+          ))}
+          {/* Safe-zone guide */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            {/* Top safe zone — 130px */}
+            <div style={{ position: 'absolute', top: 130, left: 0, right: 0, borderBottom: '2px dashed rgba(255,200,0,0.7)' }}>
+              <span style={{ position: 'absolute', right: 8, top: 2, fontSize: 10, color: 'rgba(255,200,0,0.9)', fontWeight: 700, background: 'rgba(0,0,0,0.5)', padding: '1px 4px', borderRadius: 4 }}>SAFE ZONE ↓</span>
+            </div>
+            {/* Bottom safe zone — 250px from bottom */}
+            <div style={{ position: 'absolute', bottom: 250, left: 0, right: 0, borderTop: '2px dashed rgba(255,200,0,0.7)' }}>
+              <span style={{ position: 'absolute', right: 8, bottom: 2, fontSize: 10, color: 'rgba(255,200,0,0.9)', fontWeight: 700, background: 'rgba(0,0,0,0.5)', padding: '1px 4px', borderRadius: 4 }}>SAFE ZONE ↑</span>
+            </div>
+            {/* Right safe zone — 60px */}
+            <div style={{ position: 'absolute', right: 60, top: 130, bottom: 250, borderRight: '2px dashed rgba(255,200,0,0.5)' }} />
+          </div>
+          {/* Mocked TikTok UI chrome */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            {/* Top bar */}
+            <div style={{ padding: '52px 20px 12px', background: 'linear-gradient(to bottom,rgba(0,0,0,0.5),transparent)' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 32 }}>
+                {['Following','For You'].map((t,i) => (
+                  <span key={t} style={{ fontSize: 16, fontWeight: i===1?800:500, color: i===1?T.white:'rgba(255,255,255,0.6)', borderBottom: i===1?`2px solid ${T.white}`:'none', paddingBottom: 4 }}>{t}</span>
+                ))}
+              </div>
+            </div>
+            {/* Right action buttons */}
+            <div style={{ position: 'absolute', right: 10, bottom: 280, display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center' }}>
+              {[['❤️','0'],['💬','0'],['🔖','Save'],['↗️','Share']].map(([icon,lbl]) => (
+                <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{icon}</div>
+                  <span style={{ fontSize: 12, color: T.white, fontWeight: 700 }}>{lbl}</span>
+                </div>
+              ))}
+            </div>
+            {/* Bottom caption */}
+            <div style={{ position: 'absolute', bottom: 80, left: 16, right: 70 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: T.white, marginBottom: 4 }}>@{user?.username || 'you'}</div>
+              {caption && <div style={{ fontSize: 13, color: T.white, lineHeight: 1.4, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{caption}</div>}
+              {backgroundSound && <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}><span style={{ fontSize: 12 }}>🎵</span><span style={{ fontSize: 12, color: T.white }}>{backgroundSound.name}</span></div>}
+            </div>
+            {/* Bottom nav hint */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 70, background: 'linear-gradient(to top,rgba(0,0,0,0.6),transparent)', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', paddingBottom: 12 }}>
+              {['🏠','🔍','➕','📬','👤'].map(ic => <span key={ic} style={{ fontSize: 22, opacity: 0.7 }}>{ic}</span>)}
+            </div>
+          </div>
+          {/* Close + safe zone legend */}
+          <div style={{ position: 'absolute', top: 52, left: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
+            <button className="ep-btn" onClick={() => setShowPreview(false)}
+              style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+              <X size={20} color={T.white} />
+            </button>
+            <span style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', borderRadius: 20, padding: '6px 12px', fontSize: 12, color: 'rgba(255,200,0,0.9)', fontWeight: 700 }}>
+              --- Safe Zone Guide
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── DRAFTS SHEET ─────────────────────────────────────────────────────── */}
+      {showDrafts && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 8500, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'flex-end' }}
+          onClick={() => setShowDrafts(false)}>
+          <div style={{ width: '100%', background: T.card, borderRadius: '24px 24px 0 0', padding: '20px 20px 40px', maxHeight: '80vh', overflowY: 'auto' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: T.white }}>Drafts ({drafts.length})</span>
+              <button className="ep-btn" onClick={() => setShowDrafts(false)}
+                style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={18} color={T.white} />
+              </button>
+            </div>
+            {drafts.length === 0 && <div style={{ textAlign: 'center', color: T.sub, padding: '32px 0' }}>No drafts saved yet</div>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {drafts.map(d => (
+                <div key={d.id} style={{ display: 'flex', gap: 14, alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: 14, padding: '12px 14px' }}>
+                  {/* Thumb */}
+                  <div style={{ width: 56, height: 76, borderRadius: 10, overflow: 'hidden', background: T.bg, flexShrink: 0, position: 'relative' }}>
+                    {d.thumbData
+                      ? <img src={d.thumbData} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{d.isVideo ? '🎬' : '🖼️'}</div>
+                    }
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: T.white, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {d.caption || '(no caption)'}
+                    </div>
+                    <div style={{ fontSize: 12, color: T.sub, marginTop: 2 }}>
+                      {d.isVideo ? 'Video' : 'Photo'} · {new Date(d.createdAt).toLocaleDateString()}
+                    </div>
+                    {d.textOverlays?.length > 0 && <div style={{ fontSize: 11, color: T.pri, marginTop: 2 }}>{d.textOverlays.length} text overlay{d.textOverlays.length > 1 ? 's' : ''}</div>}
+                  </div>
+                  {/* Actions */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <button className="ep-btn" onClick={() => loadDraft(d)}
+                      style={{ background: T.pri, borderRadius: 10, padding: '6px 14px', fontSize: 13, fontWeight: 700, color: '#000' }}>
+                      Resume
+                    </button>
+                    <button className="ep-btn" onClick={() => deleteDraft(d.id)}
+                      style={{ background: 'rgba(239,68,68,0.2)', borderRadius: 10, padding: '6px 14px', fontSize: 13, fontWeight: 700, color: '#EF4444' }}>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
