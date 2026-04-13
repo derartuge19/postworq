@@ -17,6 +17,7 @@ import api from '../api';
 import config from '../config';
 import { ModernCommentSection } from './ModernCommentSection';
 import { WinnersSection } from './WinnersSection';
+import { SidebarCampaigns } from './SidebarCampaigns';
 import { LikeButton } from './LikeButton';
 import { SearchBar } from './SearchBar';
 import { UserSuggestions } from './UserSuggestions';
@@ -1710,68 +1711,36 @@ export function TikTokLayout({
             msOverflowStyle: 'none',
           }}
         >
-          {/* User Suggestions */}
-          <div>
+          {/* ── Who to Follow ─────────────────────────────────────── */}
+          <div style={{ marginBottom: 24 }}>
             <UserSuggestions
               onUserClick={(clickedUser) => {
                 if (!user) { onRequireAuth(); return; }
                 onShowProfile?.(clickedUser.id);
               }}
-              onPostClick={(post) => {
-                console.log('Post clicked:', post);
-              }}
+              onPostClick={(post) => { console.log('Post clicked:', post); }}
             />
           </div>
 
-          {/* Winners Section */}
-          <div
-            style={{
-              marginTop: 30,
-              paddingTop: 20,
-              borderTop: `1px solid ${T.border}`,
-            }}
-          >
-            <WinnersSection />
-          </div>
+          {/* ── Divider ───────────────────────────────────────────── */}
+          <div style={{ height: 1, background: T.border, marginBottom: 24 }} />
 
-          {/* Footer Links */}
-          <div
-            style={{
-              marginTop: 30,
-              paddingTop: 20,
-              borderTop: `1px solid ${T.border}`,
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 8,
-              fontSize: 12,
-              color: T.sub,
+          {/* ── Live Campaigns · Coming Soon · Recent Winners ────── */}
+          <SidebarCampaigns
+            onCampaignClick={(c) => {
+              if (!user) { onRequireAuth(); return; }
+              onShowCampaigns?.();
             }}
-          >
-            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>
-              About
-            </a>
-            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>
-              Help
-            </a>
-            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>
-              Press
-            </a>
-            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>
-              Careers
-            </a>
-            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>
-              Developers
-            </a>
+          />
+
+          {/* ── Footer ────────────────────────────────────────────── */}
+          <div style={{ height: 1, background: T.border, margin: '8px 0 16px' }} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', fontSize: 11, color: T.sub }}>
+            {['About','Help','Press','Careers','Developers'].map(lnk => (
+              <a key={lnk} href="#" style={{ color: 'inherit', textDecoration: 'none' }}>{lnk}</a>
+            ))}
           </div>
-          <div
-            style={{
-              marginTop: 20,
-              fontSize: 12,
-              color: T.sub,
-            }}
-          >
-            © 2024 WorqPost (ወorqPost)
-          </div>
+          <div style={{ marginTop: 10, fontSize: 11, color: T.sub }}>© 2025 WorqPost</div>
         </div>
       )}
 
