@@ -557,44 +557,76 @@ class ReelViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         """Delete a reel - only owner can delete"""
+        import traceback as _tb
         try:
-            print(f"[REEL DELETE] Request from user: {request.user}, authenticated: {request.user.is_authenticated}")
-            print(f"[REEL DELETE] PK: {kwargs.get('pk')}")
-            
             reel = self.get_object()
-            print(f"[REEL DELETE] Reel found: ID={reel.id}, owner={reel.user.username}")
-            
+
             # Check ownership
             if reel.user != request.user:
-                print(f"[REEL DELETE] Permission denied: reel.user={reel.user.id}, request.user={request.user.id}")
                 return Response(
                     {'error': 'You can only delete your own posts'},
                     status=status.HTTP_403_FORBIDDEN
                 )
-            
-            print(f"[REEL DELETE] Deleting reel {reel.id}...")
 
-            # Clear file references both in-memory AND in the DB row before deleting.
-            # The Cloudinary storage backend's post_delete signal reads the in-memory
-            # FieldFile.name, not the DB column. If it sees a non-empty path it tries
-            # to delete that path from Cloudinary; for legacy paths like
-            # "media/rec_*.webm" that never existed there, it raises an exception → 500.
-            try:
-                reel.media.name = ''
-                reel.image.name = ''
-            except Exception:
-                pass
+            reel_id = reel.id
+            print(f"[REEL DELETE] Raw SQL deleting reel {reel_id}...")
+
             from django.db import connection
-            with connection.cursor() as cur:
-                cur.execute("UPDATE api_reel SET media='', image='' WHERE id=%s", [reel.id])
 
-            # Now delete the reel (CASCADE handles comments, votes, PostScore, etc.)
-            reel.delete()
-            print(f"[REEL DELETE] Successfully deleted reel {reel.id}")
+            def _safe(cur, sql, params):
+                """Execute SQL using a savepoint so failures don't abort the transaction."""
+                cur.execute("SAVEPOINT _del_sp")
+                try:
+                    cur.execute(sql, params)
+                    cur.execute("RELEASE SAVEPOINT _del_sp")
+                except Exception as _e:
+                    print(f"[REEL DELETE] optional step skipped ({_e})")
+                    cur.execute("ROLLBACK TO SAVEPOINT _del_sp")
+
+            with connection.cursor() as cur:
+                # 1. Notifications linked to comments on this reel
+                cur.execute("""DELETE FROM api_notification
+                    WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)""", [reel_id])
+                # 2. CommentLikes / CommentReplies
+                cur.execute("DELETE FROM api_commentlike WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
+                cur.execute("DELETE FROM api_commentreply WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
+                # 3. Comments
+                cur.execute("DELETE FROM api_comment WHERE reel_id=%s", [reel_id])
+                # 4. Votes
+                cur.execute("DELETE FROM api_vote WHERE reel_id=%s", [reel_id])
+                # 5. Saved posts
+                cur.execute("DELETE FROM api_savedpost WHERE reel_id=%s", [reel_id])
+                # 6. Notifications (direct reel ref)
+                cur.execute("DELETE FROM api_notification WHERE reel_id=%s", [reel_id])
+                # 7. Not-interested flags
+                cur.execute("DELETE FROM api_notinterested WHERE reel_id=%s", [reel_id])
+                # 8. Reports
+                cur.execute("DELETE FROM api_report WHERE reported_reel_id=%s", [reel_id])
+                # 9. Winners
+                cur.execute("DELETE FROM api_winner WHERE reel_id=%s", [reel_id])
+                # 10. Optional tables (use savepoints so missing table doesn't abort txn)
+                for sql_opt in [
+                    "DELETE FROM api_moderationaction WHERE reel_id=%s",
+                    "DELETE FROM api_campaignentry WHERE reel_id=%s",
+                    "DELETE FROM api_postscore WHERE reel_id=%s",
+                    "DELETE FROM api_postboost WHERE reel_id=%s",
+                    "DELETE FROM api_contestpostscore WHERE reel_id=%s",
+                    "DELETE FROM api_gifttocreator WHERE reel_id=%s",
+                    "DELETE FROM api_grandfinaleentry WHERE reel_id=%s",
+                    "DELETE FROM api_grandfinalistentry WHERE reel_id=%s",
+                    "DELETE FROM api_fraudalert WHERE reel_id=%s",
+                    "DELETE FROM api_contestscore WHERE reel_id=%s",
+                    "DELETE FROM api_mastercampaignparticipant WHERE reel_id=%s",
+                ]:
+                    _safe(cur, sql_opt, [reel_id])
+                # 11. Clear file columns then delete the reel row
+                cur.execute("UPDATE api_reel SET media='', image='' WHERE id=%s", [reel_id])
+                cur.execute("DELETE FROM api_reel WHERE id=%s", [reel_id])
+
+            print(f"[REEL DELETE] Successfully deleted reel {reel_id}")
             return Response(status=status.HTTP_204_NO_CONTENT)
-            
+
         except Exception as e:
-            import traceback as _tb
             tb = _tb.format_exc()
             print(f"[REEL DELETE] Error: {type(e).__name__}: {e}\n{tb}")
             return Response(
