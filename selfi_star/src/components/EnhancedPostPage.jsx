@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   X, Check, Music, Type, Sliders, Play, Pause, Upload, Zap, ZapOff,
   Square, ArrowLeft, RefreshCw, ChevronLeft, Image, Video, Scissors,
-  Bookmark, Eye, FileText
+  Bookmark, Eye, FileText, Heart, MessageCircle, Share2, Volume2
 } from "lucide-react";
 import api from "../api";
 
@@ -1313,63 +1313,126 @@ export function EnhancedPostPage({ user, onBack }) {
         </div>
       )}
 
-      {/* ── PREVIEW MODAL — mirrors actual VideoCard UI ──────────────────────── */}
+      {/* ── PREVIEW MODAL — exact TikTokLayout feed card UI ─────────────────── */}
       {showPreview && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: '#000', display: 'flex', flexDirection: 'column' }}>
-          {/* Media fills screen */}
-          <div style={{ position: 'relative', flex: 1, overflow: 'hidden', background: 'linear-gradient(135deg,#1a1a1a,#2a2a2a)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: '#000' }}>
+          {/* Full-screen card — same dimensions as TikTokLayout mobile card */}
+          <div style={{ position: 'relative', width: '100%', height: '100dvh', overflow: 'hidden' }}>
+
+            {/* 1 ── Background media (covers full card, no overflow) */}
             {preview && (isVideoFile
-              ? <video src={preview} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} autoPlay loop muted playsInline />
-              : <img src={preview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              ? <video src={preview} autoPlay loop muted playsInline
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : <img src={preview} alt=""
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             )}
-            {/* Text overlays at exact positions */}
+            {!preview && (
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg,#1a1a1a,#2a2a2a)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 48 }}>🎬</span>
+              </div>
+            )}
+
+            {/* 2 ── Text overlays */}
             {textOverlays.map(ov => (
               <div key={ov.id} style={{ position: 'absolute', left: `${ov.x}%`, top: `${ov.y}%`, transform: 'translate(-50%,-50%)', pointerEvents: 'none', zIndex: 5 }}>
                 <span style={{ ...overlayCSS(ov), cursor: 'default' }}>{ov.text}</span>
               </div>
             ))}
-            {/* Safe-zone guide */}
-            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6 }}>
-              <div style={{ position: 'absolute', top: 130, left: 0, right: 0, borderBottom: '1.5px dashed rgba(255,220,0,0.65)' }}>
-                <span style={{ position: 'absolute', left: 8, top: 2, fontSize: 9, color: 'rgba(255,220,0,0.9)', fontWeight: 700, background: 'rgba(0,0,0,0.45)', padding: '1px 4px', borderRadius: 3 }}>TOP SAFE ↓</span>
-              </div>
-              <div style={{ position: 'absolute', bottom: 220, left: 0, right: 0, borderTop: '1.5px dashed rgba(255,220,0,0.65)' }}>
-                <span style={{ position: 'absolute', left: 8, bottom: 2, fontSize: 9, color: 'rgba(255,220,0,0.9)', fontWeight: 700, background: 'rgba(0,0,0,0.45)', padding: '1px 4px', borderRadius: 3 }}>BOTTOM SAFE ↑</span>
-              </div>
-              <div style={{ position: 'absolute', right: 56, top: 130, bottom: 220, borderRight: '1.5px dashed rgba(255,220,0,0.45)' }} />
-            </div>
-            {/* ── Creator info overlay (bottom gradient) — exact VideoCard layout ── */}
+
+            {/* 3 ── Bottom gradient + creator info (left side, same as feed) */}
             <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0,
-              background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%)',
-              padding: '20px 16px', pointerEvents: 'none', zIndex: 7,
+              position: 'absolute', bottom: 0, left: 0, right: 72,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 55%, transparent 100%)',
+              padding: '80px 16px 28px', zIndex: 10, pointerEvents: 'none',
             }}>
+              {/* Creator row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: T.pri, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: T.pri, border: '2px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                  {user?.profile_photo
+                    ? <img src={user.profile_photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <span style={{ fontSize: 20 }}>👤</span>}
+                </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{user?.username || 'you'}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>@{user?.username || 'you'}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{user?.username || 'you'}</div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.72)', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>@{user?.username || 'you'}</div>
                 </div>
-                <div style={{ marginLeft: 'auto', background: T.pri, borderRadius: 20, color: '#fff', padding: '6px 16px', fontSize: 12, fontWeight: 700 }}>Follow</div>
+                <div style={{ marginLeft: 'auto', background: T.pri, borderRadius: 20, color: '#fff', padding: '6px 16px', fontSize: 13, fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.25)' }}>Follow</div>
               </div>
-              {caption ? <div style={{ fontSize: 13, color: '#fff', lineHeight: 1.4 }}>{caption}</div> : <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>Your caption...</div>}
-              {backgroundSound && <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}><span style={{ fontSize: 12 }}>🎵</span><span style={{ fontSize: 12, color: '#fff' }}>{backgroundSound.name}</span></div>}
-            </div>
-            {/* ── Actions sidebar — exact VideoCard layout ── */}
-            <div style={{ position: 'absolute', right: 12, bottom: 80, display: 'flex', flexDirection: 'column', gap: 16, zIndex: 8, pointerEvents: 'none' }}>
-              {[['❤️', '0'], ['💬', '0'], ['📤', '0'], ['🔖', '']].map(([ic, ct]) => (
-                <div key={ic} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  <div style={{ fontSize: 32 }}>{ic}</div>
-                  {ct && <div style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{ct}</div>}
+              {/* Caption */}
+              <div style={{ fontSize: 14, color: '#fff', lineHeight: 1.5, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+                {caption || <span style={{ color: 'rgba(255,255,255,0.45)' }}>Your caption will appear here…</span>}
+              </div>
+              {/* Background sound */}
+              {backgroundSound && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                  <Music size={13} color="rgba(255,255,255,0.85)" />
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>{backgroundSound.name}</span>
                 </div>
-              ))}
+              )}
             </div>
-            {/* Close button */}
-            <button className="ep-btn" onClick={() => setShowPreview(false)}
-              style={{ position: 'absolute', top: 52, left: 16, zIndex: 20, background: 'rgba(0,0,0,0.55)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
-              <X size={20} color={T.white} />
+
+            {/* 4 ── Right action sidebar — exact same layout as TikTokLayout */}
+            <div style={{
+              position: 'absolute', right: 12, bottom: 28,
+              display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center',
+              zIndex: 10, pointerEvents: 'none',
+            }}>
+              {/* Like */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.9))' }}>
+                  <Heart size={26} color="#fff" strokeWidth={2} />
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>0</span>
+              </div>
+              {/* Comment */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.9))' }}>
+                  <MessageCircle size={26} color="#fff" fill="#fff" />
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>0</span>
+              </div>
+              {/* Share */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.9))' }}>
+                  <Share2 size={26} color="#fff" />
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>0</span>
+              </div>
+              {/* Save */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.9))' }}>
+                  <Bookmark size={26} color="#fff" />
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>Save</span>
+              </div>
+              {/* Volume */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.9))' }}>
+                  <Volume2 size={26} color="#fff" />
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>On</span>
+              </div>
+            </div>
+
+            {/* 5 ── Close button (top-right) */}
+            <button className="ep-btn" onClick={() => setShowPreview(false)} style={{
+              position: 'absolute', top: 52, right: 16, zIndex: 20,
+              background: 'rgba(0,0,0,0.55)', borderRadius: '50%', width: 42, height: 42,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.12)',
+            }}>
+              <X size={20} color="#fff" />
             </button>
-            <span style={{ position: 'absolute', top: 58, left: 64, zIndex: 20, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', borderRadius: 20, padding: '5px 10px', fontSize: 11, color: 'rgba(255,220,0,0.9)', fontWeight: 700 }}>⚡ Preview · dashed = safe zones</span>
+
+            {/* 6 ── Preview badge (top-left) */}
+            <div style={{
+              position: 'absolute', top: 58, left: 16, zIndex: 20,
+              background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
+              borderRadius: 20, padding: '6px 14px',
+              fontSize: 12, color: T.pri, fontWeight: 800,
+              border: '1px solid rgba(218,155,42,0.35)',
+            }}>⚡ Preview</div>
+
           </div>
         </div>
       )}

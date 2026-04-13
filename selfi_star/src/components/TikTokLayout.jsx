@@ -791,6 +791,10 @@ export function TikTokLayout({
       <style>{`
         .video-feed-container::-webkit-scrollbar { display: none; }
         .right-sidebar-container::-webkit-scrollbar { display: none; }
+        .feed-action-icon > div > button { filter: drop-shadow(0 1px 8px rgba(0,0,0,0.95)) drop-shadow(0 0 3px rgba(0,0,0,0.8)); }
+        .feed-action-icon > div > div:first-child { filter: drop-shadow(0 1px 8px rgba(0,0,0,0.95)) drop-shadow(0 0 3px rgba(0,0,0,0.8)); }
+        .feed-action-label { text-shadow: 0 1px 5px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.8) !important; color: #fff !important; }
+        .feed-top-icon { filter: drop-shadow(0 1px 6px rgba(0,0,0,0.95)) drop-shadow(0 0 2px rgba(0,0,0,0.8)); }
       `}</style>
       <div
         className="video-feed video-feed-container"
@@ -1008,7 +1012,7 @@ export function TikTokLayout({
                           position: 'relative',
                         }}
                       >
-                        <Bell size={26} color="#fff" strokeWidth={2} />
+                        <Bell size={26} color="#fff" strokeWidth={2} className="feed-top-icon" />
                         {unreadNotifCount > 0 && (
                           <div style={{
                             position: 'absolute', top: 0, right: 0,
@@ -1486,6 +1490,7 @@ export function TikTokLayout({
                       gap: 20,
                       alignItems: 'center',
                     }}
+                    className="feed-action-icon"
                   >
                     {/* Like Button */}
                     <div
@@ -1529,6 +1534,7 @@ export function TikTokLayout({
                         )}
                       </button>
                       <div
+                        className="feed-action-label"
                         style={{
                           fontSize: 12,
                           fontWeight: 700,
@@ -1569,6 +1575,7 @@ export function TikTokLayout({
                         <MessageCircle size={32} color="#fff" fill="#fff" />
                       </button>
                       <div
+                        className="feed-action-label"
                         style={{
                           fontSize: 12,
                           fontWeight: 700,
@@ -1601,6 +1608,7 @@ export function TikTokLayout({
                         <Share2 size={32} color="#fff" />
                       </button>
                       <div
+                        className="feed-action-label"
                         style={{
                           fontSize: 12,
                           fontWeight: 700,
@@ -1637,6 +1645,7 @@ export function TikTokLayout({
                         />
                       </button>
                       <div
+                        className="feed-action-label"
                         style={{
                           fontSize: 12,
                           fontWeight: 700,
