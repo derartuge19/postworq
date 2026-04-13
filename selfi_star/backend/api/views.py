@@ -1322,6 +1322,48 @@ def get_trending_reels(request):
         return Response([], status=status.HTTP_200_OK)
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_trending_hashtags(request):
+    """Return top hashtags ranked by (post_count + weighted_votes) in the time window."""
+    import re
+    from collections import defaultdict
+    from datetime import timedelta
+
+    time_range = request.GET.get('time_range', '7d')
+    limit      = min(int(request.GET.get('limit', 15)), 30)
+
+    now = datetime.now(tz=timezone.utc)
+    if   time_range == '24h': threshold = now - timedelta(hours=24)
+    elif time_range == '30d': threshold = now - timedelta(days=30)
+    else:                     threshold = now - timedelta(days=7)
+
+    rows = Reel.objects.filter(
+        created_at__gte=threshold,
+        hashtags__isnull=False,
+    ).exclude(hashtags='').values_list('hashtags', 'votes')
+
+    tag_posts  = defaultdict(int)
+    tag_score  = defaultdict(float)
+
+    for hashtags_str, votes in rows:
+        tags = re.findall(r'#?(\w+)', hashtags_str or '')
+        for tag in tags:
+            t = tag.lower()
+            if len(t) < 2:
+                continue
+            tag_posts[t] += 1
+            tag_score[t] += 1 + (votes or 0) * 0.05
+
+    ranked = sorted(tag_score.keys(), key=lambda t: tag_score[t], reverse=True)[:limit]
+
+    result = [
+        {'tag': t, 'posts': tag_posts[t], 'score': round(tag_score[t])}
+        for t in ranked
+    ]
+    return Response(result)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def mark_not_interested(request):

@@ -1,24 +1,36 @@
-import { useState, useEffect } from 'react';
-import { TrendingUp, Flame, Music, Laugh, Dumbbell, Utensils, Plane, Palette, Play, Heart, Eye } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  Search, X, TrendingUp, Flame, Music, Laugh, Dumbbell, Utensils,
+  Plane, Palette, Play, Heart, Eye, Hash, User, Clock, ChevronRight,
+  Gamepad2, Sparkles, BookOpen, Baby, Shirt,
+} from 'lucide-react';
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
 import config from '../config';
 
-const categories = [
-  { id: 'all',     label: '🔥 Trending', icon: Flame },
-  { id: 'dance',   label: 'Dance',       icon: Music },
-  { id: 'comedy',  label: 'Comedy',      icon: Laugh },
-  { id: 'sports',  label: 'Sports',      icon: Dumbbell },
-  { id: 'food',    label: 'Food',        icon: Utensils },
-  { id: 'travel',  label: 'Travel',      icon: Plane },
-  { id: 'art',     label: 'Art',         icon: Palette },
+// ── Constants ────────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { id: 'all',     label: 'Trending',  icon: Flame,    emoji: '🔥' },
+  { id: 'dance',   label: 'Dance',     icon: Music,    emoji: '💃' },
+  { id: 'comedy',  label: 'Comedy',    icon: Laugh,    emoji: '😂' },
+  { id: 'sports',  label: 'Sports',    icon: Dumbbell, emoji: '⚽' },
+  { id: 'food',    label: 'Food',      icon: Utensils, emoji: '🍕' },
+  { id: 'travel',  label: 'Travel',    icon: Plane,    emoji: '✈️' },
+  { id: 'art',     label: 'Art',       icon: Palette,  emoji: '🎨' },
+  { id: 'gaming',  label: 'Gaming',    icon: Gamepad2, emoji: '🎮' },
+  { id: 'beauty',  label: 'Beauty',    icon: Sparkles, emoji: '✨' },
+  { id: 'fashion', label: 'Fashion',   icon: Shirt,    emoji: '👗' },
+  { id: 'education', label: 'Learn',   icon: BookOpen, emoji: '📚' },
 ];
 
-const timeRanges = [
-  { id: '24h', label: '24h' },
+const TIME_RANGES = [
+  { id: '24h', label: '24h'    },
   { id: '7d',  label: '7 days' },
-  { id: '30d', label: '30 days' },
+  { id: '30d', label: '30d'    },
 ];
+
+const RECENT_KEY = 'ep_recent_searches';
+const MAX_RECENT = 8;
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -26,257 +38,502 @@ const mediaUrl = (url) => {
   return `${config.API_BASE_URL.replace('/api', '')}${url}`;
 };
 
+const fmt = (n) => {
+  if (!n && n !== 0) return '0';
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1000)      return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
+};
+
+const readRecent = () => {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch { return []; }
+};
+const saveRecent = (list) => {
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, MAX_RECENT))); } catch {}
+};
+const addRecent = (q) => {
+  const prev = readRecent().filter(x => x !== q);
+  saveRecent([q, ...prev]);
+};
+
+// ── Skeleton shimmer ─────────────────────────────────────────────────────────
+function GridSkeleton({ T }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
+      {Array.from({ length: 9 }).map((_, i) => (
+        <div key={i} style={{
+          aspectRatio: '9/16', borderRadius: 8,
+          background: `linear-gradient(90deg,${T.border} 25%,${T.bg} 50%,${T.border} 75%)`,
+          backgroundSize: '400% 100%',
+          animation: 'ex-shimmer 1.4s ease infinite',
+        }} />
+      ))}
+    </div>
+  );
+}
+
+// ── Single video thumbnail card ───────────────────────────────────────────────
+function VideoThumb({ reel, rank, hero = false, onOpen, T }) {
+  const [hovered, setHovered] = useState(false);
+  const thumb = reel.thumbnail_url
+    ? mediaUrl(reel.thumbnail_url)
+    : (reel.file_url || reel.media) ? mediaUrl(reel.file_url || reel.media)
+    : null;
+  const isVid = !!(reel.file_url || reel.media || '').match(/\.(mp4|webm|ogg|mov)/i);
+
+  return (
+    <div
+      onClick={() => onOpen?.(reel)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: 'relative',
+        aspectRatio: hero ? '16/9' : '9/16',
+        background: '#111',
+        borderRadius: 10,
+        overflow: 'hidden',
+        cursor: 'pointer',
+        gridColumn: hero ? '1 / span 3' : undefined,
+        transform: hovered ? 'scale(1.015)' : 'scale(1)',
+        transition: 'transform 0.15s',
+        zIndex: hovered ? 1 : 0,
+      }}
+    >
+      {thumb
+        ? <img src={thumb} alt="" loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        : <div style={{ width: '100%', height: '100%',
+            background: `linear-gradient(135deg,${T.pri}30,#00000080)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Play size={hero ? 48 : 28} color="#fff" fill="#fff" />
+          </div>
+      }
+
+      {/* Hover overlay */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: hovered ? 'rgba(0,0,0,0.32)' : 'rgba(0,0,0,0.12)',
+        transition: 'background 0.2s',
+      }} />
+
+      {/* Video indicator */}
+      {isVid && (
+        <div style={{
+          position: 'absolute', top: 7, left: 7,
+          background: 'rgba(0,0,0,0.58)', borderRadius: 4, padding: '2px 5px',
+          display: 'flex', alignItems: 'center', gap: 3,
+        }}>
+          <Play size={9} color="#fff" fill="#fff" />
+        </div>
+      )}
+
+      {/* Rank medal (top 3) */}
+      {rank !== undefined && rank < 3 && (
+        <div style={{
+          position: 'absolute', top: 7, right: 7,
+          background: rank === 0 ? '#FFD700' : rank === 1 ? '#C0C0C0' : '#CD7F32',
+          color: '#000', borderRadius: '50%',
+          width: hero ? 28 : 20, height: hero ? 28 : 20,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: hero ? 13 : 10, fontWeight: 900,
+        }}>
+          {rank + 1}
+        </div>
+      )}
+
+      {/* Bottom stats */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        background: 'linear-gradient(transparent, rgba(0,0,0,0.72))',
+        padding: hero ? '24px 12px 10px' : '12px 6px 6px',
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        {hero && reel.user?.username && (
+          <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#fff',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            @{reel.user.username}
+          </span>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <Heart size={hero ? 13 : 10} color="#fff" fill="#fff" />
+          <span style={{ color: '#fff', fontSize: hero ? 12 : 10, fontWeight: 600 }}>
+            {fmt(reel.votes || 0)}
+          </span>
+        </div>
+        {(reel.comment_count > 0 || reel.comments > 0) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Eye size={hero ? 12 : 10} color="rgba(255,255,255,0.8)" />
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: hero ? 12 : 10 }}>
+              {fmt(reel.comment_count || reel.comments || 0)}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main ExplorerPage ─────────────────────────────────────────────────────────
 export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail }) {
   const { colors: T } = useTheme();
+
+  // ── Explore state ──────────────────────────────────────────────────────────
   const [activeCategory, setActiveCategory] = useState('all');
   const [timeRange, setTimeRange] = useState('7d');
-  const [videos, setVideos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [hoveredId, setHoveredId] = useState(null);
+  const [videos, setVideos]       = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [hashtags, setHashtags]   = useState([]);
+  const [hashLoading, setHashLoading] = useState(true);
 
+  // ── Search state ───────────────────────────────────────────────────────────
+  const [query, setQuery]             = useState('');
+  const [debouncedQ, setDebouncedQ]   = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [recentSearches, setRecentSearches] = useState(readRecent);
+  const [searchResults, setSearchResults]   = useState({ users: [], posts: [], hashtags: [] });
+  const [searchLoading, setSearchLoading]   = useState(false);
+
+  const inputRef    = useRef(null);
+  const inSearchMode = debouncedQ.trim().length > 0;
+
+  // ── Fetch trending grid ────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     api.request(`/explorer/trending/?category=${activeCategory}&time_range=${timeRange}&limit=30`)
-      .then(data => { if (!cancelled) setVideos(data || []); })
+      .then(d => { if (!cancelled) setVideos(Array.isArray(d) ? d : (d?.results || [])); })
       .catch(() => { if (!cancelled) setVideos([]); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [activeCategory, timeRange]);
 
+  // ── Fetch trending hashtags ────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    setHashLoading(true);
+    api.getTrendingHashtags({ time_range: timeRange, limit: 15 })
+      .then(d => { if (!cancelled) setHashtags(Array.isArray(d) ? d : []); })
+      .catch(() => { if (!cancelled) setHashtags([]); })
+      .finally(() => { if (!cancelled) setHashLoading(false); });
+    return () => { cancelled = true; };
+  }, [timeRange]);
+
+  // ── Debounce search query ──────────────────────────────────────────────────
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  // ── Live search ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!debouncedQ.trim()) { setSearchResults({ users: [], posts: [], hashtags: [] }); return; }
+    let cancelled = false;
+    setSearchLoading(true);
+    api.search(debouncedQ.trim())
+      .then(d => { if (!cancelled) setSearchResults(d || { users: [], posts: [], hashtags: [] }); })
+      .catch(() => { if (!cancelled) setSearchResults({ users: [], posts: [], hashtags: [] }); })
+      .finally(() => { if (!cancelled) setSearchLoading(false); });
+    return () => { cancelled = true; };
+  }, [debouncedQ]);
+
+  const commitSearch = (q) => {
+    const trimmed = (q || query).trim();
+    if (!trimmed) return;
+    addRecent(trimmed);
+    setRecentSearches(readRecent());
+    setQuery(trimmed);
+    inputRef.current?.blur();
+    setSearchFocused(false);
+  };
+
+  const clearSearch = () => {
+    setQuery('');
+    setDebouncedQ('');
+    setSearchFocused(false);
+  };
+
+  const handleHashtagClick = (tag) => {
+    const q = `#${tag}`;
+    setQuery(q);
+    setDebouncedQ(q);
+    commitSearch(q);
+  };
+
+  const openReel = (reel) => onShowVideoDetail?.(reel.id || reel);
+
+  const showRecentDropdown = searchFocused && query.length === 0 && recentSearches.length > 0;
+
   return (
     <div style={{ minHeight: '100%', background: T.bg, display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        @keyframes ex-shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+      `}</style>
 
-      {/* ── Header ── */}
+      {/* ── STICKY HEADER ───────────────────────────────────────────────── */}
       <div style={{
-        padding: '20px 20px 0',
-        background: T.cardBg || T.bg,
-        borderBottom: `1px solid ${T.border}`,
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
+        position: 'sticky', top: 0, zIndex: 20,
+        background: T.bg,
+        borderBottom: inSearchMode ? 'none' : `1px solid ${T.border}`,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <Flame size={26} color={T.pri} />
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: T.txt, margin: 0 }}>Explore</h1>
-          <div style={{ flex: 1 }} />
-          {/* Time range pills */}
-          <div style={{ display: 'flex', gap: 6 }}>
-            {timeRanges.map(r => (
-              <button
-                key={r.id}
-                onClick={() => setTimeRange(r.id)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 20,
+        {/* Row 1 – title + search bar */}
+        <div style={{ padding: '14px 16px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          {inSearchMode || searchFocused ? null : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <Flame size={22} color={T.pri} />
+              <span style={{ fontSize: 20, fontWeight: 800, color: T.txt }}>Explore</span>
+            </div>
+          )}
+          {/* Search input wrapper */}
+          <div style={{ flex: 1, position: 'relative' }}>
+            <Search size={16} color={T.sub} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setTimeout(() => setSearchFocused(false), 180)}
+              onKeyDown={e => { if (e.key === 'Enter') commitSearch(); }}
+              placeholder="Search videos, users, #tags…"
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                padding: '10px 38px 10px 36px',
+                borderRadius: 24, border: `1.5px solid ${searchFocused ? T.pri : T.border}`,
+                fontSize: 14, background: T.bg, color: T.txt,
+                outline: 'none', transition: 'border-color .2s',
+              }}
+            />
+            {query && (
+              <button onClick={clearSearch} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', color: T.sub }}>
+                <X size={15} />
+              </button>
+            )}
+
+            {/* Recent searches dropdown */}
+            {showRecentDropdown && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                background: '#fff', borderRadius: 14,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+                overflow: 'hidden', zIndex: 30,
+                border: `1px solid ${T.border}`,
+              }}>
+                <div style={{ padding: '10px 14px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: T.sub, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <Clock size={12} /> Recent
+                  </span>
+                  <button onClick={() => { saveRecent([]); setRecentSearches([]); }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: T.sub, fontWeight: 600 }}>
+                    Clear all
+                  </button>
+                </div>
+                {recentSearches.map(r => (
+                  <button key={r} onMouseDown={() => { setQuery(r); commitSearch(r); }}
+                    style={{ width: '100%', padding: '9px 14px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', color: T.txt, fontSize: 14 }}>
+                    <Clock size={13} color={T.sub} />
+                    <span style={{ flex: 1 }}>{r}</span>
+                    <ChevronRight size={13} color={T.sub} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Time range pills — only in explore mode */}
+          {!inSearchMode && !searchFocused && (
+            <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+              {TIME_RANGES.map(r => (
+                <button key={r.id} onClick={() => setTimeRange(r.id)} style={{
+                  padding: '5px 10px', borderRadius: 20,
                   border: `1.5px solid ${timeRange === r.id ? T.pri : T.border}`,
                   background: timeRange === r.id ? T.pri : 'transparent',
                   color: timeRange === r.id ? '#fff' : T.sub,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
+                  fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+                }}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Category tabs */}
-        <div style={{
-          display: 'flex',
-          gap: 8,
-          overflowX: 'auto',
-          paddingBottom: 12,
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}>
-          {categories.map(cat => {
-            const Icon = cat.icon;
-            const isActive = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 20,
-                  border: `1.5px solid ${isActive ? T.pri : T.border}`,
-                  background: isActive ? T.pri : T.cardBg || '#fff',
-                  color: isActive ? '#fff' : T.txt,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.2s',
-                  flexShrink: 0,
-                }}
-              >
-                <Icon size={15} />
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── Content ── */}
-      <div style={{ flex: 1, padding: '16px 16px 24px' }}>
-        {loading ? (
-          /* Skeleton grid */
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} style={{
-                aspectRatio: '9/16',
-                background: T.border,
-                borderRadius: 4,
-                animation: 'pulse 1.5s ease-in-out infinite',
-                opacity: 0.6,
-              }} />
-            ))}
-          </div>
-        ) : videos.length === 0 ? (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '80px 20px',
-            gap: 16,
-            color: T.sub,
-            textAlign: 'center',
-          }}>
-            <TrendingUp size={56} color={T.border} />
-            <div style={{ fontSize: 18, fontWeight: 700, color: T.txt }}>No trending content yet</div>
-            <div style={{ fontSize: 14 }}>Check back later for trending videos in this category</div>
-          </div>
-        ) : (
-          /* 3-column thumbnail grid */
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 3,
-          }}>
-            {videos.map((reel, idx) => {
-              const thumb = reel.thumbnail_url
-                ? mediaUrl(reel.thumbnail_url)
-                : reel.file_url
-                  ? mediaUrl(reel.file_url)
-                  : null;
-              const isVideo = reel.file_url && (reel.file_url.endsWith('.mp4') || reel.file_url.endsWith('.webm') || reel.file_type === 'video');
-              const isHovered = hoveredId === reel.id;
-
+        {/* Row 2 – category pills (explore mode only) */}
+        {!inSearchMode && (
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px 12px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {CATEGORIES.map(cat => {
+              const isActive = activeCategory === cat.id;
               return (
-                <div
-                  key={reel.id}
-                  onClick={() => onShowVideoDetail?.(reel.id)}
-                  onMouseEnter={() => setHoveredId(reel.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  style={{
-                    position: 'relative',
-                    aspectRatio: '9/16',
-                    background: '#111',
-                    borderRadius: 4,
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    transform: isHovered ? 'scale(1.02)' : 'scale(1)',
-                    transition: 'transform 0.15s',
-                    zIndex: isHovered ? 1 : 0,
-                  }}
-                >
-                  {/* Thumbnail */}
-                  {thumb ? (
-                    <img
-                      src={thumb}
-                      alt=""
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        display: 'block',
-                      }}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div style={{
-                      width: '100%', height: '100%',
-                      background: `linear-gradient(135deg, ${T.pri}30, #00000080)`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <Play size={32} color="#fff" fill="#fff" />
-                    </div>
-                  )}
-
-                  {/* Dark overlay on hover */}
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    background: isHovered ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.15)',
-                    transition: 'background 0.2s',
-                  }} />
-
-                  {/* Video badge */}
-                  {isVideo && (
-                    <div style={{
-                      position: 'absolute', top: 6, left: 6,
-                      background: 'rgba(0,0,0,0.6)',
-                      borderRadius: 4, padding: '2px 6px',
-                      display: 'flex', alignItems: 'center', gap: 3,
-                    }}>
-                      <Play size={10} color="#fff" fill="#fff" />
-                    </div>
-                  )}
-
-                  {/* Trending rank badge (top 3) */}
-                  {idx < 3 && (
-                    <div style={{
-                      position: 'absolute', top: 6, right: 6,
-                      background: idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : '#CD7F32',
-                      color: '#000',
-                      borderRadius: '50%',
-                      width: 20, height: 20,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 10, fontWeight: 900,
-                    }}>
-                      {idx + 1}
-                    </div>
-                  )}
-
-                  {/* Stats overlay at bottom */}
-                  <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                    padding: '12px 6px 6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      <Heart size={11} color="#fff" fill="#fff" />
-                      <span style={{ color: '#fff', fontSize: 11, fontWeight: 600 }}>
-                        {reel.votes > 999 ? `${(reel.votes / 1000).toFixed(1)}k` : reel.votes || 0}
-                      </span>
-                    </div>
-                    {reel.comment_count > 0 && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                        <Eye size={11} color="rgba(255,255,255,0.8)" />
-                        <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>
-                          {reel.comment_count}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <button key={cat.id} onClick={() => setActiveCategory(cat.id)} style={{
+                  padding: '7px 14px', borderRadius: 20, flexShrink: 0,
+                  border: `1.5px solid ${isActive ? T.pri : T.border}`,
+                  background: isActive ? T.pri : T.bg,
+                  color: isActive ? '#fff' : T.txt,
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  whiteSpace: 'nowrap', transition: 'all .18s',
+                }}>
+                  <span>{cat.emoji}</span>
+                  {cat.label}
+                </button>
               );
             })}
           </div>
         )}
       </div>
 
-      <style>{`@keyframes pulse { 0%,100%{opacity:.6} 50%{opacity:.3} }`}</style>
+      {/* ── SCROLLABLE CONTENT ─────────────────────────────────────────────── */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+
+        {/* ══ SEARCH RESULTS MODE ══════════════════════════════════════════ */}
+        {inSearchMode && (
+          <div style={{ padding: '12px 16px 32px', maxWidth: 680, margin: '0 auto' }}>
+            {searchLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 8 }}>
+                {[0,1,2,3].map(i => (
+                  <div key={i} style={{ height: 56, borderRadius: 12,
+                    background: `linear-gradient(90deg,${T.border} 25%,${T.bg} 50%,${T.border} 75%)`,
+                    backgroundSize: '400% 100%', animation: 'ex-shimmer 1.4s ease infinite' }} />
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Users */}
+                {searchResults.users?.length > 0 && (
+                  <div style={{ marginBottom: 28 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <User size={13} /> PEOPLE
+                    </div>
+                    {searchResults.users.map(u => {
+                      const photo = u.profile_photo ? mediaUrl(u.profile_photo) : null;
+                      return (
+                        <button key={u.id} onClick={() => onShowProfile?.(u.id)} style={{
+                          width: '100%', padding: '10px 12px', border: 'none', background: 'none',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12,
+                          borderRadius: 12, transition: 'background .15s',
+                        }}
+                          onMouseEnter={e => e.currentTarget.style.background = T.border + '60'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                          <div style={{ width: 42, height: 42, borderRadius: '50%', background: T.pri + '30', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: `2px solid ${T.border}` }}>
+                            {photo ? <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 20 }}>👤</span>}
+                          </div>
+                          <div style={{ flex: 1, textAlign: 'left' }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: T.txt }}>@{u.username}</div>
+                            {u.followers_count > 0 && <div style={{ fontSize: 12, color: T.sub }}>{fmt(u.followers_count)} followers</div>}
+                          </div>
+                          <ChevronRight size={16} color={T.sub} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Hashtags */}
+                {searchResults.hashtags?.length > 0 && (
+                  <div style={{ marginBottom: 28 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Hash size={13} /> HASHTAGS
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {searchResults.hashtags.map(tag => (
+                        <button key={tag} onClick={() => handleHashtagClick(tag)} style={{
+                          padding: '7px 14px', borderRadius: 20,
+                          background: T.pri + '18', border: `1px solid ${T.pri}40`,
+                          color: T.pri, fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                        }}>
+                          #{tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Posts */}
+                {searchResults.posts?.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Play size={13} /> POSTS
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+                      {searchResults.posts.map(r => (
+                        <VideoThumb key={r.id} reel={r} onOpen={openReel} T={T} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* No results */}
+                {!searchResults.users?.length && !searchResults.hashtags?.length && !searchResults.posts?.length && (
+                  <div style={{ textAlign: 'center', padding: '60px 20px', color: T.sub }}>
+                    <Search size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
+                    <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 6 }}>No results for "{debouncedQ}"</div>
+                    <div style={{ fontSize: 13 }}>Try different keywords or browse trending below</div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ══ EXPLORE MODE ═════════════════════════════════════════════════ */}
+        {!inSearchMode && (
+          <div style={{ padding: '12px 16px 32px' }}>
+
+            {/* ── Trending hashtags strip ─────────────────────────────── */}
+            {!hashLoading && hashtags.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <TrendingUp size={13} /> TRENDING HASHTAGS
+                </div>
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 4 }}>
+                  {hashtags.map(h => (
+                    <button key={h.tag} onClick={() => handleHashtagClick(h.tag)} style={{
+                      flexShrink: 0, padding: '7px 14px', borderRadius: 20,
+                      background: T.pri + '12', border: `1px solid ${T.pri}35`,
+                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                      cursor: 'pointer', gap: 1,
+                    }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: T.pri }}>#{h.tag}</span>
+                      <span style={{ fontSize: 10, color: T.sub }}>{fmt(h.posts)} posts</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {hashLoading && (
+              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 20 }}>
+                {[0,1,2,3,4].map(i => (
+                  <div key={i} style={{ flexShrink: 0, width: 80, height: 46, borderRadius: 20,
+                    background: `linear-gradient(90deg,${T.border} 25%,${T.bg} 50%,${T.border} 75%)`,
+                    backgroundSize: '400% 100%', animation: 'ex-shimmer 1.4s ease infinite' }} />
+                ))}
+              </div>
+            )}
+
+            {/* ── Trending video grid ─────────────────────────────────── */}
+            {loading ? (
+              <GridSkeleton T={T} />
+            ) : videos.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: T.sub }}>
+                <TrendingUp size={44} style={{ opacity: 0.3, marginBottom: 12 }} />
+                <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 6 }}>Nothing trending yet</div>
+                <div style={{ fontSize: 13 }}>Check back soon or try a different category</div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+                {videos.map((reel, idx) => (
+                  <VideoThumb
+                    key={reel.id}
+                    reel={reel}
+                    rank={idx}
+                    hero={idx === 0}
+                    onOpen={openReel}
+                    T={T}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

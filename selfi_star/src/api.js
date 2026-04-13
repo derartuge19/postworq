@@ -393,6 +393,12 @@ const api = {
   searchByHashtag: (hashtag) =>
     api.request(`/reels/?hashtags__icontains=${encodeURIComponent(hashtag)}`),
 
+  // Trending hashtags
+  getTrendingHashtags: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.request(`/explorer/trending-hashtags/${qs ? '?' + qs : ''}`);
+  },
+
   // Follow/Unfollow
   toggleFollow: (userId) =>
     api.request('/follows/toggle/', {
