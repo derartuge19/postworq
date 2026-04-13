@@ -322,59 +322,51 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         </>
       ) : (
         <>
-          {/* Header */}
-      <div style={{
-        position: "sticky",
-        top: 0,
-        background: "#fff",
-        borderBottom: `1px solid ${T.border}`,
-        padding: "12px 20px",
-        display: "flex",
-        alignItems: "center",
-        gap: 16,
-        zIndex: 10,
-      }}>
-        <button
-          onClick={onBack}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 8,
-            display: "flex",
-            alignItems: "center",
-            color: T.txt,
-          }}
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: T.txt }}>
-            {profileUser?.username}
-          </div>
-          <div style={{ fontSize: 12, color: T.sub }}>
-            {posts.length} posts
-          </div>
-        </div>
-        {isOwnProfile && (
-          <button
-            onClick={onShowSettings}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 8,
-              display: 'flex',
-              alignItems: 'center',
-              color: T.txt,
-            }}
-          >
-            <Settings size={24} />
-          </button>
-        )}
-      </div>
+          {/* ── Sticky header: gamification on top, username/nav below ── */}
+          <div style={{ position: "sticky", top: 0, zIndex: 10 }}>
 
-      {isOwnProfile && <GamificationBar userId={userId || user?.id} theme={T} />}
+            {/* 1. Gamification bar — coin / streak / spin / gifts */}
+            {isOwnProfile && <GamificationBar userId={userId || user?.id} theme={T} />}
+
+            {/* 2. Navigation row — back ← username · posts ⚙️ */}
+            <div style={{
+              background: "#fff",
+              borderBottom: `1px solid ${T.border}`,
+              padding: "12px 20px",
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+            }}>
+              <button
+                onClick={onBack}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: 8, display: "flex", alignItems: "center", color: T.txt,
+                }}
+              >
+                <ArrowLeft size={24} />
+              </button>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: T.txt }}>
+                  {profileUser?.username}
+                </div>
+                <div style={{ fontSize: 12, color: T.sub }}>
+                  {posts.length} posts
+                </div>
+              </div>
+              {isOwnProfile && (
+                <button
+                  onClick={onShowSettings}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: 8, display: 'flex', alignItems: 'center', color: T.txt,
+                  }}
+                >
+                  <Settings size={24} />
+                </button>
+              )}
+            </div>
+          </div>
 
       {/* Profile Info */}
       <div style={{ padding: "20px" }}>
