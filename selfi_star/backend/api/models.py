@@ -57,6 +57,7 @@ class Reel(models.Model):
     media = models.FileField(upload_to='reels/', null=True, blank=True)
     caption = models.TextField(blank=True)
     hashtags = models.TextField(blank=True)
+    overlay_text = models.TextField(blank=True, default='')
     votes = models.IntegerField(default=0)
     
     # Campaign integration

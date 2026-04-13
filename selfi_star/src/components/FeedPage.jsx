@@ -40,6 +40,7 @@ export function FeedPage({ tab }) {
           shares: 0,
           image: reel.image,
           media: reel.media,
+          overlay_text: reel.overlay_text || '',
           user: reel.user,
         };
       });

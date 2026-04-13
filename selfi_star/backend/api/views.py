@@ -407,8 +407,9 @@ class ReelViewSet(viewsets.ModelViewSet):
         print(f"[REEL CREATE] user={request.user} files={list(request.FILES.keys())}")
         try:
             upload_file = request.FILES.get('file') or request.FILES.get('media') or request.FILES.get('image')
-            caption  = request.data.get('caption', '')
-            hashtags = request.data.get('hashtags', '')
+            caption      = request.data.get('caption', '')
+            hashtags     = request.data.get('hashtags', '')
+            overlay_text = request.data.get('overlay_text', '')
 
             is_video = False
             if upload_file:
@@ -420,7 +421,7 @@ class ReelViewSet(viewsets.ModelViewSet):
                     return Response({'error': 'Uploaded file is empty.'}, status=status.HTTP_400_BAD_REQUEST)
 
             # Step 1: create row without file fields (avoids storage backend interception)
-            reel = Reel.objects.create(user=request.user, caption=caption, hashtags=hashtags)
+            reel = Reel.objects.create(user=request.user, caption=caption, hashtags=hashtags, overlay_text=overlay_text)
 
             # Step 2: upload to Cloudinary, then write URL via raw SQL
             if upload_file:

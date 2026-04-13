@@ -64,7 +64,7 @@ class ReelSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Reel
-        fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'votes', 'comment_count', 'created_at', 'is_liked', 'is_saved']
+        fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'overlay_text', 'votes', 'comment_count', 'created_at', 'is_liked', 'is_saved']
     
     def _build_url(self, field, request):
         """Build absolute URL for a file field, handling both local and Cloudinary storage."""
