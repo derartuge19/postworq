@@ -82,7 +82,13 @@ export function EnhancedPostPage({ user, onBack }) {
   const [showTextInput, setShowTextInput] = useState(false);
   const [currentText, setCurrentText] = useState('');
   const [textColor, setTextColor] = useState('#ffffff');
+  const [textStyle, setTextStyle] = useState('bold');   // bold|plain|outline|neon|highlight
+  const [textAlign, setTextAlign] = useState('center'); // left|center|right
+  const [textFontSize, setTextFontSize] = useState(22);
   const [dragging, setDragging] = useState(null); // { id, startX, startY, origX, origY }
+
+  // Toast
+  const [successMsg, setSuccessMsg] = useState('');
 
   // Sound
   const [backgroundSound, setBackgroundSound] = useState(null);
@@ -423,6 +429,40 @@ export function EnhancedPostPage({ user, onBack }) {
     setStage('details');
   };
 
+  // ── Overlay drag helpers ─────────────────────────────────────────────────
+  const startOverlayDrag = (e, id) => {
+    e.stopPropagation();
+    const pt = e.touches?.[0] || e;
+    const ov = textOverlays.find(o => o.id === id);
+    if (!ov) return;
+    setDragging({ id, sx: pt.clientX, sy: pt.clientY, ox: ov.x, oy: ov.y });
+  };
+  const moveOverlayDrag = (e) => {
+    if (!dragging) return;
+    const pt = e.touches?.[0] || e;
+    const el = previewContainerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const dx = ((pt.clientX - dragging.sx) / r.width) * 100;
+    const dy = ((pt.clientY - dragging.sy) / r.height) * 100;
+    setTextOverlays(prev => prev.map(o => o.id === dragging.id
+      ? { ...o, x: Math.max(5, Math.min(95, dragging.ox + dx)), y: Math.max(5, Math.min(95, dragging.oy + dy)) }
+      : o));
+  };
+  const endOverlayDrag = () => setDragging(null);
+
+  // ── Overlay CSS helper ────────────────────────────────────────────────────
+  const overlayCSS = (ov) => {
+    const base = { fontWeight: 800, fontSize: ov.fontSize, color: ov.color, textAlign: ov.align || 'center', userSelect: 'none', cursor: 'move', whiteSpace: 'pre-wrap', maxWidth: 260 };
+    switch (ov.style) {
+      case 'plain':     return { ...base, textShadow: '0 2px 8px rgba(0,0,0,0.9)', background: 'transparent', padding: '4px 6px', borderRadius: 0 };
+      case 'outline':   return { ...base, textShadow: 'none', WebkitTextStroke: `2px ${ov.color}`, color: 'transparent', background: 'transparent', padding: '4px 6px' };
+      case 'neon':      return { ...base, textShadow: `0 0 8px ${ov.color}, 0 0 20px ${ov.color}, 0 0 40px ${ov.color}`, background: 'transparent', padding: '4px 6px' };
+      case 'highlight': return { ...base, background: ov.color, color: ov.color === '#fff' || ov.color === '#ffffff' ? '#000' : '#fff', padding: '4px 12px', borderRadius: 6 };
+      default:          return { ...base, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', padding: '4px 10px', borderRadius: 8, textShadow: '0 1px 4px rgba(0,0,0,0.6)' };
+    }
+  };
+
   // ── Draft helpers ─────────────────────────────────────────────────────
   const saveDraft = async () => {
     const draftId = Date.now();
@@ -468,7 +508,8 @@ export function EnhancedPostPage({ user, onBack }) {
     if (!currentText.trim()) return;
     setTextOverlays(prev => [...prev, {
       id: Date.now(), text: currentText, color: textColor,
-      x: 50, y: 50, fontSize: 22,
+      style: textStyle, align: textAlign, fontSize: textFontSize,
+      x: 50, y: 50,
     }]);
     setCurrentText('');
     setShowTextInput(false);
@@ -566,7 +607,9 @@ export function EnhancedPostPage({ user, onBack }) {
 
           {captureMode === 'camera' ? (
             /* ── CAMERA VIEW (fullscreen 9:16) ── */
-            <div style={{ position: 'absolute', inset: 0 }}>
+            <div ref={previewContainerRef} style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
+              onMouseMove={moveOverlayDrag} onMouseUp={endOverlayDrag} onMouseLeave={endOverlayDrag}
+              onTouchMove={moveOverlayDrag} onTouchEnd={endOverlayDrag}>
               {/* Hidden video source */}
               <video ref={videoRef} playsInline muted
                 style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} />
@@ -574,27 +617,20 @@ export function EnhancedPostPage({ user, onBack }) {
               <canvas ref={canvasRef}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
 
-              {/* Text overlays ON camera preview */}
+              {/* Text overlays ON camera preview — draggable */}
               {textOverlays.map(ov => (
                 <div key={ov.id}
-                  style={{
-                    position: 'absolute', left: `${ov.x}%`, top: `${ov.y}%`,
-                    transform: 'translate(-50%,-50%)',
-                    color: ov.color, fontSize: ov.fontSize,
-                    fontWeight: 800, textShadow: '0 2px 8px rgba(0,0,0,0.6)',
-                    cursor: 'move', userSelect: 'none', padding: '4px 8px',
-                    background: 'rgba(0,0,0,0.25)', borderRadius: 8,
-                    backdropFilter: 'blur(2px)',
-                  }}
-                  onDoubleClick={() => removeOverlay(ov.id)}
+                  style={{ position: 'absolute', left: `${ov.x}%`, top: `${ov.y}%`, transform: 'translate(-50%,-50%)', zIndex: 20, touchAction: 'none' }}
+                  onMouseDown={e => startOverlayDrag(e, ov.id)}
+                  onTouchStart={e => startOverlayDrag(e, ov.id)}
                 >
-                  {ov.text}
-                  <div style={{
-                    position: 'absolute', top: -10, right: -10,
-                    width: 20, height: 20, borderRadius: '50%',
-                    background: T.red, display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', cursor: 'pointer', fontSize: 11,
-                  }} onClick={() => removeOverlay(ov.id)}>×</div>
+                  <div style={{ position: 'relative', ...overlayCSS(ov) }}>
+                    {ov.text}
+                    <div style={{ position: 'absolute', top: -10, right: -10, width: 20, height: 20, borderRadius: '50%', background: T.red, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 11, zIndex: 21 }}
+                      onMouseDown={e => e.stopPropagation()}
+                      onTouchStart={e => e.stopPropagation()}
+                      onClick={() => removeOverlay(ov.id)}>×</div>
+                  </div>
                 </div>
               ))}
 
@@ -1092,33 +1128,68 @@ export function EnhancedPostPage({ user, onBack }) {
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 9000,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: 24, animation: 'ep-fade-in 0.2s ease',
+          padding: 20, animation: 'ep-fade-in 0.2s ease',
         }} onClick={() => setShowTextInput(false)}>
           <div style={{ width: '100%', maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            {/* Live preview of the text style */}
+            <div style={{ textAlign: 'center', marginBottom: 16, minHeight: 52, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {currentText ? (
+                <span style={{ ...overlayCSS({ color: textColor, style: textStyle, align: textAlign, fontSize: Math.min(textFontSize * 1.2, 36), fontWeight: 800 }), cursor: 'default' }}>
+                  {currentText}
+                </span>
+              ) : <span style={{ color: T.sub, fontSize: 14 }}>Preview appears here</span>}
+            </div>
             <textarea
               autoFocus
               value={currentText}
               onChange={e => setCurrentText(e.target.value)}
               placeholder="Type your text..."
-              rows={3}
+              rows={2}
               style={{
                 width: '100%', background: 'rgba(255,255,255,0.08)', border: `1px solid ${T.border}`,
-                borderRadius: 16, padding: 16, color: textColor,
-                fontSize: 24, fontWeight: 800, outline: 'none', resize: 'none', boxSizing: 'border-box',
-                textAlign: 'center', textShadow: '0 2px 8px rgba(0,0,0,0.6)',
+                borderRadius: 16, padding: 14, color: textColor,
+                fontSize: textFontSize, fontWeight: 800, outline: 'none', resize: 'none', boxSizing: 'border-box',
+                textAlign: textAlign,
               }}
             />
-            <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'center' }}>
-              {TEXT_COLORS.map(c => (
-                <button key={c} className="ep-btn" onClick={() => setTextColor(c)}
-                  style={{
-                    width: 32, height: 32, borderRadius: '50%', background: c,
-                    border: textColor === c ? `3px solid ${T.white}` : '3px solid transparent',
-                    boxShadow: textColor === c ? `0 0 0 2px ${T.pri}` : 'none',
-                  }} />
+            {/* Style row */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'center' }}>
+              {[['bold','Aa'],['plain','A'],['outline','Ø'],['neon','✦'],['highlight','▮']].map(([s,lbl]) => (
+                <button key={s} className="ep-btn" onClick={() => setTextStyle(s)}
+                  style={{ width: 44, height: 44, borderRadius: 12, fontSize: 15, fontWeight: 800,
+                    background: textStyle === s ? T.pri : 'rgba(255,255,255,0.1)',
+                    color: textStyle === s ? '#000' : T.white,
+                    border: textStyle === s ? 'none' : `1px solid ${T.border}` }}>
+                  {lbl}
+                </button>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+            {/* Alignment */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'center' }}>
+              {[['left','◀'],['center','≡'],['right','▶']].map(([a,lbl]) => (
+                <button key={a} className="ep-btn" onClick={() => setTextAlign(a)}
+                  style={{ width: 44, height: 36, borderRadius: 10, fontSize: 15,
+                    background: textAlign === a ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.07)',
+                    color: T.white, border: textAlign === a ? `1px solid ${T.white}` : `1px solid ${T.border}` }}>
+                  {lbl}
+                </button>
+              ))}
+              <div style={{ flex: 1 }} />
+              <span style={{ color: T.sub, fontSize: 12, alignSelf: 'center' }}>Size</span>
+              <input type="range" min={14} max={56} value={textFontSize}
+                onChange={e => setTextFontSize(Number(e.target.value))}
+                style={{ width: 90, accentColor: T.pri }} />
+            </div>
+            {/* Color row */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'center' }}>
+              {TEXT_COLORS.map(c => (
+                <button key={c} className="ep-btn" onClick={() => setTextColor(c)}
+                  style={{ width: 30, height: 30, borderRadius: '50%', background: c,
+                    border: textColor === c ? `3px solid ${T.white}` : '3px solid transparent',
+                    boxShadow: textColor === c ? `0 0 0 2px ${T.pri}` : 'none' }} />
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
               <button className="ep-btn" onClick={() => setShowTextInput(false)}
                 style={{ flex: 1, padding: 14, background: 'rgba(255,255,255,0.08)', borderRadius: 16, color: T.white, fontSize: 15, fontWeight: 700 }}>
                 Cancel
@@ -1222,77 +1293,63 @@ export function EnhancedPostPage({ user, onBack }) {
         </div>
       )}
 
-      {/* ── PREVIEW MODAL ────────────────────────────────────────────────────── */}
+      {/* ── PREVIEW MODAL — mirrors actual VideoCard UI ──────────────────────── */}
       {showPreview && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: '#000' }}>
-          {/* Media background */}
-          {preview && (isVideoFile
-            ? <video src={preview} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} autoPlay loop muted playsInline />
-            : <img src={preview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          )}
-          {/* Text overlays */}
-          {textOverlays.map(ov => (
-            <div key={ov.id} style={{
-              position: 'absolute', left: `${ov.x}%`, top: `${ov.y}%`,
-              transform: 'translate(-50%,-50%)', color: ov.color,
-              fontSize: ov.fontSize, fontWeight: 800, whiteSpace: 'nowrap',
-              textShadow: '0 1px 8px rgba(0,0,0,0.8)',
-              background: 'rgba(0,0,0,0.28)', borderRadius: 6, padding: '2px 8px',
-              pointerEvents: 'none',
-            }}>{ov.text}</div>
-          ))}
-          {/* Safe-zone guide */}
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-            {/* Top safe zone — 130px */}
-            <div style={{ position: 'absolute', top: 130, left: 0, right: 0, borderBottom: '2px dashed rgba(255,200,0,0.7)' }}>
-              <span style={{ position: 'absolute', right: 8, top: 2, fontSize: 10, color: 'rgba(255,200,0,0.9)', fontWeight: 700, background: 'rgba(0,0,0,0.5)', padding: '1px 4px', borderRadius: 4 }}>SAFE ZONE ↓</span>
-            </div>
-            {/* Bottom safe zone — 250px from bottom */}
-            <div style={{ position: 'absolute', bottom: 250, left: 0, right: 0, borderTop: '2px dashed rgba(255,200,0,0.7)' }}>
-              <span style={{ position: 'absolute', right: 8, bottom: 2, fontSize: 10, color: 'rgba(255,200,0,0.9)', fontWeight: 700, background: 'rgba(0,0,0,0.5)', padding: '1px 4px', borderRadius: 4 }}>SAFE ZONE ↑</span>
-            </div>
-            {/* Right safe zone — 60px */}
-            <div style={{ position: 'absolute', right: 60, top: 130, bottom: 250, borderRight: '2px dashed rgba(255,200,0,0.5)' }} />
-          </div>
-          {/* Mocked TikTok UI chrome */}
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-            {/* Top bar */}
-            <div style={{ padding: '52px 20px 12px', background: 'linear-gradient(to bottom,rgba(0,0,0,0.5),transparent)' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 32 }}>
-                {['Following','For You'].map((t,i) => (
-                  <span key={t} style={{ fontSize: 16, fontWeight: i===1?800:500, color: i===1?T.white:'rgba(255,255,255,0.6)', borderBottom: i===1?`2px solid ${T.white}`:'none', paddingBottom: 4 }}>{t}</span>
-                ))}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: '#000', display: 'flex', flexDirection: 'column' }}>
+          {/* Media fills screen */}
+          <div style={{ position: 'relative', flex: 1, overflow: 'hidden', background: 'linear-gradient(135deg,#1a1a1a,#2a2a2a)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {preview && (isVideoFile
+              ? <video src={preview} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} autoPlay loop muted playsInline />
+              : <img src={preview} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+            )}
+            {/* Text overlays at exact positions */}
+            {textOverlays.map(ov => (
+              <div key={ov.id} style={{ position: 'absolute', left: `${ov.x}%`, top: `${ov.y}%`, transform: 'translate(-50%,-50%)', pointerEvents: 'none', zIndex: 5 }}>
+                <span style={{ ...overlayCSS(ov), cursor: 'default' }}>{ov.text}</span>
               </div>
+            ))}
+            {/* Safe-zone guide */}
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6 }}>
+              <div style={{ position: 'absolute', top: 130, left: 0, right: 0, borderBottom: '1.5px dashed rgba(255,220,0,0.65)' }}>
+                <span style={{ position: 'absolute', left: 8, top: 2, fontSize: 9, color: 'rgba(255,220,0,0.9)', fontWeight: 700, background: 'rgba(0,0,0,0.45)', padding: '1px 4px', borderRadius: 3 }}>TOP SAFE ↓</span>
+              </div>
+              <div style={{ position: 'absolute', bottom: 220, left: 0, right: 0, borderTop: '1.5px dashed rgba(255,220,0,0.65)' }}>
+                <span style={{ position: 'absolute', left: 8, bottom: 2, fontSize: 9, color: 'rgba(255,220,0,0.9)', fontWeight: 700, background: 'rgba(0,0,0,0.45)', padding: '1px 4px', borderRadius: 3 }}>BOTTOM SAFE ↑</span>
+              </div>
+              <div style={{ position: 'absolute', right: 56, top: 130, bottom: 220, borderRight: '1.5px dashed rgba(255,220,0,0.45)' }} />
             </div>
-            {/* Right action buttons */}
-            <div style={{ position: 'absolute', right: 10, bottom: 280, display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center' }}>
-              {[['❤️','0'],['💬','0'],['🔖','Save'],['↗️','Share']].map(([icon,lbl]) => (
-                <div key={lbl} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{icon}</div>
-                  <span style={{ fontSize: 12, color: T.white, fontWeight: 700 }}>{lbl}</span>
+            {/* ── Creator info overlay (bottom gradient) — exact VideoCard layout ── */}
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%)',
+              padding: '20px 16px', pointerEvents: 'none', zIndex: 7,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: T.pri, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{user?.username || 'you'}</div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>@{user?.username || 'you'}</div>
+                </div>
+                <div style={{ marginLeft: 'auto', background: T.pri, borderRadius: 20, color: '#fff', padding: '6px 16px', fontSize: 12, fontWeight: 700 }}>Follow</div>
+              </div>
+              {caption ? <div style={{ fontSize: 13, color: '#fff', lineHeight: 1.4 }}>{caption}</div> : <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>Your caption...</div>}
+              {backgroundSound && <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}><span style={{ fontSize: 12 }}>🎵</span><span style={{ fontSize: 12, color: '#fff' }}>{backgroundSound.name}</span></div>}
+            </div>
+            {/* ── Actions sidebar — exact VideoCard layout ── */}
+            <div style={{ position: 'absolute', right: 12, bottom: 80, display: 'flex', flexDirection: 'column', gap: 16, zIndex: 8, pointerEvents: 'none' }}>
+              {[['❤️', '0'], ['💬', '0'], ['📤', '0'], ['🔖', '']].map(([ic, ct]) => (
+                <div key={ic} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <div style={{ fontSize: 32 }}>{ic}</div>
+                  {ct && <div style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{ct}</div>}
                 </div>
               ))}
             </div>
-            {/* Bottom caption */}
-            <div style={{ position: 'absolute', bottom: 80, left: 16, right: 70 }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: T.white, marginBottom: 4 }}>@{user?.username || 'you'}</div>
-              {caption && <div style={{ fontSize: 13, color: T.white, lineHeight: 1.4, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{caption}</div>}
-              {backgroundSound && <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}><span style={{ fontSize: 12 }}>🎵</span><span style={{ fontSize: 12, color: T.white }}>{backgroundSound.name}</span></div>}
-            </div>
-            {/* Bottom nav hint */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 70, background: 'linear-gradient(to top,rgba(0,0,0,0.6),transparent)', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', paddingBottom: 12 }}>
-              {['🏠','🔍','➕','📬','👤'].map(ic => <span key={ic} style={{ fontSize: 22, opacity: 0.7 }}>{ic}</span>)}
-            </div>
-          </div>
-          {/* Close + safe zone legend */}
-          <div style={{ position: 'absolute', top: 52, left: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
+            {/* Close button */}
             <button className="ep-btn" onClick={() => setShowPreview(false)}
-              style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+              style={{ position: 'absolute', top: 52, left: 16, zIndex: 20, background: 'rgba(0,0,0,0.55)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
               <X size={20} color={T.white} />
             </button>
-            <span style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', borderRadius: 20, padding: '6px 12px', fontSize: 12, color: 'rgba(255,200,0,0.9)', fontWeight: 700 }}>
-              --- Safe Zone Guide
-            </span>
+            <span style={{ position: 'absolute', top: 58, left: 64, zIndex: 20, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', borderRadius: 20, padding: '5px 10px', fontSize: 11, color: 'rgba(255,220,0,0.9)', fontWeight: 700 }}>⚡ Preview · dashed = safe zones</span>
           </div>
         </div>
       )}
@@ -1346,6 +1403,16 @@ export function EnhancedPostPage({ user, onBack }) {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── TOAST ──────────────────────────────────────────────────────────── */}
+      {successMsg && (
+        <div style={{ position: 'fixed', top: 60, left: '50%', transform: 'translateX(-50%)', zIndex: 99999,
+          background: 'rgba(30,30,30,0.95)', borderRadius: 24, padding: '10px 22px',
+          color: T.white, fontSize: 14, fontWeight: 700, boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(12px)', animation: 'ep-fade-in 0.2s ease' }}>
+          {successMsg}
         </div>
       )}
 
