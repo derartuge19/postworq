@@ -70,10 +70,10 @@ export function AppShell({
   ];
 
   const handleItemClick = (item) => {
+    // Always update the active-tab highlight first, then run any special action.
+    onTabChange?.(item.id);
     if (item.action) {
       item.action();
-    } else {
-      onTabChange?.(item.id);
     }
   };
 
@@ -303,11 +303,11 @@ export function AppShell({
           }}
         >
           {[
-            menuItems[0],
-            menuItems[1],
-            menuItems[4],
-            menuItems[2],
-            menuItems[6],
+            menuItems[0],   // home
+            menuItems[1],   // explore
+            menuItems[4],   // create
+            menuItems[5],   // campaigns
+            menuItems[6],   // profile
           ].map((item) => {
             const Icon = item.icon;
             let isActive = activeTab === item.id;

@@ -132,7 +132,7 @@ export default function WerqRoot() {
   const [showPostPage, setShowPostPage] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [profileUserId, setProfileUserId] = useState(null);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('_activeTab') || 'home');
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
   const [followersListType, setFollowersListType] = useState('followers');
@@ -233,6 +233,11 @@ export default function WerqRoot() {
     setShowExplorer(false);
 };
 
+  // Persist activeTab whenever it changes
+  useEffect(() => {
+    localStorage.setItem('_activeTab', activeTab);
+  }, [activeTab]);
+
   // Load user from localStorage on mount + prefetch lazy components
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -241,6 +246,13 @@ export default function WerqRoot() {
       api.setAuthToken(token);
       setAuthUser(JSON.parse(savedUser));
     }
+    // Restore page overlay from last visited tab on refresh
+    const saved = localStorage.getItem('_activeTab') || 'home';
+    if (saved === 'campaigns')   { setShowCampaigns(true); }
+    else if (saved === 'settings')    { setShowSettings(true); }
+    else if (saved === 'notifications') { setShowNotifications(true); }
+    else if (saved === 'explore')  { setShowExplorer(true); }
+    // home, create, profile, messages — no special overlay needed
     // Prefetch lazy components after app is idle
     if ('requestIdleCallback' in window) {
       requestIdleCallback(prefetchComponents);
@@ -287,6 +299,7 @@ export default function WerqRoot() {
     setShowCampaignLeaderboard(false);
     setShowCampaignFeed(false);
     setActiveTab('home');
+    localStorage.setItem('_activeTab', 'home');
     setShowLogin(true);
   };
 
@@ -295,6 +308,7 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    if (!userId) setActiveTab('profile');
     setProfileUserId(userId);
     setShowProfile(true);
     setShowPostPage(false);
@@ -308,6 +322,7 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    setActiveTab('create');
     setShowPostPage(true);
     setShowProfile(false);
     setShowEditProfile(false);
@@ -340,6 +355,7 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    setActiveTab('settings');
     setShowSettings(true);
     setShowProfile(false);
     setShowPostPage(false);
@@ -358,6 +374,7 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    setActiveTab('campaigns');
     setShowCampaigns(true);
     setShowProfile(false);
     setShowPostPage(false);
@@ -376,6 +393,7 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    setActiveTab('notifications');
     setShowNotifications(true);
     setUnreadNotifCount(0);
     setShowProfile(false);
@@ -399,6 +417,7 @@ export default function WerqRoot() {
 
   const handleShowExplorer = () => {
     resetAllPages();
+    setActiveTab('explore');
     setShowExplorer(true);
     pushHistoryState({ showExplorer: true });
   };
@@ -417,7 +436,11 @@ export default function WerqRoot() {
         user={authUser}
         activeTab={activeTab}
         onTabChange={(tab) => {
-          resetAllPages();
+          // For tabs that are pure feed views, collapse any open overlay pages.
+          // Action-based tabs (campaigns, settings, etc.) manage their own page
+          // state via their dedicated handlers — just update the indicator here.
+          const feedTabs = ['home', 'messages', 'following', 'bookmarks', 'search'];
+          if (feedTabs.includes(tab)) resetAllPages();
           setActiveTab(tab);
         }}
         onLogout={handleLogout}
