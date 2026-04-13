@@ -115,6 +115,7 @@ export function EnhancedPostPage({ user, onBack }) {
   const chunksRef = useRef([]);
   const audioRef = useRef(null);
   const streamRef = useRef(null);
+  const cameraGenRef = useRef(0);        // incremented on every startCamera/stopCamera to cancel in-flight getUserMedia
   const liveRef = useRef({ filter: 'none', overlays: [] });
   const isRecordingRef = useRef(false); // sync ref so onMouseDown guard doesn't rely on stale state
   const recordingStartRef = useRef(0);  // timestamp when recording began (for ghost-click guard)
@@ -180,14 +181,30 @@ export function EnhancedPostPage({ user, onBack }) {
     if (animFrameRef.current) { cancelAnimationFrame(animFrameRef.current); animFrameRef.current = null; }
   }, []);
 
+  // ── Cleanup helper (defined early so useEffects below can reference it) ──
+  const _cleanupAudio = () => {
+    if (monitorAudioRef.current) {
+      monitorAudioRef.current.pause();
+      monitorAudioRef.current.src = '';
+      monitorAudioRef.current = null;
+    }
+    if (audioCtxRef.current) {
+      try { audioCtxRef.current.close(); } catch (_) {}
+      audioCtxRef.current = null;
+    }
+  };
+
   // ── Camera start/stop ───────────────────────────────────────────────────
   const startCamera = useCallback(async () => {
+    const gen = ++cameraGenRef.current;  // capture generation token
     try {
-      if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); }
+      if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
       const s = await navigator.mediaDevices.getUserMedia({
         video: { facingMode, width: { ideal: 1080 }, height: { ideal: 1920 } },
         audio: true,
       });
+      // If stopCamera was called while we were waiting, discard the stream immediately
+      if (gen !== cameraGenRef.current) { s.getTracks().forEach(t => t.stop()); return; }
       streamRef.current = s;
       if (videoRef.current) { videoRef.current.srcObject = s; await videoRef.current.play(); }
       startDrawLoop();
@@ -195,32 +212,35 @@ export function EnhancedPostPage({ user, onBack }) {
   }, [facingMode, startDrawLoop]);
 
   const stopCamera = useCallback(() => {
+    cameraGenRef.current++;              // invalidate any in-flight startCamera
     stopDrawLoop();
     if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
     if (videoRef.current) { videoRef.current.srcObject = null; }
     clearInterval(timerRef.current);
   }, [stopDrawLoop]);
 
+  // Stop camera when captureMode or facingMode changes
   useEffect(() => {
     if (captureMode === 'camera') { startCamera(); }
     else { stopCamera(); }
     return () => stopCamera();
-  }, [captureMode, facingMode]);
+  }, [captureMode, facingMode]); // eslint-disable-line
 
-  // ── Cleanup helper ──────────────────────────────────────────────────────
-  const _cleanupAudio = () => {
-    // Stop monitor playback (separate element used so user hears bg during recording)
-    if (monitorAudioRef.current) {
-      monitorAudioRef.current.pause();
-      monitorAudioRef.current.src = '';
-      monitorAudioRef.current = null;
+  // Hard-stop camera+audio the moment we leave the capture stage
+  useEffect(() => {
+    if (stage !== 'capture') {
+      stopCamera();
+      _cleanupAudio();
     }
-    // Close Web Audio context (stops AudioBufferSource feeding the recorder)
-    if (audioCtxRef.current) {
-      try { audioCtxRef.current.close(); } catch (_) {}
-      audioCtxRef.current = null;
-    }
-  };
+  }, [stage]); // eslint-disable-line
+
+  // Release camera+audio on component unmount (e.g. user navigates away)
+  useEffect(() => {
+    return () => {
+      stopCamera();
+      _cleanupAudio();
+    };
+  }, []); // eslint-disable-line
 
   // ── Recording ───────────────────────────────────────────────────────────
   const startRecording = async () => {
