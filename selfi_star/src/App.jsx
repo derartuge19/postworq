@@ -129,22 +129,26 @@ export default function WerqRoot() {
   const [authUser, setAuthUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-  const [showPostPage, setShowPostPage] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  const [profileUserId, setProfileUserId] = useState(null);
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('_activeTab') || 'home');
+
+  // ── Read the saved nav snapshot (written on every navigation action) ──────
+  const _savedNav = (() => { try { return JSON.parse(sessionStorage.getItem('_nav') || '{}'); } catch { return {}; } })();
+
+  const [showPostPage, setShowPostPage] = useState(() => !!_savedNav.showPostPage);
+  const [showProfile, setShowProfile] = useState(() => !!_savedNav.showProfile);
+  const [profileUserId, setProfileUserId] = useState(() => _savedNav.profileUserId || null);
+  const [activeTab, setActiveTab] = useState(() => _savedNav.activeTab || localStorage.getItem('_activeTab') || 'home');
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
   const [followersListType, setFollowersListType] = useState('followers');
   const [followersListUserId, setFollowersListUserId] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showCampaigns, setShowCampaigns] = useState(false);
+  const [showSettings, setShowSettings] = useState(() => !!_savedNav.showSettings);
+  const [showNotifications, setShowNotifications] = useState(() => !!_savedNav.showNotifications);
+  const [showCampaigns, setShowCampaigns] = useState(() => !!_savedNav.showCampaigns);
   const [showCampaignLeaderboard, setShowCampaignLeaderboard] = useState(false);
   const [showCampaignFeed, setShowCampaignFeed] = useState(false);
   const [showVideoDetail, setShowVideoDetail] = useState(false);
   const [videoDetailId, setVideoDetailId] = useState(null);
-  const [showExplorer, setShowExplorer] = useState(false);
+  const [showExplorer, setShowExplorer] = useState(() => !!_savedNav.showExplorer);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
   // Poll unread notification count every 30s when user is logged in
@@ -233,10 +237,27 @@ export default function WerqRoot() {
     setShowExplorer(false);
 };
 
-  // Persist activeTab whenever it changes
+  // ── Save nav snapshot to sessionStorage on every relevant state change ──
+  const saveNav = (patch = {}) => {
+    const next = {
+      activeTab,
+      showPostPage,
+      showProfile,
+      profileUserId,
+      showSettings,
+      showNotifications,
+      showCampaigns,
+      showExplorer,
+      ...patch,
+    };
+    try { sessionStorage.setItem('_nav', JSON.stringify(next)); } catch {}
+    if (next.activeTab) { try { localStorage.setItem('_activeTab', next.activeTab); } catch {} }
+  };
+
+  // Persist whenever any of these state vars change
   useEffect(() => {
-    localStorage.setItem('_activeTab', activeTab);
-  }, [activeTab]);
+    saveNav();
+  }, [activeTab, showPostPage, showProfile, profileUserId, showSettings, showNotifications, showCampaigns, showExplorer]); // eslint-disable-line
 
   // Load user from localStorage on mount + prefetch lazy components
   useEffect(() => {
@@ -246,13 +267,6 @@ export default function WerqRoot() {
       api.setAuthToken(token);
       setAuthUser(JSON.parse(savedUser));
     }
-    // Restore page overlay from last visited tab on refresh
-    const saved = localStorage.getItem('_activeTab') || 'home';
-    if (saved === 'campaigns')   { setShowCampaigns(true); }
-    else if (saved === 'settings')    { setShowSettings(true); }
-    else if (saved === 'notifications') { setShowNotifications(true); }
-    else if (saved === 'explore')  { setShowExplorer(true); }
-    // home, create, profile, messages — no special overlay needed
     // Prefetch lazy components after app is idle
     if ('requestIdleCallback' in window) {
       requestIdleCallback(prefetchComponents);
@@ -299,7 +313,7 @@ export default function WerqRoot() {
     setShowCampaignLeaderboard(false);
     setShowCampaignFeed(false);
     setActiveTab('home');
-    localStorage.setItem('_activeTab', 'home');
+    try { sessionStorage.removeItem('_nav'); localStorage.setItem('_activeTab', 'home'); } catch {}
     setShowLogin(true);
   };
 
@@ -442,6 +456,7 @@ export default function WerqRoot() {
           const feedTabs = ['home', 'messages', 'following', 'bookmarks', 'search'];
           if (feedTabs.includes(tab)) resetAllPages();
           setActiveTab(tab);
+          saveNav({ activeTab: tab });
         }}
         onLogout={handleLogout}
         onShowProfile={() => handleShowProfile(null)}
