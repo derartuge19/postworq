@@ -108,7 +108,8 @@ from .views_admin import (
 )
 from .views_settings import (
     get_platform_settings, update_platform_settings, get_api_keys, create_api_key,
-    delete_api_key, toggle_api_key, get_system_logs, get_platform_performance,
+    delete_api_key, toggle_api_key, get_system_logs, clear_system_logs,
+    get_security_overview, get_platform_performance,
     get_admin_notifications, mark_notification_read, send_platform_notification,
     bulk_user_action, get_database_stats
 )
@@ -210,6 +211,8 @@ urlpatterns = [
     path('admin/api-keys/<int:key_id>/toggle/', toggle_api_key, name='admin-api-key-toggle'),
     # System Monitoring
     path('admin/logs/', get_system_logs, name='admin-logs'),
+    path('admin/logs/clear/', clear_system_logs, name='admin-logs-clear'),
+    path('admin/security/', get_security_overview, name='admin-security'),
     path('admin/performance/', get_platform_performance, name='admin-performance'),
     path('admin/database/', get_database_stats, name='admin-database'),
     # Notifications

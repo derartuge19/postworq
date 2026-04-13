@@ -67,21 +67,62 @@ def login(request):
         if user.check_password(password):
             token, _ = Token.objects.get_or_create(user=user)
             print(f"[LOGIN] Success - user: {user.username}, token: {token.key[:8]}...")
+            try:
+                from .models_admin import SystemLog
+                ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+                if ip and ',' in ip:
+                    ip = ip.split(',')[0].strip()
+                SystemLog.objects.create(
+                    log_type='security',
+                    message=f'Successful login: {user.username}',
+                    user=user,
+                    ip_address=ip or None,
+                    endpoint='/api/auth/login/',
+                    details={'username': user.username, 'is_staff': user.is_staff}
+                )
+            except Exception:
+                pass
             return Response({
                 'user': UserSerializer(user).data,
                 'token': token.key
             })
         else:
             print(f"[LOGIN] Password check FAILED for user: {user.username}")
-            # Try setting the password if it's not usable (migration issue)
             if not user.has_usable_password():
                 print(f"[LOGIN] User has no usable password, this might be a migration issue")
+            try:
+                from .models_admin import SystemLog
+                ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+                if ip and ',' in ip:
+                    ip = ip.split(',')[0].strip()
+                SystemLog.objects.create(
+                    log_type='security',
+                    message=f'Failed login attempt: {username}',
+                    ip_address=ip or None,
+                    endpoint='/api/auth/login/',
+                    details={'attempted_username': username}
+                )
+            except Exception:
+                pass
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
     else:
         print(f"[LOGIN] User not found for: {username}")
-        # List available usernames for debugging
         all_users = list(User.objects.values_list('username', flat=True)[:5])
         print(f"[LOGIN] Available usernames (first 5): {all_users}")
+        try:
+            from .models_admin import SystemLog
+            ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+            if ip and ',' in ip:
+                ip = ip.split(',')[0].strip()
+            SystemLog.objects.create(
+                log_type='security',
+                message=f'Login attempt with unknown user: {username}',
+                ip_address=ip or None,
+                endpoint='/api/auth/login/',
+                details={'attempted_username': username}
+            )
+        except Exception:
+            pass
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])

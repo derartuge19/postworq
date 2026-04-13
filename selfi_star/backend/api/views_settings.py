@@ -162,7 +162,15 @@ def get_system_logs(request):
     log_type = request.GET.get('type')
     if log_type:
         logs = logs.filter(log_type=log_type)
-    
+
+    search_q = request.GET.get('search', '').strip()
+    if search_q:
+        from django.db.models import Q
+        logs = logs.filter(
+            Q(message__icontains=search_q) |
+            Q(endpoint__icontains=search_q)
+        )
+
     # Pagination
     page = int(request.GET.get('page', 1))
     page_size = int(request.GET.get('page_size', 50))
@@ -190,6 +198,69 @@ def get_system_logs(request):
         'page_size': page_size,
         'total_pages': (total + page_size - 1) // page_size
     })
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def clear_system_logs(request):
+    """Clear system logs (by type or all)"""
+    log_type = request.data.get('log_type', 'all')
+    if log_type and log_type != 'all':
+        deleted_count, _ = SystemLog.objects.filter(log_type=log_type).delete()
+    else:
+        deleted_count, _ = SystemLog.objects.all().delete()
+    SystemLog.objects.create(
+        log_type='security',
+        message=f'System logs cleared by {request.user.username} (type={log_type})',
+        user=request.user,
+        details={'cleared_type': log_type, 'deleted_count': deleted_count}
+    )
+    return Response({'message': f'Cleared {deleted_count} log(s)', 'count': deleted_count})
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_security_overview(request):
+    """Security dashboard: stats + recent security events + log distribution"""
+    from datetime import timedelta
+    from django.db.models import Count
+    now = timezone.now()
+    h24 = now - timedelta(hours=24)
+    d7  = now - timedelta(days=7)
+
+    def cnt(log_type, since=None):
+        qs = SystemLog.objects.filter(log_type=log_type)
+        if since:
+            qs = qs.filter(created_at__gte=since)
+        return qs.count()
+
+    stats = {
+        'security_total':  cnt('security'),
+        'security_24h':    cnt('security', h24),
+        'error_total':     cnt('error'),
+        'error_24h':       cnt('error', h24),
+        'warning_total':   cnt('warning'),
+        'warning_24h':     cnt('warning', h24),
+        'critical_total':  cnt('critical'),
+        'critical_24h':    cnt('critical', h24),
+        'info_total':      cnt('info'),
+        'active_users_7d': User.objects.filter(last_login__gte=d7).count(),
+        'new_users_24h':   User.objects.filter(date_joined__gte=h24).count(),
+        'total_logs':      SystemLog.objects.count(),
+    }
+
+    log_dist = {item['log_type']: item['count']
+                for item in SystemLog.objects.values('log_type').annotate(count=Count('id'))}
+
+    recent = SystemLog.objects.filter(log_type='security').order_by('-created_at')[:20]
+    events = [{
+        'id': l.id, 'message': l.message,
+        'user': l.user.username if l.user else None,
+        'ip_address': l.ip_address, 'endpoint': l.endpoint,
+        'details': l.details, 'created_at': l.created_at,
+    } for l in recent]
+
+    return Response({'stats': stats, 'log_distribution': log_dist, 'recent_events': events})
+
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])

@@ -23,6 +23,7 @@ import CampaignPostModeration from './pages/CampaignPostModeration';
 import { AdminSidebar } from './components/AdminSidebar';
 import { AdminLogin } from './pages/AdminLogin';
 import { ReportsPage } from './pages/ReportsPage';
+import { SecurityPage } from './pages/SecurityPage';
 import api from '../api';
 import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Trophy, Target, Zap, Award, Flag } from 'lucide-react';
 
@@ -170,6 +171,8 @@ export function AdminApp() {
         return <AntiCheatPage theme={T} />;
       case 'reports':
         return <ReportsPage theme={T} />;
+      case 'security':
+        return <SecurityPage theme={T} />;
       default:
         return <AdminDashboard theme={T} />;
     }
