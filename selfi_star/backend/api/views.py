@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.models import User
 from django.db.models import F, Count, Exists, OuterRef, Subquery, Prefetch
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from .models import UserProfile, Reel, Comment, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, CommentLike, CommentReply, SavedPost, Notification, Report, ModerationAction
 from .models_campaign import CampaignNotification
@@ -1374,7 +1374,7 @@ def get_trending_hashtags(request):
     time_range = request.GET.get('time_range', '7d')
     limit      = min(int(request.GET.get('limit', 15)), 30)
 
-    now = datetime.now(tz=timezone.utc)
+    now = timezone.now()
     if   time_range == '24h': threshold = now - timedelta(hours=24)
     elif time_range == '30d': threshold = now - timedelta(days=30)
     else:                     threshold = now - timedelta(days=7)
