@@ -220,12 +220,13 @@ def clear_system_logs(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def get_security_overview(request):
-    """Security dashboard: stats + recent security events + log distribution"""
+    """Security dashboard: stats + recent security events + log distribution + IP analysis + health checks"""
     from datetime import timedelta
     from django.db.models import Count
     now = timezone.now()
     h24 = now - timedelta(hours=24)
     d7  = now - timedelta(days=7)
+    m1  = now - timedelta(days=30)
 
     def cnt(log_type, since=None):
         qs = SystemLog.objects.filter(log_type=log_type)
@@ -255,11 +256,81 @@ def get_security_overview(request):
     events = [{
         'id': l.id, 'message': l.message,
         'user': l.user.username if l.user else None,
+        'user_id': l.user.id if l.user else None,
         'ip_address': l.ip_address, 'endpoint': l.endpoint,
         'details': l.details, 'created_at': l.created_at,
     } for l in recent]
 
-    return Response({'stats': stats, 'log_distribution': log_dist, 'recent_events': events})
+    # IP-based failed login analysis (detect brute force attacks)
+    failed_logins = SystemLog.objects.filter(
+        log_type='security',
+        created_at__gte=h24,
+        message__icontains='failed'
+    ).exclude(ip_address__isnull=True).exclude(ip_address='')
+
+    ip_failures = {}
+    for log in failed_logins:
+        ip = log.ip_address
+        if ip not in ip_failures:
+            ip_failures[ip] = {'count': 0, 'users': set(), 'last_attempt': log.created_at}
+        ip_failures[ip]['count'] += 1
+        if log.user:
+            ip_failures[ip]['users'].add(log.user.username)
+
+    # Flag suspicious IPs (>5 failed attempts in 24h)
+    suspicious_ips = [
+        {'ip': ip, 'failed_attempts': data['count'], 'targeted_users': list(data['users'])[:5], 'last_attempt': data['last_attempt']}
+        for ip, data in ip_failures.items() if data['count'] >= 5
+    ]
+    suspicious_ips.sort(key=lambda x: x['failed_attempts'], reverse=True)
+
+    # System health checks
+    health = {}
+    try:
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+            cursor.fetchone()
+        health['database'] = 'healthy'
+    except Exception as e:
+        health['database'] = f'error: {str(e)[:30]}'
+
+    try:
+        # Check API response time
+        import time
+        start = time.time()
+        User.objects.first()
+        elapsed = (time.time() - start) * 1000
+        health['api_response_ms'] = round(elapsed, 2)
+        health['api'] = 'healthy' if elapsed < 500 else 'slow'
+    except Exception as e:
+        health['api'] = f'error: {str(e)[:30]}'
+
+    # Storage check (approximate - count media files)
+    try:
+        media_count = Reel.objects.exclude(media='').count() + Reel.objects.exclude(image='').count()
+        health['storage'] = 'healthy'
+        health['media_files'] = media_count
+    except Exception as e:
+        health['storage'] = f'error: {str(e)[:30]}'
+
+    # Recent API keys activity
+    from .models_admin import APIKey
+    api_keys_active = APIKey.objects.filter(is_active=True).count()
+    api_keys_total = APIKey.objects.count()
+
+    # Admin count
+    admin_count = User.objects.filter(is_staff=True).count()
+
+    return Response({
+        'stats': stats,
+        'log_distribution': log_dist,
+        'recent_events': events,
+        'suspicious_ips': suspicious_ips[:10],  # Top 10 suspicious IPs
+        'health': health,
+        'api_keys': {'active': api_keys_active, 'total': api_keys_total},
+        'admins': admin_count,
+    })
 
 
 @api_view(['GET'])

@@ -172,7 +172,7 @@ export function AdminApp() {
       case 'reports':
         return <ReportsPage theme={T} />;
       case 'security':
-        return <SecurityPage theme={T} />;
+        return <SecurityPage theme={T} onNavigate={setCurrentPage} />;
       default:
         return <AdminDashboard theme={T} />;
     }

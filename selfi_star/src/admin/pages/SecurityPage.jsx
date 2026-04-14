@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Shield, AlertCircle, AlertTriangle, Info, Lock,
-  Users, TrendingUp, RefreshCw, Eye, LogIn, LogOut,
-  UserX, Key, Activity, ChevronRight, Search, X,
+  Shield, AlertCircle, AlertTriangle, Info, Lock, Ban,
+  Users, TrendingUp, RefreshCw, Eye, LogIn, LogOut, ExternalLink,
+  UserX, Key, Activity, ChevronRight, Search, X, Database, Server,
+  HardDrive, CheckCircle, XCircle, Clock, MapPin, ShieldAlert,
 } from 'lucide-react';
 import api from '../../api';
 
@@ -52,11 +53,15 @@ const EVENT_ICON = {
   critical: { icon: AlertCircle,   color: '#DC2626' },
 };
 
-export function SecurityPage({ theme }) {
+export function SecurityPage({ theme, onNavigate }) {
   const [overview, setOverview]       = useState(null);
   const [loading, setLoading]         = useState(true);
   const [search, setSearch]           = useState('');
   const [eventFilter, setEventFilter] = useState('all');
+  const [selectedIP, setSelectedIP]   = useState(null);
+  const [showIPModal, setShowIPModal] = useState(false);
+  const [banningIP, setBanningIP]     = useState(null);
+  const [healthExpanded, setHealthExpanded] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -71,6 +76,32 @@ export function SecurityPage({ theme }) {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleBanIP = async (ip) => {
+    if (!confirm(`Block IP address ${ip}? This will prevent further login attempts from this address.`)) return;
+    try {
+      setBanningIP(ip);
+      await api.request('/admin/security/ban-ip/', {
+        method: 'POST',
+        body: JSON.stringify({ ip_address: ip })
+      });
+      // Log the action
+      await api.request('/admin/logs/', { method: 'POST', body: JSON.stringify({
+        log_type: 'security',
+        message: `IP ${ip} blocked by admin`,
+      })});
+      alert(`IP ${ip} has been blocked`);
+      load();
+    } catch (err) {
+      alert('Failed to block IP: ' + (err.message || 'Unknown error'));
+    } finally {
+      setBanningIP(null);
+    }
+  };
+
+  const navigateTo = (page) => {
+    if (onNavigate) onNavigate(page);
+  };
 
   const T = theme;
 
@@ -93,12 +124,24 @@ export function SecurityPage({ theme }) {
   const totalLogs    = stats.total_logs || 0;
 
   const filtered = events.filter(e => {
-    const matchFilter = eventFilter === 'all' ? true : e.message?.toLowerCase().includes(eventFilter);
+    const msg = e.message?.toLowerCase() || '';
+    const matchFilter = eventFilter === 'all' ? true :
+                       eventFilter === 'login' ? msg.includes('login') :
+                       eventFilter === 'failed' ? msg.includes('failed') :
+                       eventFilter === 'cleared' ? msg.includes('clear') :
+                       eventFilter === 'created' ? msg.includes('created') :
+                       eventFilter === 'deleted' ? msg.includes('deleted') :
+                       true;
     const matchSearch = !search || e.message?.toLowerCase().includes(search.toLowerCase())
                      || e.user?.toLowerCase().includes(search.toLowerCase())
                      || e.ip_address?.includes(search);
     return matchFilter && matchSearch;
   });
+
+  const suspiciousIPs = overview?.suspicious_ips || [];
+  const health = overview?.health || {};
+  const apiKeys = overview?.api_keys || { active: 0, total: 0 };
+  const admins = overview?.admins || 0;
 
   return (
     <div>
@@ -128,8 +171,42 @@ export function SecurityPage({ theme }) {
         <StatCard icon={AlertTriangle} label="Warnings (24h)"        value={stats.warning_24h  || 0}  sub={`${stats.warning_total || 0} total`}         color={T.orange} theme={T} />
         <StatCard icon={Users}         label="Active Users (7d)"     value={stats.active_users_7d || 0} sub={`+${stats.new_users_24h || 0} joined today`} color={T.green}  theme={T} />
         <StatCard icon={Activity}      label="Total Logs"            value={(totalLogs).toLocaleString()} sub="all time"                                color={T.blue}   theme={T} />
-        <StatCard icon={AlertCircle}   label="Critical Events (24h)" value={stats.critical_24h || 0}  sub={`${stats.critical_total || 0} total`}        color="#DC2626"  theme={T} />
+        <StatCard icon={ShieldAlert}   label="Suspicious IPs"        value={suspiciousIPs.length} sub={suspiciousIPs.length > 0 ? 'Potential attacks detected' : 'No threats detected'} color={suspiciousIPs.length > 0 ? T.red : T.green} theme={T} />
       </div>
+
+      {/* ── Suspicious IPs Alert ── */}
+      {suspiciousIPs.length > 0 && (
+        <div style={{ background: T.red + '10', border: `1.5px solid ${T.red}`, borderRadius: 12, padding: 16, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <ShieldAlert size={24} color={T.red} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: T.txt }}>Potential Security Threats Detected</div>
+              <div style={{ fontSize: 13, color: T.sub }}>{suspiciousIPs.length} IP address(es) with multiple failed login attempts in the last 24 hours</div>
+            </div>
+            <button onClick={() => setShowIPModal(true)} style={{
+              padding: '8px 14px', borderRadius: 8, background: T.red, color: '#fff',
+              border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <Eye size={14} /> View Details
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {suspiciousIPs.slice(0, 5).map(ip => (
+              <span key={ip.ip} style={{
+                padding: '4px 10px', borderRadius: 6, background: T.card,
+                border: `1px solid ${T.red}40`, fontSize: 12, color: T.txt,
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                <MapPin size={12} color={T.red} />
+                {ip.ip} ({ip.failed_attempts} attempts)
+              </span>
+            ))}
+            {suspiciousIPs.length > 5 && (
+              <span style={{ padding: '4px 10px', fontSize: 12, color: T.sub }}>+{suspiciousIPs.length - 5} more</span>
+            )}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
         {/* ── Recent security events ── */}
@@ -194,10 +271,24 @@ export function SecurityPage({ theme }) {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 3 }}>{ev.message}</div>
-                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        {ev.user && <span style={{ fontSize: 11, color: T.sub }}>👤 {ev.user}</span>}
-                        {ev.ip_address && <span style={{ fontSize: 11, color: T.sub, fontFamily: 'monospace' }}>🌐 {ev.ip_address}</span>}
-                        <span style={{ fontSize: 11, color: T.sub }}>{new Date(ev.created_at).toLocaleString()}</span>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                        {ev.user && (
+                          <button onClick={() => navigateTo('users')} style={{
+                            fontSize: 11, color: T.pri, background: 'none', border: 'none',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                            padding: 0, fontWeight: 600,
+                          }}>
+                            👤 {ev.user}
+                          </button>
+                        )}
+                        {ev.ip_address && (
+                          <span style={{ fontSize: 11, color: T.sub, fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            🌐 {ev.ip_address}
+                          </span>
+                        )}
+                        <span style={{ fontSize: 11, color: T.sub, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Clock size={11} /> {new Date(ev.created_at).toLocaleString()}
+                        </span>
                       </div>
                       {ev.details && (
                         <details style={{ marginTop: 5 }}>
@@ -209,12 +300,22 @@ export function SecurityPage({ theme }) {
                         </details>
                       )}
                     </div>
-                    <span style={{
-                      padding: '2px 6px', borderRadius: 4, fontSize: 9, fontWeight: 800,
-                      textTransform: 'uppercase', background: color + '20', color, flexShrink: 0,
-                    }}>
-                      {ev.log_type}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+                      <span style={{
+                        padding: '2px 6px', borderRadius: 4, fontSize: 9, fontWeight: 800,
+                        textTransform: 'uppercase', background: color + '20', color, flexShrink: 0,
+                      }}>
+                        {ev.log_type}
+                      </span>
+                      {ev.user_id && (
+                        <button onClick={() => navigateTo('users')} style={{
+                          fontSize: 10, color: T.sub, background: 'none', border: 'none',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center',
+                        }} title="View user">
+                          <ExternalLink size={10} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -239,18 +340,20 @@ export function SecurityPage({ theme }) {
             )}
           </div>
 
-          {/* Quick actions */}
+          {/* Quick actions - Clickable */}
           <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: 18 }}>
             <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: T.txt }}>Security Checklist</h3>
             {[
-              { icon: Key,      label: 'API Keys', detail: 'Review & rotate keys', color: T.orange },
-              { icon: Users,    label: 'Admin Accounts', detail: 'Check who has staff access', color: T.blue },
-              { icon: Lock,     label: 'Failed Logins', detail: `${stats.security_total || 0} security events total`, color: T.red },
-              { icon: Activity, label: 'System Logs', detail: `${totalLogs.toLocaleString()} entries`, color: T.purple },
-            ].map(({ icon: Icon, label, detail, color }) => (
-              <div key={label} style={{
+              { id: 'api-keys', icon: Key,      label: 'API Keys', detail: `${apiKeys.active}/${apiKeys.total} active keys`, color: T.orange },
+              { id: 'admins',   icon: Users,    label: 'Admin Accounts', detail: `${admins} staff member${admins !== 1 ? 's' : ''}`, color: T.blue },
+              { id: 'logs',     icon: Lock,     label: 'Failed Logins', detail: `${stats.security_total || 0} security events total`, color: T.red },
+              { id: 'logs',     icon: Activity, label: 'System Logs', detail: `${totalLogs.toLocaleString()} entries`, color: T.purple },
+            ].map(({ id, icon: Icon, label, detail, color }) => (
+              <button key={label} onClick={() => navigateTo(id)} style={{
                 display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
-                borderBottom: `1px solid ${T.border}`,
+                borderBottom: `1px solid ${T.border}`, width: '100%', background: 'none',
+                borderLeft: 'none', borderRight: 'none', borderTop: 'none', cursor: 'pointer',
+                textAlign: 'left',
               }}>
                 <div style={{ width: 30, height: 30, borderRadius: 8, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Icon size={15} color={color} />
@@ -260,29 +363,111 @@ export function SecurityPage({ theme }) {
                   <div style={{ fontSize: 11, color: T.sub }}>{detail}</div>
                 </div>
                 <ChevronRight size={14} color={T.sub} />
-              </div>
+              </button>
             ))}
           </div>
 
-          {/* System health */}
+          {/* System health - Real checks */}
           <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: 18 }}>
-            <h3 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: T.txt }}>System Health</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: T.txt }}>System Health</h3>
+              <button onClick={() => setHealthExpanded(!healthExpanded)} style={{
+                fontSize: 11, color: T.pri, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600,
+              }}>
+                {healthExpanded ? 'Hide' : 'Details'}
+              </button>
+            </div>
             {[
-              { label: 'Authentication', status: 'healthy', color: T.green },
-              { label: 'API Gateway',    status: 'healthy', color: T.green },
-              { label: 'Database',       status: 'healthy', color: T.green },
-              { label: 'Storage',        status: 'healthy', color: T.green },
-            ].map(({ label, status, color }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 13, color: T.txt }}>{label}</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color, background: color + '18', padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase' }}>
-                  {status}
-                </span>
+              { label: 'Database',    key: 'database',    icon: Database,  color: health.database === 'healthy' ? T.green : T.red },
+              { label: 'API',         key: 'api',         icon: Server,    color: health.api === 'healthy' ? T.green : health.api === 'slow' ? T.orange : T.red },
+              { label: 'Storage',     key: 'storage',     icon: HardDrive, color: health.storage === 'healthy' ? T.green : T.red },
+            ].map(({ label, key, icon: Icon, color }) => {
+              const status = health[key] || 'unknown';
+              const isHealthy = status === 'healthy';
+              return (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Icon size={14} color={color} />
+                    <span style={{ fontSize: 13, color: T.txt }}>{label}</span>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color, background: color + '18', padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase' }}>
+                    {status}
+                  </span>
+                </div>
+              );
+            })}
+            {healthExpanded && (
+              <div style={{ marginTop: 12, padding: 12, background: T.bg, borderRadius: 8, fontSize: 12, color: T.sub }}>
+                <div style={{ marginBottom: 6 }}><strong>API Response Time:</strong> {health.api_response_ms || '--'} ms</div>
+                <div style={{ marginBottom: 6 }}><strong>Media Files:</strong> {health.media_files || '--'}</div>
+                <div>Last checked: {new Date().toLocaleTimeString()}</div>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
+
+      {/* ── Suspicious IPs Modal ── */}
+      {showIPModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: 20,
+        }} onClick={() => setShowIPModal(false)}>
+          <div style={{
+            background: T.card, borderRadius: 12, padding: 24, maxWidth: 600, width: '100%', maxHeight: '80vh',
+            overflow: 'auto', border: `1px solid ${T.border}`,
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: T.txt, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <ShieldAlert color={T.red} /> Suspicious IP Addresses
+              </h2>
+              <button onClick={() => setShowIPModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sub }}>
+                <X size={24} />
+              </button>
+            </div>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: T.sub }}>
+              These IPs have more than 5 failed login attempts in the last 24 hours. Consider blocking them if they are not legitimate users.
+            </p>
+            {suspiciousIPs.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 40, color: T.sub }}>No suspicious IPs detected</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {suspiciousIPs.map(ip => (
+                  <div key={ip.ip} style={{
+                    padding: 16, background: T.bg, borderRadius: 8, border: `1px solid ${T.border}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: T.txt, fontFamily: 'monospace', marginBottom: 4 }}>{ip.ip}</div>
+                      <div style={{ fontSize: 12, color: T.sub }}>
+                        {ip.failed_attempts} failed attempts · Last: {new Date(ip.last_attempt).toLocaleString()}
+                      </div>
+                      {ip.targeted_users.length > 0 && (
+                        <div style={{ fontSize: 12, color: T.sub, marginTop: 4 }}>
+                          Targeted users: {ip.targeted_users.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleBanIP(ip.ip)}
+                      disabled={banningIP === ip.ip}
+                      style={{
+                        padding: '8px 14px', borderRadius: 6, background: T.red, color: '#fff',
+                        border: 'none', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 6, opacity: banningIP === ip.ip ? 0.6 : 1,
+                      }}
+                    >
+                      <Ban size={14} />
+                      {banningIP === ip.ip ? 'Blocking...' : 'Block IP'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
