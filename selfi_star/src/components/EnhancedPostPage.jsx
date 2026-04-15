@@ -668,6 +668,7 @@ export function EnhancedPostPage({ user, onBack }) {
                 style={{ 
                   width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block',
                   transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
+                  pointerEvents: 'none', // Don't capture touch events - let them pass to controls
                 }} />
 
               {/* Text overlays ON camera preview — draggable */}
@@ -694,7 +695,9 @@ export function EnhancedPostPage({ user, onBack }) {
                 background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
-                <button className="ep-btn" onClick={() => { stopCamera(); setCaptureMode('upload'); }}
+                <button className="ep-btn" 
+                  onClick={() => { stopCamera(); setCaptureMode('upload'); }}
+                  onTouchEnd={(e) => { e.preventDefault(); stopCamera(); setCaptureMode('upload'); }}
                   style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <X size={20} color={T.white} />
                 </button>
@@ -702,7 +705,9 @@ export function EnhancedPostPage({ user, onBack }) {
                 {/* Mode tabs */}
                 <div style={{ display: 'flex', gap: 6, background: 'rgba(0,0,0,0.4)', borderRadius: 24, padding: '4px 6px' }}>
                   {['photo','video'].map(m => (
-                    <button key={m} className="ep-btn" onClick={() => setCamMode(m)}
+                    <button key={m} className="ep-btn" 
+                      onClick={() => setCamMode(m)}
+                      onTouchEnd={(e) => { e.preventDefault(); setCamMode(m); }}
                       style={{
                         padding: '6px 14px', borderRadius: 20,
                         background: camMode === m ? T.white : 'transparent',
@@ -715,7 +720,9 @@ export function EnhancedPostPage({ user, onBack }) {
                 </div>
 
                 {/* Flash */}
-                <button className="ep-btn" onClick={() => setFlashOn(f => !f)}
+                <button className="ep-btn" 
+                  onClick={() => setFlashOn(f => !f)}
+                  onTouchEnd={(e) => { e.preventDefault(); setFlashOn(f => !f); }}
                   style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {flashOn ? <Zap size={18} color={T.pri} fill={T.pri} /> : <ZapOff size={18} color={T.white} />}
                 </button>
@@ -756,8 +763,8 @@ export function EnhancedPostPage({ user, onBack }) {
                   { icon: <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>, label: 'Filter', action: () => setShowFilters(f => !f) },
                   { icon: <span style={{ fontSize: 13, fontWeight: 800, color: T.white }}>{selectedSpeed}</span>, label: 'Speed', action: () => setShowSpeeds(s => !s) },
                 ].map((item, i) => (
-                  <button key={i} className="ep-btn" onClick={item.action}
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', padding: 0 }}>
+                  <button key={i} className="ep-btn" onClick={item.action} onTouchEnd={(e) => { e.preventDefault(); item.action(); }}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', padding: 8, margin: -8 }}>
                     <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {item.icon}
                     </div>
@@ -818,7 +825,9 @@ export function EnhancedPostPage({ user, onBack }) {
               }}>
                 {/* Upload from gallery shortcut */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <button className="ep-btn" onClick={() => fileInputRef.current?.click()}
+                  <button className="ep-btn" 
+                    onClick={() => fileInputRef.current?.click()}
+                    onTouchEnd={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
                     style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 6, backdropFilter: 'blur(8px)' }}>
                     <div style={{ width: 52, height: 52, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Upload size={22} color={T.white} />
@@ -834,6 +843,14 @@ export function EnhancedPostPage({ user, onBack }) {
                       onClick={camMode === 'video'
                         ? () => { isRecording ? stopRecording() : startRecording().catch(console.error); }
                         : takePhoto}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        if (camMode === 'video') {
+                          isRecording ? stopRecording() : startRecording().catch(console.error);
+                        } else {
+                          takePhoto();
+                        }
+                      }}
                       style={{
                         width: 80, height: 80, borderRadius: '50%',
                         background: camMode === 'video' ? (isRecording ? T.red : T.white) : T.white,
@@ -852,7 +869,9 @@ export function EnhancedPostPage({ user, onBack }) {
                   </div>
 
                   {/* Flip camera shortcut */}
-                  <button className="ep-btn" onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')}
+                  <button className="ep-btn" 
+                    onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')}
+                    onTouchEnd={(e) => { e.preventDefault(); setFacingMode(f => f === 'user' ? 'environment' : 'user'); }}
                     style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '50%', width: 52, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
                     <RefreshCw size={22} color={T.white} />
                   </button>

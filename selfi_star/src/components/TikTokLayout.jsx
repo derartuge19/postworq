@@ -1148,12 +1148,8 @@ export function TikTokLayout({
                   onTouchMove={handleLongPressMove}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    // On mobile, show bottom sheet; on desktop, show dropdown
-                    if (isMobile) {
-                      setLongPressMenu(video.id);
-                    } else {
-                      setShowMenu(video.id);
-                    }
+                    // Always show bottom sheet style menu (same as mobile)
+                    setLongPressMenu(video.id);
                   }}
                   style={{
                     background: isMobile ? '#fff' : 'transparent',
@@ -1326,8 +1322,8 @@ export function TikTokLayout({
                     </div>
                   )}
 
-                  {/* Long-Press Menu - TikTok-style full menu */}
-                  {isMobile && longPressMenu === video.id && (
+                  {/* Long-Press Menu - TikTok-style full menu (works on both mobile and desktop) */}
+                  {longPressMenu === video.id && (
                     <div
                       onClick={() => setLongPressMenu(null)}
                       style={{
