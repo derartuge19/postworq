@@ -1186,123 +1186,107 @@ export function TikTokLayout({
                           </div>
                         )}
                       </button>
-                      <button
-                        onClick={() => setShowMenu(showMenu === video.id ? null : video.id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: 6,
-                          pointerEvents: 'all',
-                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
-                        }}
-                      >
-                        <MoreVertical size={26} color="#fff" strokeWidth={2.5} />
-                      </button>
-                    </div>
-                  )}
+                      <div style={{ position: 'relative' }}>
+                        <button
+                          onClick={() => setShowMenu(showMenu === video.id ? null : video.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 6,
+                            pointerEvents: 'all',
+                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                          }}
+                        >
+                          <MoreVertical size={26} color="#fff" strokeWidth={2.5} />
+                        </button>
 
-                  {/* Mobile 3-Dots Menu - Simple options */}
-                  {isMobile && showMenu === video.id && (
-                    <div
-                      onClick={() => setShowMenu(null)}
-                      style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                          width: '100%',
-                          maxWidth: 480,
-                          background: '#fff',
-                          borderRadius: '20px 20px 0 0',
-                          padding: '8px 0 40px',
-                          paddingBottom: 'max(40px, env(safe-area-inset-bottom, 40px))',
-                          boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
-                        }}
-                      >
-                        <div style={{ width: 36, height: 4, background: '#E7E5E4', borderRadius: 4, margin: '12px auto 16px' }} />
-                        <button
-                          onClick={() => handleShare(video.id)}
-                          style={{
-                            width: '100%',
-                            padding: '14px 24px',
-                            background: 'none',
-                            border: 'none',
-                            textAlign: 'left',
-                            fontSize: 15,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            color: T.txt,
-                          }}
-                        >
-                          <Share2 size={20} style={{ color: T.pri }} /> Share
-                        </button>
-                        <button
-                          onClick={() => handleNotInterested(video.id)}
-                          style={{
-                            width: '100%',
-                            padding: '14px 24px',
-                            background: 'none',
-                            border: 'none',
-                            textAlign: 'left',
-                            fontSize: 15,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            color: T.txt,
-                          }}
-                        >
-                          <EyeOff size={20} style={{ color: '#78716C' }} /> Not Interested
-                        </button>
-                        <button
-                          onClick={() => { setShowMenu(null); setShowReportModal(video.id); }}
-                          style={{
-                            width: '100%',
-                            padding: '14px 24px',
-                            background: 'none',
-                            border: 'none',
-                            textAlign: 'left',
-                            fontSize: 15,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            color: '#EF4444',
-                          }}
-                        >
-                          <AlertTriangle size={20} /> Report
-                        </button>
-                        <button
-                          onClick={() => setShowMenu(null)}
-                          style={{
-                            width: '100%',
-                            padding: '14px 24px',
-                            marginTop: 8,
-                            background: '#F5F5F4',
-                            border: 'none',
-                            textAlign: 'center',
-                            fontSize: 15,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            color: T.txt,
-                          }}
-                        >
-                          Cancel
-                        </button>
+                        {/* Mobile 3-Dots Dropdown Menu - Top right like desktop */}
+                        {showMenu === video.id && (
+                          <>
+                            {/* Backdrop to close menu */}
+                            <div
+                              onClick={() => setShowMenu(null)}
+                              style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                zIndex: 998,
+                              }}
+                            />
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              style={{
+                                position: 'absolute',
+                                top: 40,
+                                right: 0,
+                                background: '#fff',
+                                borderRadius: 12,
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+                                minWidth: 180,
+                                zIndex: 999,
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <button
+                                onClick={() => handleShare(video.id)}
+                                style={{
+                                  width: '100%',
+                                  padding: '14px 16px',
+                                  background: 'none',
+                                  border: 'none',
+                                  textAlign: 'left',
+                                  fontSize: 14,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 12,
+                                  color: T.txt,
+                                }}
+                              >
+                                <Share2 size={18} style={{ color: T.pri }} /> Share
+                              </button>
+                              <button
+                                onClick={() => handleNotInterested(video.id)}
+                                style={{
+                                  width: '100%',
+                                  padding: '14px 16px',
+                                  background: 'none',
+                                  border: 'none',
+                                  textAlign: 'left',
+                                  fontSize: 14,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 12,
+                                  color: T.txt,
+                                }}
+                              >
+                                <EyeOff size={18} style={{ color: '#78716C' }} /> Not Interested
+                              </button>
+                              <button
+                                onClick={() => { setShowMenu(null); setShowReportModal(video.id); }}
+                                style={{
+                                  width: '100%',
+                                  padding: '14px 16px',
+                                  background: 'none',
+                                  border: 'none',
+                                  textAlign: 'left',
+                                  fontSize: 14,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 12,
+                                  color: '#EF4444',
+                                }}
+                              >
+                                <AlertTriangle size={18} /> Report
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
