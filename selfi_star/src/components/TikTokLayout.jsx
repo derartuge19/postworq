@@ -1036,10 +1036,116 @@ export function TikTokLayout({
                           cursor: 'pointer',
                           padding: 6,
                           pointerEvents: 'all',
+                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
                         }}
                       >
-                        <MoreVertical size={26} color="#fff" strokeWidth={2} />
+                        <MoreVertical size={26} color="#fff" strokeWidth={2.5} />
                       </button>
+                    </div>
+                  )}
+
+                  {/* Mobile Bottom Sheet Menu */}
+                  {isMobile && showMenu === video.id && (
+                    <div
+                      onClick={() => setShowMenu(null)}
+                      style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0,0,0,0.5)',
+                        zIndex: 9999,
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          width: '100%',
+                          maxWidth: 480,
+                          background: '#fff',
+                          borderRadius: '20px 20px 0 0',
+                          padding: '8px 0 40px',
+                          paddingBottom: 'max(40px, env(safe-area-inset-bottom, 40px))',
+                          boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
+                        }}
+                      >
+                        <div style={{ width: 36, height: 4, background: '#E7E5E4', borderRadius: 4, margin: '12px auto 16px' }} />
+                        <button
+                          onClick={() => handleShare(video.id)}
+                          style={{
+                            width: '100%',
+                            padding: '16px 24px',
+                            background: 'none',
+                            border: 'none',
+                            textAlign: 'left',
+                            fontSize: 16,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            color: T.txt,
+                          }}
+                        >
+                          <Share2 size={20} style={{ color: T.pri }} /> Share
+                        </button>
+                        <button
+                          onClick={() => handleNotInterested(video.id)}
+                          style={{
+                            width: '100%',
+                            padding: '16px 24px',
+                            background: 'none',
+                            border: 'none',
+                            textAlign: 'left',
+                            fontSize: 16,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            color: T.txt,
+                          }}
+                        >
+                          <Flag size={20} style={{ color: '#F59E0B' }} /> Not Interested
+                        </button>
+                        <button
+                          onClick={() => { setShowMenu(null); setShowReportModal(video.id); }}
+                          style={{
+                            width: '100%',
+                            padding: '16px 24px',
+                            background: 'none',
+                            border: 'none',
+                            textAlign: 'left',
+                            fontSize: 16,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            color: '#EF4444',
+                          }}
+                        >
+                          <Flag size={20} /> Report
+                        </button>
+                        <button
+                          onClick={() => setShowMenu(null)}
+                          style={{
+                            width: '100%',
+                            padding: '16px 24px',
+                            marginTop: 8,
+                            background: '#F5F5F4',
+                            border: 'none',
+                            textAlign: 'center',
+                            fontSize: 16,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            color: T.txt,
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -1250,9 +1356,10 @@ export function TikTokLayout({
                           cursor: 'pointer',
                           padding: 6,
                           color: '#fff',
+                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
                         }}
                       >
-                        <MoreVertical size={24} strokeWidth={2} />
+                        <MoreVertical size={24} strokeWidth={2.5} />
                       </button>
 
                       {/* Dropdown Menu */}

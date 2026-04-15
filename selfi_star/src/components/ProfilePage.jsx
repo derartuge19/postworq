@@ -642,7 +642,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   justifyContent: "center",
                   color: "#fff",
                   zIndex: 5,
-                  opacity: window.innerWidth <= 768 ? 1 : 0,
+                  opacity: 0,
                   transition: "opacity 0.2s",
                   boxSizing: "border-box",
                 }}
@@ -793,7 +793,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             onClick={e => e.stopPropagation()}
             style={{
               width: '100%', maxWidth: 480, background: '#fff',
-              borderRadius: '20px 20px 0 0', padding: '8px 0 40px',
+              borderRadius: '20px 20px 0 0', padding: '8px 0 env(safe-area-inset-bottom, 40px)',
+              paddingBottom: 'max(40px, env(safe-area-inset-bottom, 40px))',
               boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
             }}
           >
