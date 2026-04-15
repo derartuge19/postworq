@@ -722,19 +722,41 @@ export function TikTokLayout({
     handleLongPressEnd();
   };
 
-  // Download video/image
+  // Download video/image - optimized size like TikTok
   const handleDownload = async (video) => {
     setLongPressMenu(null);
     setShowMenu(null);
     
-    const mediaUrl = video.imageUrl?.startsWith('http') 
+    let mediaUrl = video.imageUrl?.startsWith('http') 
       ? video.imageUrl 
       : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`;
+    
+    const isVideo = mediaUrl.includes('.mp4') || mediaUrl.includes('.webm') || 
+                    mediaUrl.includes('.mov') || mediaUrl.includes('video');
+    
+    // Apply Cloudinary transformations for smaller file size (like TikTok)
+    // - Videos: 720p max height, quality 70, smaller bitrate
+    // - Images: 1080p max, quality 80
+    if (mediaUrl.includes('cloudinary.com')) {
+      if (isVideo && mediaUrl.includes('/video/upload/')) {
+        // Insert transformation: h_720 (720p), q_70 (quality 70%), vc_h264 (h264 codec for smaller size)
+        mediaUrl = mediaUrl.replace(
+          '/video/upload/',
+          '/video/upload/h_720,q_70,vc_h264/'
+        );
+      } else if (mediaUrl.includes('/image/upload/')) {
+        // Insert transformation: h_1080, q_80, f_jpg
+        mediaUrl = mediaUrl.replace(
+          '/image/upload/',
+          '/image/upload/h_1080,q_80,f_jpg/'
+        );
+      }
+    }
     
     try {
       // Show downloading toast
       const toast = document.createElement('div');
-      toast.textContent = '⬇️ Downloading...';
+      toast.textContent = '⬇️ Preparing download...';
       toast.style.cssText = `
         position: fixed;
         bottom: 80px;
@@ -752,17 +774,22 @@ export function TikTokLayout({
       
       const response = await fetch(mediaUrl);
       const blob = await response.blob();
+      
+      // Show file size in toast
+      const sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+      toast.textContent = `⬇️ Downloading (${sizeMB}MB)...`;
+      
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `postworq_${video.id}.${mediaUrl.includes('.mp4') ? 'mp4' : 'jpg'}`;
+      a.download = `postworq_${video.id}.${isVideo ? 'mp4' : 'jpg'}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       
-      toast.textContent = '✓ Downloaded!';
-      setTimeout(() => toast.remove(), 1500);
+      toast.textContent = `✓ Downloaded (${sizeMB}MB)`;
+      setTimeout(() => toast.remove(), 2000);
     } catch (err) {
       console.error('Download failed:', err);
       setAlertModal({
