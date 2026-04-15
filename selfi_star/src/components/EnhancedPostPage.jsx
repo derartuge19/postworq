@@ -185,6 +185,13 @@ export function EnhancedPostPage({ user, onBack }) {
 
   // ── Cleanup helper (defined early so useEffects below can reference it) ──
   const _cleanupAudio = () => {
+    // Stop preview audio (sound selection preview)
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setIsPlayingSound(false);
+    // Stop monitor audio (bg music during recording)
     if (monitorAudioRef.current) {
       monitorAudioRef.current.pause();
       monitorAudioRef.current.src = '';
@@ -202,7 +209,13 @@ export function EnhancedPostPage({ user, onBack }) {
     try {
       if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
       const s = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode, width: { ideal: 1080 }, height: { ideal: 1920 } },
+        video: { 
+          facingMode, 
+          width: { ideal: 720 }, 
+          height: { ideal: 1280 },
+          // Prevent zoom on mobile - use natural camera view
+          advanced: [{ zoom: 1 }]
+        },
         audio: true,
       });
       // If stopCamera was called while we were waiting, discard the stream immediately
@@ -659,7 +672,7 @@ export function EnhancedPostPage({ user, onBack }) {
               {/* Top bar */}
               <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0,
-                padding: '52px 20px 16px',
+                padding: 'max(12px, env(safe-area-inset-top)) 16px 12px',
                 background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
@@ -693,7 +706,7 @@ export function EnhancedPostPage({ user, onBack }) {
               {/* Recording timer */}
               {isRecording && (
                 <div style={{
-                  position: 'absolute', top: 110, left: 0, right: 0, textAlign: 'center',
+                  position: 'absolute', top: 70, left: 0, right: 0, textAlign: 'center',
                 }}>
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -858,7 +871,7 @@ export function EnhancedPostPage({ user, onBack }) {
               {/* Header */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '52px 20px 16px', borderBottom: `1px solid ${T.border}`,
+                padding: 'max(16px, env(safe-area-inset-top)) 16px 12px', borderBottom: `1px solid ${T.border}`,
               }}>
                 <button className="ep-btn" onClick={onBack}
                   style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
@@ -933,7 +946,7 @@ export function EnhancedPostPage({ user, onBack }) {
           {/* Top bar */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '52px 20px 16px',
+            padding: 'max(16px, env(safe-area-inset-top)) 16px 12px',
             borderBottom: `1px solid ${T.border}`,
             position: 'sticky', top: 0, background: T.bg, zIndex: 10,
           }}>
