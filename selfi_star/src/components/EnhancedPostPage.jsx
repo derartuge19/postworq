@@ -522,10 +522,17 @@ export function EnhancedPostPage({ user, onBack }) {
     setHashtags(draft.hashtags || '');
     setSelectedFilter(draft.selectedFilter || 'none');
     setTextOverlays(draft.textOverlays || []);
+    setIsVideoFile(draft.isVideo || false);
+    // For videos, thumbData might be null - still proceed to capture stage to re-record
     if (draft.thumbData) {
       setPreview(draft.thumbData);
-      setIsVideoFile(draft.isVideo || false);
       setStage('details');
+    } else {
+      // Video draft without preview - go to capture to re-record
+      setPreview(null);
+      setSelectedFile(null);
+      setCaptureMode('camera');
+      setStage('capture');
     }
     setShowDrafts(false);
   };

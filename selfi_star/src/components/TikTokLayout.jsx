@@ -231,6 +231,10 @@ export function TikTokLayout({
           liked: reel.is_liked || false,
           saved: reel.is_saved || false,
           created_at: reel.created_at,
+          overlayText: (() => {
+            if (!reel.overlay_text) return [];
+            try { return JSON.parse(reel.overlay_text); } catch { return []; }
+          })(),
         };
       });
       
@@ -1508,6 +1512,34 @@ export function TikTokLayout({
                           <span style={{ fontSize: 48, marginBottom: 10 }}>🎬</span>
                           <span style={{ fontSize: 14, opacity: 0.7 }}>Video unavailable</span>
                         </div>
+
+                        {/* Text Overlays from creator */}
+                        {video.overlayText && video.overlayText.length > 0 && video.overlayText.map((ov, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              position: 'absolute',
+                              left: `${ov.x || 50}%`,
+                              top: `${ov.y || 50}%`,
+                              transform: 'translate(-50%, -50%)',
+                              pointerEvents: 'none',
+                              zIndex: 15,
+                            }}
+                          >
+                            <span style={{
+                              fontSize: ov.fontSize || 22,
+                              fontWeight: 800,
+                              color: ov.color || '#fff',
+                              textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5)',
+                              background: 'rgba(0,0,0,0.3)',
+                              padding: '4px 12px',
+                              borderRadius: 8,
+                              whiteSpace: 'nowrap',
+                            }}>
+                              {ov.text}
+                            </span>
+                          </div>
+                        ))}
 
                         {/* Double-tap heart animation */}
                         {doubleTapLike[video.id] && (
