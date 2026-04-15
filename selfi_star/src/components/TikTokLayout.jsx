@@ -1111,15 +1111,21 @@ export function TikTokLayout({
                 <div
                   key={video.id}
                   className="video-card-snap"
-                  onTouchStart={(e) => handleLongPressStart(video.id, e)}
+                  onTouchStart={(e) => {
+                    // Only trigger long-press on mobile, not when tapping buttons
+                    if (e.target.closest('button')) return;
+                    handleLongPressStart(video.id, e);
+                  }}
                   onTouchEnd={handleLongPressEnd}
                   onTouchMove={handleLongPressMove}
-                  onMouseDown={(e) => handleLongPressStart(video.id, e)}
-                  onMouseUp={handleLongPressEnd}
-                  onMouseLeave={handleLongPressEnd}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    setShowMenu(video.id);
+                    // On mobile, show bottom sheet; on desktop, show dropdown
+                    if (isMobile) {
+                      setLongPressMenu(video.id);
+                    } else {
+                      setShowMenu(video.id);
+                    }
                   }}
                   style={{
                     background: isMobile ? '#fff' : 'transparent',
