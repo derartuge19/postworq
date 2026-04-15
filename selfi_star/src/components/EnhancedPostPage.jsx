@@ -645,7 +645,7 @@ export function EnhancedPostPage({ user, onBack }) {
         @keyframes ep-fade-in { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         @keyframes ep-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes ep-success { 0%{transform:scale(0.7);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
-        .ep-btn { border:none; cursor:pointer; transition:all 0.15s; }
+        .ep-btn { border:none; cursor:pointer; transition:all 0.15s; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
         .ep-btn:active { transform:scale(0.94); }
         .ep-filter-scroll::-webkit-scrollbar { display:none; }
         .ep-hash { color:${T.pri}; font-weight:700; }
@@ -657,7 +657,7 @@ export function EnhancedPostPage({ user, onBack }) {
 
           {captureMode === 'camera' ? (
             /* ── CAMERA VIEW (fullscreen 9:16) ── */
-            <div ref={previewContainerRef} style={{ position: 'absolute', inset: 0, touchAction: 'none' }}
+            <div ref={previewContainerRef} style={{ position: 'absolute', inset: 0 }}
               onMouseMove={moveOverlayDrag} onMouseUp={endOverlayDrag} onMouseLeave={endOverlayDrag}
               onTouchMove={moveOverlayDrag} onTouchEnd={endOverlayDrag}>
               {/* Hidden video source */}
@@ -689,7 +689,7 @@ export function EnhancedPostPage({ user, onBack }) {
 
               {/* Top bar */}
               <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0,
+                position: 'absolute', top: 0, left: 0, right: 0, zIndex: 30,
                 padding: 'max(12px, env(safe-area-inset-top)) 16px 12px',
                 background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -724,7 +724,7 @@ export function EnhancedPostPage({ user, onBack }) {
               {/* Recording timer */}
               {isRecording && (
                 <div style={{
-                  position: 'absolute', top: 70, left: 0, right: 0, textAlign: 'center',
+                  position: 'absolute', top: 70, left: 0, right: 0, textAlign: 'center', zIndex: 25,
                 }}>
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -747,6 +747,7 @@ export function EnhancedPostPage({ user, onBack }) {
               <div style={{
                 position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
                 display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center',
+                zIndex: 30,
               }}>
                 {[
                   { icon: <RefreshCw size={22} color={T.white} />, label: 'Flip', action: () => setFacingMode(f => f === 'user' ? 'environment' : 'user') },
@@ -771,7 +772,7 @@ export function EnhancedPostPage({ user, onBack }) {
                   position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
                   display: 'flex', flexDirection: 'column', gap: 8,
                   background: 'rgba(0,0,0,0.6)', borderRadius: 16, padding: '10px 8px',
-                  backdropFilter: 'blur(12px)',
+                  backdropFilter: 'blur(12px)', zIndex: 35,
                 }}>
                   {SPEEDS.map(sp => (
                     <button key={sp} className="ep-btn" onClick={() => { setSelectedSpeed(sp); setShowSpeeds(false); }}
@@ -787,7 +788,7 @@ export function EnhancedPostPage({ user, onBack }) {
               {/* Filter strip */}
               {showFilters && (
                 <div style={{
-                  position: 'absolute', bottom: 130, left: 0, right: 0,
+                  position: 'absolute', bottom: 130, left: 0, right: 0, zIndex: 35,
                   overflowX: 'auto', display: 'flex', gap: 12, padding: '8px 16px',
                   scrollbarWidth: 'none',
                 }}>
@@ -810,7 +811,7 @@ export function EnhancedPostPage({ user, onBack }) {
 
               {/* Bottom controls */}
               <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
+                position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 30,
                 background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
                 padding: '0 24px 48px',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
