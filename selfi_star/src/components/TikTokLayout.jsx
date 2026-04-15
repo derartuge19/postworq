@@ -12,6 +12,10 @@ import {
   VolumeX,
   Bell,
   Heart,
+  Download,
+  Link,
+  EyeOff,
+  AlertTriangle,
 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -112,6 +116,8 @@ export function TikTokLayout({
   const videoContainerRefs = useRef({});
   const [visibleVideos, setVisibleVideos] = useState({});
   const activeVideoIdRef = useRef(null); // only this video plays with sound
+  const longPressTimer = useRef(null);
+  const [longPressMenu, setLongPressMenu] = useState(null); // { videoId, x, y } for long-press context menu
 
   // Generate Cloudinary poster thumbnail from video URL
   const getVideoPoster = (url) => {
@@ -695,6 +701,121 @@ export function TikTokLayout({
       });
   };
 
+  // Long-press handlers for TikTok-style context menu
+  const handleLongPressStart = (videoId, e) => {
+    longPressTimer.current = setTimeout(() => {
+      setShowMenu(videoId);
+      // Haptic feedback on mobile if available
+      if (navigator.vibrate) navigator.vibrate(50);
+    }, 500); // 500ms for long press
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleLongPressMove = () => {
+    // Cancel long press if user moves finger
+    handleLongPressEnd();
+  };
+
+  // Download video/image
+  const handleDownload = async (video) => {
+    setLongPressMenu(null);
+    setShowMenu(null);
+    
+    const mediaUrl = video.imageUrl?.startsWith('http') 
+      ? video.imageUrl 
+      : `${config.API_BASE_URL.replace('/api', '')}${video.imageUrl}`;
+    
+    try {
+      // Show downloading toast
+      const toast = document.createElement('div');
+      toast.textContent = '⬇️ Downloading...';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 10000;
+      `;
+      document.body.appendChild(toast);
+      
+      const response = await fetch(mediaUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `postworq_${video.id}.${mediaUrl.includes('.mp4') ? 'mp4' : 'jpg'}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast.textContent = '✓ Downloaded!';
+      setTimeout(() => toast.remove(), 1500);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setAlertModal({
+        isOpen: true,
+        title: 'Download Failed',
+        message: 'Could not download the video. Please try again.',
+        type: 'error',
+        onConfirm: null,
+        showCancel: false,
+      });
+    }
+  };
+
+  // Save to favorites (bookmark)
+  const handleSaveToFavorites = async (videoId) => {
+    setLongPressMenu(null);
+    setShowMenu(null);
+    
+    if (!user) {
+      onRequireAuth();
+      return;
+    }
+    
+    try {
+      await api.request(`/saved/`, {
+        method: 'POST',
+        body: JSON.stringify({ reel: videoId }),
+      });
+      
+      // Show success toast
+      const toast = document.createElement('div');
+      toast.textContent = '⭐ Saved to favorites!';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 10000;
+        animation: fadeInOut 2s ease-in-out;
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    } catch (err) {
+      console.error('Save failed:', err);
+    }
+  };
+
   const handleHashtagClick = async (hashtag) => {
     try {
       const response = await api.request(`/reels/hashtag/${hashtag}/`);
@@ -963,6 +1084,16 @@ export function TikTokLayout({
                 <div
                   key={video.id}
                   className="video-card-snap"
+                  onTouchStart={(e) => handleLongPressStart(video.id, e)}
+                  onTouchEnd={handleLongPressEnd}
+                  onTouchMove={handleLongPressMove}
+                  onMouseDown={(e) => handleLongPressStart(video.id, e)}
+                  onMouseUp={handleLongPressEnd}
+                  onMouseLeave={handleLongPressEnd}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setShowMenu(video.id);
+                  }}
                   style={{
                     background: isMobile ? '#fff' : 'transparent',
                     borderRadius: isMobile ? 0 : 12,
@@ -1074,33 +1205,55 @@ export function TikTokLayout({
                         }}
                       >
                         <div style={{ width: 36, height: 4, background: '#E7E5E4', borderRadius: 4, margin: '12px auto 16px' }} />
-                        <button
-                          onClick={() => handleShare(video.id)}
-                          style={{
-                            width: '100%',
-                            padding: '16px 24px',
-                            background: 'none',
-                            border: 'none',
-                            textAlign: 'left',
-                            fontSize: 16,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            color: T.txt,
-                          }}
-                        >
-                          <Share2 size={20} style={{ color: T.pri }} /> Share
-                        </button>
+                        {/* TikTok-style grid of action icons */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: '8px 16px 16px' }}>
+                          {[
+                            { icon: Link, label: 'Copy Link', color: T.pri, action: () => handleShare(video.id) },
+                            { icon: Bookmark, label: 'Save', color: '#F59E0B', action: () => handleSaveToFavorites(video.id) },
+                            { icon: Download, label: 'Download', color: '#10B981', action: () => handleDownload(video) },
+                            { icon: Share2, label: 'Share', color: '#8B5CF6', action: () => handleShare(video.id) },
+                          ].map((item, idx) => (
+                            <button
+                              key={idx}
+                              onClick={item.action}
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 6,
+                                padding: '12px 8px',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <div style={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: '50%',
+                                background: `${item.color}15`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}>
+                                <item.icon size={22} color={item.color} />
+                              </div>
+                              <span style={{ fontSize: 11, color: T.txt, fontWeight: 500 }}>{item.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                        {/* Divider */}
+                        <div style={{ height: 1, background: T.border, margin: '4px 16px 8px' }} />
+                        {/* List options */}
                         <button
                           onClick={() => handleNotInterested(video.id)}
                           style={{
                             width: '100%',
-                            padding: '16px 24px',
+                            padding: '14px 24px',
                             background: 'none',
                             border: 'none',
                             textAlign: 'left',
-                            fontSize: 16,
+                            fontSize: 15,
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
@@ -1108,17 +1261,17 @@ export function TikTokLayout({
                             color: T.txt,
                           }}
                         >
-                          <Flag size={20} style={{ color: '#F59E0B' }} /> Not Interested
+                          <EyeOff size={20} style={{ color: '#78716C' }} /> Not Interested
                         </button>
                         <button
                           onClick={() => { setShowMenu(null); setShowReportModal(video.id); }}
                           style={{
                             width: '100%',
-                            padding: '16px 24px',
+                            padding: '14px 24px',
                             background: 'none',
                             border: 'none',
                             textAlign: 'left',
-                            fontSize: 16,
+                            fontSize: 15,
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
@@ -1126,18 +1279,18 @@ export function TikTokLayout({
                             color: '#EF4444',
                           }}
                         >
-                          <Flag size={20} /> Report
+                          <AlertTriangle size={20} /> Report
                         </button>
                         <button
                           onClick={() => setShowMenu(null)}
                           style={{
                             width: '100%',
-                            padding: '16px 24px',
+                            padding: '14px 24px',
                             marginTop: 8,
                             background: '#F5F5F4',
                             border: 'none',
                             textAlign: 'center',
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: 600,
                             cursor: 'pointer',
                             color: T.txt,
@@ -1423,9 +1576,60 @@ export function TikTokLayout({
                               (e.target.style.background = 'none')
                             }
                           >
-                            <Share2 size={16} />
-                            Share
+                            <Link size={16} />
+                            Copy Link
                           </button>
+                          <button
+                            onClick={() => handleSaveToFavorites(video.id)}
+                            style={{
+                              width: '100%',
+                              padding: '12px 16px',
+                              border: 'none',
+                              background: 'none',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 14,
+                              color: T.txt,
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = '#f5f5f5')
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.background = 'none')
+                            }
+                          >
+                            <Bookmark size={16} />
+                            Save to Favorites
+                          </button>
+                          <button
+                            onClick={() => handleDownload(video)}
+                            style={{
+                              width: '100%',
+                              padding: '12px 16px',
+                              border: 'none',
+                              background: 'none',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 14,
+                              color: T.txt,
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = '#f5f5f5')
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.background = 'none')
+                            }
+                          >
+                            <Download size={16} />
+                            Download
+                          </button>
+                          <div style={{ height: 1, background: T.border, margin: '4px 0' }} />
                           <button
                             onClick={() => handleNotInterested(video.id)}
                             style={{
