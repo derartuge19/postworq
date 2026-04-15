@@ -625,22 +625,29 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   position: "absolute",
                   top: 6,
                   right: 6,
-                  width: 26,
-                  height: 26,
+                  width: 24,
+                  height: 24,
+                  minWidth: 24,
+                  minHeight: 24,
+                  maxWidth: 24,
+                  maxHeight: 24,
+                  aspectRatio: "1 / 1",
                   borderRadius: "50%",
                   background: "rgba(0,0,0,0.55)",
                   border: "none",
+                  padding: 0,
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: "#fff",
-                  zIndex: 10,
+                  zIndex: 5,
                   opacity: window.innerWidth <= 768 ? 1 : 0,
                   transition: "opacity 0.2s",
+                  boxSizing: "border-box",
                 }}
               >
-                <MoreVertical size={13} />
+                <MoreVertical size={12} />
               </button>
             )}
             

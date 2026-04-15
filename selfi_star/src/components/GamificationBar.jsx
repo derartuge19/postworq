@@ -394,8 +394,27 @@ function GiftModal({ coins, onClose, onRefresh }) {
   );
 }
 
-/* ─── ICON CARD ──────────────────────────────── */
-function IconCard({ emoji, value, label, color, badge, onClick, disabled }) {
+/* ─── SPIN WHEEL ICON ──────────────────────────── */
+function SpinWheelIcon({ size = 28, color = '#DA9B2A' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke={color} strokeWidth="2" fill="none"/>
+      <path d="M12 2 L12 12 L19.5 5" stroke={color} strokeWidth="1.5" fill={color} fillOpacity="0.3"/>
+      <path d="M12 12 L19.5 5 L22 12" stroke={color} strokeWidth="1.5" fill={color} fillOpacity="0.15"/>
+      <path d="M12 12 L22 12 L19.5 19" stroke={color} strokeWidth="1.5" fill={color} fillOpacity="0.3"/>
+      <path d="M12 12 L19.5 19 L12 22" stroke={color} strokeWidth="1.5" fill={color} fillOpacity="0.15"/>
+      <path d="M12 12 L12 22 L4.5 19" stroke={color} strokeWidth="1.5" fill={color} fillOpacity="0.3"/>
+      <path d="M12 12 L4.5 19 L2 12" stroke={color} strokeWidth="1.5" fill={color} fillOpacity="0.15"/>
+      <path d="M12 12 L2 12 L4.5 5" stroke={color} strokeWidth="1.5" fill={color} fillOpacity="0.3"/>
+      <path d="M12 12 L4.5 5 L12 2" stroke={color} strokeWidth="1.5" fill={color} fillOpacity="0.15"/>
+      <circle cx="12" cy="12" r="3" fill={color}/>
+      <path d="M12 0 L10 3 L14 3 Z" fill={color}/>
+    </svg>
+  );
+}
+
+/* ─── ICON CARD ──────────────────────────────────── */
+function IconCard({ emoji, icon, value, label, color, badge, onClick, disabled }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
       flex:1,
@@ -417,7 +436,7 @@ function IconCard({ emoji, value, label, color, badge, onClick, disabled }) {
         boxShadow:`0 2px 12px ${color}25`,
         transition:'transform .15s',
       }}>
-        {emoji}
+        {icon || emoji}
       </div>
       {/* badge */}
       {badge && (
@@ -507,9 +526,11 @@ export function GamificationBar({ userId, theme }) {
     <div style={{display:'flex',justifyContent:'space-around',padding:'12px 0',
       background:'linear-gradient(135deg,#FFF8F0 0%,#FFFFFF 100%)',
       borderTop:`1px solid ${pri}20`,borderBottom:`1px solid ${pri}20`}}>
-      {['🪙','🔥','🔄','🎁'].map(e=>(
-        <div key={e} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'8px 16px'}}>
-          <div style={{width:52,height:52,borderRadius:'50%',background:'#F5F5F4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,animation:'pulse 1.2s infinite'}}>{e}</div>
+      {['🪙','🔥','spin','🎁'].map((e,i)=>(
+        <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'8px 16px'}}>
+          <div style={{width:52,height:52,borderRadius:'50%',background:'#F5F5F4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,animation:'pulse 1.2s infinite'}}>
+            {e === 'spin' ? <SpinWheelIcon size={26} color="#A8A29E"/> : e}
+          </div>
           <div style={{width:24,height:8,background:'#F5F5F4',borderRadius:4,marginTop:2}}/>
           <div style={{width:32,height:6,background:'#F5F5F4',borderRadius:4}}/>
         </div>
@@ -542,7 +563,8 @@ export function GamificationBar({ userId, theme }) {
         />
         <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
         <IconCard
-          emoji="🔄" value={canSpin ? 'SPIN' : 'Done'} label="Daily" color={canSpin ? pri : '#A8A29E'}
+          icon={<SpinWheelIcon size={28} color={canSpin ? pri : '#A8A29E'}/>}
+          value={canSpin ? 'SPIN' : 'Done'} label="Daily" color={canSpin ? pri : '#A8A29E'}
           badge={canSpin}
           onClick={()=>{ setSpinResult(null); setModal('spin'); }}
         />
