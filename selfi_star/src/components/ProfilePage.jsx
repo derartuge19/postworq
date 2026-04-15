@@ -642,7 +642,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   justifyContent: "center",
                   color: "#fff",
                   zIndex: 5,
-                  opacity: 0,
+                  opacity: window.innerWidth <= 768 ? 1 : 0,
                   transition: "opacity 0.2s",
                   boxSizing: "border-box",
                 }}
