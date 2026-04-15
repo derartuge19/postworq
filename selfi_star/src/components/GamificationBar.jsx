@@ -218,7 +218,7 @@ function SpinModal({ spin, onSpin, onClose }) {
 
   return (
     <Modal onClose={onClose}>
-      <ModalHeader title="� Daily Spin" onClose={onClose}/>
+      <ModalHeader title="🔄 Daily Spin" onClose={onClose}/>
       <div style={{padding:'8px 20px 0',textAlign:'center'}}>
         {result ? (
           <div style={{padding:'20px 0'}}>
@@ -274,12 +274,12 @@ function SpinModal({ spin, onSpin, onClose }) {
               <button onClick={doSpin} disabled={spinning} style={{
                 width:'100%',padding:'18px',borderRadius:14,border:'none',
                 background: spinning ? '#E7E5E4' : 'linear-gradient(135deg,#DA9B2A,#F59E0B)',
-                color: spinning ? '#78716C' : '#fff',
-                fontSize:18,fontWeight:800,cursor: spinning ? 'not-allowed' : 'pointer',
+                color: spinning ? '#78716C' : '#fff',fontSize:18,fontWeight:800,
+                cursor: spinning ? 'not-allowed' : 'pointer',
                 boxShadow: spinning ? 'none' : '0 4px 20px rgba(218,155,42,.5)',
                 letterSpacing:1
               }}>
-                {spinning ? '🌀 Spinning...' : '🎰 SPIN!'}
+                {spinning ? '⏳ Spinning...' : '🔄 SPIN!'}
               </button>
             ) : (
               <div style={{background:'#F5F5F4',borderRadius:14,padding:'16px',color:'#78716C',fontSize:14}}>
@@ -507,7 +507,7 @@ export function GamificationBar({ userId, theme }) {
     <div style={{display:'flex',justifyContent:'space-around',padding:'12px 0',
       background:'linear-gradient(135deg,#FFF8F0 0%,#FFFFFF 100%)',
       borderTop:`1px solid ${pri}20`,borderBottom:`1px solid ${pri}20`}}>
-      {['🪙','🔥','�','🎁'].map(e=>(
+      {['🪙','🔥','🔄','🎁'].map(e=>(
         <div key={e} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'8px 16px'}}>
           <div style={{width:52,height:52,borderRadius:'50%',background:'#F5F5F4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,animation:'pulse 1.2s infinite'}}>{e}</div>
           <div style={{width:24,height:8,background:'#F5F5F4',borderRadius:4,marginTop:2}}/>
@@ -542,7 +542,7 @@ export function GamificationBar({ userId, theme }) {
         />
         <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
         <IconCard
-          emoji="�" value={canSpin ? 'SPIN' : 'Done'} label="Daily" color={canSpin ? pri : '#A8A29E'}
+          emoji="🔄" value={canSpin ? 'SPIN' : 'Done'} label="Daily" color={canSpin ? pri : '#A8A29E'}
           badge={canSpin}
           onClick={()=>{ setSpinResult(null); setModal('spin'); }}
         />
