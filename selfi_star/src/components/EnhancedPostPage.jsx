@@ -37,7 +37,11 @@ const SAMPLE_SOUNDS = [
   { id: 's5', name: 'Hip Hop Loop',   artist: 'Urban Beats',   dur: '0:15' },
 ];
 
-const TEXT_COLORS = ['#fff','#000','#FF3B57','#DA9B2A','#3B82F6','#10B981','#8B5CF6','#F97316'];
+const TEXT_COLORS = [
+  '#FFFFFF', '#000000', '#FF3B57', '#DA9B2A', 
+  '#3B82F6', '#10B981', '#8B5CF6', '#F97316',
+  '#EC4899', '#14B8A6', '#EAB308', '#6366F1'
+];
 
 // ── SVG Progress Ring ────────────────────────────────────────────────────────
 function ProgressRing({ radius, stroke, progress, color }) {
@@ -465,24 +469,30 @@ export function EnhancedPostPage({ user, onBack }) {
   // ── Overlay drag helpers ─────────────────────────────────────────────────
   const startOverlayDrag = (e, id) => {
     e.stopPropagation();
+    e.preventDefault(); // Prevent touch+mouse double-fire
     const pt = e.touches?.[0] || e;
     const ov = textOverlays.find(o => o.id === id);
-    if (!ov) return;
+    if (!ov || dragging) return; // Prevent starting new drag if already dragging
     setDragging({ id, sx: pt.clientX, sy: pt.clientY, ox: ov.x, oy: ov.y });
   };
   const moveOverlayDrag = (e) => {
     if (!dragging) return;
+    e.preventDefault();
     const pt = e.touches?.[0] || e;
     const el = previewContainerRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     const dx = ((pt.clientX - dragging.sx) / r.width) * 100;
     const dy = ((pt.clientY - dragging.sy) / r.height) * 100;
+    // Update only the dragged overlay position
     setTextOverlays(prev => prev.map(o => o.id === dragging.id
       ? { ...o, x: Math.max(5, Math.min(95, dragging.ox + dx)), y: Math.max(5, Math.min(95, dragging.oy + dy)) }
       : o));
   };
-  const endOverlayDrag = () => setDragging(null);
+  const endOverlayDrag = (e) => {
+    if (e) e.preventDefault();
+    setDragging(null);
+  };
 
   // ── Overlay CSS helper ────────────────────────────────────────────────────
   const overlayCSS = (ov) => {
@@ -1163,81 +1173,115 @@ export function EnhancedPostPage({ user, onBack }) {
         </div>
       )}
 
-      {/* ── TEXT INPUT MODAL ─────────────────────────────────────────────────── */}
+      {/* ── TEXT INPUT MODAL — Professional TikTok-style ─────────────────────── */}
       {showTextInput && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 9000,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: 20, animation: 'ep-fade-in 0.2s ease',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', zIndex: 9000,
+          display: 'flex', flexDirection: 'column',
+          animation: 'ep-fade-in 0.2s ease',
         }} onClick={() => setShowTextInput(false)}>
-          <div style={{ width: '100%', maxWidth: 420 }} onClick={e => e.stopPropagation()}>
-            {/* Live preview of the text style */}
-            <div style={{ textAlign: 'center', marginBottom: 16, minHeight: 52, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          
+          {/* Header */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: 'max(16px, env(safe-area-inset-top)) 20px 16px',
+          }}>
+            <button className="ep-btn" onClick={() => setShowTextInput(false)}
+              style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={20} color={T.white} />
+            </button>
+            <span style={{ fontSize: 17, fontWeight: 700, color: T.white }}>Add Text</span>
+            <button className="ep-btn" onClick={addTextOverlay}
+              style={{ background: T.pri, borderRadius: 20, padding: '10px 20px', fontSize: 14, fontWeight: 700, color: '#000' }}>
+              Done
+            </button>
+          </div>
+
+          {/* Live Preview Area */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              minHeight: 120, minWidth: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(255,255,255,0.05)', borderRadius: 16, padding: 24,
+            }}>
               {currentText ? (
-                <span style={{ ...overlayCSS({ color: textColor, style: textStyle, align: textAlign, fontSize: Math.min(textFontSize * 1.2, 36), fontWeight: 800 }), cursor: 'default' }}>
+                <span style={{ ...overlayCSS({ color: textColor, style: textStyle, align: textAlign, fontSize: textFontSize, fontWeight: 800 }), cursor: 'default' }}>
                   {currentText}
                 </span>
-              ) : <span style={{ color: T.sub, fontSize: 14 }}>Preview appears here</span>}
+              ) : <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 16 }}>Your text preview</span>}
             </div>
+          </div>
+
+          {/* Bottom Controls */}
+          <div style={{
+            background: 'rgba(20,20,20,0.98)', borderRadius: '24px 24px 0 0',
+            padding: '20px 20px max(20px, env(safe-area-inset-bottom))',
+          }} onClick={e => e.stopPropagation()}>
+            
+            {/* Text Input */}
             <textarea
               autoFocus
               value={currentText}
               onChange={e => setCurrentText(e.target.value)}
-              placeholder="Type your text..."
+              placeholder="Type something..."
               rows={2}
               style={{
-                width: '100%', background: 'rgba(255,255,255,0.08)', border: `1px solid ${T.border}`,
-                borderRadius: 16, padding: 14, color: textColor,
-                fontSize: textFontSize, fontWeight: 800, outline: 'none', resize: 'none', boxSizing: 'border-box',
-                textAlign: textAlign,
+                width: '100%', background: 'rgba(255,255,255,0.08)', border: 'none',
+                borderRadius: 14, padding: '14px 16px', color: T.white,
+                fontSize: 16, fontWeight: 600, outline: 'none', resize: 'none', boxSizing: 'border-box',
               }}
             />
-            {/* Style row */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'center' }}>
+
+            {/* Style Buttons */}
+            <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'center' }}>
               {[['bold','Aa'],['plain','A'],['outline','Ø'],['neon','✦'],['highlight','▮']].map(([s,lbl]) => (
                 <button key={s} className="ep-btn" onClick={() => setTextStyle(s)}
-                  style={{ width: 44, height: 44, borderRadius: 12, fontSize: 15, fontWeight: 800,
+                  style={{
+                    width: 48, height: 48, borderRadius: '50%', fontSize: 16, fontWeight: 800,
                     background: textStyle === s ? T.pri : 'rgba(255,255,255,0.1)',
                     color: textStyle === s ? '#000' : T.white,
-                    border: textStyle === s ? 'none' : `1px solid ${T.border}` }}>
+                    border: 'none',
+                    boxShadow: textStyle === s ? '0 4px 12px rgba(218,155,42,0.4)' : 'none',
+                  }}>
                   {lbl}
                 </button>
               ))}
             </div>
-            {/* Alignment */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'center' }}>
+
+            {/* Alignment + Size */}
+            <div style={{ display: 'flex', gap: 10, marginTop: 14, alignItems: 'center', justifyContent: 'center' }}>
               {[['left','◀'],['center','≡'],['right','▶']].map(([a,lbl]) => (
                 <button key={a} className="ep-btn" onClick={() => setTextAlign(a)}
-                  style={{ width: 44, height: 36, borderRadius: 10, fontSize: 15,
-                    background: textAlign === a ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.07)',
-                    color: T.white, border: textAlign === a ? `1px solid ${T.white}` : `1px solid ${T.border}` }}>
+                  style={{
+                    width: 40, height: 40, borderRadius: '50%', fontSize: 14,
+                    background: textAlign === a ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
+                    color: T.white, border: 'none',
+                  }}>
                   {lbl}
                 </button>
               ))}
-              <div style={{ flex: 1 }} />
-              <span style={{ color: T.sub, fontSize: 12, alignSelf: 'center' }}>Size</span>
+              <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)', margin: '0 8px' }} />
+              <span style={{ color: T.sub, fontSize: 12 }}>Size</span>
               <input type="range" min={14} max={56} value={textFontSize}
                 onChange={e => setTextFontSize(Number(e.target.value))}
-                style={{ width: 90, accentColor: T.pri }} />
+                style={{ width: 100, accentColor: T.pri }} />
+              <span style={{ color: T.white, fontSize: 12, fontWeight: 600, minWidth: 24 }}>{textFontSize}</span>
             </div>
-            {/* Color row */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'center' }}>
-              {TEXT_COLORS.map(c => (
-                <button key={c} className="ep-btn" onClick={() => setTextColor(c)}
-                  style={{ width: 30, height: 30, borderRadius: '50%', background: c,
-                    border: textColor === c ? `3px solid ${T.white}` : '3px solid transparent',
-                    boxShadow: textColor === c ? `0 0 0 2px ${T.pri}` : 'none' }} />
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
-              <button className="ep-btn" onClick={() => setShowTextInput(false)}
-                style={{ flex: 1, padding: 14, background: 'rgba(255,255,255,0.08)', borderRadius: 16, color: T.white, fontSize: 15, fontWeight: 700 }}>
-                Cancel
-              </button>
-              <button className="ep-btn" onClick={addTextOverlay}
-                style={{ flex: 2, padding: 14, background: T.pri, borderRadius: 16, color: '#000', fontSize: 15, fontWeight: 800 }}>
-                Add Text
-              </button>
+
+            {/* Color Palette - Perfect Circles */}
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 12, color: T.sub, marginBottom: 10, textAlign: 'center' }}>Color</div>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                {TEXT_COLORS.map(c => (
+                  <button key={c} className="ep-btn" onClick={() => setTextColor(c)}
+                    style={{
+                      width: 36, height: 36, borderRadius: '50%', background: c,
+                      border: textColor === c ? '3px solid #fff' : '2px solid rgba(255,255,255,0.2)',
+                      boxShadow: textColor === c ? `0 0 0 3px ${T.pri}, 0 4px 12px rgba(0,0,0,0.4)` : '0 2px 8px rgba(0,0,0,0.3)',
+                      transform: textColor === c ? 'scale(1.15)' : 'scale(1)',
+                      transition: 'all 0.15s ease',
+                    }} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -1438,7 +1482,7 @@ export function EnhancedPostPage({ user, onBack }) {
 
             {/* 5 ── Close button (top-right) */}
             <button className="ep-btn" onClick={() => setShowPreview(false)} style={{
-              position: 'absolute', top: 52, right: 16, zIndex: 20,
+              position: 'absolute', top: 'max(16px, env(safe-area-inset-top))', right: 16, zIndex: 20,
               background: 'rgba(0,0,0,0.55)', borderRadius: '50%', width: 42, height: 42,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.12)',
@@ -1448,7 +1492,7 @@ export function EnhancedPostPage({ user, onBack }) {
 
             {/* 6 ── Preview badge (top-left) */}
             <div style={{
-              position: 'absolute', top: 58, left: 16, zIndex: 20,
+              position: 'absolute', top: 'max(20px, calc(env(safe-area-inset-top) + 4px))', left: 16, zIndex: 20,
               background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
               borderRadius: 20, padding: '6px 14px',
               fontSize: 12, color: T.pri, fontWeight: 800,
