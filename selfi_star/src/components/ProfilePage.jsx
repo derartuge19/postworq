@@ -601,13 +601,13 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             }}
             onClick={() => setSelectedPost(post)}
             onMouseEnter={(e) => {
-              if (isOwnProfile && window.innerWidth > 768) {
+              if (isOwnProfile) {
                 const btn = e.currentTarget.querySelector('.post-menu-btn');
                 if (btn) btn.style.opacity = '1';
               }
             }}
             onMouseLeave={(e) => {
-              if (isOwnProfile && window.innerWidth > 768) {
+              if (isOwnProfile) {
                 const btn = e.currentTarget.querySelector('.post-menu-btn');
                 if (btn) btn.style.opacity = '0';
               }
@@ -642,7 +642,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   justifyContent: "center",
                   color: "#fff",
                   zIndex: 5,
-                  opacity: window.innerWidth <= 768 ? 1 : 0,
+                  opacity: 0,
                   transition: "opacity 0.2s",
                   boxSizing: "border-box",
                 }}
@@ -650,6 +650,12 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 <MoreVertical size={12} />
               </button>
             )}
+            {/* CSS for mobile - always show menu button */}
+            <style>{`
+              @media (max-width: 768px) {
+                .post-menu-btn { opacity: 1 !important; }
+              }
+            `}</style>
             
             {(() => {
               const mediaUrl = post.media || post.image || '';
