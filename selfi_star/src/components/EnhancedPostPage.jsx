@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   X, Check, Music, Type, Sliders, Play, Pause, Upload, Zap, ZapOff,
   Square, ArrowLeft, RefreshCw, ChevronLeft, Image, Video, Scissors,
-  Bookmark, Eye, FileText, Heart, MessageCircle, Share2, Volume2
+  Bookmark, Eye, FileText, Heart, MessageCircle, Share2, Volume2, VolumeX
 } from "lucide-react";
 import api from "../api";
 
@@ -124,6 +124,7 @@ export function EnhancedPostPage({ user, onBack }) {
   const fileInputRef = useRef(null);
   const audioFileInputRef = useRef(null);
   const previewContainerRef = useRef(null);
+  const previewVideoRef = useRef(null);
 
   // ── Drafts state ─────────────────────────────────────────────────────────
   const [drafts, setDrafts] = useState(() => {
@@ -131,6 +132,7 @@ export function EnhancedPostPage({ user, onBack }) {
   });
   const [showDrafts, setShowDrafts] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewMuted, setPreviewMuted] = useState(false);
 
   // ── Keep liveRef synced ──────────────────────────────────────────────────
   useEffect(() => { liveRef.current.filter = selectedFilter; }, [selectedFilter]);
@@ -1319,12 +1321,12 @@ export function EnhancedPostPage({ user, onBack }) {
           {/* Full-screen card — same dimensions as TikTokLayout mobile card */}
           <div style={{ position: 'relative', width: '100%', height: '100dvh', overflow: 'hidden' }}>
 
-            {/* 1 ── Background media (covers full card, no overflow) */}
+            {/* 1 ── Background media (contain to show full video without zoom) */}
             {preview && (isVideoFile
-              ? <video src={preview} autoPlay loop muted playsInline
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              ? <video ref={previewVideoRef} src={preview} autoPlay loop playsInline controls={false} muted={previewMuted}
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block' }} />
               : <img src={preview} alt=""
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block' }} />
             )}
             {!preview && (
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg,#1a1a1a,#2a2a2a)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1375,7 +1377,7 @@ export function EnhancedPostPage({ user, onBack }) {
             <div style={{
               position: 'absolute', right: 12, bottom: 28,
               display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center',
-              zIndex: 10, pointerEvents: 'none',
+              zIndex: 10,
             }}>
               {/* Like */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -1405,13 +1407,15 @@ export function EnhancedPostPage({ user, onBack }) {
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>Save</span>
               </div>
-              {/* Volume */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              {/* Volume - clickable */}
+              <button 
+                onClick={() => setPreviewMuted(!previewMuted)}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.9))' }}>
-                  <Volume2 size={26} color="#fff" />
+                  {previewMuted ? <VolumeX size={26} color="#fff" /> : <Volume2 size={26} color="#fff" />}
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>On</span>
-              </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{previewMuted ? 'Off' : 'On'}</span>
+              </button>
             </div>
 
             {/* 5 ── Close button (top-right) */}
