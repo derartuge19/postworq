@@ -210,11 +210,9 @@ export function EnhancedPostPage({ user, onBack }) {
       if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
       const s = await navigator.mediaDevices.getUserMedia({
         video: { 
-          facingMode, 
-          width: { ideal: 720 }, 
-          height: { ideal: 1280 },
-          // Prevent zoom on mobile - use natural camera view
-          advanced: [{ zoom: 1 }]
+          facingMode,
+          // Don't force resolution - use camera's natural view to prevent zoom
+          resizeMode: 'none',
         },
         audio: true,
       });
@@ -648,9 +646,9 @@ export function EnhancedPostPage({ user, onBack }) {
               {/* Hidden video source */}
               <video ref={videoRef} playsInline muted
                 style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} />
-              {/* Filtered canvas */}
+              {/* Filtered canvas - contain to show full camera view without zoom */}
               <canvas ref={canvasRef}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block' }} />
 
               {/* Text overlays ON camera preview — draggable */}
               {textOverlays.map(ov => (
