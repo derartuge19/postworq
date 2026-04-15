@@ -704,7 +704,8 @@ export function TikTokLayout({
   // Long-press handlers for TikTok-style context menu (separate from 3-dots menu)
   const handleLongPressStart = (videoId, e) => {
     longPressTimer.current = setTimeout(() => {
-      setLongPressMenu(videoId); // Use separate state for long-press menu
+      setShowMenu(null); // Close dropdown menu if open
+      setLongPressMenu(videoId); // Show bottom sheet only
       // Haptic feedback on mobile if available
       if (navigator.vibrate) navigator.vibrate(50);
     }, 500); // 500ms for long press
@@ -1142,6 +1143,7 @@ export function TikTokLayout({
                     justifyContent: 'center',
                     marginBottom: isMobile ? 0 : 20,
                     scrollSnapAlign: isMobile ? 'start' : undefined,
+                    scrollSnapStop: isMobile ? 'always' : undefined,
                     flexShrink: isMobile ? 0 : undefined,
                   }}
                 >
