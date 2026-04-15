@@ -87,12 +87,39 @@ function CoinsModal({ coins, onClose }) {
 /* ─── STREAK MODAL ───────────────────────────── */
 function StreakModal({ streak, onClaim, onClose }) {
   const [claimed, setClaimed] = useState(false);
-  const days = ['M','T','W','T','F','S','S'];
+  const [claiming, setClaiming] = useState(false);
   const cur = streak?.current ?? 0;
 
+  // Get real calendar days starting from today going back 6 days
+  const getRealDays = () => {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      days.push({
+        name: dayNames[d.getDay()],
+        date: d.getDate(),
+        isToday: i === 0,
+        isPast: i > 0,
+      });
+    }
+    return days;
+  };
+  const realDays = getRealDays();
+
   const handleClaim = async () => {
-    await onClaim();
-    setClaimed(true);
+    if (claiming) return;
+    setClaiming(true);
+    try {
+      await onClaim();
+      setClaimed(true);
+    } catch (e) {
+      console.error('Claim failed:', e);
+    } finally {
+      setClaiming(false);
+    }
   };
 
   return (
@@ -108,36 +135,42 @@ function StreakModal({ streak, onClaim, onClose }) {
           )}
         </div>
 
-        {/* 7-day progress dots */}
+        {/* 7-day progress - real calendar days */}
         <div style={{display:'flex',justifyContent:'space-between',marginBottom:20,padding:'0 4px'}}>
-          {days.map((d,i)=>{
-            const active = i < (cur % 7);
-            const isToday = i === (cur % 7 === 0 ? 6 : (cur % 7) - 1);
+          {realDays.map((day, i)=>{
+            // Mark days as active based on streak count (last N days)
+            const daysFromEnd = 6 - i; // 0 for today, 6 for 6 days ago
+            const active = daysFromEnd < cur && daysFromEnd > 0; // Past days within streak
+            const isToday = day.isToday;
             return (
               <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
                 <div style={{
                   width:36,height:36,borderRadius:'50%',
-                  background: active ? 'linear-gradient(135deg,#EF4444,#F97316)' : '#F5F5F4',
-                  border: isToday ? '2px solid #EF4444' : '2px solid transparent',
+                  background: active ? 'linear-gradient(135deg,#EF4444,#F97316)' : isToday ? '#FFF8F0' : '#F5F5F4',
+                  border: isToday ? '2.5px solid #EF4444' : active ? 'none' : '2px solid transparent',
                   display:'flex',alignItems:'center',justifyContent:'center',
-                  fontSize:16,boxShadow: active ? '0 2px 8px rgba(239,68,68,.35)' : 'none'
+                  fontSize: isToday ? 12 : 14,
+                  fontWeight: 700,
+                  color: active ? '#fff' : isToday ? '#EF4444' : '#A8A29E',
+                  boxShadow: active ? '0 2px 8px rgba(239,68,68,.35)' : isToday ? '0 2px 8px rgba(239,68,68,.2)' : 'none'
                 }}>
-                  {active ? '✓' : ''}
+                  {active ? '✓' : day.date}
                 </div>
-                <span style={{fontSize:10,color: active ? '#EF4444' : '#A8A29E',fontWeight:600}}>{d}</span>
+                <span style={{fontSize:10,color: active || isToday ? '#EF4444' : '#A8A29E',fontWeight:600}}>{day.name}</span>
               </div>
             );
           })}
         </div>
 
         {(streak?.bonus_available && !claimed) ? (
-          <button onClick={handleClaim} style={{
+          <button onClick={handleClaim} disabled={claiming} style={{
             width:'100%',padding:'16px',borderRadius:14,border:'none',
-            background:'linear-gradient(135deg,#10B981,#059669)',
-            color:'#fff',fontSize:17,fontWeight:700,cursor:'pointer',
-            boxShadow:'0 4px 16px rgba(16,185,129,.4)'
+            background: claiming ? '#E7E5E4' : 'linear-gradient(135deg,#10B981,#059669)',
+            color: claiming ? '#78716C' : '#fff',fontSize:17,fontWeight:700,
+            cursor: claiming ? 'not-allowed' : 'pointer',
+            boxShadow: claiming ? 'none' : '0 4px 16px rgba(16,185,129,.4)'
           }}>
-            🎁 Claim Day {cur + 1} Bonus!
+            {claiming ? '⏳ Claiming...' : `🎁 Claim Day ${cur + 1} Bonus!`}
           </button>
         ) : claimed ? (
           <div style={{textAlign:'center',padding:'16px',background:'#ECFDF5',borderRadius:14,color:'#10B981',fontWeight:700}}>
@@ -185,7 +218,7 @@ function SpinModal({ spin, onSpin, onClose }) {
 
   return (
     <Modal onClose={onClose}>
-      <ModalHeader title="🎰 Daily Spin" onClose={onClose}/>
+      <ModalHeader title="� Daily Spin" onClose={onClose}/>
       <div style={{padding:'8px 20px 0',textAlign:'center'}}>
         {result ? (
           <div style={{padding:'20px 0'}}>
@@ -409,13 +442,26 @@ export function GamificationBar({ userId, theme }) {
   const [spinResult, setSpinResult] = useState(null);
   const pri = theme?.pri || '#DA9B2A';
 
-  useEffect(() => { load(); }, []);
+  // Load immediately and cache result
+  useEffect(() => {
+    // Check for cached data first for instant display
+    const cached = sessionStorage.getItem('gamification_status');
+    if (cached) {
+      try {
+        setStatus(JSON.parse(cached));
+        setLoading(false);
+      } catch {}
+    }
+    load();
+  }, []);
 
   const load = async () => {
-    setLoading(true);
+    if (!status) setLoading(true);
     try {
       const res = await api.request('/gamification/status/');
       setStatus(res);
+      // Cache for instant load next time
+      sessionStorage.setItem('gamification_status', JSON.stringify(res));
     } catch { /* silently fail */ }
     setLoading(false);
   };
@@ -432,28 +478,43 @@ export function GamificationBar({ userId, theme }) {
 
   const handleLoginBonus = async () => {
     try {
-      const res = await api.request('/gamification/login-bonus/', { method:'POST' });
+      const res = await api.request('/gamification/login-bonus/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
       setStatus(prev => prev ? {
         ...prev,
         coins:{ ...prev.coins, balance: res.new_balance },
         login_streak:{ ...prev.login_streak, bonus_available: false, current: res.login_streak }
       } : prev);
-    } catch { /* ignore */ }
+      // Update cache
+      sessionStorage.setItem('gamification_status', JSON.stringify({
+        ...status,
+        coins:{ ...status?.coins, balance: res.new_balance },
+        login_streak:{ ...status?.login_streak, bonus_available: false, current: res.login_streak }
+      }));
+      return res;
+    } catch (e) {
+      console.error('Login bonus claim failed:', e);
+      throw e;
+    }
   };
 
   const { coins={}, spin={}, login_streak={}, gifts={} } = status || {};
 
-  if (loading) return (
+  if (loading && !status) return (
     <div style={{display:'flex',justifyContent:'space-around',padding:'12px 0',
       background:'linear-gradient(135deg,#FFF8F0 0%,#FFFFFF 100%)',
       borderTop:`1px solid ${pri}20`,borderBottom:`1px solid ${pri}20`}}>
-      {['🪙','🔥','🎰','🎁'].map(e=>(
+      {['🪙','🔥','�','🎁'].map(e=>(
         <div key={e} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'8px 16px'}}>
-          <div style={{width:52,height:52,borderRadius:'50%',background:'#F5F5F4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24}}>{e}</div>
+          <div style={{width:52,height:52,borderRadius:'50%',background:'#F5F5F4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,animation:'pulse 1.2s infinite'}}>{e}</div>
           <div style={{width:24,height:8,background:'#F5F5F4',borderRadius:4,marginTop:2}}/>
           <div style={{width:32,height:6,background:'#F5F5F4',borderRadius:4}}/>
         </div>
       ))}
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
     </div>
   );
   const hasBonus = login_streak?.bonus_available;
@@ -481,7 +542,7 @@ export function GamificationBar({ userId, theme }) {
         />
         <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
         <IconCard
-          emoji="🎰" value={canSpin ? 'SPIN' : 'Done'} label="Daily" color={canSpin ? pri : '#A8A29E'}
+          emoji="�" value={canSpin ? 'SPIN' : 'Done'} label="Daily" color={canSpin ? pri : '#A8A29E'}
           badge={canSpin}
           onClick={()=>{ setSpinResult(null); setModal('spin'); }}
         />
