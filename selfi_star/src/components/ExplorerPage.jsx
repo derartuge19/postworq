@@ -39,6 +39,24 @@ const mediaUrl = (url) => {
   return `${config.API_BASE_URL.replace('/api', '')}${url}`;
 };
 
+// Generate Cloudinary poster thumbnail from video URL
+const getVideoPoster = (url) => {
+  if (!url || !url.includes('res.cloudinary.com')) return null;
+  if (!url.includes('/video/upload/')) return null;
+  try {
+    const marker = '/video/upload/';
+    const idx = url.indexOf(marker);
+    if (idx === -1) return null;
+    const base = url.slice(0, idx + marker.length);
+    const rest = url.slice(idx + marker.length);
+    // Generate thumbnail at first frame with good quality
+    const thumb = base + 'so_0,w_480,h_854,c_fill,q_70,f_jpg/' + rest;
+    return thumb.replace(/\.(mp4|webm|ogg|mov)(\?.*)?$/i, '.jpg');
+  } catch {
+    return null;
+  }
+};
+
 const fmt = (n) => {
   if (!n && n !== 0) return '0';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -76,11 +94,15 @@ function GridSkeleton({ T }) {
 // ── Single video thumbnail card ───────────────────────────────────────────────
 function VideoThumb({ reel, rank, hero = false, onOpen, T }) {
   const [hovered, setHovered] = useState(false);
+  const videoUrl = reel.file_url || reel.media;
+  const isVid = !!(videoUrl || '').match(/\.(mp4|webm|ogg|mov)/i) || (videoUrl && videoUrl.includes('/video/'));
+  
+  // Priority: 1) explicit thumbnail_url, 2) Cloudinary video poster, 3) video/image URL
   const thumb = reel.thumbnail_url
     ? mediaUrl(reel.thumbnail_url)
-    : (reel.file_url || reel.media) ? mediaUrl(reel.file_url || reel.media)
-    : null;
-  const isVid = !!(reel.file_url || reel.media || '').match(/\.(mp4|webm|ogg|mov)/i);
+    : isVid && videoUrl
+      ? getVideoPoster(mediaUrl(videoUrl)) || mediaUrl(videoUrl)
+      : videoUrl ? mediaUrl(videoUrl) : null;
 
   return (
     <div
