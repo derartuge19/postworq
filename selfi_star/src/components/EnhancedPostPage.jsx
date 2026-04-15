@@ -663,9 +663,12 @@ export function EnhancedPostPage({ user, onBack }) {
               {/* Hidden video source */}
               <video ref={videoRef} playsInline muted
                 style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} />
-              {/* Filtered canvas - contain to show full camera view without zoom */}
+              {/* Filtered canvas - contain to show full camera view without zoom, mirror for selfie */}
               <canvas ref={canvasRef}
-                style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block' }} />
+                style={{ 
+                  width: '100%', height: '100%', objectFit: 'contain', background: '#000', display: 'block',
+                  transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
+                }} />
 
               {/* Text overlays ON camera preview — draggable */}
               {textOverlays.map(ov => (

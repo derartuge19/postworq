@@ -409,6 +409,29 @@ export function TikTokLayout({
     };
   }, [videos]);
 
+  // Auto-play first video on initial load
+  useEffect(() => {
+    if (videos.length === 0 || loading) return;
+    
+    const firstVideo = videos[0];
+    const videoElement = videoRefs.current[firstVideo.id];
+    
+    // Small delay to ensure video element is mounted
+    const timer = setTimeout(() => {
+      if (videoElement && videoElement.paused) {
+        activeVideoIdRef.current = String(firstVideo.id);
+        videoElement.muted = !audioEnabled;
+        videoElement.play()
+          .then(() => {
+            setPlayingVideos((prev) => ({ ...prev, [firstVideo.id]: true }));
+          })
+          .catch((err) => console.log('Auto-play prevented:', err));
+      }
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [videos.length > 0 && !loading]); // Only run when videos first load
+
   const handleCommentPosted = (comment) => {
     // Update the comment count for the specific video
     setVideos((prev) =>
