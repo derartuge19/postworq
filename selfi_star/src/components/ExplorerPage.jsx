@@ -276,11 +276,34 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
     setSearchFocused(false);
   };
 
-  const handleHashtagClick = (tag) => {
-    const q = `#${tag}`;
-    setQuery(q);
-    setDebouncedQ(q);
-    commitSearch(q);
+  // State for hashtag view
+  const [hashtagView, setHashtagView] = useState(null); // { tag, videos }
+  
+  const handleHashtagClick = async (tag) => {
+    const cleanTag = tag.replace(/^#/, '');
+    setLoading(true);
+    try {
+      const data = await api.request(`/explorer/hashtag/?tag=${encodeURIComponent(cleanTag)}&limit=30`);
+      const results = data?.results || [];
+      setHashtagView({ tag: cleanTag, videos: results, count: data?.count || results.length });
+      setVideos(results);
+    } catch (e) {
+      console.error('Failed to fetch hashtag:', e);
+      setHashtagView({ tag: cleanTag, videos: [], count: 0 });
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearHashtagView = () => {
+    setHashtagView(null);
+    // Re-fetch trending
+    setLoading(true);
+    api.request(`/explorer/trending/?category=${activeCategory}&time_range=${timeRange}&limit=30`)
+      .then(d => setVideos(Array.isArray(d) ? d : (d?.results || [])))
+      .catch(() => setVideos([]))
+      .finally(() => setLoading(false));
   };
 
   // Convert reel data to post format for TikTokPostViewer
@@ -389,7 +412,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
           {!inSearchMode && !searchFocused && (
             <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
               {TIME_RANGES.map(r => (
-                <button key={r.id} onClick={() => setTimeRange(r.id)} style={{
+                <button key={r.id} onClick={() => { setTimeRange(r.id); setHashtagView(null); }} style={{
                   padding: '5px 10px', borderRadius: 20,
                   border: `1.5px solid ${timeRange === r.id ? T.pri : T.border}`,
                   background: timeRange === r.id ? T.pri : 'transparent',
@@ -409,7 +432,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
             {CATEGORIES.map(cat => {
               const isActive = activeCategory === cat.id;
               return (
-                <button key={cat.id} onClick={() => setActiveCategory(cat.id)} style={{
+                <button key={cat.id} onClick={() => { setActiveCategory(cat.id); setHashtagView(null); }} style={{
                   padding: '7px 14px', borderRadius: 20, flexShrink: 0,
                   border: `1.5px solid ${isActive ? T.pri : T.border}`,
                   background: isActive ? T.pri : T.bg,
@@ -555,14 +578,43 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
               </div>
             )}
 
+            {/* ── Hashtag view header ─────────────────────────────────── */}
+            {hashtagView && (
+              <div style={{ 
+                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
+                padding: '12px 16px', background: T.pri + '15', borderRadius: 12,
+              }}>
+                <button onClick={clearHashtagView} style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+                }}>
+                  <X size={20} color={T.txt} />
+                </button>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: T.pri }}>#{hashtagView.tag}</div>
+                  <div style={{ fontSize: 12, color: T.sub }}>{fmt(hashtagView.count)} posts</div>
+                </div>
+                <Hash size={28} color={T.pri} style={{ opacity: 0.5 }} />
+              </div>
+            )}
+
             {/* ── Trending video grid ─────────────────────────────────── */}
             {loading ? (
               <GridSkeleton T={T} />
             ) : videos.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px', color: T.sub }}>
-                <TrendingUp size={44} style={{ opacity: 0.3, marginBottom: 12 }} />
-                <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 6 }}>Nothing trending yet</div>
-                <div style={{ fontSize: 13 }}>Check back soon or try a different category</div>
+                {hashtagView ? (
+                  <>
+                    <Hash size={44} style={{ opacity: 0.3, marginBottom: 12 }} />
+                    <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 6 }}>No posts with #{hashtagView.tag}</div>
+                    <div style={{ fontSize: 13 }}>Be the first to post with this hashtag!</div>
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp size={44} style={{ opacity: 0.3, marginBottom: 12 }} />
+                    <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 6 }}>Nothing trending yet</div>
+                    <div style={{ fontSize: 13 }}>Check back soon or try a different category</div>
+                  </>
+                )}
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>

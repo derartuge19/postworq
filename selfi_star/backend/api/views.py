@@ -1323,20 +1323,26 @@ def get_trending_reels(request):
         # Category filtering (based on hashtags)
         if category != 'all':
             category_hashtags = {
-                'dance': ['dance', 'dancing', 'dancer', 'choreography'],
-                'comedy': ['funny', 'comedy', 'humor', 'laugh', 'meme'],
-                'beauty': ['beauty', 'makeup', 'skincare', 'fashion', 'style'],
-                'sports': ['sports', 'fitness', 'workout', 'gym', 'athlete'],
-                'food': ['food', 'cooking', 'recipe', 'foodie', 'chef'],
-                'travel': ['travel', 'adventure', 'explore', 'wanderlust'],
-                'music': ['music', 'singing', 'song', 'cover', 'musician'],
-                'art': ['art', 'artist', 'drawing', 'painting', 'creative'],
+                'dance': ['dance', 'dancing', 'dancer', 'choreography', 'ballet', 'hiphop'],
+                'comedy': ['funny', 'comedy', 'humor', 'laugh', 'meme', 'joke', 'hilarious'],
+                'beauty': ['beauty', 'makeup', 'skincare', 'glow', 'cosmetics'],
+                'sports': ['sports', 'fitness', 'workout', 'gym', 'athlete', 'football', 'basketball', 'soccer'],
+                'food': ['food', 'cooking', 'recipe', 'foodie', 'chef', 'delicious', 'yummy', 'eat'],
+                'travel': ['travel', 'adventure', 'explore', 'wanderlust', 'vacation', 'trip', 'tourist'],
+                'music': ['music', 'singing', 'song', 'cover', 'musician', 'singer', 'band'],
+                'art': ['art', 'artist', 'drawing', 'painting', 'creative', 'artwork', 'sketch'],
+                'gaming': ['gaming', 'gamer', 'game', 'videogame', 'esports', 'playstation', 'xbox', 'pc'],
+                'fashion': ['fashion', 'style', 'outfit', 'ootd', 'clothes', 'dress', 'streetwear'],
+                'education': ['education', 'learn', 'learning', 'tutorial', 'howto', 'tips', 'knowledge', 'study'],
             }
             
             if category in category_hashtags:
                 hashtag_filter = Q()
                 for tag in category_hashtags[category]:
+                    # Match hashtag with or without # prefix
                     hashtag_filter |= Q(hashtags__icontains=f'#{tag}')
+                    hashtag_filter |= Q(hashtags__icontains=tag)
+                    hashtag_filter |= Q(caption__icontains=f'#{tag}')
                 queryset = queryset.filter(hashtag_filter)
                 print(f"[TRENDING] After category filter count: {queryset.count()}")
         
@@ -1403,6 +1409,39 @@ def get_trending_hashtags(request):
         for t in ranked
     ]
     return Response(result)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_reels_by_hashtag(request):
+    """Get reels that contain a specific hashtag"""
+    from django.db.models import Q, Count
+    
+    hashtag = request.GET.get('tag', '').strip().lower()
+    if not hashtag:
+        return Response({'error': 'Tag parameter required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Remove # if present
+    if hashtag.startswith('#'):
+        hashtag = hashtag[1:]
+    
+    limit = min(int(request.GET.get('limit', 30)), 50)
+    
+    # Search in both hashtags field and caption
+    queryset = Reel.objects.filter(
+        Q(hashtags__icontains=f'#{hashtag}') |
+        Q(hashtags__icontains=hashtag) |
+        Q(caption__icontains=f'#{hashtag}')
+    ).annotate(
+        comment_count=Count('comments')
+    ).select_related('user', 'user__profile').order_by('-votes', '-created_at')[:limit]
+    
+    serializer = ReelSerializer(queryset, many=True, context={'request': request})
+    return Response({
+        'hashtag': hashtag,
+        'count': len(serializer.data),
+        'results': serializer.data
+    })
 
 
 @api_view(['POST'])

@@ -8,7 +8,8 @@ from .views import (
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
     get_user_notifications, mark_notifications_read, get_unread_notification_count,
     mark_single_notification_read, create_report, admin_reports_list, admin_report_detail,
-    admin_reports_stats, admin_moderate_report, get_trending_reels, mark_not_interested, undo_not_interested, get_trending_hashtags
+    admin_reports_stats, admin_moderate_report, get_trending_reels, mark_not_interested, undo_not_interested, 
+    get_trending_hashtags, get_reels_by_hashtag
 )
 from .views_master_campaign import (
     master_campaign_list, master_campaign_detail, master_campaign_participants,
@@ -292,6 +293,7 @@ urlpatterns = [
     path('reels/not-interested/undo/', undo_not_interested, name='undo-not-interested'),
     path('explorer/trending/', get_trending_reels, name='explorer-trending'),
     path('explorer/trending-hashtags/', get_trending_hashtags, name='explorer-trending-hashtags'),
+    path('explorer/hashtag/', get_reels_by_hashtag, name='explorer-hashtag'),
     # Contest System - User
     path('subscription/details/', get_user_subscription, name='subscription-details'),
     path('subscription/upgrade/', upgrade_subscription, name='subscription-upgrade'),
