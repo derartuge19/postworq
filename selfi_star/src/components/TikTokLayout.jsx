@@ -1979,16 +1979,16 @@ export function TikTokLayout({
                       >
                         <Bookmark
                           size={32}
-                          color={video.saved ? '#fff' : '#fff'}
-                          fill={video.saved ? '#fff' : 'none'}
+                          color={video.saved ? '#F59E0B' : '#fff'}
+                          fill={video.saved ? '#F59E0B' : 'none'}
                         />
                       </button>
                       <div
-                        className="feed-action-label"
                         style={{
                           fontSize: 12,
-                          fontWeight: 700,
-                          color: '#fff',
+                          fontWeight: 600,
+                          color: video.saved ? '#F59E0B' : '#fff',
+                          textShadow: '0 1px 3px rgba(0,0,0,0.5)',
                           textAlign: 'center',
                         }}
                       >
