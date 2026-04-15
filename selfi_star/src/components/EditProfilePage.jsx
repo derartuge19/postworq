@@ -46,18 +46,23 @@ export function EditProfilePage({ user, onBack, onSave }) {
       
       // Create FormData for file upload
       const formDataToSend = new FormData();
-      if (formData.username) formDataToSend.append('username', formData.username);
-      if (formData.email) formDataToSend.append('email', formData.email);
-      if (formData.firstName) formDataToSend.append('first_name', formData.firstName);
-      if (formData.lastName) formDataToSend.append('last_name', formData.lastName);
-      if (formData.bio) formDataToSend.append('bio', formData.bio);
-      if (profilePhoto) formDataToSend.append('profile_photo', profilePhoto);
+      // Always send these fields (even if empty string for bio)
+      formDataToSend.append('username', formData.username || user?.username || '');
+      formDataToSend.append('email', formData.email || user?.email || '');
+      formDataToSend.append('first_name', formData.firstName || '');
+      formDataToSend.append('last_name', formData.lastName || '');
+      formDataToSend.append('bio', formData.bio || '');
+      if (profilePhoto) {
+        formDataToSend.append('profile_photo', profilePhoto);
+      }
       
+      console.log('📤 Updating profile...');
       const data = await api.request('/profile/update_profile/', {
         method: 'PATCH',
         body: formDataToSend,
         isFormData: true,
       });
+      console.log('✅ Profile updated:', data);
       
       // Update localStorage with new user data
       // Ensure profile_photo has full URL
@@ -68,12 +73,13 @@ export function EditProfilePage({ user, onBack, onSave }) {
       
       const updatedUser = { 
         ...user, 
-        first_name: data.first_name,
-        last_name: data.last_name,
-        bio: data.bio,
+        first_name: data.first_name || '',
+        last_name: data.last_name || '',
+        bio: data.bio || '',
         profile_photo: profilePhotoUrl,
-        username: data.username,
-        email: data.email,
+        username: data.username || user?.username,
+        email: data.email || user?.email,
+        name: data.first_name || data.username || user?.name,
       };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
@@ -81,7 +87,16 @@ export function EditProfilePage({ user, onBack, onSave }) {
       onBack();
     } catch (error) {
       console.error("Failed to update profile:", error);
-      alert("Failed to update profile. Please try again.");
+      // Try to parse error message
+      let errorMsg = "Failed to update profile. Please try again.";
+      try {
+        const errData = JSON.parse(error.message);
+        if (errData.error) errorMsg = errData.error;
+        else if (errData.detail) errorMsg = errData.detail;
+        else if (errData.username) errorMsg = `Username: ${errData.username}`;
+        else if (errData.email) errorMsg = `Email: ${errData.email}`;
+      } catch {}
+      alert(errorMsg);
     } finally {
       setSaving(false);
     }

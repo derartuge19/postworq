@@ -49,6 +49,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
       
       api.setAuthToken(res.token);
       
+      // Include ALL user data from backend response
       onSuccess({
         id: res.user.id,
         username: res.user.username,
@@ -56,6 +57,11 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         first_name: res.user.first_name || "",
         last_name: res.user.last_name || "",
         name: res.user.first_name || res.user.username,
+        profile_photo: res.user.profile_photo || null,
+        bio: res.user.bio || "",
+        followers_count: res.user.followers_count || 0,
+        following_count: res.user.following_count || 0,
+        is_staff: res.user.is_staff || false,
       });
     } catch (e) {
       console.error('Registration error:', e);

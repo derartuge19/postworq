@@ -285,6 +285,47 @@ export default function WerqRoot() {
     }
   }, []);
 
+  // Refresh user profile from backend on startup to sync across devices
+  useEffect(() => {
+    const refreshUserProfile = async () => {
+      if (!authUser || !api.hasToken()) return;
+      
+      try {
+        // Fetch fresh profile data from backend
+        const profileData = await api.request('/profile/me/');
+        if (profileData) {
+          // /profile/me/ returns { user: {...}, profile_photo, bio, ... }
+          const userData = profileData.user || {};
+          const updatedUser = {
+            id: userData.id || authUser.id,
+            username: userData.username || authUser.username,
+            email: userData.email || authUser.email,
+            first_name: userData.first_name || authUser.first_name || "",
+            last_name: userData.last_name || authUser.last_name || "",
+            name: userData.first_name || userData.username || authUser.name,
+            profile_photo: profileData.profile_photo || userData.profile_photo || null,
+            bio: profileData.bio || userData.bio || "",
+            followers_count: userData.followers_count || authUser.followers_count || 0,
+            following_count: userData.following_count || authUser.following_count || 0,
+            is_staff: userData.is_staff || authUser.is_staff || false,
+          };
+          // Only update if there are actual changes
+          if (JSON.stringify(updatedUser) !== JSON.stringify(authUser)) {
+            setAuthUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            console.log('👤 Profile synced from backend');
+          }
+        }
+      } catch (e) {
+        console.log('Could not refresh profile:', e.message);
+      }
+    };
+    
+    // Small delay to not block initial render
+    const timer = setTimeout(refreshUserProfile, 1000);
+    return () => clearTimeout(timer);
+  }, []); // Run once on mount
+
   // Listen for navigate to create post event from campaign modal
   useEffect(() => {
     const handleNavigateToCreatePost = () => {
