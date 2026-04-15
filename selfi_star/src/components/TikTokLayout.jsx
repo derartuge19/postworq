@@ -701,10 +701,10 @@ export function TikTokLayout({
       });
   };
 
-  // Long-press handlers for TikTok-style context menu
+  // Long-press handlers for TikTok-style context menu (separate from 3-dots menu)
   const handleLongPressStart = (videoId, e) => {
     longPressTimer.current = setTimeout(() => {
-      setShowMenu(videoId);
+      setLongPressMenu(videoId); // Use separate state for long-press menu
       // Haptic feedback on mobile if available
       if (navigator.vibrate) navigator.vibrate(50);
     }, 500); // 500ms for long press
@@ -1202,7 +1202,7 @@ export function TikTokLayout({
                     </div>
                   )}
 
-                  {/* Mobile Bottom Sheet Menu */}
+                  {/* Mobile 3-Dots Menu - Simple options */}
                   {isMobile && showMenu === video.id && (
                     <div
                       onClick={() => setShowMenu(null)}
@@ -1232,46 +1232,24 @@ export function TikTokLayout({
                         }}
                       >
                         <div style={{ width: 36, height: 4, background: '#E7E5E4', borderRadius: 4, margin: '12px auto 16px' }} />
-                        {/* TikTok-style grid of action icons */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: '8px 16px 16px' }}>
-                          {[
-                            { icon: Link, label: 'Copy Link', color: T.pri, action: () => handleShare(video.id) },
-                            { icon: Bookmark, label: 'Save', color: '#F59E0B', action: () => handleSaveToFavorites(video.id) },
-                            { icon: Download, label: 'Download', color: '#10B981', action: () => handleDownload(video) },
-                            { icon: Share2, label: 'Share', color: '#8B5CF6', action: () => handleShare(video.id) },
-                          ].map((item, idx) => (
-                            <button
-                              key={idx}
-                              onClick={item.action}
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: 6,
-                                padding: '12px 8px',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <div style={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: '50%',
-                                background: `${item.color}15`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}>
-                                <item.icon size={22} color={item.color} />
-                              </div>
-                              <span style={{ fontSize: 11, color: T.txt, fontWeight: 500 }}>{item.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                        {/* Divider */}
-                        <div style={{ height: 1, background: T.border, margin: '4px 16px 8px' }} />
-                        {/* List options */}
+                        <button
+                          onClick={() => handleShare(video.id)}
+                          style={{
+                            width: '100%',
+                            padding: '14px 24px',
+                            background: 'none',
+                            border: 'none',
+                            textAlign: 'left',
+                            fontSize: 15,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            color: T.txt,
+                          }}
+                        >
+                          <Share2 size={20} style={{ color: T.pri }} /> Share
+                        </button>
                         <button
                           onClick={() => handleNotInterested(video.id)}
                           style={{
@@ -1310,6 +1288,133 @@ export function TikTokLayout({
                         </button>
                         <button
                           onClick={() => setShowMenu(null)}
+                          style={{
+                            width: '100%',
+                            padding: '14px 24px',
+                            marginTop: 8,
+                            background: '#F5F5F4',
+                            border: 'none',
+                            textAlign: 'center',
+                            fontSize: 15,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            color: T.txt,
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Long-Press Menu - TikTok-style full menu */}
+                  {isMobile && longPressMenu === video.id && (
+                    <div
+                      onClick={() => setLongPressMenu(null)}
+                      style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0,0,0,0.5)',
+                        zIndex: 9999,
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          width: '100%',
+                          maxWidth: 480,
+                          background: '#fff',
+                          borderRadius: '20px 20px 0 0',
+                          padding: '8px 0 40px',
+                          paddingBottom: 'max(40px, env(safe-area-inset-bottom, 40px))',
+                          boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
+                        }}
+                      >
+                        <div style={{ width: 36, height: 4, background: '#E7E5E4', borderRadius: 4, margin: '12px auto 16px' }} />
+                        {/* TikTok-style grid of action icons */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, padding: '8px 16px 16px' }}>
+                          {[
+                            { icon: Link, label: 'Copy Link', color: T.pri, action: () => { setLongPressMenu(null); handleShare(video.id); } },
+                            { icon: Bookmark, label: 'Save', color: '#F59E0B', action: () => handleSaveToFavorites(video.id) },
+                            { icon: Download, label: 'Download', color: '#10B981', action: () => handleDownload(video) },
+                            { icon: Share2, label: 'Share', color: '#8B5CF6', action: () => { setLongPressMenu(null); handleShare(video.id); } },
+                          ].map((item, idx) => (
+                            <button
+                              key={idx}
+                              onClick={item.action}
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 6,
+                                padding: '12px 8px',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <div style={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: '50%',
+                                background: `${item.color}15`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}>
+                                <item.icon size={22} color={item.color} />
+                              </div>
+                              <span style={{ fontSize: 11, color: T.txt, fontWeight: 500 }}>{item.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                        {/* Divider */}
+                        <div style={{ height: 1, background: T.border, margin: '4px 16px 8px' }} />
+                        {/* List options */}
+                        <button
+                          onClick={() => { setLongPressMenu(null); handleNotInterested(video.id); }}
+                          style={{
+                            width: '100%',
+                            padding: '14px 24px',
+                            background: 'none',
+                            border: 'none',
+                            textAlign: 'left',
+                            fontSize: 15,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            color: T.txt,
+                          }}
+                        >
+                          <EyeOff size={20} style={{ color: '#78716C' }} /> Not Interested
+                        </button>
+                        <button
+                          onClick={() => { setLongPressMenu(null); setShowReportModal(video.id); }}
+                          style={{
+                            width: '100%',
+                            padding: '14px 24px',
+                            background: 'none',
+                            border: 'none',
+                            textAlign: 'left',
+                            fontSize: 15,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            color: '#EF4444',
+                          }}
+                        >
+                          <AlertTriangle size={20} /> Report
+                        </button>
+                        <button
+                          onClick={() => setLongPressMenu(null)}
                           style={{
                             width: '100%',
                             padding: '14px 24px',
