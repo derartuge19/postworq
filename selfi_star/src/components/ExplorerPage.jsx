@@ -7,6 +7,7 @@ import {
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
 import config from '../config';
+import { TikTokPostViewer } from './TikTokPostViewer';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -184,6 +185,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
   const [loading, setLoading]     = useState(true);
   const [hashtags, setHashtags]   = useState([]);
   const [hashLoading, setHashLoading] = useState(true);
+  const [selectedReel, setSelectedReel] = useState(null);
 
   // ── Search state ───────────────────────────────────────────────────────────
   const [query, setQuery]             = useState('');
@@ -259,7 +261,30 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
     commitSearch(q);
   };
 
-  const openReel = (reel) => onShowVideoDetail?.(reel.id || reel);
+  // Convert reel data to post format for TikTokPostViewer
+  const convertReelToPost = (reel) => ({
+    id: reel.id,
+    media: reel.file_url || reel.media || reel.thumbnail_url,
+    caption: reel.caption || reel.description || '',
+    hashtags: reel.hashtags || '',
+    user: reel.user,
+    votes: reel.votes || 0,
+    comment_count: reel.comment_count || reel.comments || 0,
+    created_at: reel.created_at,
+    is_liked: reel.is_liked,
+    is_saved: reel.is_saved,
+  });
+
+  const openReel = (reel) => {
+    // Find index in current videos array
+    const index = videos.findIndex(v => v.id === reel.id);
+    if (index !== -1) {
+      setSelectedReel({ reel, index });
+    } else {
+      // For search results, just open the single reel
+      setSelectedReel({ reel, index: 0, singleMode: true });
+    }
+  };
 
   const showRecentDropdown = searchFocused && query.length === 0 && recentSearches.length > 0;
 
@@ -534,6 +559,18 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
           </div>
         )}
       </div>
+
+      {/* TikTok-style Post Viewer */}
+      {selectedReel && (
+        <TikTokPostViewer
+          posts={selectedReel.singleMode ? [convertReelToPost(selectedReel.reel)] : videos.map(convertReelToPost)}
+          initialIndex={selectedReel.index}
+          user={user}
+          profileUser={selectedReel.reel.user}
+          onClose={() => setSelectedReel(null)}
+          isOwnProfile={false}
+        />
+      )}
     </div>
   );
 }
