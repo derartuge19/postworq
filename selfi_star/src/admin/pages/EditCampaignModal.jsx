@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Image, Trophy, Calendar, Users, Hash, CheckCircle } from 'lucide-react';
+import { X, Save, Image, Trophy, Calendar, Users, Hash, CheckCircle, Type, AlertCircle } from 'lucide-react';
 import api from '../../api';
 
 const toLocalInput = (iso) => {
