@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Trophy, Plus, Edit, Trash2, Users, Award, BarChart3, X, Calendar, Clock, TrendingUp, Star, Settings, Play, Pause, CheckCircle } from 'lucide-react';
 import api from '../../api';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { GenerationConfigModal } from '../components/GenerationConfigModal';
 
 export function MasterCampaignManagementPage({ theme }) {
   const [masterCampaigns, setMasterCampaigns] = useState([]);
@@ -14,6 +15,8 @@ export function MasterCampaignManagementPage({ theme }) {
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [campaignStats, setCampaignStats] = useState(null);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false });
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [configCampaign, setConfigCampaign] = useState(null);
 
   useEffect(() => {
     loadMasterCampaigns();
@@ -75,49 +78,9 @@ export function MasterCampaignManagementPage({ theme }) {
     }
   };
 
-  const handleGenerateSubCampaigns = async (campaign) => {
-    setConfirmModal({
-      isOpen: true,
-      title: 'Generate Sub-Campaigns',
-      message: `Generate sub-campaigns for "${campaign.title}"? This will create daily, weekly, monthly, and grand campaigns based on the master campaign duration.`,
-      type: 'warning',
-      showCancel: true,
-      onConfirm: async () => {
-        console.log('[GENERATE_SUB_CAMPAIGNS] Confirm button clicked');
-        
-        // First test the endpoint
-        try {
-          console.log('[TEST] Testing connectivity...');
-          const testResponse = await api.request(`/admin/master-campaigns/${campaign.id}/test/`);
-          console.log('[TEST] Test response:', testResponse);
-        } catch (testError) {
-          console.error('[TEST] Test failed:', testError);
-          alert('Backend connectivity test failed. Check console for details.');
-          return;
-        }
-        
-        // Then try the actual generation
-        try {
-          console.log('[GENERATE_SUB_CAMPAIGNS] Making API request...');
-          const response = await api.request(`/admin/master-campaigns/${campaign.id}/generate/`, {
-            method: 'POST',
-            body: JSON.stringify({
-              generate_daily: true,
-              generate_weekly: true,
-              generate_monthly: true,
-              generate_grand: true
-            })
-          });
-          console.log('[GENERATE_SUB_CAMPAIGNS] API response:', response);
-          alert(`Generated ${response.campaigns.length} sub-campaigns`);
-          loadMasterCampaigns();
-          setConfirmModal({ isOpen: false });
-        } catch (error) {
-          console.error('Failed to generate sub-campaigns:', error);
-          alert('Failed to generate sub-campaigns');
-        }
-      }
-    });
+  const handleGenerateSubCampaigns = (campaign) => {
+    setConfigCampaign(campaign);
+    setShowConfigModal(true);
   };
 
   const getStatusColor = (status) => {
@@ -1218,5 +1181,20 @@ function MasterCampaignStatsModal({ theme, campaign, stats, onClose }) {
         </div>
       </div>
     </div>
+
+    {/* Generation Config Modal */}
+    {showConfigModal && configCampaign && (
+      <GenerationConfigModal
+        campaign={configCampaign}
+        theme={theme}
+        onClose={() => {
+          setShowConfigModal(false);
+          setConfigCampaign(null);
+        }}
+        onSave={() => {
+          loadMasterCampaigns();
+        }}
+      />
+    )}
   );
 }

@@ -10,6 +10,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
   const [selectedMasterCampaign, setSelectedMasterCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [campaignTypeFilter, setCampaignTypeFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
@@ -21,7 +22,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
   useEffect(() => {
     loadCampaigns();
     loadMasterCampaigns();
-  }, [statusFilter, selectedMasterCampaign]);
+  }, [statusFilter, selectedMasterCampaign, campaignTypeFilter]);
 
   const loadCampaigns = async () => {
     try {
@@ -29,6 +30,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
       let filterParams = [];
       if (statusFilter !== 'all') filterParams.push(`status=${statusFilter}`);
       if (selectedMasterCampaign) filterParams.push(`master_campaign=${selectedMasterCampaign}`);
+      if (campaignTypeFilter !== 'all') filterParams.push(`campaign_type=${campaignTypeFilter}`);
       
       const filterParam = filterParams.length > 0 ? `?${filterParams.join('&')}` : '';
       const response = await api.request(`/admin/campaigns/${filterParam}`);
@@ -334,6 +336,45 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
             }}
           >
             {status}
+          </button>
+        ))}
+      </div>
+
+      {/* Campaign Type Filter */}
+      <div style={{
+        display: 'flex',
+        gap: 8,
+        marginBottom: 24,
+        overflowX: 'auto',
+        paddingBottom: 8,
+      }}>
+        {[
+          { value: 'all', label: 'All Types', icon: '🎯' },
+          { value: 'daily', label: 'Daily', icon: '📅' },
+          { value: 'weekly', label: 'Weekly', icon: '📊' },
+          { value: 'monthly', label: 'Monthly', icon: '📆' },
+          { value: 'grand', label: 'Grand', icon: '👑' }
+        ].map(type => (
+          <button
+            key={type.value}
+            onClick={() => setCampaignTypeFilter(type.value)}
+            style={{
+              padding: '8px 16px',
+              background: campaignTypeFilter === type.value ? theme.blue + '20' : theme.card,
+              border: `1px solid ${campaignTypeFilter === type.value ? theme.blue : theme.border}`,
+              borderRadius: 8,
+              color: campaignTypeFilter === type.value ? theme.blue : theme.txt,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <span>{type.icon}</span>
+            {type.label}
           </button>
         ))}
       </div>
