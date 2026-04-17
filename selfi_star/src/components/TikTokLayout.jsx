@@ -1612,17 +1612,21 @@ export function TikTokLayout({
                                 background: 'rgba(0, 0, 0, 0.75)',
                                 backdropFilter: 'blur(10px)',
                                 borderRadius: '50%',
-                                width: 100,
-                                height: 100,
+                                width: isMobile ? 70 : 100,
+                                height: isMobile ? 70 : 100,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-                                border: '3px solid rgba(255, 255, 255, 0.2)',
+                                boxShadow: isMobile 
+                                  ? '0 4px 16px rgba(0, 0, 0, 0.4)' 
+                                  : '0 8px 32px rgba(0, 0, 0, 0.4)',
+                                border: isMobile 
+                                  ? '2px solid rgba(255, 255, 255, 0.2)' 
+                                  : '3px solid rgba(255, 255, 255, 0.2)',
                               }}
                             >
                               <Pause
-                                size={48}
+                                size={isMobile ? 32 : 48}
                                 strokeWidth={2.5}
                                 color="#ffffff"
                                 fill="#ffffff"
