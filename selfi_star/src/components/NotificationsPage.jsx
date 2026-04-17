@@ -12,6 +12,24 @@ const mediaUrl = (url) => {
   return `${config.API_BASE_URL.replace('/api', '')}${url}`;
 };
 
+// Generate Cloudinary poster thumbnail from video URL
+const getVideoPoster = (url) => {
+  if (!url || !url.includes('res.cloudinary.com')) return null;
+  if (!url.includes('/video/upload/')) return null;
+  try {
+    const marker = '/video/upload/';
+    const idx = url.indexOf(marker);
+    if (idx === -1) return null;
+    const base = url.slice(0, idx + marker.length);
+    const rest = url.slice(idx + marker.length);
+    // Generate thumbnail at first frame with good quality
+    const thumb = base + 'so_0,w_120,h_120,c_fill,q_80,f_jpg/' + rest;
+    return thumb.replace(/\.(mp4|webm|ogg|mov)(\?.*)?$/i, '.jpg');
+  } catch {
+    return null;
+  }
+};
+
 function groupNotifications(notifs) {
   const groups = [];
   const seen = {};
@@ -331,12 +349,45 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
 
                 {/* Right side: thumbnail + unread dot */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  {notif.post?.thumbnail && (
-                    <div style={{ width: 44, height: 44, borderRadius: 8, overflow: 'hidden', background: T.border }}>
-                      <img src={mediaUrl(notif.post.thumbnail)} alt=""
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  )}
+                  {notif.post?.thumbnail && (() => {
+                    const thumbUrl = notif.post.thumbnail;
+                    const isVideo = thumbUrl && (
+                      thumbUrl.match(/\.(mp4|webm|ogg|mov)$/i) || 
+                      thumbUrl.includes('/video/')
+                    );
+                    
+                    // For videos, try to get Cloudinary poster, otherwise use video URL
+                    const displayUrl = isVideo 
+                      ? (getVideoPoster(mediaUrl(thumbUrl)) || mediaUrl(thumbUrl))
+                      : mediaUrl(thumbUrl);
+                    
+                    return (
+                      <div style={{ 
+                        width: 44, 
+                        height: 44, 
+                        borderRadius: 8, 
+                        overflow: 'hidden', 
+                        background: T.border,
+                        flexShrink: 0,
+                      }}>
+                        <img 
+                          src={displayUrl} 
+                          alt=""
+                          loading="lazy"
+                          style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'cover',
+                            display: 'block',
+                          }} 
+                          onError={(e) => {
+                            // Fallback to gray background if image fails
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    );
+                  })()}
                   {!notif.read && (
                     <div style={{
                       width: 9, height: 9, borderRadius: '50%',
