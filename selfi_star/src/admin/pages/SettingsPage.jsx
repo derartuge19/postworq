@@ -220,19 +220,20 @@ export function SettingsPage({ theme }) {
         )}
 
         {activeTab === 'typography' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{
-              padding: 16,
-              background: `${theme.pri}10`,
-              borderRadius: 8,
-              marginBottom: 8,
-            }}>
-              <p style={{ margin: 0, fontSize: 14, color: theme.sub }}>
-                Customize the fonts used throughout the platform. Changes will apply to all users.
-              </p>
-            </div>
-            
-            <FontSelect
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: 32 }}>
+            {/* Left: Controls */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div style={{
+                padding: 16,
+                background: `${theme.pri}10`,
+                borderRadius: 8,
+              }}>
+                <p style={{ margin: 0, fontSize: 14, color: theme.sub }}>
+                  Customize the fonts used throughout the platform. Changes preview in real-time on the right.
+                </p>
+              </div>
+              
+              <FontSelect
               label="Primary Font (Headings & UI)"
               value={settings.font_family_primary || 'Inter'}
               onChange={(v) => handleChange('font_family_primary', v)}
@@ -344,42 +345,235 @@ export function SettingsPage({ theme }) {
               placeholder="normal, 0.5px, -0.02em"
               theme={theme}
             />
+            </div>
             
-            {/* Font Preview */}
+            {/* Right: Live Preview Panel (Sticky) */}
             <div style={{
-              padding: 24,
-              background: theme.bg,
-              borderRadius: 12,
-              border: `1px solid ${theme.border}`,
+              position: 'sticky',
+              top: 20,
+              height: 'fit-content',
             }}>
-              <h4 style={{ margin: '0 0 16px 0', color: theme.txt }}>Preview</h4>
               <div style={{
-                fontFamily: `"${settings.font_family_primary || 'Inter'}", sans-serif`,
-                fontWeight: settings.font_weight_headings || '700',
-                fontSize: 24,
-                color: theme.txt,
-                marginBottom: 8,
+                background: '#fff',
+                borderRadius: 12,
+                border: `2px solid ${theme.border}`,
+                overflow: 'hidden',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
               }}>
-                Heading Text Preview
+                <div style={{
+                  padding: '16px 20px',
+                  background: theme.pri,
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: 16,
+                }}>
+                  Live Preview
+                </div>
+                
+                <div style={{ padding: 24 }}>
+                  {/* Heading Preview */}
+                  <div style={{
+                    marginBottom: 24,
+                    paddingBottom: 24,
+                    borderBottom: `1px solid ${theme.border}`,
+                  }}>
+                    <div style={{
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      color: theme.sub,
+                      marginBottom: 8,
+                      fontWeight: 600,
+                    }}>
+                      Heading Font
+                    </div>
+                    <h1 style={{
+                      fontFamily: `"${settings.font_family_primary || 'Inter'}", sans-serif`,
+                      fontWeight: settings.font_weight_headings || '700',
+                      fontSize: 32,
+                      color: theme.txt,
+                      margin: '0 0 8px 0',
+                      lineHeight: 1.2,
+                    }}>
+                      Welcome Back!
+                    </h1>
+                    <h2 style={{
+                      fontFamily: `"${settings.font_family_primary || 'Inter'}", sans-serif`,
+                      fontWeight: settings.font_weight_headings || '700',
+                      fontSize: 24,
+                      color: theme.txt,
+                      margin: '0 0 8px 0',
+                      lineHeight: 1.3,
+                    }}>
+                      Section Title
+                    </h2>
+                    <h3 style={{
+                      fontFamily: `"${settings.font_family_primary || 'Inter'}", sans-serif`,
+                      fontWeight: settings.font_weight_headings || '700',
+                      fontSize: 18,
+                      color: theme.txt,
+                      margin: 0,
+                      lineHeight: 1.4,
+                    }}>
+                      Subsection
+                    </h3>
+                  </div>
+                  
+                  {/* Body Text Preview */}
+                  <div style={{
+                    marginBottom: 24,
+                    paddingBottom: 24,
+                    borderBottom: `1px solid ${theme.border}`,
+                  }}>
+                    <div style={{
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      color: theme.sub,
+                      marginBottom: 8,
+                      fontWeight: 600,
+                    }}>
+                      Body Font
+                    </div>
+                    <p style={{
+                      fontFamily: `"${settings.font_family_secondary || 'Inter'}", sans-serif`,
+                      fontWeight: settings.font_weight_body || '400',
+                      fontSize: settings.font_size_base || 16,
+                      lineHeight: settings.line_height || '1.5',
+                      letterSpacing: settings.letter_spacing || 'normal',
+                      color: theme.txt,
+                      margin: '0 0 12px 0',
+                    }}>
+                      This is how body text will appear throughout the entire platform. The quick brown fox jumps over the lazy dog.
+                    </p>
+                    <p style={{
+                      fontFamily: `"${settings.font_family_secondary || 'Inter'}", sans-serif`,
+                      fontWeight: settings.font_weight_body || '400',
+                      fontSize: (settings.font_size_base || 16) * 0.875,
+                      lineHeight: settings.line_height || '1.5',
+                      letterSpacing: settings.letter_spacing || 'normal',
+                      color: theme.sub,
+                      margin: 0,
+                    }}>
+                      Smaller text for descriptions and secondary content.
+                    </p>
+                  </div>
+                  
+                  {/* Username Preview */}
+                  <div style={{
+                    marginBottom: 24,
+                    paddingBottom: 24,
+                    borderBottom: `1px solid ${theme.border}`,
+                  }}>
+                    <div style={{
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      color: theme.sub,
+                      marginBottom: 12,
+                      fontWeight: 600,
+                    }}>
+                      Username Font
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                      <div style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '50%',
+                        background: theme.pri,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: 16,
+                      }}>
+                        JD
+                      </div>
+                      <div>
+                        <div style={{
+                          fontFamily: `"${settings.font_family_username || 'Inter'}", sans-serif`,
+                          fontWeight: 600,
+                          fontSize: 15,
+                          color: theme.txt,
+                          marginBottom: 2,
+                        }}>
+                          @johndoe
+                        </div>
+                        <div style={{
+                          fontFamily: `"${settings.font_family_secondary || 'Inter'}", sans-serif`,
+                          fontSize: 13,
+                          color: theme.sub,
+                        }}>
+                          John Doe
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Caption Preview */}
+                  <div>
+                    <div style={{
+                      fontSize: 11,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      color: theme.sub,
+                      marginBottom: 8,
+                      fontWeight: 600,
+                    }}>
+                      Caption Font
+                    </div>
+                    <div style={{
+                      fontFamily: `"${settings.font_family_caption || 'Inter'}", sans-serif`,
+                      fontSize: 14,
+                      lineHeight: 1.6,
+                      color: theme.txt,
+                    }}>
+                      This is a caption or description text that appears under posts and images. It's designed to be readable and complement the main content.
+                    </div>
+                  </div>
+                  
+                  {/* Button Preview */}
+                  <div style={{ marginTop: 24, paddingTop: 24, borderTop: `1px solid ${theme.border}` }}>
+                    <button style={{
+                      fontFamily: `"${settings.font_family_secondary || 'Inter'}", sans-serif`,
+                      padding: '12px 24px',
+                      background: theme.pri,
+                      border: 'none',
+                      borderRadius: 8,
+                      color: '#fff',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      width: '100%',
+                    }}>
+                      Button Text
+                    </button>
+                  </div>
+                </div>
               </div>
+              
+              {/* Font Info */}
               <div style={{
-                fontFamily: `"${settings.font_family_secondary || 'Inter'}", sans-serif`,
-                fontWeight: settings.font_weight_body || '400',
-                fontSize: settings.font_size_base || 16,
-                lineHeight: settings.line_height || '1.5',
-                letterSpacing: settings.letter_spacing || 'normal',
+                marginTop: 16,
+                padding: 12,
+                background: `${theme.pri}10`,
+                borderRadius: 8,
+                fontSize: 12,
                 color: theme.sub,
-                marginBottom: 12,
               }}>
-                This is how body text will appear throughout the platform. The quick brown fox jumps over the lazy dog.
-              </div>
-              <div style={{
-                fontFamily: `"${settings.font_family_username || 'Inter'}", sans-serif`,
-                fontWeight: 600,
-                fontSize: 14,
-                color: theme.pri,
-              }}>
-                @username_preview
+                <div style={{ marginBottom: 4 }}>
+                  <strong>Primary:</strong> {settings.font_family_primary || 'Inter'}
+                </div>
+                <div style={{ marginBottom: 4 }}>
+                  <strong>Secondary:</strong> {settings.font_family_secondary || 'Inter'}
+                </div>
+                <div style={{ marginBottom: 4 }}>
+                  <strong>Username:</strong> {settings.font_family_username || 'Inter'}
+                </div>
+                <div>
+                  <strong>Caption:</strong> {settings.font_family_caption || 'Inter'}
+                </div>
               </div>
             </div>
           </div>
