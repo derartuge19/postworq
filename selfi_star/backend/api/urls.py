@@ -13,7 +13,8 @@ from .views import (
 )
 from .views_master_campaign import (
     master_campaign_list, master_campaign_detail, master_campaign_participants,
-    join_master_campaign, master_campaign_stats, test_generate_endpoint, generate_sub_campaigns
+    join_master_campaign, master_campaign_stats, test_generate_endpoint, generate_sub_campaigns,
+    update_generation_config
 )
 
 @api_view(['GET'])
@@ -229,6 +230,7 @@ urlpatterns = [
     path('admin/master-campaigns/<int:pk>/stats/', master_campaign_stats, name='admin-master-campaign-stats'),
     path('admin/master-campaigns/<int:pk>/test/', test_generate_endpoint, name='admin-test-generate'),
     path('admin/master-campaigns/<int:pk>/generate/', generate_sub_campaigns, name='admin-generate-sub-campaigns'),
+    path('admin/master-campaigns/<int:pk>/config/', update_generation_config, name='admin-update-generation-config'),
     # Campaign Management (Admin)
     path('admin/campaigns/', admin_campaigns_list, name='admin-campaigns-list'),
     path('admin/campaigns/create/', admin_campaign_create, name='admin-campaign-create'),

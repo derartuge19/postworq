@@ -169,6 +169,44 @@ def test_generate_endpoint(request, pk):
             'details': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def update_generation_config(request, pk):
+    """Update generation configuration for a master campaign"""
+    try:
+        campaign = MasterCampaign.objects.get(pk=pk)
+        
+        # Update configuration fields
+        if 'daily_campaign_count' in request.data:
+            campaign.daily_campaign_count = request.data['daily_campaign_count']
+        if 'weekly_campaign_count' in request.data:
+            campaign.weekly_campaign_count = request.data['weekly_campaign_count']
+        if 'monthly_campaign_count' in request.data:
+            campaign.monthly_campaign_count = request.data['monthly_campaign_count']
+        if 'grand_campaign_count' in request.data:
+            campaign.grand_campaign_count = request.data['grand_campaign_count']
+        
+        # Update auto-generation flags
+        if 'auto_generate_daily' in request.data:
+            campaign.auto_generate_daily = request.data['auto_generate_daily']
+        if 'auto_generate_weekly' in request.data:
+            campaign.auto_generate_weekly = request.data['auto_generate_weekly']
+        if 'auto_generate_monthly' in request.data:
+            campaign.auto_generate_monthly = request.data['auto_generate_monthly']
+        if 'auto_generate_grand' in request.data:
+            campaign.auto_generate_grand = request.data['auto_generate_grand']
+        
+        campaign.save()
+        
+        from .serializers_master_campaign import MasterCampaignSerializer
+        serializer = MasterCampaignSerializer(campaign)
+        return Response(serializer.data)
+        
+    except MasterCampaign.DoesNotExist:
+        return Response({'error': 'Master campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def generate_sub_campaigns(request, pk):

@@ -31,6 +31,12 @@ class MasterCampaign(models.Model):
     auto_generate_monthly = models.BooleanField(default=True, help_text='Automatically generate monthly campaigns')
     auto_generate_grand = models.BooleanField(default=True, help_text='Automatically generate grand campaign')
     
+    # Generation configuration - how many of each type to generate
+    daily_campaign_count = models.IntegerField(default=0, help_text='Number of daily campaigns (0 = all days in range)')
+    weekly_campaign_count = models.IntegerField(default=0, help_text='Number of weekly campaigns (0 = all weeks in range)')
+    monthly_campaign_count = models.IntegerField(default=0, help_text='Number of monthly campaigns (0 = all months in range)')
+    grand_campaign_count = models.IntegerField(default=1, help_text='Number of grand campaigns (usually 1)')
+    
     # Entry Requirements (inherited by sub-campaigns)
     min_followers = models.IntegerField(default=0, help_text='Minimum followers required to join')
     min_level = models.IntegerField(default=1, help_text='Minimum user level required')
