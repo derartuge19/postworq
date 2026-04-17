@@ -684,6 +684,16 @@ export function SettingsPage({ theme }) {
           </div>
         )}
       </div>
+
+      {/* Success/Error Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        showCancel={false}
+      />
     </div>
   );
 }

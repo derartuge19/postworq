@@ -97,11 +97,14 @@ const api = {
       headers['Content-Type'] = 'application/json';
     }
 
-    // Only add token if it exists AND it's not an auth endpoint
+    // Only add token if it exists AND it's not an auth or public endpoint
     const currentToken = authToken || localStorage.getItem('authToken');
-    if (currentToken && !endpoint.includes('/auth/')) {
+    const isPublicEndpoint = endpoint.includes('/auth/') || endpoint.includes('/settings/public');
+    if (currentToken && !isPublicEndpoint) {
       headers['Authorization'] = `Token ${currentToken}`;
       console.log(`🔐 Using token for request: ${currentToken.substring(0, 10)}...`);
+    } else if (isPublicEndpoint) {
+      console.log('🌐 Public endpoint, no auth needed');
     } else {
       console.log('⚠️ No token available for request');
     }
