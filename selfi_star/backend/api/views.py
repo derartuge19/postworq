@@ -601,10 +601,20 @@ class ReelViewSet(viewsets.ModelViewSet):
         """Delete a reel - only owner can delete"""
         import traceback as _tb
         try:
+            # Check authentication first
+            if not request.user.is_authenticated:
+                print(f"[REEL DELETE] Unauthenticated request")
+                return Response(
+                    {'error': 'Authentication required'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            
             reel = self.get_object()
+            print(f"[REEL DELETE] User: {request.user.username}, Reel: {reel.id}, Owner: {reel.user.username}")
 
             # Check ownership
-            if reel.user != request.user:
+            if reel.user != request.user and not request.user.is_staff:
+                print(f"[REEL DELETE] Permission denied - not owner")
                 return Response(
                     {'error': 'You can only delete your own posts'},
                     status=status.HTTP_403_FORBIDDEN
@@ -627,25 +637,25 @@ class ReelViewSet(viewsets.ModelViewSet):
 
             with connection.cursor() as cur:
                 # 1. Notifications linked to comments on this reel
-                cur.execute("""DELETE FROM api_notification
+                _safe(cur, """DELETE FROM api_notification
                     WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)""", [reel_id])
                 # 2. CommentLikes / CommentReplies
-                cur.execute("DELETE FROM api_commentlike WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
-                cur.execute("DELETE FROM api_commentreply WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
+                _safe(cur, "DELETE FROM api_commentlike WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
+                _safe(cur, "DELETE FROM api_commentreply WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
                 # 3. Comments
-                cur.execute("DELETE FROM api_comment WHERE reel_id=%s", [reel_id])
+                _safe(cur, "DELETE FROM api_comment WHERE reel_id=%s", [reel_id])
                 # 4. Votes
-                cur.execute("DELETE FROM api_vote WHERE reel_id=%s", [reel_id])
+                _safe(cur, "DELETE FROM api_vote WHERE reel_id=%s", [reel_id])
                 # 5. Saved posts
-                cur.execute("DELETE FROM api_savedpost WHERE reel_id=%s", [reel_id])
+                _safe(cur, "DELETE FROM api_savedpost WHERE reel_id=%s", [reel_id])
                 # 6. Notifications (direct reel ref)
-                cur.execute("DELETE FROM api_notification WHERE reel_id=%s", [reel_id])
+                _safe(cur, "DELETE FROM api_notification WHERE reel_id=%s", [reel_id])
                 # 7. Not-interested flags
-                cur.execute("DELETE FROM api_notinterested WHERE reel_id=%s", [reel_id])
+                _safe(cur, "DELETE FROM api_notinterested WHERE reel_id=%s", [reel_id])
                 # 8. Reports
-                cur.execute("DELETE FROM api_report WHERE reported_reel_id=%s", [reel_id])
+                _safe(cur, "DELETE FROM api_report WHERE reported_reel_id=%s", [reel_id])
                 # 9. Winners
-                cur.execute("DELETE FROM api_winner WHERE reel_id=%s", [reel_id])
+                _safe(cur, "DELETE FROM api_winner WHERE reel_id=%s", [reel_id])
                 # 10. Optional tables (use savepoints so missing table doesn't abort txn)
                 for sql_opt in [
                     "DELETE FROM api_moderationaction WHERE reel_id=%s",
