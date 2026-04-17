@@ -13,6 +13,7 @@ from .models_campaign_extended import (
     CampaignScoringConfig, CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
     WinnerSelection, SelectedWinner, CampaignBadge, GamificationActivity, JudgeScore, PublicVote, GrandFinalist
 )
+from .models_legal import LegalDocument, LegalDocumentVersion, UserLegalAcceptance
 
 # Custom Admin Site Configuration
 class SelfieStarAdminSite(admin.AdminSite):
@@ -558,6 +559,28 @@ class CampaignBadgeAdmin(admin.ModelAdmin):
     list_filter = ['badge_type', 'campaign']
     search_fields = ['user__username', 'title']
     ordering = ['-earned_at']
+
+# Legal Documents
+@admin.register(LegalDocument, site=admin_site)
+class LegalDocumentAdmin(admin.ModelAdmin):
+    list_display = ['title', 'document_type', 'version', 'status', 'effective_date', 'requires_acceptance']
+    list_filter = ['document_type', 'status', 'requires_acceptance']
+    search_fields = ['title', 'content']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['-updated_at']
+
+@admin.register(LegalDocumentVersion, site=admin_site)
+class LegalDocumentVersionAdmin(admin.ModelAdmin):
+    list_display = ['document', 'version', 'created_by', 'created_at']
+    list_filter = ['document']
+    ordering = ['-created_at']
+
+@admin.register(UserLegalAcceptance, site=admin_site)
+class UserLegalAcceptanceAdmin(admin.ModelAdmin):
+    list_display = ['user', 'document', 'version_accepted', 'accepted_at', 'ip_address']
+    list_filter = ['document', 'accepted_at']
+    search_fields = ['user__username', 'user__email']
+    ordering = ['-accepted_at']
 
 # Register User with custom admin
 admin_site.register(User, CustomUserAdmin)
