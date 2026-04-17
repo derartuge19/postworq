@@ -101,6 +101,7 @@ export function TikTokLayout({
   const [showComments, setShowComments] = useState(null);
   const [playingVideos, setPlayingVideos] = useState({});
   const [showPauseIcon, setShowPauseIcon] = useState({});
+  const [manuallyPaused, setManuallyPaused] = useState({}); // Track user-paused videos
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [likeAnimations, setLikeAnimations] = useState({});
@@ -360,6 +361,11 @@ export function TikTokLayout({
           if (!videoElement) return;
 
           if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
+            // Don't auto-play if user manually paused this video
+            if (manuallyPaused[videoId]) {
+              return;
+            }
+            
             // Mute ALL other playing videos first
             Object.entries(videoRefs.current).forEach(([id, el]) => {
               if (el && id !== videoId) {
@@ -374,10 +380,15 @@ export function TikTokLayout({
               .play()
               .catch((err) => console.log('Play prevented:', err));
             setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
+            // Hide pause icon when auto-playing
+            setShowPauseIcon((prev) => ({ ...prev, [videoId]: false }));
           } else {
-            videoElement.muted = true;
-            videoElement.pause();
-            setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
+            // Only pause if not manually paused (to avoid hiding the pause icon)
+            if (!manuallyPaused[videoId]) {
+              videoElement.muted = true;
+              videoElement.pause();
+              setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
+            }
           }
         });
       },
@@ -409,7 +420,7 @@ export function TikTokLayout({
       playbackObserver.disconnect();
       lazyObserver.disconnect();
     };
-  }, [videos]);
+  }, [videos, manuallyPaused, audioEnabled]);
 
   // Auto-play first video on initial load
   useEffect(() => {
@@ -482,11 +493,15 @@ export function TikTokLayout({
     videoElement.volume = 1;
 
     if (videoElement.paused) {
+      // User is resuming - remove manual pause flag
+      setManuallyPaused((prev) => ({ ...prev, [videoId]: false }));
       videoElement.play();
       setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
       // Hide pause icon when playing
       setShowPauseIcon((prev) => ({ ...prev, [videoId]: false }));
     } else {
+      // User is pausing - set manual pause flag
+      setManuallyPaused((prev) => ({ ...prev, [videoId]: true }));
       videoElement.pause();
       setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
       // Show pause icon persistently when paused
