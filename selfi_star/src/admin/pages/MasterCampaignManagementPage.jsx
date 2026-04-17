@@ -328,11 +328,11 @@ export function MasterCampaignManagementPage({ theme }) {
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    background: getPhaseColor(campaign.current_phase),
+                    background: getStatusColor(campaign.status),
                   }} />
-                  <span style={{ color: theme.sub }}>Current Phase:</span>
-                  <span style={{ fontWeight: 600, color: getPhaseColor(campaign.current_phase) }}>
-                {campaign.current_phase}
+                  <span style={{ color: theme.sub }}>Current Status:</span>
+                  <span style={{ fontWeight: 600, color: getStatusColor(campaign.status), textTransform: 'capitalize' }}>
+                    {campaign.status}
                   </span>
                 </div>
 
@@ -582,6 +582,21 @@ export function MasterCampaignManagementPage({ theme }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Generation Config Modal */}
+      {showConfigModal && configCampaign && (
+        <GenerationConfigModal
+          campaign={configCampaign}
+          theme={theme}
+          onClose={() => {
+            setShowConfigModal(false);
+            setConfigCampaign(null);
+          }}
+          onSave={() => {
+            loadMasterCampaigns();
+          }}
+        />
       )}
     </div>
   );
@@ -1181,20 +1196,5 @@ function MasterCampaignStatsModal({ theme, campaign, stats, onClose }) {
         </div>
       </div>
     </div>
-
-    {/* Generation Config Modal */}
-    {showConfigModal && configCampaign && (
-      <GenerationConfigModal
-        campaign={configCampaign}
-        theme={theme}
-        onClose={() => {
-          setShowConfigModal(false);
-          setConfigCampaign(null);
-        }}
-        onSave={() => {
-          loadMasterCampaigns();
-        }}
-      />
-    )}
   );
 }
