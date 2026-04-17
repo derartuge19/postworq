@@ -281,7 +281,9 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
         {/* Campaign Types */}
         <div style={{ padding: 20 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {campaignTypes.map(type => (
+            {campaignTypes.map(type => {
+              const IconComponent = type.icon;
+              return (
               <div key={type.key} style={{
                 background: theme.bg,
                 borderRadius: 8,
@@ -299,7 +301,7 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
                     justifyContent: 'center',
                     flexShrink: 0
                   }}>
-                    <type.icon size={18} color={type.color} />
+                    <IconComponent size={18} color={type.color} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -379,7 +381,8 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
