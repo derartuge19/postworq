@@ -157,6 +157,7 @@ def admin_campaign_create(request):
 
 @api_view(['PATCH'])
 @permission_classes([IsAdminUser])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 def admin_campaign_update(request, campaign_id):
     """Update campaign"""
     print(f"[UPDATE] Campaign ID: {campaign_id}, User: {request.user}, Method: {request.method}")
@@ -167,7 +168,7 @@ def admin_campaign_update(request, campaign_id):
         print(f"[UPDATE] Found campaign: {campaign.title}")
         
         for field in ['title', 'description', 'prize_title', 'prize_description', 'prize_value', 
-                      'status', 'min_followers', 'min_level', 'min_votes_per_reel', 
+                      'status', 'campaign_type', 'min_followers', 'min_level', 'min_votes_per_reel', 
                       'required_hashtags', 'start_date', 'entry_deadline', 'voting_start', 
                       'voting_end', 'winner_count']:
             if field in request.data:

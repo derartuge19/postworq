@@ -129,6 +129,11 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess, selecte
       fd.append('prize_value',        formData.prize_value);
       fd.append('winner_count',       formData.winner_count);
 
+      // Append image if a new one was selected
+      if (imageFile) {
+        fd.append('image', imageFile);
+      }
+
       await api.request(`/admin/campaigns/${campaign.id}/update/`, {
         method: 'PATCH',
         body: fd,
