@@ -5,6 +5,7 @@ from rest_framework import status
 from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta, datetime
+import calendar
 
 from .models_master_campaign import MasterCampaign, MasterCampaignParticipant
 from .serializers_master_campaign import MasterCampaignSerializer, MasterCampaignParticipantSerializer
@@ -332,7 +333,6 @@ def generate_sub_campaigns(request, pk):
         
         # Generate weekly campaigns
         if campaign.auto_generate_weekly and request.data.get('generate_weekly', True):
-            from datetime import timedelta
             current_date = campaign.start_date.date()
             end_date = campaign.end_date.date()
             
@@ -383,7 +383,6 @@ def generate_sub_campaigns(request, pk):
         
         # Generate monthly campaigns
         if campaign.auto_generate_monthly and request.data.get('generate_monthly', True):
-            from dateutil.relativedelta import relativedelta
             current_date = campaign.start_date.date()
             end_date = campaign.end_date.date()
             
@@ -396,11 +395,9 @@ def generate_sub_campaigns(request, pk):
             generated_monthly = 0
             month_start = current_date.replace(day=1)
             while month_start <= end_date and generated_monthly < monthly_count:
-                # Get last day of month
-                if month_start.month == 12:
-                    month_end = month_start.replace(day=31)
-                else:
-                    month_end = (month_start.replace(day=1) + relativedelta(months=1)) - timedelta(days=1)
+                # Get last day of month using calendar module
+                last_day = calendar.monthrange(month_start.year, month_start.month)[1]
+                month_end = month_start.replace(day=last_day)
                 
                 month_end = min(month_end, end_date)
                 
@@ -436,7 +433,11 @@ def generate_sub_campaigns(request, pk):
                     generated_monthly += 1
                     print(f"[GENERATE_SUB_CAMPAIGNS] Monthly campaign for {month_start} already exists")
                 
-                month_start = (month_start + relativedelta(months=1)).replace(day=1)
+                # Move to next month
+                if month_start.month == 12:
+                    month_start = month_start.replace(year=month_start.year + 1, month=1, day=1)
+                else:
+                    month_start = month_start.replace(month=month_start.month + 1, day=1)
         
         # Generate grand campaign
         if campaign.auto_generate_grand and request.data.get('generate_grand', True):
