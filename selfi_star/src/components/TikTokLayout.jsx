@@ -16,6 +16,8 @@ import {
   Link,
   EyeOff,
   AlertTriangle,
+  Play,
+  Pause,
 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -482,16 +484,14 @@ export function TikTokLayout({
     if (videoElement.paused) {
       videoElement.play();
       setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
+      // Hide pause icon when playing
+      setShowPauseIcon((prev) => ({ ...prev, [videoId]: false }));
     } else {
       videoElement.pause();
       setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
+      // Show pause icon persistently when paused
+      setShowPauseIcon((prev) => ({ ...prev, [videoId]: true }));
     }
-
-    // Show pause/play icon animation
-    setShowPauseIcon((prev) => ({ ...prev, [videoId]: true }));
-    setTimeout(() => {
-      setShowPauseIcon((prev) => ({ ...prev, [videoId]: false }));
-    }, 1000);
   };
 
   const handleLike = async (videoId) => {
@@ -1580,27 +1580,42 @@ export function TikTokLayout({
                           </div>
                         )}
 
-                        {/* Pause/Play Animation - TikTok Style */}
-                        {showPauseIcon[video.id] && (
+                        {/* Pause Icon - Persistent when paused */}
+                        {showPauseIcon[video.id] && !playingVideos[video.id] && (
                           <div
                             style={{
                               position: 'absolute',
                               top: '50%',
                               left: '50%',
                               transform: 'translate(-50%, -50%)',
-                              fontSize: 60,
-                              color: '#fff',
-                              background: 'rgba(0,0,0,0.5)',
-                              borderRadius: '50%',
-                              width: 80,
-                              height: 80,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              animation: 'fadeInOut 1s ease-in-out',
+                              pointerEvents: 'none',
+                              zIndex: 50,
                             }}
                           >
-                            {playingVideos[video.id] ? '▶' : '❚❚'}
+                            <div
+                              style={{
+                                background: 'rgba(0, 0, 0, 0.75)',
+                                backdropFilter: 'blur(10px)',
+                                borderRadius: '50%',
+                                width: 100,
+                                height: 100,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                                border: '3px solid rgba(255, 255, 255, 0.2)',
+                              }}
+                            >
+                              <Pause
+                                size={48}
+                                strokeWidth={2.5}
+                                color="#ffffff"
+                                fill="#ffffff"
+                                style={{
+                                  filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+                                }}
+                              />
+                            </div>
                           </div>
                         )}
                       </div>
