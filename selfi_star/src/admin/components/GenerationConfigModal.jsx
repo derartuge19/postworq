@@ -3,15 +3,55 @@ import { X, Settings, Calendar, TrendingUp, Award } from 'lucide-react';
 import api from '../../api';
 
 export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
+  // Calculate smart defaults based on campaign duration
+  const getSmartDefaults = () => {
+    if (!campaign?.start_date || !campaign?.end_date) {
+      return { daily: 0, weekly: 0, monthly: 0, grand: 1 };
+    }
+    
+    const start = new Date(campaign.start_date);
+    const end = new Date(campaign.end_date);
+    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Smart defaults based on duration
+    let daily = 0, weekly = 0, monthly = 0;
+    
+    if (diffDays <= 7) {
+      // 1 week or less: all daily
+      daily = diffDays;
+      weekly = 0;
+      monthly = 0;
+    } else if (diffDays <= 30) {
+      // 1 month or less: some daily + weekly
+      daily = Math.min(10, diffDays); // Max 10 daily
+      weekly = Math.floor(diffDays / 7);
+      monthly = 0;
+    } else if (diffDays <= 90) {
+      // 3 months or less: weekly + monthly
+      daily = 0;
+      weekly = Math.floor(diffDays / 7);
+      monthly = Math.floor(diffDays / 30);
+    } else {
+      // More than 3 months: weekly + monthly
+      daily = 0;
+      weekly = Math.min(12, Math.floor(diffDays / 7)); // Max 12 weekly
+      monthly = Math.floor(diffDays / 30);
+    }
+    
+    return { daily, weekly, monthly, grand: 1 };
+  };
+  
+  const smartDefaults = getSmartDefaults();
+  
   const [config, setConfig] = useState({
-    auto_generate_daily: campaign?.auto_generate_daily ?? true,
-    auto_generate_weekly: campaign?.auto_generate_weekly ?? true,
-    auto_generate_monthly: campaign?.auto_generate_monthly ?? true,
+    auto_generate_daily: campaign?.auto_generate_daily ?? (smartDefaults.daily > 0),
+    auto_generate_weekly: campaign?.auto_generate_weekly ?? (smartDefaults.weekly > 0),
+    auto_generate_monthly: campaign?.auto_generate_monthly ?? (smartDefaults.monthly > 0),
     auto_generate_grand: campaign?.auto_generate_grand ?? true,
-    daily_campaign_count: campaign?.daily_campaign_count ?? 0,
-    weekly_campaign_count: campaign?.weekly_campaign_count ?? 0,
-    monthly_campaign_count: campaign?.monthly_campaign_count ?? 0,
-    grand_campaign_count: campaign?.grand_campaign_count ?? 1,
+    daily_campaign_count: campaign?.daily_campaign_count ?? smartDefaults.daily,
+    weekly_campaign_count: campaign?.weekly_campaign_count ?? smartDefaults.weekly,
+    monthly_campaign_count: campaign?.monthly_campaign_count ?? smartDefaults.monthly,
+    grand_campaign_count: campaign?.grand_campaign_count ?? smartDefaults.grand,
   });
 
   const [loading, setLoading] = useState(false);
@@ -207,6 +247,37 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
           </div>
         )}
 
+        {/* Summary */}
+        <div style={{
+          margin: '20px 20px 0',
+          padding: 16,
+          background: theme.pri + '10',
+          border: `1px solid ${theme.pri}30`,
+          borderRadius: 8,
+        }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
+            📊 Generation Summary
+          </div>
+          <div style={{ fontSize: 12, color: theme.sub, lineHeight: 1.6 }}>
+            Campaign Duration: <strong>{campaign?.duration_days || 0} days</strong><br/>
+            Total to Generate: <strong>
+              {(config.auto_generate_daily ? (config.daily_campaign_count || getMaxCampaigns('daily')) : 0) +
+               (config.auto_generate_weekly ? (config.weekly_campaign_count || getMaxCampaigns('weekly')) : 0) +
+               (config.auto_generate_monthly ? (config.monthly_campaign_count || getMaxCampaigns('monthly')) : 0) +
+               (config.auto_generate_grand ? config.grand_campaign_count : 0)} campaigns
+            </strong>
+            {' '}(
+              {config.auto_generate_daily && `${config.daily_campaign_count || getMaxCampaigns('daily')} daily`}
+              {config.auto_generate_daily && (config.auto_generate_weekly || config.auto_generate_monthly || config.auto_generate_grand) && ', '}
+              {config.auto_generate_weekly && `${config.weekly_campaign_count || getMaxCampaigns('weekly')} weekly`}
+              {config.auto_generate_weekly && (config.auto_generate_monthly || config.auto_generate_grand) && ', '}
+              {config.auto_generate_monthly && `${config.monthly_campaign_count || getMaxCampaigns('monthly')} monthly`}
+              {config.auto_generate_monthly && config.auto_generate_grand && ', '}
+              {config.auto_generate_grand && `${config.grand_campaign_count} grand`}
+            )
+          </div>
+        </div>
+
         {/* Campaign Types */}
         <div style={{ padding: 20 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -289,6 +360,7 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
                           color: theme.txt,
                           fontSize: 14
                         }}
+                        placeholder={`Suggested: ${smartDefaults[type.key]}`}
                       />
                       <span style={{ fontSize: 13, color: theme.sub }}>
                         Max: {type.max}
@@ -297,6 +369,11 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
                     {config[`${type.key}_campaign_count`] === 0 && (
                       <p style={{ margin: '6px 0 0', fontSize: 12, color: type.color }}>
                         Will generate all {type.max} {type.label.toLowerCase()}
+                      </p>
+                    )}
+                    {smartDefaults[type.key] > 0 && config[`${type.key}_campaign_count`] !== smartDefaults[type.key] && (
+                      <p style={{ margin: '6px 0 0', fontSize: 11, color: theme.sub }}>
+                        💡 Suggested: {smartDefaults[type.key]} based on campaign duration
                       </p>
                     )}
                   </div>

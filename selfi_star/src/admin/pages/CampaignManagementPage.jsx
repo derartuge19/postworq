@@ -434,15 +434,43 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
                     alignItems: 'flex-start',
                     marginBottom: 12,
                   }}>
-                    <h3 style={{
-                      margin: 0,
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: theme.txt,
-                      flex: 1,
-                    }}>
-                      {campaign.title}
-                    </h3>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{
+                        margin: 0,
+                        fontSize: 18,
+                        fontWeight: 700,
+                        color: theme.txt,
+                      }}>
+                        {campaign.title}
+                      </h3>
+                      {campaign.campaign_type && (
+                        <div style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          background: campaign.campaign_type === 'daily' ? theme.blue + '20' :
+                                     campaign.campaign_type === 'weekly' ? theme.green + '20' :
+                                     campaign.campaign_type === 'monthly' ? theme.orange + '20' :
+                                     campaign.campaign_type === 'grand' ? theme.pri + '20' : theme.sub + '20',
+                          color: campaign.campaign_type === 'daily' ? theme.blue :
+                                 campaign.campaign_type === 'weekly' ? theme.green :
+                                 campaign.campaign_type === 'monthly' ? theme.orange :
+                                 campaign.campaign_type === 'grand' ? theme.pri : theme.sub,
+                          marginTop: 4,
+                        }}>
+                          {campaign.campaign_type === 'daily' ? '📅' :
+                           campaign.campaign_type === 'weekly' ? '📊' :
+                           campaign.campaign_type === 'monthly' ? '📆' :
+                           campaign.campaign_type === 'grand' ? '👑' : '🎯'}
+                          {campaign.campaign_type}
+                        </div>
+                      )}
+                    </div>
                     <span style={{
                       padding: '4px 8px',
                       borderRadius: 4,
