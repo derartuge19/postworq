@@ -179,6 +179,58 @@ export default function WerqRoot() {
     return () => clearInterval(interval);
   }, [authUser]);
 
+  // Load and apply platform typography settings
+  useEffect(() => {
+    const loadTypographySettings = async () => {
+      try {
+        const settings = await api.request('/settings/public/');
+        
+        // Load Google Fonts dynamically
+        const fonts = [
+          settings.font_family_primary,
+          settings.font_family_secondary,
+          settings.font_family_username,
+          settings.font_family_caption,
+        ].filter((f, i, arr) => f && arr.indexOf(f) === i); // unique fonts only
+        
+        fonts.forEach(font => {
+          if (font && font !== 'Inter') {
+            const link = document.createElement('link');
+            link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@300;400;500;600;700;800;900&display=swap`;
+            link.rel = 'stylesheet';
+            if (!document.querySelector(`link[href*="${font.replace(/ /g, '+')}"]`)) {
+              document.head.appendChild(link);
+            }
+          }
+        });
+        
+        // Apply CSS variables for typography
+        const root = document.documentElement;
+        root.style.setProperty('--font-primary', `"${settings.font_family_primary || 'Inter'}", sans-serif`);
+        root.style.setProperty('--font-secondary', `"${settings.font_family_secondary || 'Inter'}", sans-serif`);
+        root.style.setProperty('--font-username', `"${settings.font_family_username || 'Inter'}", sans-serif`);
+        root.style.setProperty('--font-caption', `"${settings.font_family_caption || 'Inter'}", sans-serif`);
+        root.style.setProperty('--font-size-base', `${settings.font_size_base || 16}px`);
+        root.style.setProperty('--font-weight-headings', settings.font_weight_headings || '700');
+        root.style.setProperty('--font-weight-body', settings.font_weight_body || '400');
+        root.style.setProperty('--letter-spacing', settings.letter_spacing || 'normal');
+        root.style.setProperty('--line-height', settings.line_height || '1.5');
+        root.style.setProperty('--color-primary', settings.primary_color || '#8B5CF6');
+        root.style.setProperty('--color-secondary', settings.secondary_color || '#F97316');
+        
+        // Apply base font to body
+        document.body.style.fontFamily = `"${settings.font_family_secondary || 'Inter'}", sans-serif`;
+        document.body.style.fontSize = `${settings.font_size_base || 16}px`;
+        document.body.style.lineHeight = settings.line_height || '1.5';
+        document.body.style.letterSpacing = settings.letter_spacing || 'normal';
+      } catch (error) {
+        console.log('Using default typography settings');
+      }
+    };
+    
+    loadTypographySettings();
+  }, []);
+
   // Browser history support
   useEffect(() => {
     const handlePopState = (event) => {

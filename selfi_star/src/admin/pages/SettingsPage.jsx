@@ -1,7 +1,31 @@
 import { useState, useEffect } from 'react';
-import { Settings, Save, Key, Database, Bell, Shield, Zap, Globe } from 'lucide-react';
+import { Settings, Save, Key, Database, Bell, Shield, Zap, Globe, Type, Palette } from 'lucide-react';
 import api from '../../api';
 import { AlertModal } from '../components/AlertModal';
+
+// Available Google Fonts
+const AVAILABLE_FONTS = [
+  'Inter',
+  'Roboto',
+  'Open Sans',
+  'Lato',
+  'Montserrat',
+  'Poppins',
+  'Nunito',
+  'Raleway',
+  'Ubuntu',
+  'Playfair Display',
+  'Merriweather',
+  'Source Sans Pro',
+  'Oswald',
+  'Quicksand',
+  'Work Sans',
+  'Rubik',
+  'Karla',
+  'Fira Sans',
+  'Barlow',
+  'DM Sans',
+];
 
 export function SettingsPage({ theme }) {
   const [settings, setSettings] = useState(null);
@@ -55,6 +79,8 @@ export function SettingsPage({ theme }) {
 
   const tabs = [
     { id: 'general', label: 'General', icon: Settings },
+    { id: 'typography', label: 'Typography', icon: Type },
+    { id: 'theme', label: 'Theme', icon: Palette },
     { id: 'content', label: 'Content', icon: Globe },
     { id: 'moderation', label: 'Moderation', icon: Shield },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -190,6 +216,311 @@ export function SettingsPage({ theme }) {
               onChange={(v) => handleChange('require_email_verification', v)}
               theme={theme}
             />
+          </div>
+        )}
+
+        {activeTab === 'typography' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div style={{
+              padding: 16,
+              background: `${theme.pri}10`,
+              borderRadius: 8,
+              marginBottom: 8,
+            }}>
+              <p style={{ margin: 0, fontSize: 14, color: theme.sub }}>
+                Customize the fonts used throughout the platform. Changes will apply to all users.
+              </p>
+            </div>
+            
+            <FontSelect
+              label="Primary Font (Headings & UI)"
+              value={settings.font_family_primary || 'Inter'}
+              onChange={(v) => handleChange('font_family_primary', v)}
+              theme={theme}
+            />
+            <FontSelect
+              label="Secondary Font (Body Text)"
+              value={settings.font_family_secondary || 'Inter'}
+              onChange={(v) => handleChange('font_family_secondary', v)}
+              theme={theme}
+            />
+            <FontSelect
+              label="Username Font"
+              value={settings.font_family_username || 'Inter'}
+              onChange={(v) => handleChange('font_family_username', v)}
+              theme={theme}
+            />
+            <FontSelect
+              label="Caption Font"
+              value={settings.font_family_caption || 'Inter'}
+              onChange={(v) => handleChange('font_family_caption', v)}
+              theme={theme}
+            />
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <SettingField
+                label="Base Font Size (px)"
+                type="number"
+                value={settings.font_size_base || 16}
+                onChange={(v) => handleChange('font_size_base', parseInt(v))}
+                theme={theme}
+              />
+              <SettingField
+                label="Line Height"
+                value={settings.line_height || '1.5'}
+                onChange={(v) => handleChange('line_height', v)}
+                placeholder="1.5"
+                theme={theme}
+              />
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: theme.txt,
+                  marginBottom: 8,
+                }}>
+                  Heading Font Weight
+                </label>
+                <select
+                  value={settings.font_weight_headings || '700'}
+                  onChange={(e) => handleChange('font_weight_headings', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: 8,
+                    fontSize: 14,
+                    outline: 'none',
+                    background: '#fff',
+                  }}
+                >
+                  <option value="400">Regular (400)</option>
+                  <option value="500">Medium (500)</option>
+                  <option value="600">Semi-Bold (600)</option>
+                  <option value="700">Bold (700)</option>
+                  <option value="800">Extra Bold (800)</option>
+                  <option value="900">Black (900)</option>
+                </select>
+              </div>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: theme.txt,
+                  marginBottom: 8,
+                }}>
+                  Body Font Weight
+                </label>
+                <select
+                  value={settings.font_weight_body || '400'}
+                  onChange={(e) => handleChange('font_weight_body', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: 8,
+                    fontSize: 14,
+                    outline: 'none',
+                    background: '#fff',
+                  }}
+                >
+                  <option value="300">Light (300)</option>
+                  <option value="400">Regular (400)</option>
+                  <option value="500">Medium (500)</option>
+                  <option value="600">Semi-Bold (600)</option>
+                </select>
+              </div>
+            </div>
+            
+            <SettingField
+              label="Letter Spacing"
+              value={settings.letter_spacing || 'normal'}
+              onChange={(v) => handleChange('letter_spacing', v)}
+              placeholder="normal, 0.5px, -0.02em"
+              theme={theme}
+            />
+            
+            {/* Font Preview */}
+            <div style={{
+              padding: 24,
+              background: theme.bg,
+              borderRadius: 12,
+              border: `1px solid ${theme.border}`,
+            }}>
+              <h4 style={{ margin: '0 0 16px 0', color: theme.txt }}>Preview</h4>
+              <div style={{
+                fontFamily: `"${settings.font_family_primary || 'Inter'}", sans-serif`,
+                fontWeight: settings.font_weight_headings || '700',
+                fontSize: 24,
+                color: theme.txt,
+                marginBottom: 8,
+              }}>
+                Heading Text Preview
+              </div>
+              <div style={{
+                fontFamily: `"${settings.font_family_secondary || 'Inter'}", sans-serif`,
+                fontWeight: settings.font_weight_body || '400',
+                fontSize: settings.font_size_base || 16,
+                lineHeight: settings.line_height || '1.5',
+                letterSpacing: settings.letter_spacing || 'normal',
+                color: theme.sub,
+                marginBottom: 12,
+              }}>
+                This is how body text will appear throughout the platform. The quick brown fox jumps over the lazy dog.
+              </div>
+              <div style={{
+                fontFamily: `"${settings.font_family_username || 'Inter'}", sans-serif`,
+                fontWeight: 600,
+                fontSize: 14,
+                color: theme.pri,
+              }}>
+                @username_preview
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'theme' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div style={{
+              padding: 16,
+              background: `${theme.pri}10`,
+              borderRadius: 8,
+              marginBottom: 8,
+            }}>
+              <p style={{ margin: 0, fontSize: 14, color: theme.sub }}>
+                Customize the brand colors used throughout the platform.
+              </p>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: theme.txt,
+                  marginBottom: 8,
+                }}>
+                  Primary Color
+                </label>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={settings.primary_color || '#8B5CF6'}
+                    onChange={(e) => handleChange('primary_color', e.target.value)}
+                    style={{
+                      width: 48,
+                      height: 48,
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      padding: 2,
+                    }}
+                  />
+                  <input
+                    type="text"
+                    value={settings.primary_color || '#8B5CF6'}
+                    onChange={(e) => handleChange('primary_color', e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: theme.txt,
+                  marginBottom: 8,
+                }}>
+                  Secondary Color
+                </label>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={settings.secondary_color || '#F97316'}
+                    onChange={(e) => handleChange('secondary_color', e.target.value)}
+                    style={{
+                      width: 48,
+                      height: 48,
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      padding: 2,
+                    }}
+                  />
+                  <input
+                    type="text"
+                    value={settings.secondary_color || '#F97316'}
+                    onChange={(e) => handleChange('secondary_color', e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Color Preview */}
+            <div style={{
+              padding: 24,
+              background: theme.bg,
+              borderRadius: 12,
+              border: `1px solid ${theme.border}`,
+            }}>
+              <h4 style={{ margin: '0 0 16px 0', color: theme.txt }}>Color Preview</h4>
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                <button style={{
+                  padding: '12px 24px',
+                  background: settings.primary_color || '#8B5CF6',
+                  border: 'none',
+                  borderRadius: 8,
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}>
+                  Primary Button
+                </button>
+                <button style={{
+                  padding: '12px 24px',
+                  background: settings.secondary_color || '#F97316',
+                  border: 'none',
+                  borderRadius: 8,
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}>
+                  Secondary Button
+                </button>
+                <div style={{
+                  padding: '12px 24px',
+                  background: `${settings.primary_color || '#8B5CF6'}20`,
+                  borderRadius: 8,
+                  color: settings.primary_color || '#8B5CF6',
+                  fontWeight: 600,
+                }}>
+                  Badge Style
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -456,6 +787,53 @@ function SettingToggle({ label, description, value, onChange, theme }) {
           transition: 'all 0.2s',
         }} />
       </button>
+    </div>
+  );
+}
+
+function FontSelect({ label, value, onChange, theme }) {
+  return (
+    <div>
+      <label style={{
+        display: 'block',
+        fontSize: 14,
+        fontWeight: 600,
+        color: theme.txt,
+        marginBottom: 8,
+      }}>
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '12px',
+          border: `1px solid ${theme.border}`,
+          borderRadius: 8,
+          fontSize: 14,
+          outline: 'none',
+          background: '#fff',
+          fontFamily: `"${value}", sans-serif`,
+        }}
+      >
+        {AVAILABLE_FONTS.map(font => (
+          <option key={font} value={font} style={{ fontFamily: `"${font}", sans-serif` }}>
+            {font}
+          </option>
+        ))}
+      </select>
+      <div style={{
+        marginTop: 8,
+        padding: '8px 12px',
+        background: theme.bg,
+        borderRadius: 6,
+        fontFamily: `"${value}", sans-serif`,
+        fontSize: 14,
+        color: theme.sub,
+      }}>
+        The quick brown fox jumps over the lazy dog
+      </div>
     </div>
   );
 }

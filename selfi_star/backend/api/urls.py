@@ -109,7 +109,7 @@ from .views_admin import (
     admin_analytics_export, admin_wipe_all_posts
 )
 from .views_settings import (
-    get_platform_settings, update_platform_settings, get_api_keys, create_api_key,
+    get_platform_settings, update_platform_settings, get_public_settings, get_api_keys, create_api_key,
     delete_api_key, toggle_api_key, get_system_logs, clear_system_logs,
     get_security_overview, get_platform_performance,
     get_admin_notifications, mark_notification_read, send_platform_notification,
@@ -213,6 +213,7 @@ urlpatterns = [
     # Settings & Configuration
     path('admin/settings/', get_platform_settings, name='admin-settings'),
     path('admin/settings/update/', update_platform_settings, name='admin-settings-update'),
+    path('settings/public/', get_public_settings, name='public-settings'),
     # API Keys
     path('admin/api-keys/', get_api_keys, name='admin-api-keys'),
     path('admin/api-keys/create/', create_api_key, name='admin-api-key-create'),

@@ -64,6 +64,21 @@ class PlatformSettings(models.Model):
     analytics_enabled = models.BooleanField(default=True)
     track_user_activity = models.BooleanField(default=True)
     
+    # Typography Settings
+    font_family_primary = models.CharField(max_length=100, default='Inter', help_text='Primary font for headings and UI')
+    font_family_secondary = models.CharField(max_length=100, default='Inter', help_text='Secondary font for body text')
+    font_family_username = models.CharField(max_length=100, default='Inter', help_text='Font for usernames')
+    font_family_caption = models.CharField(max_length=100, default='Inter', help_text='Font for captions and descriptions')
+    font_size_base = models.IntegerField(default=16, help_text='Base font size in pixels')
+    font_weight_headings = models.CharField(max_length=10, default='700', help_text='Font weight for headings')
+    font_weight_body = models.CharField(max_length=10, default='400', help_text='Font weight for body text')
+    letter_spacing = models.CharField(max_length=20, default='normal', help_text='Letter spacing (e.g., normal, 0.5px, -0.02em)')
+    line_height = models.CharField(max_length=10, default='1.5', help_text='Line height multiplier')
+    
+    # Theme Colors (for future use)
+    primary_color = models.CharField(max_length=20, default='#8B5CF6', help_text='Primary brand color')
+    secondary_color = models.CharField(max_length=20, default='#F97316', help_text='Secondary/accent color')
+    
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     

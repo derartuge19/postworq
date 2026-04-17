@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
@@ -41,6 +41,19 @@ def get_platform_settings(request):
         'api_enabled': settings.api_enabled,
         'analytics_enabled': settings.analytics_enabled,
         'track_user_activity': settings.track_user_activity,
+        # Typography Settings
+        'font_family_primary': settings.font_family_primary,
+        'font_family_secondary': settings.font_family_secondary,
+        'font_family_username': settings.font_family_username,
+        'font_family_caption': settings.font_family_caption,
+        'font_size_base': settings.font_size_base,
+        'font_weight_headings': settings.font_weight_headings,
+        'font_weight_body': settings.font_weight_body,
+        'letter_spacing': settings.letter_spacing,
+        'line_height': settings.line_height,
+        # Theme Colors
+        'primary_color': settings.primary_color,
+        'secondary_color': settings.secondary_color,
         'updated_at': settings.updated_at,
     })
 
@@ -67,6 +80,46 @@ def update_platform_settings(request):
     )
     
     return Response({'message': 'Settings updated successfully'})
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_public_settings(request):
+    """Get public platform settings (typography, colors) - no auth required"""
+    try:
+        settings = PlatformSettings.objects.get(id=1)
+    except PlatformSettings.DoesNotExist:
+        # Return defaults if settings don't exist
+        return Response({
+            'platform_name': 'Selfie Star',
+            'font_family_primary': 'Inter',
+            'font_family_secondary': 'Inter',
+            'font_family_username': 'Inter',
+            'font_family_caption': 'Inter',
+            'font_size_base': 16,
+            'font_weight_headings': '700',
+            'font_weight_body': '400',
+            'letter_spacing': 'normal',
+            'line_height': '1.5',
+            'primary_color': '#8B5CF6',
+            'secondary_color': '#F97316',
+        })
+    
+    return Response({
+        'platform_name': settings.platform_name,
+        'font_family_primary': settings.font_family_primary,
+        'font_family_secondary': settings.font_family_secondary,
+        'font_family_username': settings.font_family_username,
+        'font_family_caption': settings.font_family_caption,
+        'font_size_base': settings.font_size_base,
+        'font_weight_headings': settings.font_weight_headings,
+        'font_weight_body': settings.font_weight_body,
+        'letter_spacing': settings.letter_spacing,
+        'line_height': settings.line_height,
+        'primary_color': settings.primary_color,
+        'secondary_color': settings.secondary_color,
+    })
+
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
