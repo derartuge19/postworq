@@ -22,42 +22,43 @@ def admin_legal_documents_list(request):
     """
     List all legal documents with stats
     """
-    doc_type_filter = request.GET.get('type')
-    status_filter = request.GET.get('status')
-    
-    documents = LegalDocument.objects.all()
-    
-    if doc_type_filter:
-        documents = documents.filter(document_type=doc_type_filter)
-    if status_filter:
-        documents = documents.filter(status=status_filter)
-    
-    documents = documents.annotate(
-        acceptance_count=Count('acceptances')
-    ).order_by('-updated_at')
-    
-    return Response({
-        'documents': [{
-            'id': doc.id,
-            'document_type': doc.document_type,
-            'document_type_display': doc.get_document_type_display(),
-            'title': doc.title,
-            'slug': doc.slug,
-            'summary': doc.summary,
-            'version': doc.version,
-            'status': doc.status,
-            'status_display': doc.get_status_display(),
-            'effective_date': doc.effective_date.isoformat() if doc.effective_date else None,
-            'requires_acceptance': doc.requires_acceptance,
-            'show_on_signup': doc.show_on_signup,
-            'is_mandatory': doc.is_mandatory,
-            'acceptance_count': doc.acceptance_count,
-            'created_by': doc.created_by.username if doc.created_by else None,
-            'updated_by': doc.updated_by.username if doc.updated_by else None,
-            'created_at': doc.created_at.isoformat(),
-            'updated_at': doc.updated_at.isoformat(),
-        } for doc in documents],
-        'document_types': [
+    try:
+        doc_type_filter = request.GET.get('type')
+        status_filter = request.GET.get('status')
+        
+        documents = LegalDocument.objects.all()
+        
+        if doc_type_filter:
+            documents = documents.filter(document_type=doc_type_filter)
+        if status_filter:
+            documents = documents.filter(status=status_filter)
+        
+        documents = documents.annotate(
+            acceptance_count=Count('acceptances')
+        ).order_by('-updated_at')
+        
+        return Response({
+            'documents': [{
+                'id': doc.id,
+                'document_type': doc.document_type,
+                'document_type_display': doc.get_document_type_display(),
+                'title': doc.title,
+                'slug': doc.slug,
+                'summary': doc.summary,
+                'version': doc.version,
+                'status': doc.status,
+                'status_display': doc.get_status_display(),
+                'effective_date': doc.effective_date.isoformat() if doc.effective_date else None,
+                'requires_acceptance': doc.requires_acceptance,
+                'show_on_signup': doc.show_on_signup,
+                'is_mandatory': doc.is_mandatory,
+                'acceptance_count': doc.acceptance_count,
+                'created_by': doc.created_by.username if doc.created_by else None,
+                'updated_by': doc.updated_by.username if doc.updated_by else None,
+                'created_at': doc.created_at.isoformat(),
+                'updated_at': doc.updated_at.isoformat(),
+            } for doc in documents],
+            'document_types': [
             {'value': dt[0], 'label': dt[1]} 
             for dt in LegalDocument.DOCUMENT_TYPES
         ],
@@ -66,6 +67,20 @@ def admin_legal_documents_list(request):
             for st in LegalDocument.STATUS_CHOICES
         ],
     })
+    except Exception as e:
+        return Response({
+            'error': str(e),
+            'message': 'Database tables may not exist. Please run migrations.',
+            'documents': [],
+            'document_types': [
+                {'value': dt[0], 'label': dt[1]} 
+                for dt in LegalDocument.DOCUMENT_TYPES
+            ],
+            'status_options': [
+                {'value': st[0], 'label': st[1]} 
+                for st in LegalDocument.STATUS_CHOICES
+            ],
+        }, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -349,43 +364,76 @@ def admin_legal_stats(request):
     """
     from django.contrib.auth.models import User
     
-    total_users = User.objects.filter(is_active=True).count()
-    
-    stats = []
-    for doc_type, doc_name in LegalDocument.DOCUMENT_TYPES:
-        active_doc = LegalDocument.get_active_document(doc_type)
-        if active_doc:
-            acceptance_count = UserLegalAcceptance.objects.filter(
-                document=active_doc,
-                version_accepted=active_doc.version
-            ).count()
-            
-            stats.append({
-                'document_type': doc_type,
-                'document_name': doc_name,
-                'document_id': active_doc.id,
-                'title': active_doc.title,
-                'version': active_doc.version,
-                'acceptance_count': acceptance_count,
-                'acceptance_rate': round((acceptance_count / total_users * 100), 1) if total_users > 0 else 0,
-                'effective_date': active_doc.effective_date.isoformat() if active_doc.effective_date else None,
-            })
-        else:
-            stats.append({
-                'document_type': doc_type,
-                'document_name': doc_name,
-                'document_id': None,
-                'title': None,
-                'version': None,
-                'acceptance_count': 0,
-                'acceptance_rate': 0,
-                'effective_date': None,
-            })
-    
-    return Response({
-        'total_users': total_users,
-        'document_stats': stats
-    })
+    try:
+        total_users = User.objects.filter(is_active=True).count()
+        
+        stats = []
+        for doc_type, doc_name in LegalDocument.DOCUMENT_TYPES:
+            try:
+                active_doc = LegalDocument.get_active_document(doc_type)
+                if active_doc:
+                    acceptance_count = UserLegalAcceptance.objects.filter(
+                        document=active_doc,
+                        version_accepted=active_doc.version
+                    ).count()
+                    
+                    stats.append({
+                        'document_type': doc_type,
+                        'document_name': doc_name,
+                        'document_id': active_doc.id,
+                        'title': active_doc.title,
+                        'version': active_doc.version,
+                        'acceptance_count': acceptance_count,
+                        'acceptance_rate': round((acceptance_count / total_users * 100), 1) if total_users > 0 else 0,
+                        'effective_date': active_doc.effective_date.isoformat() if active_doc.effective_date else None,
+                    })
+                else:
+                    stats.append({
+                        'document_type': doc_type,
+                        'document_name': doc_name,
+                        'document_id': None,
+                        'title': None,
+                        'version': None,
+                        'acceptance_count': 0,
+                        'acceptance_rate': 0,
+                        'effective_date': None,
+                    })
+            except Exception:
+                stats.append({
+                    'document_type': doc_type,
+                    'document_name': doc_name,
+                    'document_id': None,
+                    'title': None,
+                    'version': None,
+                    'acceptance_count': 0,
+                    'acceptance_rate': 0,
+                    'effective_date': None,
+                })
+        
+        return Response({
+            'total_users': total_users,
+            'document_stats': stats
+        })
+    except Exception as e:
+        # Return empty stats if tables don't exist
+        return Response({
+            'total_users': 0,
+            'document_stats': [
+                {
+                    'document_type': doc_type,
+                    'document_name': doc_name,
+                    'document_id': None,
+                    'title': None,
+                    'version': None,
+                    'acceptance_count': 0,
+                    'acceptance_rate': 0,
+                    'effective_date': None,
+                }
+                for doc_type, doc_name in LegalDocument.DOCUMENT_TYPES
+            ],
+            'error': str(e),
+            'message': 'Database tables may not exist. Please run migrations.'
+        })
 
 
 # ============================================================================
