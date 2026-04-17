@@ -973,41 +973,6 @@ export default function WerqRoot() {
           </div>
         </div>
       )}
-      
-      {/* DEBUG: Typography Status Panel - Remove in production */}
-      <div style={{
-        position: 'fixed',
-        bottom: 10,
-        right: 10,
-        background: typographyError ? '#FEE2E2' : typographyLoaded ? '#DCFCE7' : '#FEF3C7',
-        border: `2px solid ${typographyError ? '#EF4444' : typographyLoaded ? '#22C55E' : '#F59E0B'}`,
-        borderRadius: 8,
-        padding: '8px 12px',
-        fontSize: 12,
-        zIndex: 99999,
-        maxWidth: 300,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-      }}>
-        <div style={{ fontWeight: 700, marginBottom: 4 }}>
-          {typographyError ? '❌ Font Error' : typographyLoaded ? '✅ Font Loaded' : '⏳ Loading Font...'}
-        </div>
-        <div>Font: {currentFont}</div>
-        {typographyError && <div style={{ color: '#DC2626', marginTop: 4 }}>{typographyError}</div>}
-        <button 
-          onClick={() => window.location.reload()}
-          style={{
-            marginTop: 8,
-            padding: '4px 8px',
-            fontSize: 11,
-            border: '1px solid #ccc',
-            borderRadius: 4,
-            background: '#fff',
-            cursor: 'pointer',
-          }}
-        >
-          Refresh Page
-        </button>
-      </div>
     </div>
   );
 }
