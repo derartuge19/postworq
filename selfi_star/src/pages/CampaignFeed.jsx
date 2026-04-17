@@ -3,6 +3,33 @@ import api from '../api';
 import config from '../config';
 import { ArrowLeft, Heart, MessageCircle, Award, TrendingUp, Clock, Star, Trophy } from 'lucide-react';
 
+// Add CSS animation for points notification
+if (typeof document !== 'undefined' && !document.getElementById('points-earned-animation')) {
+  const style = document.createElement('style');
+  style.id = 'points-earned-animation';
+  style.textContent = `
+    @keyframes pointsEarned {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+      20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+      80% {
+        opacity: 1;
+        transform: translate(-50%, -80%) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -100%) scale(0.8);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 const mediaUrl = (url) => {
   if (!url) return null;
   if (url.startsWith('http')) return url;
@@ -48,7 +75,7 @@ const CampaignFeed = ({ campaignId, onBack }) => {
     }
   };
 
-  const handleVote = async (post) => {
+  const handleLike = async (post) => {
     const reelId = post.reel?.id;
     if (!reelId) return;
 
@@ -64,9 +91,19 @@ const CampaignFeed = ({ campaignId, onBack }) => {
 
     try {
       // 1. Toggle like on the reel (syncs with profile vote count everywhere)
-      await api.request(`/reels/${reelId}/vote/`, { method: 'POST' });
+      const voteResponse = await api.request(`/reels/${reelId}/vote/`, { method: 'POST' });
+      
+      // 2. Get scoring config to show points earned
+      const configResponse = await api.request(`/campaigns/${campaignId}/scoring-config/`);
+      const campaignType = campaign?.campaign_type || 'daily';
+      const likesWeight = configResponse[campaignType]?.engagement?.likes_weight || 1.0;
+      
+      // Show points earned notification (only if liking, not unliking)
+      if (!wasLiked) {
+        showPointsEarned(post.user_id, likesWeight, 'like');
+      }
 
-      // 2. Debounce engagement score refresh (avoids hammering on rapid clicks)
+      // 3. Debounce engagement score refresh (avoids hammering on rapid clicks)
       clearTimeout(engagementTimer.current);
       engagementTimer.current = setTimeout(async () => {
         try {
@@ -87,6 +124,30 @@ const CampaignFeed = ({ campaignId, onBack }) => {
       ));
       console.error('Vote error:', error);
     }
+  };
+
+  const showPointsEarned = (userId, points, type) => {
+    // Show floating points notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      z-index: 10000;
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+      animation: pointsEarned 1.5s ease-out forwards;
+    `;
+    notification.innerHTML = `+${points} points! 🎯`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.remove(), 1500);
   };
 
   const FILTERS = [
