@@ -86,9 +86,12 @@ def update_platform_settings(request):
 @permission_classes([AllowAny])
 def get_public_settings(request):
     """Get public platform settings (typography, colors) - no auth required"""
+    print(f"[PUBLIC_SETTINGS] Request from {request.META.get('REMOTE_ADDR')}")
     try:
         settings = PlatformSettings.objects.get(id=1)
+        print(f"[PUBLIC_SETTINGS] Settings found: font_secondary={settings.font_family_secondary}")
     except PlatformSettings.DoesNotExist:
+        print("[PUBLIC_SETTINGS] No settings found, returning defaults")
         # Return defaults if settings don't exist
         return Response({
             'platform_name': 'Selfie Star',

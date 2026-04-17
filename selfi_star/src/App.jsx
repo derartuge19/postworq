@@ -180,12 +180,24 @@ export default function WerqRoot() {
   }, [authUser]);
 
   // Load and apply platform typography settings
+  const [typographyLoaded, setTypographyLoaded] = useState(false);
+  const [typographyError, setTypographyError] = useState(null);
+  const [currentFont, setCurrentFont] = useState('Inter');
+  
   useEffect(() => {
     const loadTypographySettings = async () => {
       try {
-        console.log('[Typography] Loading settings...');
+        console.log('[Typography] Loading settings from /api/settings/public/...');
         const settings = await api.request('/settings/public/');
         console.log('[Typography] Settings loaded:', settings);
+        
+        if (!settings || !settings.font_family_secondary) {
+          console.warn('[Typography] No font settings returned, using defaults');
+          setTypographyError('No settings returned from server');
+          return;
+        }
+        
+        setCurrentFont(settings.font_family_secondary);
         
         // Load Google Fonts dynamically
         const fonts = [
@@ -193,14 +205,15 @@ export default function WerqRoot() {
           settings.font_family_secondary,
           settings.font_family_username,
           settings.font_family_caption,
-        ].filter((f, i, arr) => f && arr.indexOf(f) === i); // unique fonts only
+        ].filter((f, i, arr) => f && arr.indexOf(f) === i);
         
         console.log('[Typography] Loading fonts:', fonts);
         
         fonts.forEach(font => {
           if (font && font !== 'Inter') {
+            const fontUrl = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@300;400;500;600;700;800;900&display=swap`;
             const link = document.createElement('link');
-            link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@300;400;500;600;700;800;900&display=swap`;
+            link.href = fontUrl;
             link.rel = 'stylesheet';
             if (!document.querySelector(`link[href*="${font.replace(/ /g, '+')}"]`)) {
               document.head.appendChild(link);
@@ -209,12 +222,18 @@ export default function WerqRoot() {
           }
         });
         
-        // Apply CSS variables for typography
+        // Build CSS with actual values from settings
+        const fontPrimary = `"${settings.font_family_primary || 'Inter'}", sans-serif`;
+        const fontSecondary = `"${settings.font_family_secondary || 'Inter'}", sans-serif`;
+        const fontUsername = `"${settings.font_family_username || 'Inter'}", sans-serif`;
+        const fontCaption = `"${settings.font_family_caption || 'Inter'}", sans-serif`;
+        
+        // Apply CSS variables
         const root = document.documentElement;
-        root.style.setProperty('--font-primary', `"${settings.font_family_primary || 'Inter'}", sans-serif`);
-        root.style.setProperty('--font-secondary', `"${settings.font_family_secondary || 'Inter'}", sans-serif`);
-        root.style.setProperty('--font-username', `"${settings.font_family_username || 'Inter'}", sans-serif`);
-        root.style.setProperty('--font-caption', `"${settings.font_family_caption || 'Inter'}", sans-serif`);
+        root.style.setProperty('--font-primary', fontPrimary);
+        root.style.setProperty('--font-secondary', fontSecondary);
+        root.style.setProperty('--font-username', fontUsername);
+        root.style.setProperty('--font-caption', fontCaption);
         root.style.setProperty('--font-size-base', `${settings.font_size_base || 16}px`);
         root.style.setProperty('--font-weight-headings', settings.font_weight_headings || '700');
         root.style.setProperty('--font-weight-body', settings.font_weight_body || '400');
@@ -223,51 +242,71 @@ export default function WerqRoot() {
         root.style.setProperty('--color-primary', settings.primary_color || '#8B5CF6');
         root.style.setProperty('--color-secondary', settings.secondary_color || '#F97316');
         
-        // Apply base font to body and all elements
-        const fontFamily = `"${settings.font_family_secondary || 'Inter'}", sans-serif`;
-        const fontSize = `${settings.font_size_base || 16}px`;
-        const lineHeight = settings.line_height || '1.5';
-        const letterSpacing = settings.letter_spacing || 'normal';
+        // Apply to body
+        document.body.style.fontFamily = fontSecondary;
+        document.body.style.fontSize = `${settings.font_size_base || 16}px`;
+        document.body.style.lineHeight = settings.line_height || '1.5';
+        document.body.style.letterSpacing = settings.letter_spacing || 'normal';
         
-        document.body.style.fontFamily = fontFamily;
-        document.body.style.fontSize = fontSize;
-        document.body.style.lineHeight = lineHeight;
-        document.body.style.letterSpacing = letterSpacing;
-        
-        // Inject global CSS to ensure all elements use the fonts
+        // Inject comprehensive global CSS with !important
         let styleEl = document.getElementById('platform-typography');
         if (!styleEl) {
           styleEl = document.createElement('style');
           styleEl.id = 'platform-typography';
           document.head.appendChild(styleEl);
         }
-        styleEl.textContent = `
+        
+        const css = `
           :root {
-            --font-primary: "${settings.font_family_primary || 'Inter'}", sans-serif;
-            --font-secondary: "${settings.font_family_secondary || 'Inter'}", sans-serif;
-            --font-username: "${settings.font_family_username || 'Inter'}", sans-serif;
-            --font-caption: "${settings.font_family_caption || 'Inter'}", sans-serif;
+            --font-primary: ${fontPrimary};
+            --font-secondary: ${fontSecondary};
+            --font-username: ${fontUsername};
+            --font-caption: ${fontCaption};
             --color-primary: ${settings.primary_color || '#8B5CF6'};
             --color-secondary: ${settings.secondary_color || '#F97316'};
           }
-          body, html, #root, * {
-            font-family: ${fontFamily} !important;
+          
+          /* Force font on ALL elements */
+          *, *::before, *::after {
+            font-family: ${fontSecondary} !important;
           }
-          h1, h2, h3, h4, h5, h6 {
-            font-family: "${settings.font_family_primary || 'Inter'}", sans-serif !important;
+          
+          /* Headings use primary font */
+          h1, h2, h3, h4, h5, h6,
+          h1 *, h2 *, h3 *, h4 *, h5 *, h6 * {
+            font-family: ${fontPrimary} !important;
             font-weight: ${settings.font_weight_headings || '700'} !important;
           }
-          p, span, div, input, textarea, button, a, li {
-            font-family: ${fontFamily} !important;
+          
+          /* Specific overrides for username */
+          .username, .username *,
+          [class*="username"], [class*="username"] *,
+          .user-name, .user-name *,
+          .handle, .handle * {
+            font-family: ${fontUsername} !important;
           }
-          .username, [class*="username"] {
-            font-family: "${settings.font_family_username || 'Inter'}", sans-serif !important;
+          
+          /* Buttons and inputs */
+          button, input, textarea, select {
+            font-family: ${fontSecondary} !important;
+          }
+          
+          /* Captions */
+          .caption, .caption *,
+          .description, .description * {
+            font-family: ${fontCaption} !important;
           }
         `;
         
+        styleEl.textContent = css;
+        
         console.log('[Typography] Styles applied successfully');
+        console.log('[Typography] Current font:', fontSecondary);
+        setTypographyLoaded(true);
+        setTypographyError(null);
       } catch (error) {
         console.error('[Typography] Error loading settings:', error);
+        setTypographyError(error.message || 'Failed to load settings');
       }
     };
     
@@ -934,6 +973,41 @@ export default function WerqRoot() {
           </div>
         </div>
       )}
+      
+      {/* DEBUG: Typography Status Panel - Remove in production */}
+      <div style={{
+        position: 'fixed',
+        bottom: 10,
+        right: 10,
+        background: typographyError ? '#FEE2E2' : typographyLoaded ? '#DCFCE7' : '#FEF3C7',
+        border: `2px solid ${typographyError ? '#EF4444' : typographyLoaded ? '#22C55E' : '#F59E0B'}`,
+        borderRadius: 8,
+        padding: '8px 12px',
+        fontSize: 12,
+        zIndex: 99999,
+        maxWidth: 300,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      }}>
+        <div style={{ fontWeight: 700, marginBottom: 4 }}>
+          {typographyError ? '❌ Font Error' : typographyLoaded ? '✅ Font Loaded' : '⏳ Loading Font...'}
+        </div>
+        <div>Font: {currentFont}</div>
+        {typographyError && <div style={{ color: '#DC2626', marginTop: 4 }}>{typographyError}</div>}
+        <button 
+          onClick={() => window.location.reload()}
+          style={{
+            marginTop: 8,
+            padding: '4px 8px',
+            fontSize: 11,
+            border: '1px solid #ccc',
+            borderRadius: 4,
+            background: '#fff',
+            cursor: 'pointer',
+          }}
+        >
+          Refresh Page
+        </button>
+      </div>
     </div>
   );
 }
