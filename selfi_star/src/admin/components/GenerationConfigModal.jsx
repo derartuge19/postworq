@@ -111,23 +111,25 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
         body: JSON.stringify(config)
       });
       
-      // Then trigger generation
+      // Then trigger generation with cleanup flag
       const response = await api.request(`/admin/master-campaigns/${campaign.id}/generate/`, {
         method: 'POST',
         body: JSON.stringify({
           generate_daily: config.auto_generate_daily,
           generate_weekly: config.auto_generate_weekly,
           generate_monthly: config.auto_generate_monthly,
-          generate_grand: config.auto_generate_grand
+          generate_grand: config.auto_generate_grand,
+          cleanup_excess: true  // New flag to remove excess campaigns
         })
       });
       
-      alert(`Generated ${response.campaigns?.length || 0} sub-campaigns`);
+      const message = response.message || `Generated ${response.campaigns?.length || 0} sub-campaigns`;
+      alert(message);
       onSave(response);
       onClose();
     } catch (err) {
       console.error('Failed to generate campaigns:', err);
-      setError('Failed to generate campaigns. Please try again.');
+      setError(err.message || 'Failed to generate campaigns. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -140,7 +142,8 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
       icon: Calendar,
       color: theme.blue,
       description: 'One campaign per day',
-      max: getMaxCampaigns('daily')
+      max: getMaxCampaigns('daily'),
+      current: campaign?.total_daily_campaigns || 0
     },
     {
       key: 'weekly',
@@ -148,7 +151,8 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
       icon: TrendingUp,
       color: theme.green,
       description: 'One campaign per week',
-      max: getMaxCampaigns('weekly')
+      max: getMaxCampaigns('weekly'),
+      current: campaign?.total_weekly_campaigns || 0
     },
     {
       key: 'monthly',
@@ -156,7 +160,8 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
       icon: Calendar,
       color: theme.orange,
       description: 'One campaign per month',
-      max: getMaxCampaigns('monthly')
+      max: getMaxCampaigns('monthly'),
+      current: campaign?.total_monthly_campaigns || 0
     },
     {
       key: 'grand',
@@ -164,7 +169,8 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
       icon: Award,
       color: theme.pri,
       description: 'Final championship',
-      max: 1
+      max: 1,
+      current: campaign?.total_grand_campaigns || 0
     }
   ];
 
@@ -343,6 +349,9 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
                     }}>
                       Number of {type.label} (0 = all possible)
                     </label>
+                    <div style={{ marginBottom: 8, fontSize: 12, color: theme.sub }}>
+                      Current: <strong>{type.current}</strong> {type.label.toLowerCase()}
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <input
                         type="number"
@@ -368,6 +377,29 @@ export function GenerationConfigModal({ campaign, onClose, onSave, theme }) {
                         Max: {type.max}
                       </span>
                     </div>
+                    {(() => {
+                      const targetCount = config[`${type.key}_campaign_count`] || type.max;
+                      const diff = targetCount - type.current;
+                      if (diff > 0) {
+                        return (
+                          <p style={{ margin: '6px 0 0', fontSize: 12, color: theme.green }}>
+                            ➕ Will add {diff} {type.label.toLowerCase()}
+                          </p>
+                        );
+                      } else if (diff < 0) {
+                        return (
+                          <p style={{ margin: '6px 0 0', fontSize: 12, color: theme.red }}>
+                            ➖ Will remove {Math.abs(diff)} {type.label.toLowerCase()} (farthest dates first)
+                          </p>
+                        );
+                      } else {
+                        return (
+                          <p style={{ margin: '6px 0 0', fontSize: 12, color: theme.sub }}>
+                            ✓ No change needed
+                          </p>
+                        );
+                      }
+                    })()}
                     {config[`${type.key}_campaign_count`] === 0 && (
                       <p style={{ margin: '6px 0 0', fontSize: 12, color: type.color }}>
                         Will generate all {type.max} {type.label.toLowerCase()}

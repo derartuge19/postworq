@@ -232,6 +232,34 @@ def generate_sub_campaigns(request, pk):
             return Response({'error': 'Master campaign must have start and end dates'}, status=status.HTTP_400_BAD_REQUEST)
         
         generated_campaigns = []
+        deleted_campaigns = []
+        
+        # Check if cleanup is requested
+        cleanup_excess = request.data.get('cleanup_excess', False)
+        
+        # Cleanup excess campaigns if requested
+        if cleanup_excess:
+            print(f"[GENERATE_SUB_CAMPAIGNS] Cleanup mode enabled")
+            
+            # Clean up each type
+            for campaign_type in ['daily', 'weekly', 'monthly', 'grand']:
+                count_field = f'{campaign_type}_campaign_count'
+                desired_count = getattr(campaign, count_field, 0)
+                
+                # Get existing campaigns of this type, ordered by start_date (farthest first for deletion)
+                existing = campaign.sub_campaigns.filter(campaign_type=campaign_type).order_by('-start_date')
+                current_count = existing.count()
+                
+                # If we have more than desired, delete the excess (farthest dates first)
+                if desired_count > 0 and current_count > desired_count:
+                    excess_count = current_count - desired_count
+                    campaigns_to_delete = existing[:excess_count]
+                    
+                    print(f"[GENERATE_SUB_CAMPAIGNS] Deleting {excess_count} excess {campaign_type} campaigns")
+                    for camp in campaigns_to_delete:
+                        print(f"  - Deleting: {camp.title} (start: {camp.start_date})")
+                        deleted_campaigns.append(camp.title)
+                        camp.delete()
         
         # Check request data
         print(f"[GENERATE_SUB_CAMPAIGNS] Request data: {request.data}")
@@ -481,9 +509,22 @@ def generate_sub_campaigns(request, pk):
             print(f"[GENERATE_SUB_CAMPAIGNS] Error updating stats: {str(e)}")
         
         print(f"[GENERATE_SUB_CAMPAIGNS] Successfully generated {len(generated_campaigns)} sub-campaigns")
+        
+        # Build response message
+        message_parts = []
+        if len(deleted_campaigns) > 0:
+            message_parts.append(f'Deleted {len(deleted_campaigns)} excess campaigns')
+        if len(generated_campaigns) > 0:
+            message_parts.append(f'Generated {len(generated_campaigns)} new campaigns')
+        if not message_parts:
+            message_parts.append('No changes needed - campaigns already match configuration')
+        
         return Response({
-            'message': f'Generated {len(generated_campaigns)} sub-campaigns',
-            'campaigns': [c.title for c in generated_campaigns]
+            'message': ' | '.join(message_parts),
+            'campaigns': [c.title for c in generated_campaigns],
+            'deleted': deleted_campaigns,
+            'generated_count': len(generated_campaigns),
+            'deleted_count': len(deleted_campaigns)
         })
         
     except MasterCampaign.DoesNotExist:
