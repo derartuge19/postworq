@@ -244,15 +244,20 @@ def generate_sub_campaigns(request, pk):
             current_date = campaign.start_date.date()
             end_date = campaign.end_date.date()
             today = timezone.now().date()
-            print(f"[GENERATE_SUB_CAMPAIGNS] Generating daily campaigns from {current_date} to {end_date} (today: {today})")
-            print(f"[GENERATE_SUB_CAMPAIGNS] Date range days: {(end_date - current_date).days + 1}")
+            
+            # Calculate how many to generate
+            total_days = (end_date - current_date).days + 1
+            daily_count = campaign.daily_campaign_count if campaign.daily_campaign_count > 0 else total_days
+            
+            print(f"[GENERATE_SUB_CAMPAIGNS] Generating {daily_count} daily campaigns from {current_date} to {end_date} (total days: {total_days})")
             
             # Check if the date range makes sense
             if current_date > end_date:
                 print(f"[GENERATE_SUB_CAMPAIGNS] ERROR: Start date {current_date} is after end date {end_date}")
                 return Response({'error': 'Start date cannot be after end date'}, status=status.HTTP_400_BAD_REQUEST)
             
-            while current_date <= end_date:
+            generated_daily = 0
+            while current_date <= end_date and generated_daily < daily_count:
                 try:
                     # Check if daily campaign already exists
                     if not campaign.sub_campaigns.filter(
@@ -301,6 +306,7 @@ def generate_sub_campaigns(request, pk):
                         try:
                             daily_campaign = Campaign.objects.create(**campaign_data)
                             generated_campaigns.append(daily_campaign)
+                            generated_daily += 1
                             print(f"[GENERATE_SUB_CAMPAIGNS] Created daily campaign: {daily_campaign.title} (ID: {daily_campaign.id})")
                         except Exception as create_error:
                             print(f"[GENERATE_SUB_CAMPAIGNS] Campaign creation error: {str(create_error)}")
@@ -316,6 +322,7 @@ def generate_sub_campaigns(request, pk):
                             print(f"[GENERATE_SUB_CAMPAIGNS] ERROR: Campaign was not saved properly!")
                     else:
                         print(f"[GENERATE_SUB_CAMPAIGNS] Daily campaign for {current_date} already exists, skipping")
+                        generated_daily += 1  # Count existing campaigns too
                     
                     current_date += timedelta(days=1)
                 except Exception as e:
@@ -325,13 +332,111 @@ def generate_sub_campaigns(request, pk):
         
         # Generate weekly campaigns
         if campaign.auto_generate_weekly and request.data.get('generate_weekly', True):
-            # Implementation for weekly campaigns
-            pass
+            from datetime import timedelta
+            current_date = campaign.start_date.date()
+            end_date = campaign.end_date.date()
+            
+            # Calculate how many weeks
+            total_weeks = ((end_date - current_date).days // 7) + 1
+            weekly_count = campaign.weekly_campaign_count if campaign.weekly_campaign_count > 0 else total_weeks
+            
+            print(f"[GENERATE_SUB_CAMPAIGNS] Generating {weekly_count} weekly campaigns (total weeks: {total_weeks})")
+            
+            generated_weekly = 0
+            week_start = current_date
+            while week_start <= end_date and generated_weekly < weekly_count:
+                week_end = min(week_start + timedelta(days=6), end_date)
+                
+                if not campaign.sub_campaigns.filter(
+                    campaign_type='weekly',
+                    start_date__date=week_start
+                ).exists():
+                    try:
+                        weekly_campaign = Campaign.objects.create(
+                            title=f"{campaign.title} - Week {generated_weekly + 1}",
+                            description=f"Weekly campaign {week_start.strftime('%b %d')} - {week_end.strftime('%b %d')}",
+                            campaign_type='weekly',
+                            master_campaign=campaign,
+                            prize_title="Weekly Winner",
+                            prize_description="Weekly campaign winner",
+                            prize_value=0,
+                            min_followers=campaign.min_followers,
+                            min_level=campaign.min_level,
+                            required_hashtags=campaign.required_hashtags,
+                            start_date=timezone.make_aware(datetime.combine(week_start, datetime.min.time())),
+                            entry_deadline=timezone.make_aware(datetime.combine(week_end, datetime.min.time()).replace(hour=20)),
+                            voting_start=timezone.make_aware(datetime.combine(week_end, datetime.min.time()).replace(hour=21)),
+                            voting_end=timezone.make_aware(datetime.combine(week_end, datetime.min.time()).replace(hour=23, minute=59)),
+                            status='active' if week_start <= timezone.now().date() else 'upcoming',
+                            created_by=request.user
+                        )
+                        generated_campaigns.append(weekly_campaign)
+                        generated_weekly += 1
+                        print(f"[GENERATE_SUB_CAMPAIGNS] Created weekly campaign: {weekly_campaign.title}")
+                    except Exception as e:
+                        print(f"[GENERATE_SUB_CAMPAIGNS] Error creating weekly campaign: {str(e)}")
+                else:
+                    generated_weekly += 1
+                    print(f"[GENERATE_SUB_CAMPAIGNS] Weekly campaign for {week_start} already exists")
+                
+                week_start += timedelta(days=7)
         
         # Generate monthly campaigns
         if campaign.auto_generate_monthly and request.data.get('generate_monthly', True):
-            # Implementation for monthly campaigns
-            pass
+            from dateutil.relativedelta import relativedelta
+            current_date = campaign.start_date.date()
+            end_date = campaign.end_date.date()
+            
+            # Calculate how many months
+            months_diff = (end_date.year - current_date.year) * 12 + (end_date.month - current_date.month) + 1
+            monthly_count = campaign.monthly_campaign_count if campaign.monthly_campaign_count > 0 else months_diff
+            
+            print(f"[GENERATE_SUB_CAMPAIGNS] Generating {monthly_count} monthly campaigns (total months: {months_diff})")
+            
+            generated_monthly = 0
+            month_start = current_date.replace(day=1)
+            while month_start <= end_date and generated_monthly < monthly_count:
+                # Get last day of month
+                if month_start.month == 12:
+                    month_end = month_start.replace(day=31)
+                else:
+                    month_end = (month_start.replace(day=1) + relativedelta(months=1)) - timedelta(days=1)
+                
+                month_end = min(month_end, end_date)
+                
+                if not campaign.sub_campaigns.filter(
+                    campaign_type='monthly',
+                    start_date__date=month_start
+                ).exists():
+                    try:
+                        monthly_campaign = Campaign.objects.create(
+                            title=f"{campaign.title} - {month_start.strftime('%B %Y')}",
+                            description=f"Monthly campaign for {month_start.strftime('%B %Y')}",
+                            campaign_type='monthly',
+                            master_campaign=campaign,
+                            prize_title="Monthly Winner",
+                            prize_description="Monthly campaign winner",
+                            prize_value=0,
+                            min_followers=campaign.min_followers,
+                            min_level=campaign.min_level,
+                            required_hashtags=campaign.required_hashtags,
+                            start_date=timezone.make_aware(datetime.combine(month_start, datetime.min.time())),
+                            entry_deadline=timezone.make_aware(datetime.combine(month_end, datetime.min.time()).replace(hour=20)),
+                            voting_start=timezone.make_aware(datetime.combine(month_end, datetime.min.time()).replace(hour=21)),
+                            voting_end=timezone.make_aware(datetime.combine(month_end, datetime.min.time()).replace(hour=23, minute=59)),
+                            status='active' if month_start <= timezone.now().date() else 'upcoming',
+                            created_by=request.user
+                        )
+                        generated_campaigns.append(monthly_campaign)
+                        generated_monthly += 1
+                        print(f"[GENERATE_SUB_CAMPAIGNS] Created monthly campaign: {monthly_campaign.title}")
+                    except Exception as e:
+                        print(f"[GENERATE_SUB_CAMPAIGNS] Error creating monthly campaign: {str(e)}")
+                else:
+                    generated_monthly += 1
+                    print(f"[GENERATE_SUB_CAMPAIGNS] Monthly campaign for {month_start} already exists")
+                
+                month_start = (month_start + relativedelta(months=1)).replace(day=1)
         
         # Generate grand campaign
         if campaign.auto_generate_grand and request.data.get('generate_grand', True):
