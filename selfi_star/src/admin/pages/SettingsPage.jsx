@@ -38,6 +38,33 @@ export function SettingsPage({ theme }) {
     loadSettings();
   }, []);
 
+  // Load Google Fonts dynamically when settings change
+  useEffect(() => {
+    if (!settings) return;
+    
+    const fonts = [
+      settings.font_family_primary,
+      settings.font_family_secondary,
+      settings.font_family_username,
+      settings.font_family_caption,
+    ].filter((f, i, arr) => f && arr.indexOf(f) === i); // unique fonts only
+    
+    fonts.forEach(font => {
+      if (font && font !== 'Inter') {
+        const fontUrl = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@300;400;500;600;700;800;900&display=swap`;
+        const existingLink = document.querySelector(`link[href*="${font.replace(/ /g, '+')}"]`);
+        
+        if (!existingLink) {
+          const link = document.createElement('link');
+          link.href = fontUrl;
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+          console.log('[Admin] Loaded font:', font);
+        }
+      }
+    });
+  }, [settings?.font_family_primary, settings?.font_family_secondary, settings?.font_family_username, settings?.font_family_caption]);
+
   const loadSettings = async () => {
     try {
       const data = await api.request('/admin/settings/');
@@ -574,6 +601,43 @@ export function SettingsPage({ theme }) {
                 <div>
                   <strong>Caption:</strong> {settings.font_family_caption || 'Inter'}
                 </div>
+              </div>
+              
+              {/* Debug Info */}
+              <div style={{
+                marginTop: 16,
+                padding: 12,
+                background: '#FEF3C7',
+                border: '2px solid #F59E0B',
+                borderRadius: 8,
+                fontSize: 11,
+              }}>
+                <div style={{ fontWeight: 700, marginBottom: 8, color: '#92400E' }}>
+                  ⚠️ Preview Status
+                </div>
+                <div style={{ color: '#78350F', marginBottom: 4 }}>
+                  Fonts loaded in admin panel. After saving, refresh the main app to see changes.
+                </div>
+                <button
+                  onClick={() => {
+                    const fonts = [settings.font_family_primary, settings.font_family_secondary, settings.font_family_username, settings.font_family_caption];
+                    alert(`Current fonts:\n${fonts.join('\n')}\n\nCheck browser console for font loading status.`);
+                  }}
+                  style={{
+                    marginTop: 8,
+                    padding: '6px 12px',
+                    background: '#F59E0B',
+                    border: 'none',
+                    borderRadius: 6,
+                    color: '#fff',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    width: '100%',
+                  }}
+                >
+                  Check Font Status
+                </button>
               </div>
             </div>
           </div>
