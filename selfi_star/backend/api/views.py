@@ -625,15 +625,21 @@ class ReelViewSet(viewsets.ModelViewSet):
 
             from django.db import connection
 
-            def _safe(cur, sql, params):
+            def _safe(cur, sql, params, critical=False):
                 """Execute SQL using a savepoint so failures don't abort the transaction."""
                 cur.execute("SAVEPOINT _del_sp")
                 try:
                     cur.execute(sql, params)
                     cur.execute("RELEASE SAVEPOINT _del_sp")
+                    return True
                 except Exception as _e:
-                    print(f"[REEL DELETE] optional step skipped ({_e})")
-                    cur.execute("ROLLBACK TO SAVEPOINT _del_sp")
+                    if critical:
+                        print(f"[REEL DELETE] CRITICAL step failed: {_e}")
+                        raise
+                    else:
+                        print(f"[REEL DELETE] optional step skipped ({_e})")
+                        cur.execute("ROLLBACK TO SAVEPOINT _del_sp")
+                    return False
 
             with connection.cursor() as cur:
                 # 1. Notifications linked to comments on this reel
@@ -671,9 +677,9 @@ class ReelViewSet(viewsets.ModelViewSet):
                     "DELETE FROM api_mastercampaignparticipant WHERE reel_id=%s",
                 ]:
                     _safe(cur, sql_opt, [reel_id])
-                # 11. Clear file columns then delete the reel row
-                cur.execute("UPDATE api_reel SET media='', image='' WHERE id=%s", [reel_id])
-                cur.execute("DELETE FROM api_reel WHERE id=%s", [reel_id])
+                # 11. Clear file columns then delete the reel row (CRITICAL - must succeed)
+                _safe(cur, "UPDATE api_reel SET media='', image='' WHERE id=%s", [reel_id], critical=True)
+                _safe(cur, "DELETE FROM api_reel WHERE id=%s", [reel_id], critical=True)
 
             print(f"[REEL DELETE] Successfully deleted reel {reel_id}")
             return Response(status=status.HTTP_204_NO_CONTENT)
