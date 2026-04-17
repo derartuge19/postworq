@@ -1,4 +1,4 @@
-import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Lock, Trophy, Target, Zap, Award, Flag } from 'lucide-react';
+import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Lock, Trophy, Target, Zap, Award, Flag, Scale } from 'lucide-react';
 
 export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLogout }) {
   const menuItems = [
@@ -18,6 +18,7 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
     { id: 'admins', icon: Shield, label: 'Admins' },
     { id: 'api-keys',  icon: Key,      label: 'API Keys'  },
     { id: 'security',  icon: Lock,     label: 'Security'  },
+    { id: 'legal',     icon: Scale,    label: 'Legal Docs' },
     { id: 'logs',      icon: FileText, label: 'Logs'      },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];

@@ -154,6 +154,13 @@ from .views_contest import (
     admin_judging_portal, verify_phone, verify_age, anti_cheat_flags, review_flag,
     get_grand_finale, vote_grand_finale, check_upload_eligibility
 )
+from .views_legal import (
+    admin_legal_documents_list, admin_legal_document_detail, admin_legal_document_create,
+    admin_legal_document_update, admin_legal_document_delete, admin_legal_document_publish,
+    admin_legal_document_archive, admin_legal_document_acceptances, admin_legal_stats,
+    get_legal_document, get_all_legal_documents, accept_legal_document,
+    get_pending_acceptances, get_user_acceptances
+)
 
 router = DefaultRouter()
 router.register(r'profile', UserProfileViewSet, basename='profile')
@@ -319,5 +326,21 @@ urlpatterns = [
     path('admin/contest/judge/<int:reel_id>/', judge_post, name='judge-post'),
     path('admin/contest/anti-cheat/', anti_cheat_flags, name='anti-cheat-flags'),
     path('admin/contest/review-flag/<int:flag_id>/', review_flag, name='review-flag'),
+    # Legal Documents - Admin
+    path('admin/legal/', admin_legal_documents_list, name='admin-legal-list'),
+    path('admin/legal/stats/', admin_legal_stats, name='admin-legal-stats'),
+    path('admin/legal/create/', admin_legal_document_create, name='admin-legal-create'),
+    path('admin/legal/<int:document_id>/', admin_legal_document_detail, name='admin-legal-detail'),
+    path('admin/legal/<int:document_id>/update/', admin_legal_document_update, name='admin-legal-update'),
+    path('admin/legal/<int:document_id>/delete/', admin_legal_document_delete, name='admin-legal-delete'),
+    path('admin/legal/<int:document_id>/publish/', admin_legal_document_publish, name='admin-legal-publish'),
+    path('admin/legal/<int:document_id>/archive/', admin_legal_document_archive, name='admin-legal-archive'),
+    path('admin/legal/<int:document_id>/acceptances/', admin_legal_document_acceptances, name='admin-legal-acceptances'),
+    # Legal Documents - Public/User
+    path('legal/', get_all_legal_documents, name='legal-all'),
+    path('legal/<str:document_type>/', get_legal_document, name='legal-document'),
+    path('legal/<str:document_type>/accept/', accept_legal_document, name='legal-accept'),
+    path('legal/user/pending/', get_pending_acceptances, name='legal-pending'),
+    path('legal/user/history/', get_user_acceptances, name='legal-history'),
     path('', include(router.urls)),
 ]

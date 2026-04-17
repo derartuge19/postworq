@@ -8,6 +8,8 @@ from .models_campaign_extended import (
     CampaignScoringConfig, CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
     WinnerSelection, SelectedWinner, CampaignBadge
 )
+# Import legal models
+from .models_legal import LegalDocument, LegalDocumentVersion, UserLegalAcceptance
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
