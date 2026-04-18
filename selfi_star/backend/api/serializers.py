@@ -61,10 +61,11 @@ class ReelSerializer(serializers.ModelSerializer):
     is_saved = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     media = serializers.SerializerMethodField()
+    recent_comments = serializers.SerializerMethodField()
     
     class Meta:
         model = Reel
-        fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'overlay_text', 'votes', 'view_count', 'comment_count', 'created_at', 'is_liked', 'is_saved']
+        fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'overlay_text', 'votes', 'view_count', 'comment_count', 'created_at', 'is_liked', 'is_saved', 'recent_comments']
     
     def _build_url(self, field, request):
         """Build absolute URL for a file field, handling both local and Cloudinary storage."""
@@ -142,6 +143,11 @@ class ReelSerializer(serializers.ModelSerializer):
             from .models import SavedPost
             return SavedPost.objects.filter(user=request.user, reel=obj).exists()
         return False
+    
+    def get_recent_comments(self, obj):
+        from .models import Comment
+        recent_comments = Comment.objects.filter(reel=obj).select_related('user').order_by('-created_at')[:3]
+        return CommentSerializer(recent_comments, many=True).data
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
