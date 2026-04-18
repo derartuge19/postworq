@@ -211,7 +211,13 @@ export function TikTokLayout({
       
       // Filter to show only videos when videosOnly is true (reels tab)
       const filteredList = videosOnly
-        ? reelsList.filter(reel => reel.media !== null && reel.media !== '')
+        ? reelsList.filter(reel => {
+            // Must have media and it must be a video file (not image)
+            if (!reel.media || reel.media === '') return false;
+            const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
+                                reel.media.includes('/video/upload/');
+            return isVideoFile;
+          })
         : reelsList;
       
       // Check if there are more videos to load using DRF pagination
