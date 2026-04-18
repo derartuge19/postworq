@@ -116,6 +116,13 @@ export function TikTokLayout({
     showCancel: false,
   });
 
+  // Pull to refresh state
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+  const feedContainerRef = useRef(null);
+  const PULL_THRESHOLD = 80;
+
   const videoRefs = useRef({});
   const videoContainerRefs = useRef({});
   const [visibleVideos, setVisibleVideos] = useState({});
@@ -981,6 +988,45 @@ export function TikTokLayout({
     },
   ];
 
+  // Pull to refresh handlers
+  const handleTouchStart = (e) => {
+    const container = feedContainerRef.current || document.querySelector('.video-feed-container');
+    if (container && container.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (isRefreshing) return;
+    const container = feedContainerRef.current || document.querySelector('.video-feed-container');
+    if (!container) return;
+    
+    const scrollTop = container.scrollTop;
+    if (scrollTop === 0 && touchStartY.current > 0) {
+      const currentY = e.touches[0].clientY;
+      const distance = Math.max(0, currentY - touchStartY.current);
+      if (distance > 0) {
+        setPullDistance(Math.min(distance, PULL_THRESHOLD * 1.5));
+      }
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
+      setIsRefreshing(true);
+      setPullDistance(PULL_THRESHOLD);
+      // Refresh current feed
+      await fetchVideos(1, false);
+      setTimeout(() => {
+        setIsRefreshing(false);
+        setPullDistance(0);
+      }, 500);
+    } else {
+      setPullDistance(0);
+    }
+    touchStartY.current = 0;
+  };
+
   return (
     <div
       style={{
@@ -999,7 +1045,11 @@ export function TikTokLayout({
         .feed-top-icon { filter: drop-shadow(0 1px 6px rgba(0,0,0,0.95)) drop-shadow(0 0 2px rgba(0,0,0,0.8)); }
       `}</style>
       <div
+        ref={feedContainerRef}
         className="video-feed video-feed-container"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         style={{
           flex: 1,
           overflowY: 'auto',
@@ -1009,9 +1059,43 @@ export function TikTokLayout({
           background: '#fff',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
+          position: 'relative',
           ...(isMobile ? { scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch' } : {}),
         }}
       >
+        {/* Pull to refresh indicator */}
+        {pullDistance > 0 && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: pullDistance,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(180deg, #fff 0%, transparent 100%)',
+            zIndex: 1000,
+          }}>
+            <div style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              border: '3px solid #8B5CF6',
+              borderTopColor: 'transparent',
+              animation: isRefreshing ? 'spin 0.8s linear infinite' : 'none',
+              transform: `rotate(${(pullDistance / PULL_THRESHOLD) * 360}deg)`,
+              transition: isRefreshing ? 'none' : 'transform 0.1s',
+            }} />
+          </div>
+        )}
+        
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      
         {/* Feed Header - desktop only; hiding on mobile fixes scroll-snap offset */}
         {!isMobile && <div
           style={{
