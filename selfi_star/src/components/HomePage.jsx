@@ -439,6 +439,28 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideo
     setShowComments(true);
   };
 
+  // IntersectionObserver to play/pause videos based on visibility
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isVideo) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [isVideo]);
+
   const hashtags = Array.isArray(post.hashtags_list)
     ? post.hashtags_list
     : (post.hashtags || '').split(/\s+/).filter(Boolean);
@@ -556,7 +578,6 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideo
                   playsInline
                   loop
                   muted
-                  autoPlay
                   onPlay={() => setVideoPlaying(true)}
                   onPause={() => setVideoPlaying(false)}
                   onError={() => setImgError(true)}
