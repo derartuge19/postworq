@@ -302,7 +302,7 @@ function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorR
 }
 
 /* ── Post Card ── */
-const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideoDetail, index = 0 }) {
+const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideoDetail, index = 0, videoObserver }) {
   const { colors: T } = useTheme();
   const [liked, setLiked] = useState(post.is_liked || false);
   const [likes, setLikes] = useState(post.votes || 0);
@@ -442,24 +442,11 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
   // IntersectionObserver to play/pause videos based on visibility
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !isVideo) return;
+    if (!video || !isVideo || !videoObserver) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            video.play().catch(() => {});
-          } else {
-            video.pause();
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    observer.observe(video);
-    return () => observer.disconnect();
-  }, [isVideo]);
+    videoObserver.observe(video);
+    return () => videoObserver.unobserve(video);
+  }, [isVideo, videoObserver]);
 
   const hashtags = Array.isArray(post.hashtags_list)
     ? post.hashtags_list
@@ -799,6 +786,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const videoObserverRef = useRef(null);
   const loaderRef = useRef(null);
   
   // Pull to refresh state
@@ -809,6 +797,28 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
 
   const LIMIT = 10;
   const PULL_THRESHOLD = 80;
+
+  // Create shared IntersectionObserver for all videos
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          const video = entry.target;
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    
+    videoObserverRef.current = observer;
+    return () => observer.disconnect();
+  }, []);
 
   const handleTabClick = (tab) => {
     if (tab === 'Explore') { onShowExplorer?.(); return; }
@@ -1026,6 +1036,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
               onShowProfile={onShowProfile}
               onRequireAuth={onRequireAuth}
               onShowVideoDetail={onShowVideoDetail}
+              videoObserver={videoObserverRef.current}
             />
           ))
         )}
