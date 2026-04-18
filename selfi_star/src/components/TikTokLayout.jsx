@@ -209,13 +209,18 @@ export function TikTokLayout({
         ? reelsData
         : reelsData.results || [];
       
+      // Filter to show only videos when videosOnly is true (reels tab)
+      const filteredList = videosOnly
+        ? reelsList.filter(reel => reel.media !== null && reel.media !== '')
+        : reelsList;
+      
       // Check if there are more videos to load using DRF pagination
       // Only continue if we got a full page AND there's a next link, or if it's the first page with exactly limit items
-      const hasMoreVideos = reelsData.next ? true : (pageNum === 1 && reelsList.length === limit);
+      const hasMoreVideos = reelsData.next ? true : (pageNum === 1 && filteredList.length === limit);
       setHasMore(hasMoreVideos);
 
       // Transform backend data to match frontend format
-      const formattedVideos = reelsList.map((reel) => {
+      const formattedVideos = filteredList.map((reel) => {
         const videoUrl = reel.media || reel.image;
 
         return {
