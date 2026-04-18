@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, startTransition } from 'react';
 import {
   MessageCircle,
   Share2,
@@ -298,7 +298,10 @@ export function TikTokLayout({
     setVideos([]);
     setPage(1);
     setHasMore(true);
-    fetchVideos(1, false);
+    // Defer video fetch for better INP
+    startTransition(() => {
+      fetchVideos(1, false);
+    });
   }, [activeTab]);
 
   // Scroll to specific video when initialVideoId is provided
