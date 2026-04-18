@@ -809,7 +809,10 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       const currentY = e.touches[0].clientY;
       const distance = Math.max(0, currentY - touchStartY.current);
       if (distance > 0) {
-        e.preventDefault();
+        // Only prevent default if we can (not passive listener)
+        if (e.cancelable) {
+          e.preventDefault();
+        }
         setPullDistance(Math.min(distance, PULL_THRESHOLD * 1.5));
       }
     }

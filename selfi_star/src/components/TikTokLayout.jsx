@@ -1006,6 +1006,7 @@ export function TikTokLayout({
       const currentY = e.touches[0].clientY;
       const distance = Math.max(0, currentY - touchStartY.current);
       if (distance > 0) {
+        // Don't preventDefault for passive listeners
         setPullDistance(Math.min(distance, PULL_THRESHOLD * 1.5));
       }
     }
