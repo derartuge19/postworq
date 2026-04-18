@@ -302,7 +302,7 @@ function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorR
 }
 
 /* ── Post Card ── */
-function PostCard({ post, currentUser, onShowProfile, onRequireAuth }) {
+function PostCard({ post, currentUser, onShowProfile, onRequireAuth, index = 0 }) {
   const { colors: T } = useTheme();
   const [liked, setLiked] = useState(post.is_liked || false);
   const [likes, setLikes] = useState(post.votes || 0);
@@ -315,7 +315,59 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth }) {
   const [showOptions, setShowOptions] = useState(false);
   const [optionsAnchor, setOptionsAnchor] = useState(null);
   const [commentCount, setCommentCount] = useState(post.comment_count || 0);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [shine, setShine] = useState({ x: 50, y: 50, opacity: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const cardRef = useRef(null);
   const videoRef = useRef(null);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), index * 60);
+    return () => clearTimeout(t);
+  }, [index]);
+
+  const handleMouseMove = (e) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    const shineX = ((e.clientX - rect.left) / rect.width) * 100;
+    const shineY = ((e.clientY - rect.top) / rect.height) * 100;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      setTilt({ x: -dy * 5, y: dx * 5 });
+      setShine({ x: shineX, y: shineY, opacity: 0.18 });
+    });
+  };
+
+  const handleMouseEnter = () => { setIsHovered(true); };
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setTilt({ x: 0, y: 0 });
+    setShine(s => ({ ...s, opacity: 0 }));
+  };
+
+  const handleTouchStart = (e) => {
+    setIsPressed(true);
+    const touch = e.touches[0];
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const shineX = ((touch.clientX - rect.left) / rect.width) * 100;
+    const shineY = ((touch.clientY - rect.top) / rect.height) * 100;
+    setShine({ x: shineX, y: shineY, opacity: 0.22 });
+  };
+
+  const handleTouchEnd = () => {
+    setIsPressed(false);
+    setShine(s => ({ ...s, opacity: 0 }));
+  };
 
   // Detect if this post has video media
   const raw = post.media || post.image || '';
@@ -382,22 +434,56 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth }) {
           50%  { transform: scale(1.35); }
           100% { transform: scale(1); }
         }
+        @keyframes cardSlideUp {
+          from { opacity: 0; transform: translateY(32px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0)   scale(1); }
+        }
         .hp-btn { transition: transform 0.12s, opacity 0.15s, background 0.15s; }
         .hp-btn:active { transform: scale(0.82) !important; opacity: 0.7; }
         .hp-action:hover { background: var(--hp-hover) !important; border-radius: 10px; }
         .hp-action:hover svg { transform: scale(1.18); }
       `}</style>
 
-      <div style={{
-        background: T.cardBg || '#fff',
-        borderRadius: 16,
-        boxShadow: '0 2px 16px rgba(0,0,0,0.08)',
-        border: `1px solid ${T.border}`,
-        overflow: 'hidden',
-        marginBottom: 20,
-        maxWidth: 560,
-        width: '100%',
-      }}>
+      <div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          background: T.cardBg || '#fff',
+          borderRadius: 16,
+          boxShadow: isHovered
+            ? `0 16px 48px rgba(0,0,0,0.16), 0 4px 16px rgba(0,0,0,0.10)`
+            : '0 2px 16px rgba(0,0,0,0.08)',
+          border: `1px solid ${isHovered ? T.pri + '50' : T.border}`,
+          overflow: 'hidden',
+          marginBottom: 20,
+          maxWidth: 560,
+          width: '100%',
+          position: 'relative',
+          transform: mounted
+            ? isPressed
+              ? 'perspective(900px) scale(0.975)'
+              : `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(${isHovered ? -4 : 0}px) scale(${isHovered ? 1.012 : 1})`
+            : 'translateY(28px) scale(0.97)',
+          opacity: mounted ? 1 : 0,
+          transition: isPressed
+            ? 'transform 0.1s ease, box-shadow 0.1s'
+            : 'transform 0.35s cubic-bezier(0.23,1,0.32,1), box-shadow 0.35s ease, opacity 0.4s ease, border-color 0.3s',
+          willChange: 'transform',
+        }}
+      >
+        {/* Shine overlay */}
+        <div
+          style={{
+            position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none',
+            borderRadius: 16,
+            background: `radial-gradient(circle at ${shine.x}% ${shine.y}%, rgba(255,255,255,${shine.opacity}) 0%, transparent 60%)`,
+            transition: shine.opacity === 0 ? 'opacity 0.4s' : 'none',
+          }}
+        />
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 10 }}>
           <button
@@ -688,10 +774,15 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         borderBottom: `1px solid ${T.border}`,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+        padding: '0 12px',
         gap: 0,
-        padding: '0 16px',
+        WebkitOverflowScrolling: 'touch',
       }}>
+        <style>{`.hp-tabbar::-webkit-scrollbar { display: none; }`}</style>
         {ALL_TABS.map(tab => {
           const isActive = activeTab === tab;
           return (
@@ -702,7 +793,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 background: isActive ? T.pri : 'transparent',
                 border: `1.5px solid ${isActive ? T.pri : T.border}`,
                 borderRadius: 24,
-                padding: '8px 20px',
+                padding: '8px 18px',
                 fontSize: 14,
                 fontWeight: isActive ? 700 : 500,
                 color: isActive ? '#fff' : T.sub,
@@ -710,6 +801,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 transition: 'all 0.18s',
                 margin: '6px 3px',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
               onMouseEnter={e => { if (!isActive) { e.currentTarget.style.borderColor = T.pri; e.currentTarget.style.color = T.pri; } }}
               onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.sub; } }}
@@ -757,10 +849,11 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
             <div style={{ fontSize: 14, marginTop: 8 }}>Be the first to share something!</div>
           </div>
         ) : (
-          posts.map(post => (
+          posts.map((post, i) => (
             <PostCard
               key={post.id}
               post={post}
+              index={i}
               currentUser={user}
               onShowProfile={onShowProfile}
               onRequireAuth={onRequireAuth}
