@@ -561,7 +561,10 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
                 <video
                   ref={videoRef}
                   src={mediaSrc}
-                  style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block' }}
+                  poster={post.image ? mediaUrl(post.image) : undefined}
+                  preload="none"
+                  loading="lazy"
+                  style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block', background: '#111' }}
                   playsInline
                   loop
                   muted
