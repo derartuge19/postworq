@@ -283,76 +283,129 @@ export function AppShell({
         <nav
           style={{
             position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 60,
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(20px)',
+            bottom: 0, left: 0, right: 0,
+            height: 68,
+            background: T.cardBg === '#fff' || !T.cardBg
+              ? 'rgba(255,255,255,0.92)'
+              : 'rgba(30,30,30,0.92)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
             borderTop: `1px solid ${T.border}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-around',
             zIndex: 1000,
-            padding: '8px 0',
+            paddingBottom: 4,
+            boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
           }}
         >
+          <style>{`
+            .mob-nav-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); }
+            .mob-nav-btn:active { transform: scale(0.82) !important; }
+          `}</style>
           {[
-            menuItems[0],   // home
-            menuItems[1],   // reels
-            menuItems[4],   // create
-            menuItems[5],   // profile
-            menuItems[2],   // notifications
-          ].map((item) => {
+            { item: menuItems[0], label: 'Home'    },
+            { item: menuItems[1], label: 'Reels'   },
+            { item: menuItems[4], label: 'New',  isCreate: true },
+            { item: menuItems[3], label: 'Messages'},
+            { item: menuItems[5], label: 'Profile' },
+          ].map(({ item, label, isCreate }) => {
             const Icon = item.icon;
             let isActive = activeTab === item.id;
             if (item.id === 'home' && (activeTab === 'foryou' || activeTab === 'feed' || activeTab === 'home')) isActive = true;
             if (item.id === 'reels' && activeTab === 'reels') isActive = true;
-            if (item.id === 'notifications' && (activeTab === 'inbox' || activeTab === 'notifications')) isActive = true;
             const isBell = item.id === 'notifications';
+
+            if (isCreate) return (
+              <button
+                key={item.id}
+                className="mob-nav-btn"
+                onClick={() => handleItemClick(item)}
+                style={{
+                  background: `linear-gradient(135deg, ${T.pri}, ${T.dark || T.pri})`,
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: 52, height: 52,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: `0 4px 20px ${T.pri}60`,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  marginBottom: 8,
+                }}
+              >
+                <Icon size={26} strokeWidth={2.2} color="#fff" />
+              </button>
+            );
+
             return (
               <button
                 key={item.id}
+                className="mob-nav-btn"
                 onClick={() => handleItemClick(item)}
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: isActive ? T.pri : T.txt,
+                  cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 2,
+                  justifyContent: 'center',
+                  gap: 3,
+                  padding: '4px 10px',
                   position: 'relative',
-                  padding: '4px 8px',
-                  cursor: 'pointer',
+                  minWidth: 52,
                 }}
               >
-                <div style={{ position: 'relative' }}>
-                  <Icon size={24} strokeWidth={isActive ? 2.5 : 2} color={isActive ? T.pri : T.txt} />
+                {/* Active top indicator */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0, left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: isActive ? 20 : 0,
+                  height: 3,
+                  borderRadius: 2,
+                  background: `linear-gradient(90deg, ${T.pri}, ${T.dark || T.pri})`,
+                  transition: 'width 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+                }} />
+
+                {/* Icon with glow bg when active */}
+                <div style={{
+                  position: 'relative',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 36, height: 36,
+                  borderRadius: 12,
+                  background: isActive ? T.pri + '18' : 'transparent',
+                  transition: 'background 0.2s',
+                }}>
+                  <Icon
+                    size={22}
+                    strokeWidth={isActive ? 2.5 : 1.8}
+                    color={isActive ? T.pri : T.sub}
+                    fill={isActive && (item.id === 'home') ? T.pri + '40' : 'none'}
+                  />
                   {isBell && unreadNotifCount > 0 && (
                     <div style={{
-                      position: 'absolute',
-                      top: -4,
-                      right: -6,
-                      minWidth: 16,
-                      height: 16,
-                      borderRadius: 8,
-                      background: '#EF4444',
-                      color: '#fff',
-                      fontSize: 9,
-                      fontWeight: 800,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '0 3px',
-                      boxSizing: 'border-box',
-                      border: '1.5px solid #fff',
-                      lineHeight: 1,
+                      position: 'absolute', top: 2, right: 2,
+                      minWidth: 14, height: 14, borderRadius: 7,
+                      background: '#EF4444', color: '#fff',
+                      fontSize: 8, fontWeight: 800,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      padding: '0 2px', boxSizing: 'border-box',
+                      border: '1.5px solid #fff', lineHeight: 1,
                     }}>
                       {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
                     </div>
                   )}
                 </div>
+
+                {/* Label */}
+                <span style={{
+                  fontSize: 10,
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? T.pri : T.sub,
+                  transition: 'color 0.2s',
+                  lineHeight: 1,
+                }}>{label}</span>
               </button>
             );
           })}
