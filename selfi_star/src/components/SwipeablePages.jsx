@@ -98,37 +98,6 @@ export function SwipeablePages({ pages, activeIndex, onIndexChange, children }) 
           </div>
         ))}
       </div>
-
-      {/* Page indicators (dots) */}
-      <div style={{
-        position: 'absolute',
-        bottom: 80, // Above mobile nav
-        left: 0,
-        right: 0,
-        display: 'flex',
-        justifyContent: 'center',
-        gap: 8,
-        pointerEvents: 'none',
-        zIndex: 100,
-      }}>
-        {pages.map((page, index) => (
-          <div
-            key={page.id || index}
-            style={{
-              width: activeIndex === index ? 24 : 8,
-              height: 8,
-              borderRadius: 4,
-              background: activeIndex === index 
-                ? 'rgba(139, 92, 246, 0.9)' 
-                : 'rgba(0, 0, 0, 0.2)',
-              transition: 'all 0.3s ease',
-              boxShadow: activeIndex === index 
-                ? '0 2px 8px rgba(139, 92, 246, 0.4)' 
-                : 'none',
-            }}
-          />
-        ))}
-      </div>
     </div>
   );
 }
