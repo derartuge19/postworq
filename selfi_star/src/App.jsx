@@ -186,30 +186,26 @@ export default function WerqRoot() {
   const [typographyError, setTypographyError] = useState(null);
   const [currentFont, setCurrentFont] = useState('Inter');
   
+  // Defer font loading to after initial render to reduce LCP time
   useEffect(() => {
     const loadTypographySettings = async () => {
       try {
-        console.log('[Typography] Loading settings from /api/settings/public/...');
         const settings = await api.request('/settings/public/');
-        console.log('[Typography] Settings loaded:', settings);
         
         if (!settings || !settings.font_family_secondary) {
-          console.warn('[Typography] No font settings returned, using defaults');
           setTypographyError('No settings returned from server');
           return;
         }
         
         setCurrentFont(settings.font_family_secondary);
         
-        // Load Google Fonts dynamically
+        // Load Google Fonts dynamically (after LCP)
         const fonts = [
           settings.font_family_primary,
           settings.font_family_secondary,
           settings.font_family_username,
           settings.font_family_caption,
         ].filter((f, i, arr) => f && arr.indexOf(f) === i);
-        
-        console.log('[Typography] Loading fonts:', fonts);
         
         fonts.forEach(font => {
           if (font && font !== 'Inter') {
@@ -219,7 +215,6 @@ export default function WerqRoot() {
             link.rel = 'stylesheet';
             if (!document.querySelector(`link[href*="${font.replace(/ /g, '+')}"]`)) {
               document.head.appendChild(link);
-              console.log('[Typography] Font loaded:', font);
             }
           }
         });

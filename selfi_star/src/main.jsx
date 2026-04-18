@@ -1,4 +1,3 @@
-import React from 'react'
 import ReactDOM from 'react-dom/client'
 import WerqRoot from './App'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -18,22 +17,20 @@ window.addEventListener('vite:preloadError', (event) => {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <ThemeProvider>
-      <LanguageProvider>
-        <WerqRoot />
-      </LanguageProvider>
-    </ThemeProvider>
-  </React.StrictMode>,
+  <ThemeProvider>
+    <LanguageProvider>
+      <WerqRoot />
+    </LanguageProvider>
+  </ThemeProvider>,
 );
 
-// Skeleton removal is handled by TikTokLayout when content is ready.
-// Fallback: remove after 12s max so it never stays forever (e.g. error paths).
+// Skeleton removal is handled by components when content is ready.
+// Fallback: remove after 8s max so it never stays forever (e.g. error paths).
 setTimeout(() => {
   const skeleton = document.getElementById('app-skeleton');
   if (skeleton) {
-    skeleton.style.transition = 'opacity 0.3s ease';
+    skeleton.style.transition = 'opacity 0.2s ease';
     skeleton.style.opacity = '0';
-    setTimeout(() => skeleton.remove(), 320);
+    setTimeout(() => skeleton.remove(), 220);
   }
-}, 12000);
+}, 8000);
