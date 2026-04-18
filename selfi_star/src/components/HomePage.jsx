@@ -555,6 +555,8 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideo
                   style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block' }}
                   playsInline
                   loop
+                  muted
+                  autoPlay
                   onPlay={() => setVideoPlaying(true)}
                   onPause={() => setVideoPlaying(false)}
                   onError={() => setImgError(true)}
