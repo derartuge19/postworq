@@ -839,7 +839,13 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
       setIsRefreshing(true);
       setPullDistance(PULL_THRESHOLD);
-      await fetchPosts(0, true);
+      // Clear cache and fetch fresh data
+      try {
+        localStorage.removeItem('home_feed_cache');
+        await fetchPosts(0, true);
+      } catch (e) {
+        console.error('Refresh error:', e);
+      }
       setTimeout(() => {
         setIsRefreshing(false);
         setPullDistance(0);

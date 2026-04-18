@@ -1030,8 +1030,15 @@ export function TikTokLayout({
     if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
       setIsRefreshing(true);
       setPullDistance(PULL_THRESHOLD);
-      // Refresh current feed
-      await fetchVideos(1, false);
+      // Clear cache and fetch fresh data
+      try {
+        localStorage.removeItem(CACHE_KEY(activeTab));
+        setVideos([]);
+        setPage(1);
+        await fetchVideos(1, false);
+      } catch (e) {
+        console.error('Refresh error:', e);
+      }
       setTimeout(() => {
         setIsRefreshing(false);
         setPullDistance(0);
