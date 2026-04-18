@@ -835,7 +835,7 @@ export function TikTokLayout({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `postworq_${video.id}.${isVideo ? 'mp4' : 'jpg'}`;
+      a.download = `flipstar_${video.id}.${isVideo ? 'mp4' : 'jpg'}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -2270,7 +2270,7 @@ export function TikTokLayout({
               <a key={lnk} href="#" style={{ color: 'inherit', textDecoration: 'none' }}>{lnk}</a>
             ))}
           </div>
-          <div style={{ marginTop: 10, fontSize: 11, color: T.sub }}>© 2025 WorqPost</div>
+          <div style={{ marginTop: 10, fontSize: 11, color: T.sub }}>© 2025 FlipStar</div>
         </div>
       )}
 

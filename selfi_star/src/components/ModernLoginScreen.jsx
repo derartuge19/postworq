@@ -82,8 +82,8 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
         alignItems: "center",
         gap: 10,
       }}>
-        <img src="/logo.jpeg" alt="SelfieStar" style={{ width: 40, height: 40, objectFit: "contain" }} />
-        <div style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>SelfieStar</div>
+        <img src="/logo.jpeg" alt="FlipStar" style={{ width: 40, height: 40, objectFit: "contain" }} />
+        <div style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>FlipStar</div>
       </div>
 
       <div style={{
@@ -96,12 +96,12 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
           textAlign: "center",
           marginBottom: 20,
         }}>
-          <img src="/logo.jpeg" alt="SelfieStar" style={{ width: 80, height: 80, objectFit: "contain", margin: "0 auto 12px" }} />
+          <img src="/logo.jpeg" alt="FlipStar" style={{ width: 80, height: 80, objectFit: "contain", margin: "0 auto 12px" }} />
           <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 8, color: T.txt }}>
             Welcome Back!
           </div>
           <div style={{ fontSize: 14, color: T.sub }}>
-            Log in to continue to SelfieStar
+            Log in to continue to FlipStar
           </div>
         </div>
 

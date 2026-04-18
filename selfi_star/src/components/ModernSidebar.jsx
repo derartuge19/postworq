@@ -60,7 +60,7 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
           alignItems: "center",
           gap: 10,
         }}>
-          <img src="/logo.jpeg" alt="SelfieStar" style={{ width: 40, height: 40, objectFit: "contain", flexShrink: 0 }} />
+          <img src="/logo.jpeg" alt="FlipStar" style={{ width: 40, height: 40, objectFit: "contain", flexShrink: 0 }} />
           <div style={{
             fontSize: 18,
             fontWeight: 900,
@@ -69,7 +69,7 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
           }}>
-            SelfieStar
+            FlipStar
           </div>
         </div>
 

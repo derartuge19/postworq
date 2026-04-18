@@ -70,7 +70,7 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
     const src = mediaUrl(video.media || video.image);
     if (!src) { showToast('No media to download'); return; }
     const a = document.createElement('a');
-    a.href = src; a.download = `postworq_${video.id}`; a.target = '_blank';
+    a.href = src; a.download = `flipstar_${video.id}`; a.target = '_blank';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     showToast('⬇️ Downloading...');
     setShowMenu(false);

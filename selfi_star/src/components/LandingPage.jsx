@@ -47,10 +47,10 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
           }}>
-            WorqPost
+            FlipStar
           </h1>
           <div style={{ fontSize: 20, marginBottom: 8, opacity: 0.95 }}>
-            ወorqPost - Share Your Story
+            FlipStar - Share Your Story
           </div>
           <p style={{ fontSize: 18, opacity: 0.9, marginBottom: 40, maxWidth: 600, margin: "0 auto 40px" }}>
             Join millions of creators sharing videos, images, and moments. Connect with friends, discover new content, and express yourself.
@@ -115,7 +115,7 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
       <div style={{ padding: "80px 20px", background: "#fff" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <h2 style={{ fontSize: 36, fontWeight: 800, textAlign: "center", marginBottom: 60, color: T.txt }}>
-            Why Choose WorqPost?
+            Why Choose FlipStar?
           </h2>
           <div style={{ 
             display: "grid", 
@@ -279,7 +279,7 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
             Trending Posts
           </h2>
           <p style={{ textAlign: "center", fontSize: 16, color: T.sub, marginBottom: 60 }}>
-            See what's popular on WorqPost. Join to like, comment, and share!
+            See what's popular on FlipStar. Join to like, comment, and share!
           </p>
           
           {loading ? (
@@ -408,7 +408,7 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
         textAlign: "center",
       }}>
         <div style={{ fontSize: 10, opacity: 0.7 }}>
-          © 2024 WorqPost (ወorqPost) - All rights reserved
+          © 2025 FlipStar - All rights reserved
         </div>
       </div>
     </div>

@@ -55,7 +55,7 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
             }}>
-              WorqPost
+              FlipStar
             </div>
             <div style={{
               fontSize: 10,

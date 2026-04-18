@@ -117,7 +117,7 @@ export function AdminLogin({ onLogin, theme }) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@selfiestar.com"
+                placeholder="admin@flipstar.com"
                 required
                 style={{
                   width: '100%',

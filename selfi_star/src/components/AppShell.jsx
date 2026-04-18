@@ -114,10 +114,8 @@ export function AppShell({
           }}
         >
           <div style={{ padding: '0 16px', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/logo.jpeg" alt="SelfieStar" style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }} />
-            <div style={{ fontSize: 20, fontWeight: 900, background: `linear-gradient(135deg, ${T.pri}, ${T.dark || T.pri})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              SelfieStar
-            </div>
+            <img src="/logo.jpeg" alt="FlipStar" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+            <span style={{ fontSize: 16, fontWeight: 900, background: `linear-gradient(135deg, ${T.pri}, ${T.dark || T.pri})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>FlipStar</span>
           </div>
 
           <nav

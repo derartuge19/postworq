@@ -593,7 +593,7 @@ export function SettingsPage({ user, onClose, onLogout }) {
           {activeSection === "appearance" && (
             <div>
               <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>Appearance</h2>
-              <p style={{ fontSize: 14, color: T.sub, marginBottom: 32 }}>Customize how WorqPost looks</p>
+              <p style={{ fontSize: 14, color: T.sub, marginBottom: 32 }}>Customize how FlipStar looks</p>
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, background: T.bg, borderRadius: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -738,7 +738,7 @@ export function SettingsPage({ user, onClose, onLogout }) {
 
                 <div style={{ marginTop: 20, padding: 20, background: T.bg, borderRadius: 12, textAlign: "center" }}>
                   <div style={{ fontSize: 13, color: T.sub, marginBottom: 4 }}>Version</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: T.txt }}>WorqPost 1.0.0</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: T.txt }}>FlipStar 1.0.0</div>
                 </div>
               </div>
             </div>

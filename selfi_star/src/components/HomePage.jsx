@@ -206,7 +206,7 @@ function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorR
       const a = document.createElement('a');
       a.href = downloadUrl;
       const ext = src.split('.').pop()?.split('?')[0] || 'file';
-      a.download = `selfiestar_post_${post.id}.${ext}`;
+      a.download = `flipstar_post_${post.id}.${ext}`;
       a.target = '_blank';
       document.body.appendChild(a);
       a.click();
