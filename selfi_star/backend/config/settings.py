@@ -163,12 +163,8 @@ CORS_ALLOWED_ORIGINS = config(
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
-# Allow all vercel subdomains for development
-CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
-
-# Additional CORS settings for Vercel
-if DEBUG or 'vercel.app' in CORS_ALLOWED_ORIGINS[0] if CORS_ALLOWED_ORIGINS else False:
-    CORS_ALLOW_ALL_ORIGINS = True
+# Allow all origins for Vercel frontend in production
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
