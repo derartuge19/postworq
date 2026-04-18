@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, startTransition } from 'react';
 import { AppShell } from './components/AppShell';
 import { TikTokLayout } from './components/TikTokLayout';
 import api from './api';
@@ -606,17 +606,21 @@ export default function WerqRoot() {
 
   const handleShowVideoDetail = (reelId) => {
     resetAllPages();
-    setActiveTab('reels');
-    // Store the reel ID to scroll to it in TikTokLayout
-    setVideoDetailId(reelId);
-    pushHistoryState({ activeTab: 'reels', videoDetailId: reelId });
+    startTransition(() => {
+      setActiveTab('reels');
+      // Store the reel ID to scroll to it in TikTokLayout
+      setVideoDetailId(reelId);
+      pushHistoryState({ activeTab: 'reels', videoDetailId: reelId });
+    });
   };
 
   const handleShowExplorer = () => {
     resetAllPages();
-    setActiveTab('explore');
-    setShowExplorer(true);
-    pushHistoryState({ showExplorer: true });
+    startTransition(() => {
+      setActiveTab('explore');
+      setShowExplorer(true);
+      pushHistoryState({ showExplorer: true });
+    });
   };
 
   const handleProfileSaved = (updatedUser) => {
@@ -638,8 +642,11 @@ export default function WerqRoot() {
           // state via their dedicated handlers — just update the indicator here.
           const feedTabs = ['home', 'reels', 'messages', 'following', 'bookmarks', 'search'];
           if (feedTabs.includes(tab)) resetAllPages();
-          setActiveTab(tab);
-          saveNav({ activeTab: tab });
+          // Use startTransition to defer non-urgent updates for better INP
+          startTransition(() => {
+            setActiveTab(tab);
+            saveNav({ activeTab: tab });
+          });
         }}
         onLogout={handleLogout}
         onShowProfile={() => handleShowProfile(null)}
