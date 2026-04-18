@@ -574,8 +574,7 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideo
               <img
                 src={mediaSrc}
                 alt={post.caption || ''}
-                onClick={handleVideoClick}
-                style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block', cursor: 'pointer' }}
+                style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block', cursor: 'default' }}
                 onError={() => setImgError(true)}
               />
             )
