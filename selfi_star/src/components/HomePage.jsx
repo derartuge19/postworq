@@ -521,7 +521,7 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, index = 0 }
 
         {/* Media */}
         <div
-          style={{ position: 'relative', width: '100%', background: '#111', minHeight: 200, cursor: isVideo ? 'pointer' : 'default' }}
+          style={{ position: 'relative', width: '100%', background: '#111', minHeight: 120, cursor: isVideo ? 'pointer' : 'default' }}
           onClick={isVideo ? handleVideoClick : undefined}
         >
           {mediaSrc && !imgError ? (
@@ -529,7 +529,7 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, index = 0 }
               <video
                 ref={videoRef}
                 src={mediaSrc}
-                style={{ width: '100%', maxHeight: 500, objectFit: 'cover', display: 'block' }}
+                style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block' }}
                 playsInline
                 loop
                 onPlay={() => setVideoPlaying(true)}
@@ -540,7 +540,7 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, index = 0 }
               <img
                 src={mediaSrc}
                 alt={post.caption || ''}
-                style={{ width: '100%', maxHeight: 500, objectFit: 'cover', display: 'block' }}
+                style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block' }}
                 onError={() => setImgError(true)}
               />
             )
