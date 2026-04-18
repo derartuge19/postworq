@@ -1,7 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { AppShell } from './components/AppShell';
 import { TikTokLayout } from './components/TikTokLayout';
-import { SwipeablePages } from './components/SwipeablePages';
 import api from './api';
 
 // Lazy load ALL non-critical components for smaller initial bundle
@@ -154,31 +153,6 @@ export default function WerqRoot() {
   const [showProfile, setShowProfile] = useState(() => !!_savedNav.showProfile);
   const [profileUserId, setProfileUserId] = useState(() => _savedNav.profileUserId || null);
   const [activeTab, setActiveTab] = useState(() => _savedNav.activeTab || localStorage.getItem('_activeTab') || 'home');
-  
-  // Map tab to swipe index for SwipeablePages
-  const getSwipeIndex = (tab) => {
-    if (tab === 'home') return 0;
-    if (tab === 'reels' || tab === 'following' || tab === 'bookmarks' || tab === 'inbox') return 1;
-    if (tab === 'explore') return 2;
-    return 0;
-  };
-  
-  const [swipeIndex, setSwipeIndex] = useState(() => getSwipeIndex(activeTab));
-  
-  // Update swipe index when tab changes
-  useEffect(() => {
-    setSwipeIndex(getSwipeIndex(activeTab));
-  }, [activeTab]);
-  
-  // Handle swipe index change
-  const handleSwipeIndexChange = (index) => {
-    const tabs = ['home', 'reels', 'explore'];
-    const newTab = tabs[index];
-    if (newTab && newTab !== activeTab) {
-      setActiveTab(newTab);
-      pushHistoryState({ activeTab: newTab });
-    }
-  };
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
   const [followersListType, setFollowersListType] = useState('followers');
@@ -900,70 +874,36 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && (
-          <SwipeablePages
-            pages={[
-              {
-                id: 'home',
-                component: (
-                  <LazyLoadErrorBoundary key="home">
-                    <Suspense fallback={<PageSkeleton />}>
-                      <HomePage
-                        user={authUser}
-                        onShowProfile={handleShowProfile}
-                        onShowPostPage={handleShowPostPage}
-                        onRequireAuth={handleRequireAuth}
-                        onShowExplorer={handleShowExplorer}
-                        onShowVideoDetail={handleShowVideoDetail}
-                        onShowCampaigns={handleShowCampaigns}
-                      />
-                    </Suspense>
-                  </LazyLoadErrorBoundary>
-                )
-              },
-              {
-                id: 'reels',
-                component: (
-                  <TikTokLayout
-                    key="reels"
-                    user={authUser}
-                    activeTab={activeTab}
-                    videosOnly={activeTab === 'reels'}
-                    initialVideoId={videoDetailId}
-                    onLogout={handleLogout}
-                    onRequireAuth={handleRequireAuth}
-                    onShowPostPage={handleShowPostPage}
-                    onShowProfile={handleShowProfile}
-                    onShowSettings={handleShowSettings}
-                    onShowNotifications={handleShowNotifications}
-                    onShowVideoDetail={handleShowVideoDetail}
-                    onShowExplorer={handleShowExplorer}
-                    unreadNotifCount={unreadNotifCount}
-                  />
-                )
-              },
-              {
-                id: 'explore',
-                component: (
-                  <LazyLoadErrorBoundary key="explore">
-                    <Suspense fallback={<PageSkeleton />}>
-                      <ExplorerPage
-                        user={authUser}
-                        onBack={() => setShowExplorer(false)}
-                        onShowProfile={handleShowProfile}
-                        onShowVideoDetail={handleShowVideoDetail}
-                        onRequireAuth={handleRequireAuth}
-                        onShowPostPage={handleShowPostPage}
-                        onShowSettings={handleShowSettings}
-                        onShowNotifications={handleShowNotifications}
-                      />
-                    </Suspense>
-                  </LazyLoadErrorBoundary>
-                )
-              }
-            ]}
-            activeIndex={swipeIndex}
-            onIndexChange={handleSwipeIndexChange}
+        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab === 'home' && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
+              <HomePage
+                user={authUser}
+                onShowProfile={handleShowProfile}
+                onShowPostPage={handleShowPostPage}
+                onRequireAuth={handleRequireAuth}
+                onShowExplorer={handleShowExplorer}
+                onShowVideoDetail={handleShowVideoDetail}
+                onShowCampaigns={handleShowCampaigns}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab !== 'home' && (
+          <TikTokLayout
+            user={authUser}
+            activeTab={activeTab}
+            videosOnly={activeTab === 'reels'}
+            initialVideoId={videoDetailId}
+            onLogout={handleLogout}
+            onRequireAuth={handleRequireAuth}
+            onShowPostPage={handleShowPostPage}
+            onShowProfile={handleShowProfile}
+            onShowSettings={handleShowSettings}
+            onShowNotifications={handleShowNotifications}
+            onShowVideoDetail={handleShowVideoDetail}
+            onShowExplorer={handleShowExplorer}
+            unreadNotifCount={unreadNotifCount}
           />
         )}
       </AppShell>
