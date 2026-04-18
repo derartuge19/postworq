@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search, X, TrendingUp, Flame, Music, Laugh, Dumbbell, Utensils,
   Plane, Palette, Play, Heart, Eye, Hash, User, Clock, ChevronRight,
-  Gamepad2, Sparkles, BookOpen, Baby, Shirt,
+  Gamepad2, Sparkles, BookOpen, Baby, Shirt, ArrowLeft,
 } from 'lucide-react';
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
@@ -347,6 +347,17 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
       }}>
         {/* Row 1 – title + search bar */}
         <div style={{ padding: '14px 16px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Back button */}
+          <button
+            onClick={onBack}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '6px 8px 6px 0', display: 'flex', alignItems: 'center',
+              color: T.txt, flexShrink: 0,
+            }}
+          >
+            <ArrowLeft size={22} strokeWidth={2.5} />
+          </button>
           {inSearchMode || searchFocused ? null : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <Flame size={22} color={T.pri} />

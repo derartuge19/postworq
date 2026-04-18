@@ -36,6 +36,7 @@ import './TikTokLayout.css';
 export function TikTokLayout({
   user,
   activeTab: propActiveTab,
+  videosOnly = false,
   onLogout,
   onRequireAuth,
   onShowPostPage,
@@ -241,13 +242,22 @@ export function TikTokLayout({
         };
       });
       
+      // Filter to videos only if videosOnly prop is set (Reels tab)
+      const filteredVideos = videosOnly
+        ? formattedVideos.filter(v => {
+            const url = v.imageUrl || '';
+            return url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) ||
+                   url.includes('/video/upload/');
+          })
+        : formattedVideos;
+
       if (append) {
-        setVideos(prev => [...prev, ...formattedVideos]);
+        setVideos(prev => [...prev, ...filteredVideos]);
       } else {
-        setVideos(formattedVideos);
+        setVideos(filteredVideos);
         // Persist fresh data so next load is instant (stale-while-revalidate)
-        if (formattedVideos.length > 0) {
-          writeFeedCache(activeTab, formattedVideos);
+        if (filteredVideos.length > 0) {
+          writeFeedCache(activeTab, filteredVideos);
         }
       }
     } catch (error) {

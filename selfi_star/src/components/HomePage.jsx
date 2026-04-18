@@ -1,0 +1,786 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2 } from 'lucide-react';
+import api from '../api';
+import config from '../config';
+import { useTheme } from '../contexts/ThemeContext';
+
+const BACKEND = config.API_BASE_URL.replace('/api', '');
+
+function mediaUrl(url) {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return BACKEND + url;
+}
+
+function timeAgo(dateStr) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/* ── Comment Sheet ── */
+function CommentSheet({ post, currentUser, onClose, T, onCommentAdded }) {
+  const [comments, setComments] = useState([]);
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    api.request(`/comments/?reel=${post.id}`)
+      .then(d => setComments(Array.isArray(d) ? d : (d.results || [])))
+      .catch(() => {});
+  }, [post.id]);
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!text.trim() || sending) return;
+    if (!api.hasToken()) return;
+    setSending(true);
+    try {
+      const res = await api.request('/comments/', { method: 'POST', body: JSON.stringify({ reel: post.id, text: text.trim() }), headers: { 'Content-Type': 'application/json' } });
+      setComments(prev => [...prev, res]);
+      setText('');
+      onCommentAdded?.();
+    } catch {} finally { setSending(false); }
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9000, display: 'flex', alignItems: 'flex-end' }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: T.cardBg || '#fff', borderRadius: '20px 20px 0 0', maxHeight: '75vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      >
+        {/* Handle bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: `1px solid ${T.border}` }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: T.txt }}>Comments</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sub }}><X size={20} /></button>
+        </div>
+        {/* Comments list */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+          {comments.length === 0 ? (
+            <div style={{ textAlign: 'center', color: T.sub, padding: 30, fontSize: 14 }}>No comments yet. Be first!</div>
+          ) : comments.map(c => (
+            <div key={c.id} style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: T.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+                {c.user?.profile_photo ? <img src={mediaUrl(c.user.profile_photo)} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} /> : '👤'}
+              </div>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontWeight: 700, fontSize: 13, color: T.txt }}>{c.user?.username} </span>
+                <span style={{ fontSize: 13, color: T.txt }}>{c.text}</span>
+                <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>{timeAgo(c.created_at)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Input */}
+        <form onSubmit={handleSend} style={{ display: 'flex', gap: 8, padding: '10px 16px', borderTop: `1px solid ${T.border}` }}>
+          <input
+            ref={inputRef}
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder={api.hasToken() ? 'Add a comment…' : 'Log in to comment'}
+            disabled={!api.hasToken()}
+            style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${T.border}`, background: T.bg, color: T.txt, fontSize: 14, outline: 'none' }}
+          />
+          <button
+            type="submit"
+            disabled={!text.trim() || sending || !api.hasToken()}
+            style={{ background: T.pri, border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0 }}
+            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.9)'}
+            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <Send size={16} color="#fff" />
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Post Info Sheet ── */
+function PostInfoSheet({ post, onClose, T }) {
+  const raw = post.media || post.image || '';
+  const isVideo = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(raw) || raw.includes('/video/upload/');
+  const avatarSrc = post.user?.profile_photo ? mediaUrl(post.user.profile_photo) : null;
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9300, display: 'flex', alignItems: 'flex-end' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: T.cardBg || '#fff', borderRadius: '20px 20px 0 0', padding: '20px 20px 32px', boxSizing: 'border-box' }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: T.border, margin: '0 auto 16px' }} />
+        <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 16 }}>Post Info</div>
+
+        {/* Author */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '12px', background: T.bg, borderRadius: 12 }}>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: T.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {avatarSrc ? <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👤'}
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: T.txt }}>@{post.user?.username || 'unknown'}</div>
+            <div style={{ fontSize: 12, color: T.sub }}>{post.user?.full_name || ''}</div>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+          {[['❤️', post.votes || 0, 'Likes'], ['💬', post.comment_count || 0, 'Comments'], ['👁️', (post.votes || 0) * 3 + 100, 'Views']].map(([emoji, val, lbl]) => (
+            <div key={lbl} style={{ flex: 1, background: T.bg, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
+              <div style={{ fontSize: 18 }}>{emoji}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: T.txt }}>{Number(val).toLocaleString()}</div>
+              <div style={{ fontSize: 11, color: T.sub }}>{lbl}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Meta */}
+        <div style={{ fontSize: 13, color: T.sub, marginBottom: post.caption ? 10 : 0 }}>
+          <span style={{ color: T.pri, fontWeight: 600 }}>{isVideo ? '🎬 Video' : '🖼️ Image'}</span>
+          {' · '}
+          {timeAgo(post.created_at)}
+        </div>
+
+        {/* Caption */}
+        {post.caption && (
+          <div style={{ fontSize: 14, color: T.txt, lineHeight: 1.55, marginTop: 8 }}>
+            <span style={{ fontWeight: 700 }}>@{post.user?.username} </span>
+            {post.caption}
+          </div>
+        )}
+
+        <button onClick={onClose} style={{ marginTop: 20, width: '100%', padding: '12px', borderRadius: 12, background: T.bg, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: T.txt }}>Close</button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Post Options Popover ── */
+function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorRect }) {
+  const isOwn = currentUser?.id === post.user?.id;
+  const [hoveredIdx, setHoveredIdx] = useState(null);
+  const [showInfo, setShowInfo] = useState(false);
+  const menuRef = useRef(null);
+
+  // Calculate position: appear to the left of the button, align top
+  const menuWidth = 220;
+  const vp = { w: window.innerWidth, h: window.innerHeight };
+  let left = anchorRect ? anchorRect.right - menuWidth : vp.w - menuWidth - 12;
+  let top  = anchorRect ? anchorRect.bottom + 6 : 60;
+  if (left < 8) left = 8;
+  if (left + menuWidth > vp.w - 8) left = vp.w - menuWidth - 8;
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onClose]);
+
+  const handlePostInfo = () => { setShowInfo(true); };
+
+  const handleCopy = () => {
+    const url = window.location.origin + '/post/' + post.id;
+    navigator.clipboard?.writeText(url).catch(() => {});
+    onClose();
+  };
+
+  const handleSaveFav = async () => {
+    if (!api.hasToken()) { onRequireAuth?.(); onClose(); return; }
+    try { await api.request(`/reels/${post.id}/save/`, { method: 'POST' }); } catch {}
+    onClose();
+  };
+
+  const handleDownload = async () => {
+    const src = mediaUrl(post.media || post.image || '');
+    if (!src) { onClose(); return; }
+    try {
+      // For Cloudinary: insert fl_attachment to force download
+      let downloadUrl = src;
+      if (src.includes('res.cloudinary.com') && src.includes('/upload/')) {
+        downloadUrl = src.replace('/upload/', '/upload/fl_attachment/');
+      }
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      const ext = src.split('.').pop()?.split('?')[0] || 'file';
+      a.download = `selfiestar_post_${post.id}.${ext}`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch {}
+    onClose();
+  };
+
+  const handleNotInterested = async () => {
+    if (!api.hasToken()) { onRequireAuth?.(); onClose(); return; }
+    try { await api.request('/reels/not-interested/', { method: 'POST', body: JSON.stringify({ reel_id: post.id }), headers: { 'Content-Type': 'application/json' } }); } catch {}
+    onClose();
+  };
+  const handleReport = async () => {
+    if (!api.hasToken()) { onRequireAuth?.(); onClose(); return; }
+    try { await api.request('/reports/create/', { method: 'POST', body: JSON.stringify({ reel: post.id, reason: 'inappropriate' }), headers: { 'Content-Type': 'application/json' } }); } catch {}
+    onClose();
+  };
+  const handleDelete = async () => {
+    if (!api.hasToken()) return;
+    try { await api.request(`/reels/${post.id}/`, { method: 'DELETE' }); } catch {}
+    onClose();
+  };
+
+  const groups = [
+    [
+      { Icon: Info,     label: 'Post Info',        action: handlePostInfo },
+      { Icon: Link2,    label: 'Copy Link',         action: handleCopy },
+      { Icon: Bookmark, label: 'Save to Favorites', action: handleSaveFav },
+      { Icon: Download, label: 'Download',          action: handleDownload },
+    ],
+    [
+      { Icon: Flag,  label: 'Not Interested', action: handleNotInterested },
+      ...(isOwn
+        ? [{ Icon: Trash2, label: 'Delete Post', action: handleDelete, danger: true }]
+        : [{ Icon: Flag,   label: 'Report',      action: handleReport,  danger: true }]
+      ),
+    ],
+  ];
+
+  let idx = 0;
+  return (
+    <>
+      <div
+        ref={menuRef}
+        onClick={e => e.stopPropagation()}
+        style={{
+          position: 'fixed',
+          top, left, width: menuWidth,
+          zIndex: 9200,
+          background: T.cardBg || '#fff',
+          borderRadius: 12,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)',
+          border: `1px solid ${T.border}`,
+          overflow: 'hidden',
+          animation: 'menuFadeIn 0.15s ease',
+        }}
+      >
+        <style>{`@keyframes menuFadeIn { from { opacity:0; transform:scale(0.95) translateY(-6px); } to { opacity:1; transform:scale(1) translateY(0); } }`}</style>
+        {groups.map((group, gi) => (
+          <div key={gi}>
+            {gi > 0 && <div style={{ height: 1, background: T.border }} />}
+            {group.map(opt => {
+              const i = idx++;
+              const { Icon } = opt;
+              return (
+                <button
+                  key={opt.label}
+                  onClick={opt.action}
+                  onMouseEnter={() => setHoveredIdx(i)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    width: '100%', padding: '12px 16px',
+                    background: hoveredIdx === i ? T.bg : 'transparent',
+                    border: 'none', cursor: 'pointer', textAlign: 'left',
+                    fontSize: 14, fontWeight: 500,
+                    color: opt.danger ? '#EF4444' : T.txt,
+                    transition: 'background 0.12s',
+                  }}
+                >
+                  <Icon size={17} strokeWidth={1.8} color={opt.danger ? '#EF4444' : T.sub} />
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      {showInfo && <PostInfoSheet post={post} onClose={() => { setShowInfo(false); onClose(); }} T={T} />}
+    </>
+  );
+}
+
+/* ── Post Card ── */
+function PostCard({ post, currentUser, onShowProfile, onRequireAuth }) {
+  const { colors: T } = useTheme();
+  const [liked, setLiked] = useState(post.is_liked || false);
+  const [likes, setLikes] = useState(post.votes || 0);
+  const [saved, setSaved] = useState(post.is_saved || false);
+  const [likeAnim, setLikeAnim] = useState(false);
+  const [saveAnim, setSaveAnim] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [optionsAnchor, setOptionsAnchor] = useState(null);
+  const [commentCount, setCommentCount] = useState(post.comment_count || 0);
+  const videoRef = useRef(null);
+
+  // Detect if this post has video media
+  const raw = post.media || post.image || '';
+  const isVideo = !!(post.media) && (
+    /\.(mp4|webm|ogg|mov)(\?|$)/i.test(raw) ||
+    raw.includes('/video/upload/')
+  );
+  const mediaSrc = mediaUrl(raw);
+  const avatarSrc = post.user?.profile_photo ? mediaUrl(post.user.profile_photo) : null;
+
+  const handleLike = async (e) => {
+    e.stopPropagation();
+    if (!api.hasToken()) { onRequireAuth?.(); return; }
+    const newLiked = !liked;
+    setLiked(newLiked);
+    setLikes(prev => newLiked ? prev + 1 : Math.max(0, prev - 1));
+    setLikeAnim(true);
+    setTimeout(() => setLikeAnim(false), 400);
+    try { await api.request(`/reels/${post.id}/vote/`, { method: 'POST' }); } catch {}
+  };
+
+  const handleSave = async (e) => {
+    e.stopPropagation();
+    if (!api.hasToken()) { onRequireAuth?.(); return; }
+    setSaved(s => !s);
+    setSaveAnim(true);
+    setTimeout(() => setSaveAnim(false), 300);
+    try { await api.request(`/reels/${post.id}/save/`, { method: 'POST' }); } catch {}
+  };
+
+  const handleVideoClick = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!videoRef.current) return;
+    if (videoRef.current.paused) {
+      videoRef.current.play().catch(() => {});
+      setVideoPlaying(true);
+    } else {
+      videoRef.current.pause();
+      setVideoPlaying(false);
+    }
+  };
+
+  const handleCommentClick = (e) => {
+    e.stopPropagation();
+    setShowComments(true);
+  };
+
+  const hashtags = Array.isArray(post.hashtags_list)
+    ? post.hashtags_list
+    : (post.hashtags || '').split(/\s+/).filter(Boolean);
+
+  return (
+    <>
+      <style>{`
+        @keyframes heartPop {
+          0%   { transform: scale(1); }
+          40%  { transform: scale(1.45); }
+          70%  { transform: scale(0.9); }
+          100% { transform: scale(1); }
+        }
+        @keyframes savePop {
+          0%   { transform: scale(1); }
+          50%  { transform: scale(1.35); }
+          100% { transform: scale(1); }
+        }
+        .hp-btn { transition: transform 0.12s, opacity 0.15s, background 0.15s; }
+        .hp-btn:active { transform: scale(0.82) !important; opacity: 0.7; }
+        .hp-action:hover { background: var(--hp-hover) !important; border-radius: 10px; }
+        .hp-action:hover svg { transform: scale(1.18); }
+      `}</style>
+
+      <div style={{
+        background: T.cardBg || '#fff',
+        borderRadius: 16,
+        boxShadow: '0 2px 16px rgba(0,0,0,0.08)',
+        border: `1px solid ${T.border}`,
+        overflow: 'hidden',
+        marginBottom: 20,
+        maxWidth: 560,
+        width: '100%',
+      }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 10 }}>
+          <button
+            className="hp-btn"
+            onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
+          >
+            <div style={{ width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', background: T.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: `2px solid ${T.pri}30` }}>
+              {avatarSrc
+                ? <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
+                : '👤'}
+            </div>
+          </button>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button
+                className="hp-btn"
+                onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14, fontWeight: 700, color: T.txt }}
+              >
+                {post.user?.username || 'user'}
+              </button>
+              <CheckCircle size={14} fill={T.pri} color="#fff" />
+            </div>
+            <div style={{ fontSize: 12, color: T.sub }}>{timeAgo(post.created_at)}</div>
+          </div>
+          <button
+            className="hp-btn"
+            onClick={(e) => { e.stopPropagation(); setOptionsAnchor(e.currentTarget.getBoundingClientRect()); setShowOptions(true); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: T.sub, display: 'flex', alignItems: 'center' }}
+          >
+            <MoreHorizontal size={20} />
+          </button>
+        </div>
+
+        {/* Media */}
+        <div
+          style={{ position: 'relative', width: '100%', background: '#111', minHeight: 200, cursor: isVideo ? 'pointer' : 'default' }}
+          onClick={isVideo ? handleVideoClick : undefined}
+        >
+          {mediaSrc && !imgError ? (
+            isVideo ? (
+              <video
+                ref={videoRef}
+                src={mediaSrc}
+                style={{ width: '100%', maxHeight: 500, objectFit: 'cover', display: 'block' }}
+                playsInline
+                loop
+                onPlay={() => setVideoPlaying(true)}
+                onPause={() => setVideoPlaying(false)}
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <img
+                src={mediaSrc}
+                alt={post.caption || ''}
+                style={{ width: '100%', maxHeight: 500, objectFit: 'cover', display: 'block' }}
+                onError={() => setImgError(true)}
+              />
+            )
+          ) : (
+            <div style={{ width: '100%', height: 260, background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.sub, fontSize: 14 }}>No media</div>
+          )}
+
+          {/* Play/Pause overlay for video */}
+          {isVideo && !videoPlaying && (
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(0,0,0,0.25)',
+              pointerEvents: 'none',
+            }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.85)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+              }}>
+                <Play size={26} fill="#1C1917" color="#1C1917" style={{ marginLeft: 3 }} />
+              </div>
+            </div>
+          )}
+
+          {/* View count badge */}
+          {mediaSrc && !imgError && (
+            <div style={{
+              position: 'absolute', bottom: 10, right: 10,
+              background: 'rgba(0,0,0,0.55)', color: '#fff',
+              borderRadius: 20, padding: '4px 10px', fontSize: 12, fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 4,
+              backdropFilter: 'blur(6px)',
+              pointerEvents: 'none',
+            }}>
+              <Eye size={13} />
+              {(likes * 3 + 100).toLocaleString()}
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div style={{ padding: '10px 16px 12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {/* Like */}
+              <button
+                className="hp-btn hp-action"
+                onClick={handleLike}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '6px 10px', borderRadius: 10,
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  animation: likeAnim ? 'heartPop 0.4s ease' : 'none',
+                  '--hp-hover': liked ? '#EF444420' : T.border + '60',
+                }}
+              >
+                <Heart
+                  size={24}
+                  fill={liked ? '#EF4444' : 'none'}
+                  color={liked ? '#EF4444' : T.txt}
+                  style={{ transition: 'transform 0.15s' }}
+                />
+              </button>
+              {/* Comment */}
+              <button
+                className="hp-btn hp-action"
+                onClick={handleCommentClick}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '6px 10px', borderRadius: 10,
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  '--hp-hover': T.border + '60',
+                }}
+              >
+                <MessageCircle size={24} color={T.txt} style={{ transition: 'transform 0.15s' }} />
+              </button>
+              {/* Share */}
+              <button
+                className="hp-btn hp-action"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '6px 10px', borderRadius: 10,
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  '--hp-hover': T.border + '60',
+                }}
+              >
+                <Share2 size={24} color={T.txt} style={{ transition: 'transform 0.15s' }} />
+              </button>
+            </div>
+            {/* Save */}
+            <button
+              className="hp-btn hp-action"
+              onClick={handleSave}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '6px 10px', borderRadius: 10,
+                animation: saveAnim ? 'savePop 0.3s ease' : 'none',
+                '--hp-hover': saved ? T.pri + '25' : T.border + '60',
+              }}
+            >
+              <Bookmark
+                size={24}
+                fill={saved ? T.pri : 'none'}
+                color={saved ? T.pri : T.txt}
+              />
+            </button>
+          </div>
+
+          {/* Like count */}
+          <div style={{ fontSize: 14, fontWeight: 700, color: T.txt, marginTop: 4 }}>
+            {likes.toLocaleString()} likes
+          </div>
+
+          {/* Caption */}
+          {post.caption && (
+            <div style={{ fontSize: 14, color: T.txt, marginTop: 4, lineHeight: 1.55 }}>
+              <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
+              {post.caption}
+            </div>
+          )}
+
+          {/* Comments link */}
+          <button
+            onClick={handleCommentClick}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontSize: 13, color: T.sub, display: 'block', marginTop: 4 }}
+          >
+            {commentCount > 0 ? `View all ${commentCount} comments` : 'Add a comment…'}
+          </button>
+
+          {/* Hashtags */}
+          {hashtags.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+              {hashtags.map((tag, i) => (
+                <span key={i} style={{ fontSize: 13, color: T.pri, fontWeight: 600 }}>
+                  {tag.startsWith('#') ? tag : `#${tag}`}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Comment Sheet */}
+      {showComments && (
+        <CommentSheet
+          post={post}
+          currentUser={currentUser}
+          onClose={() => setShowComments(false)}
+          onCommentAdded={() => setCommentCount(c => c + 1)}
+          T={T}
+        />
+      )}
+
+      {/* Post Options Popover */}
+      {showOptions && (
+        <PostOptionsMenu
+          post={post}
+          currentUser={currentUser}
+          onClose={() => setShowOptions(false)}
+          onRequireAuth={onRequireAuth}
+          anchorRect={optionsAnchor}
+          T={T}
+        />
+      )}
+    </>
+  );
+}
+
+const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
+
+export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns }) {
+  const { colors: T } = useTheme();
+  const [activeTab, setActiveTab] = useState('For You');
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef(null);
+
+  const LIMIT = 10;
+
+  const handleTabClick = (tab) => {
+    if (tab === 'Explore') { onShowExplorer?.(); return; }
+    if (tab === 'Campaigns') { onShowCampaigns?.(); return; }
+    setActiveTab(tab);
+  };
+
+  const fetchPosts = useCallback(async (offset = 0, reset = false) => {
+    try {
+      setLoading(true);
+      const data = await api.request(`/reels/?limit=${LIMIT}&offset=${offset}`);
+      const results = Array.isArray(data) ? data : (data.results || []);
+      setPosts(prev => reset ? results : [...prev, ...results]);
+      setHasMore(Array.isArray(data) ? results.length === LIMIT : !!data.next);
+      setPage(offset);
+    } catch (e) {
+      console.error('HomePage fetch error:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'Explore' || activeTab === 'Campaigns') return;
+    fetchPosts(0, true);
+  }, [activeTab, fetchPosts]);
+
+  // Infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          fetchPosts(page + LIMIT, false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading, page, fetchPosts]);
+
+  return (
+    <div style={{ minHeight: '100vh', background: T.bg }}>
+      {/* Tab bar */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        background: T.cardBg || '#fff',
+        borderBottom: `1px solid ${T.border}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 0,
+        padding: '0 16px',
+      }}>
+        {ALL_TABS.map(tab => {
+          const isActive = activeTab === tab;
+          return (
+            <button
+              key={tab}
+              onClick={() => handleTabClick(tab)}
+              style={{
+                background: isActive ? T.pri : 'transparent',
+                border: `1.5px solid ${isActive ? T.pri : T.border}`,
+                borderRadius: 24,
+                padding: '8px 20px',
+                fontSize: 14,
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#fff' : T.sub,
+                cursor: 'pointer',
+                transition: 'all 0.18s',
+                margin: '6px 3px',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.borderColor = T.pri; e.currentTarget.style.color = T.pri; } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.sub; } }}
+            >
+              {tab}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Feed */}
+      <div style={{
+        maxWidth: 600,
+        margin: '0 auto',
+        padding: '24px 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}>
+        {loading && posts.length === 0 ? (
+          [1,2,3].map(i => (
+            <div key={i} style={{
+              width: '100%', maxWidth: 560, background: T.cardBg || '#fff',
+              borderRadius: 16, border: `1px solid ${T.border}`,
+              overflow: 'hidden', marginBottom: 20,
+            }}>
+              <div style={{ padding: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
+                <div style={{ width: 42, height: 42, borderRadius: '50%', background: T.border }} />
+                <div>
+                  <div style={{ width: 100, height: 12, background: T.border, borderRadius: 6, marginBottom: 6 }} />
+                  <div style={{ width: 60, height: 10, background: T.border, borderRadius: 5 }} />
+                </div>
+              </div>
+              <div style={{ width: '100%', height: 300, background: T.border }} />
+              <div style={{ padding: 16 }}>
+                <div style={{ width: 80, height: 12, background: T.border, borderRadius: 6, marginBottom: 8 }} />
+                <div style={{ width: '70%', height: 10, background: T.border, borderRadius: 5 }} />
+              </div>
+            </div>
+          ))
+        ) : posts.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 60, color: T.sub }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
+            <div style={{ fontSize: 16, fontWeight: 600 }}>No posts yet</div>
+            <div style={{ fontSize: 14, marginTop: 8 }}>Be the first to share something!</div>
+          </div>
+        ) : (
+          posts.map(post => (
+            <PostCard
+              key={post.id}
+              post={post}
+              currentUser={user}
+              onShowProfile={onShowProfile}
+              onRequireAuth={onRequireAuth}
+            />
+          ))
+        )}
+
+        {/* Infinite scroll loader */}
+        <div ref={loaderRef} style={{ height: 40, width: '100%' }} />
+        {loading && posts.length > 0 && (
+          <div style={{ textAlign: 'center', padding: 20, color: T.sub, fontSize: 14 }}>
+            Loading more...
+          </div>
+        )}
+        {!hasMore && posts.length > 0 && (
+          <div style={{ textAlign: 'center', padding: 20, color: T.sub, fontSize: 13 }}>
+            You're all caught up ✓
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

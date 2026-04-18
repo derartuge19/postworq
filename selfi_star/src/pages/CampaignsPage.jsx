@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Calendar, Award, Users, Clock, ChevronRight } from 'lucide-react';
+import { Trophy, Calendar, Award, Users, Clock, ChevronRight, ArrowLeft } from 'lucide-react';
 import api from '../api';
 import config from '../config.js';
 
@@ -87,6 +87,20 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
       padding: '20px 24px',
       boxSizing: 'border-box',
     }}>
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: theme.txt, fontSize: 14, fontWeight: 600,
+          padding: '4px 0', marginBottom: 16,
+        }}
+      >
+        <ArrowLeft size={20} strokeWidth={2.5} />
+        Back
+      </button>
+
       {/* Hero Section */}
       <div style={{
         textAlign: 'center',

@@ -19,6 +19,7 @@ const CampaignLeaderboard = lazy(() => import('./pages/CampaignLeaderboard'));
 const CampaignFeed = lazy(() => import('./pages/CampaignFeed'));
 const VideoDetailPage = lazy(() => import('./components/VideoDetailPage').then(m => ({ default: m.VideoDetailPage })));
 const ExplorerPage = lazy(() => import('./components/ExplorerPage').then(m => ({ default: m.ExplorerPage })));
+const HomePage = lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })));
 const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
 
 // Prefetch all lazy chunks after initial load so navigation is instant
@@ -37,6 +38,7 @@ const prefetchComponents = () => {
   import('./pages/CampaignFeed');
   import('./components/VideoDetailPage');
   import('./components/ExplorerPage');
+  import('./components/HomePage');
 };
 
 // Error boundary for lazy loading failures
@@ -638,7 +640,7 @@ export default function WerqRoot() {
           // For tabs that are pure feed views, collapse any open overlay pages.
           // Action-based tabs (campaigns, settings, etc.) manage their own page
           // state via their dedicated handlers — just update the indicator here.
-          const feedTabs = ['home', 'messages', 'following', 'bookmarks', 'search'];
+          const feedTabs = ['home', 'reels', 'messages', 'following', 'bookmarks', 'search'];
           if (feedTabs.includes(tab)) resetAllPages();
           setActiveTab(tab);
           saveNav({ activeTab: tab });
@@ -876,10 +878,25 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && (
+        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab === 'home' && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
+              <HomePage
+                user={authUser}
+                onShowProfile={handleShowProfile}
+                onShowPostPage={handleShowPostPage}
+                onRequireAuth={handleRequireAuth}
+                onShowExplorer={handleShowExplorer}
+                onShowCampaigns={handleShowCampaigns}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab !== 'home' && (
           <TikTokLayout
             user={authUser}
             activeTab={activeTab}
+            videosOnly={activeTab === 'reels'}
             onLogout={handleLogout}
             onRequireAuth={handleRequireAuth}
             onShowPostPage={handleShowPostPage}

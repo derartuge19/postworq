@@ -9,6 +9,7 @@ import {
   Settings,
   Trophy,
   LogOut,
+  Film,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -38,9 +39,10 @@ export function AppShell({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Sidebar-only items (Explore & Campaigns moved to top nav bar)
   const menuItems = [
-    { id: 'home', icon: Home, label: t('home') },
-    { id: 'explore', icon: Compass, label: t('explore'), action: onShowExplorer },
+    { id: 'home', icon: Home, label: 'Home' },
+    { id: 'reels', icon: Film, label: 'Reels' },
     {
       id: 'notifications',
       icon: Bell,
@@ -54,12 +56,6 @@ export function AppShell({
       label: t('create'),
       action: onShowPostPage,
     },
-    {
-      id: 'campaigns',
-      icon: Trophy,
-      label: t('campaigns'),
-      action: onShowCampaigns,
-    },
     { id: 'profile', icon: User, label: t('profile'), action: onShowProfile },
     {
       id: 'settings',
@@ -68,6 +64,7 @@ export function AppShell({
       action: onShowSettings,
     },
   ];
+
 
   const handleItemClick = (item) => {
     // Always update the active-tab highlight first, then run any special action.
@@ -116,9 +113,10 @@ export function AppShell({
             zIndex: 100,
           }}
         >
-          <div style={{ padding: '0 16px', marginBottom: 32 }}>
-            <div style={{ fontSize: 24, fontWeight: 900, color: T.pri }}>
-              WorqPost
+          <div style={{ padding: '0 16px', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src="/logo.jpeg" alt="SelfieStar" style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }} />
+            <div style={{ fontSize: 20, fontWeight: 900, background: `linear-gradient(135deg, ${T.pri}, ${T.dark || T.pri})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              SelfieStar
             </div>
           </div>
 
@@ -274,7 +272,6 @@ export function AppShell({
           position: 'relative',
           height: isMobile ? '100dvh' : '100%',
           overflowY: 'auto',
-          paddingTop: 0,
           paddingBottom: isMobile ? 70 : 0,
           boxSizing: 'border-box',
           WebkitOverflowScrolling: 'touch',
@@ -304,16 +301,16 @@ export function AppShell({
         >
           {[
             menuItems[0],   // home
-            menuItems[1],   // explore
+            menuItems[1],   // reels
             menuItems[4],   // create
-            menuItems[5],   // campaigns
-            menuItems[6],   // profile
+            menuItems[5],   // profile
+            menuItems[2],   // notifications
           ].map((item) => {
             const Icon = item.icon;
             let isActive = activeTab === item.id;
             if (item.id === 'home' && (activeTab === 'foryou' || activeTab === 'feed' || activeTab === 'home')) isActive = true;
-            if (item.id === 'explore' && (activeTab === 'explore' || activeTab === 'trending')) isActive = true;
-            if (item.id === 'notifications' && activeTab === 'inbox') isActive = true;
+            if (item.id === 'reels' && activeTab === 'reels') isActive = true;
+            if (item.id === 'notifications' && (activeTab === 'inbox' || activeTab === 'notifications')) isActive = true;
             const isBell = item.id === 'notifications';
             return (
               <button

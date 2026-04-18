@@ -24,14 +24,10 @@ def wipe_all_posts(apps, schema_editor):
     ]
     existing = set(connection.introspection.table_names())
     with connection.cursor() as cursor:
-        # Use TRUNCATE CASCADE on api_reel — Postgres will auto-cascade
-        # to ALL tables that reference it, even ones we didn't list
-        if 'api_reel' in existing:
-            cursor.execute('TRUNCATE TABLE "api_reel" CASCADE')
-        # Clean up any remaining child-only data
+        # Delete child tables first, then parent (works on both SQLite and PostgreSQL)
         for table in tables_to_wipe:
-            if table in existing and table != 'api_reel':
-                cursor.execute(f'TRUNCATE TABLE "{table}" CASCADE')
+            if table in existing:
+                cursor.execute(f'DELETE FROM "{table}"')
 
 
 class Migration(migrations.Migration):
