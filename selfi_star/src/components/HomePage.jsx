@@ -545,25 +545,37 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideo
         {/* Media */}
         <div
           style={{ position: 'relative', width: '100%', background: '#111', minHeight: 120, cursor: isVideo ? 'pointer' : 'default' }}
-          onClick={isVideo ? handleVideoClick : undefined}
         >
           {mediaSrc && !imgError ? (
             isVideo ? (
-              <video
-                ref={videoRef}
-                src={mediaSrc}
-                style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block' }}
-                playsInline
-                loop
-                onPlay={() => setVideoPlaying(true)}
-                onPause={() => setVideoPlaying(false)}
-                onError={() => setImgError(true)}
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  src={mediaSrc}
+                  style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block' }}
+                  playsInline
+                  loop
+                  onPlay={() => setVideoPlaying(true)}
+                  onPause={() => setVideoPlaying(false)}
+                  onError={() => setImgError(true)}
+                />
+                {/* Clickable overlay to navigate to Reels */}
+                <div
+                  onClick={handleVideoClick}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 10,
+                    cursor: 'pointer',
+                  }}
+                />
+              </>
             ) : (
               <img
                 src={mediaSrc}
                 alt={post.caption || ''}
-                style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block' }}
+                onClick={handleVideoClick}
+                style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block', cursor: 'pointer' }}
                 onError={() => setImgError(true)}
               />
             )
@@ -571,19 +583,24 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideo
             <div style={{ width: '100%', height: 260, background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.sub, fontSize: 14 }}>No media</div>
           )}
 
-          {/* Play/Pause overlay for video */}
+          {/* Play button overlay - only shows when paused */}
           {isVideo && !videoPlaying && (
-            <div style={{
-              position: 'absolute', inset: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(0,0,0,0.25)',
-              pointerEvents: 'none',
-            }}>
+            <div 
+              onClick={handleVideoClick}
+              style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(0,0,0,0.25)',
+                cursor: 'pointer',
+                zIndex: 11,
+              }}
+            >
               <div style={{
                 width: 56, height: 56, borderRadius: '50%',
                 background: 'rgba(255,255,255,0.85)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                pointerEvents: 'none',
               }}>
                 <Play size={26} fill="#1C1917" color="#1C1917" style={{ marginLeft: 3 }} />
               </div>
