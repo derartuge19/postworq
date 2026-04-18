@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -302,7 +302,7 @@ function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorR
 }
 
 /* ── Post Card ── */
-function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideoDetail, index = 0 }) {
+const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideoDetail, index = 0 }) {
   const { colors: T } = useTheme();
   const [liked, setLiked] = useState(post.is_liked || false);
   const [likes, setLikes] = useState(post.votes || 0);
@@ -788,7 +788,7 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideo
       )}
     </>
   );
-}
+});
 
 const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 
