@@ -1491,3 +1491,18 @@ def undo_not_interested(request):
     NotInterested.objects.filter(user=request.user, reel_id=reel_id).delete()
     
     return Response({'message': 'Removed from not interested', 'reel_id': reel_id})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def track_view(request, reel_id):
+    """Increment view count for a reel. Uses F() for atomic DB increment."""
+    from django.db.models import F
+    try:
+        updated = Reel.objects.filter(id=reel_id).update(view_count=F('view_count') + 1)
+        if not updated:
+            return Response({'error': 'Reel not found'}, status=status.HTTP_404_NOT_FOUND)
+        view_count = Reel.objects.filter(id=reel_id).values_list('view_count', flat=True).first()
+        return Response({'view_count': view_count})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

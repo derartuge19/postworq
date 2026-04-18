@@ -128,7 +128,7 @@ function PostInfoSheet({ post, onClose, T }) {
 
         {/* Stats row */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-          {[['❤️', post.votes || 0, 'Likes'], ['💬', post.comment_count || 0, 'Comments'], ['👁️', (post.votes || 0) * 3 + 100, 'Views']].map(([emoji, val, lbl]) => (
+          {[['❤️', post.votes || 0, 'Likes'], ['💬', post.comment_count || 0, 'Comments'], ['👁️', post.view_count || 0, 'Views']].map(([emoji, val, lbl]) => (
             <div key={lbl} style={{ flex: 1, background: T.bg, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
               <div style={{ fontSize: 18 }}>{emoji}</div>
               <div style={{ fontWeight: 700, fontSize: 15, color: T.txt }}>{Number(val).toLocaleString()}</div>
@@ -320,14 +320,41 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, index = 0 }
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [viewCount, setViewCount] = useState(post.view_count || 0);
   const cardRef = useRef(null);
   const videoRef = useRef(null);
   const rafRef = useRef(null);
+  const viewTracked = useRef(false);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), index * 60);
     return () => clearTimeout(t);
   }, [index]);
+
+  // Track view when card is 50% visible for at least 1 second
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    let timer = null;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !viewTracked.current) {
+          timer = setTimeout(async () => {
+            viewTracked.current = true;
+            try {
+              const res = await api.request(`/reels/${post.id}/view/`, { method: 'POST' });
+              if (res?.view_count !== undefined) setViewCount(res.view_count);
+            } catch {}
+          }, 1000);
+        } else {
+          if (timer) { clearTimeout(timer); timer = null; }
+        }
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(card);
+    return () => { observer.disconnect(); if (timer) clearTimeout(timer); };
+  }, [post.id]);
 
   const handleMouseMove = (e) => {
     const card = cardRef.current;
@@ -578,7 +605,7 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, index = 0 }
               pointerEvents: 'none',
             }}>
               <Eye size={13} />
-              {(likes * 3 + 100).toLocaleString()}
+              {viewCount.toLocaleString()}
             </div>
           )}
         </div>

@@ -9,7 +9,7 @@ from .views import (
     get_user_notifications, mark_notifications_read, get_unread_notification_count,
     mark_single_notification_read, create_report, admin_reports_list, admin_report_detail,
     admin_reports_stats, admin_moderate_report, get_trending_reels, mark_not_interested, undo_not_interested, 
-    get_trending_hashtags, get_reels_by_hashtag
+    get_trending_hashtags, get_reels_by_hashtag, track_view
 )
 from .views_master_campaign import (
     master_campaign_list, master_campaign_detail, master_campaign_participants,
@@ -301,6 +301,7 @@ urlpatterns = [
     path('reels/trending/', reels_trending, name='reels-trending'),
     path('reels/not-interested/', mark_not_interested, name='mark-not-interested'),
     path('reels/not-interested/undo/', undo_not_interested, name='undo-not-interested'),
+    path('reels/<int:reel_id>/view/', track_view, name='track-view'),
     path('explorer/trending/', get_trending_reels, name='explorer-trending'),
     path('explorer/trending-hashtags/', get_trending_hashtags, name='explorer-trending-hashtags'),
     path('explorer/hashtag/', get_reels_by_hashtag, name='explorer-hashtag'),
