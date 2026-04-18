@@ -302,7 +302,7 @@ function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorR
 }
 
 /* ── Post Card ── */
-function PostCard({ post, currentUser, onShowProfile, onRequireAuth, index = 0 }) {
+function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideoDetail, index = 0 }) {
   const { colors: T } = useTheme();
   const [liked, setLiked] = useState(post.is_liked || false);
   const [likes, setLikes] = useState(post.votes || 0);
@@ -428,13 +428,9 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, index = 0 }
   const handleVideoClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    if (!videoRef.current) return;
-    if (videoRef.current.paused) {
-      videoRef.current.play().catch(() => {});
-      setVideoPlaying(true);
-    } else {
-      videoRef.current.pause();
-      setVideoPlaying(false);
+    // Navigate to Reels page for video posts (Instagram-style)
+    if (onShowVideoDetail) {
+      onShowVideoDetail(post.id);
     }
   };
 
@@ -741,7 +737,7 @@ function PostCard({ post, currentUser, onShowProfile, onRequireAuth, index = 0 }
 
 const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 
-export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns }) {
+export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
   const { colors: T } = useTheme();
   const [activeTab, setActiveTab] = useState('For You');
   const [posts, setPosts] = useState([]);
@@ -749,8 +745,15 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef(null);
+  
+  // Pull to refresh state
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+  const containerRef = useRef(null);
 
   const LIMIT = 10;
+  const PULL_THRESHOLD = 80;
 
   const handleTabClick = (tab) => {
     if (tab === 'Explore') { onShowExplorer?.(); return; }
@@ -792,8 +795,82 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     return () => observer.disconnect();
   }, [hasMore, loading, page, fetchPosts]);
 
+  // Pull to refresh handlers
+  const handleTouchStart = (e) => {
+    if (containerRef.current && containerRef.current.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (isRefreshing || !containerRef.current) return;
+    const scrollTop = containerRef.current.scrollTop;
+    if (scrollTop === 0 && touchStartY.current > 0) {
+      const currentY = e.touches[0].clientY;
+      const distance = Math.max(0, currentY - touchStartY.current);
+      if (distance > 0) {
+        e.preventDefault();
+        setPullDistance(Math.min(distance, PULL_THRESHOLD * 1.5));
+      }
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
+      setIsRefreshing(true);
+      setPullDistance(PULL_THRESHOLD);
+      await fetchPosts(0, true);
+      setTimeout(() => {
+        setIsRefreshing(false);
+        setPullDistance(0);
+      }, 500);
+    } else {
+      setPullDistance(0);
+    }
+    touchStartY.current = 0;
+  };
+
   return (
-    <div style={{ minHeight: '100vh', background: T.bg }}>
+    <div 
+      ref={containerRef}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ minHeight: '100vh', background: T.bg, overflowY: 'auto', position: 'relative' }}
+    >
+      {/* Pull to refresh indicator */}
+      {pullDistance > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: pullDistance,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: `linear-gradient(180deg, ${T.bg} 0%, transparent 100%)`,
+          zIndex: 40,
+        }}>
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            border: `3px solid ${T.pri}`,
+            borderTopColor: 'transparent',
+            animation: isRefreshing ? 'spin 0.8s linear infinite' : 'none',
+            transform: `rotate(${(pullDistance / PULL_THRESHOLD) * 360}deg)`,
+            transition: isRefreshing ? 'none' : 'transform 0.1s',
+          }} />
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+      
       {/* Tab bar */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 50,
@@ -884,6 +961,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
               currentUser={user}
               onShowProfile={onShowProfile}
               onRequireAuth={onRequireAuth}
+              onShowVideoDetail={onShowVideoDetail}
             />
           ))
         )}
