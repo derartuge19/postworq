@@ -22,6 +22,29 @@ function timeAgo(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// Cache helpers for HomePage
+const CACHE_KEY = 'homepage_feed_cache';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function readHomeCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) {
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+    return data;
+  } catch { return null; }
+}
+
+function writeHomeCache(data) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+  } catch {}
+}
+
 /* ── Comment Sheet ── */
 function CommentSheet({ post, currentUser, onClose, T, onCommentAdded }) {
   const [comments, setComments] = useState([]);
@@ -785,8 +808,8 @@ const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
   const { colors: T } = useTheme();
   const [activeTab, setActiveTab] = useState('For You');
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState(() => readHomeCache() || []);
+  const [loading, setLoading] = useState(() => !readHomeCache());
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const videoObserverRef = useRef(null);
@@ -834,7 +857,9 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       setLoading(true);
       const data = await api.request(`/reels/?limit=${LIMIT}&offset=${offset}`);
       const results = Array.isArray(data) ? data : (data.results || []);
-      setPosts(prev => reset ? results : [...prev, ...results]);
+      const newPosts = reset ? results : [...posts, ...results];
+      setPosts(newPosts);
+      if (reset) writeHomeCache(newPosts); // Save to cache on initial fetch
       setHasMore(Array.isArray(data) ? results.length === LIMIT : !!data.next);
       setPage(offset);
     } catch (e) {
@@ -846,7 +871,11 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
 
   useEffect(() => {
     if (activeTab === 'Explore' || activeTab === 'Campaigns') return;
-    fetchPosts(0, true);
+    // Only fetch if no cached data
+    const cached = readHomeCache();
+    if (!cached || cached.length === 0) {
+      fetchPosts(0, true);
+    }
   }, [activeTab, fetchPosts]);
 
   // Infinite scroll
