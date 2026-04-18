@@ -37,6 +37,7 @@ export function TikTokLayout({
   user,
   activeTab: propActiveTab,
   videosOnly = false,
+  initialVideoId = null,
   onLogout,
   onRequireAuth,
   onShowPostPage,
@@ -299,6 +300,19 @@ export function TikTokLayout({
     setHasMore(true);
     fetchVideos(1, false);
   }, [activeTab]);
+
+  // Scroll to specific video when initialVideoId is provided
+  useEffect(() => {
+    if (!initialVideoId || !videos.length) return;
+    
+    const videoIndex = videos.findIndex(v => v.id === initialVideoId);
+    if (videoIndex !== -1) {
+      const videoElement = videoContainerRefs.current[videos[videoIndex].id];
+      if (videoElement) {
+        videoElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [initialVideoId, videos]);
 
   // Remove the HTML skeleton overlay as soon as we have content to show
   useEffect(() => {

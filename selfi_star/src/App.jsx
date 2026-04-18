@@ -606,9 +606,10 @@ export default function WerqRoot() {
 
   const handleShowVideoDetail = (reelId) => {
     resetAllPages();
+    setActiveTab('reels');
+    // Store the reel ID to scroll to it in TikTokLayout
     setVideoDetailId(reelId);
-    setShowVideoDetail(true);
-    pushHistoryState({ showVideoDetail: true, videoDetailId: reelId });
+    pushHistoryState({ activeTab: 'reels', videoDetailId: reelId });
   };
 
   const handleShowExplorer = () => {
@@ -882,6 +883,7 @@ export default function WerqRoot() {
                 onShowPostPage={handleShowPostPage}
                 onRequireAuth={handleRequireAuth}
                 onShowExplorer={handleShowExplorer}
+                onShowVideoDetail={handleShowVideoDetail}
                 onShowCampaigns={handleShowCampaigns}
               />
             </Suspense>
@@ -892,6 +894,7 @@ export default function WerqRoot() {
             user={authUser}
             activeTab={activeTab}
             videosOnly={activeTab === 'reels'}
+            initialVideoId={videoDetailId}
             onLogout={handleLogout}
             onRequireAuth={handleRequireAuth}
             onShowPostPage={handleShowPostPage}
