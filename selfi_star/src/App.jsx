@@ -38,7 +38,7 @@ const prefetchComponents = () => {
 class LazyLoadErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error) {
@@ -47,6 +47,7 @@ class LazyLoadErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('Lazy loading error:', error, errorInfo);
+    this.setState({ errorInfo });
   }
 
   render() {
@@ -57,7 +58,14 @@ class LazyLoadErrorBoundary extends React.Component {
           height: '100vh', background: '#fff', gap: 16,
         }}>
           <div style={{ fontSize: 18, fontWeight: 600, color: '#000' }}>Failed to load page</div>
-          <div style={{ fontSize: 14, color: '#666' }}>Please refresh the page to try again</div>
+          <div style={{ fontSize: 14, color: '#666' }}>
+            {this.state.error?.message || 'Please refresh the page to try again'}
+          </div>
+          {this.state.error && (
+            <div style={{ fontSize: 12, color: '#999', maxWidth: 400, textAlign: 'center' }}>
+              Error: {this.state.error.toString()}
+            </div>
+          )}
           <button 
             onClick={() => window.location.reload()} 
             style={{ padding: '12px 24px', background: '#000', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14 }}
