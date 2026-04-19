@@ -622,7 +622,25 @@ class ReelViewSet(viewsets.ModelViewSet):
 
             reel_id = reel.id
 
-            # Wrap entire deletion in a single atomic transaction so savepoints work
+            # Try Django ORM delete first (uses model CASCADE rules) - safest path
+            try:
+                with transaction.atomic():
+                    # Delete media files from storage before ORM delete
+                    try:
+                        if reel.media: reel.media.delete(save=False)
+                    except Exception as _e:
+                        print(f"[REEL DELETE] media file delete skipped: {_e}")
+                    try:
+                        if reel.image: reel.image.delete(save=False)
+                    except Exception as _e:
+                        print(f"[REEL DELETE] image file delete skipped: {_e}")
+                    reel.delete()
+                print(f"[REEL DELETE] Successfully deleted reel {reel_id} via ORM")
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            except Exception as orm_err:
+                print(f"[REEL DELETE] ORM delete failed, falling back to raw SQL: {orm_err}")
+
+            # Fallback: raw SQL cascade delete
             with transaction.atomic():
                 with connection.cursor() as cur:
                     def _safe(sql, params, critical=False):
