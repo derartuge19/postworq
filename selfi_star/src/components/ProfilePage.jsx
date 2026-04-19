@@ -286,7 +286,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       left: 0,
       right: 0,
       bottom: 0,
-      background: "#fff",
+      background: T.cardBg,
       overflowY: "auto",
       overflowX: "hidden",
       zIndex: 200,

@@ -346,7 +346,7 @@ export function AppShell({
             position: 'fixed',
             bottom: 0, left: 0, right: 0,
             height: 68,
-            background: 'rgba(255,255,255,0.95)',
+            background: T.cardBg === '#fff' || !T.cardBg ? 'rgba(255,255,255,0.95)' : T.cardBg,
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
             borderTop: `1px solid ${T.border}`,
