@@ -148,31 +148,44 @@ export default function WerqRoot() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
+  // ── Restore navigation state from browser history on initial load ──
+  // This ensures that refreshing the page maintains the current view
+  const _historyState = (() => {
+    try {
+      const state = window.history.state || {};
+      return state;
+    } catch { return {}; }
+  })();
+
   // ── Read the saved nav snapshot — ONLY restore the active tab, never overlays ──
   // On first launch (no sessionStorage), always start with 'home', ignore localStorage
-  const _savedActiveTab = (() => { 
-    try { 
+  const _savedActiveTab = (() => {
+    try {
+      // Priority: history state > sessionStorage > 'home'
+      if (_historyState.activeTab) return _historyState.activeTab;
       const navData = sessionStorage.getItem('_nav');
       if (!navData) return 'home'; // First launch → always home
       return JSON.parse(navData).activeTab || 'home';
-    } catch { return 'home'; } 
+    } catch { return 'home'; }
   })();
 
-  const [showPostPage, setShowPostPage] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  const [profileUserId, setProfileUserId] = useState(null);
+  const [showPostPage, setShowPostPage] = useState(_historyState.showPostPage || false);
+  const [showProfile, setShowProfile] = useState(_historyState.showProfile || false);
+  const [profileUserId, setProfileUserId] = useState(_historyState.profileUserId || null);
   const [activeTab, setActiveTab] = useState(_savedActiveTab);
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [showFollowersList, setShowFollowersList] = useState(false);
-  const [followersListType, setFollowersListType] = useState('followers');
-  const [followersListUserId, setFollowersListUserId] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(_historyState.showEditProfile || false);
+  const [showFollowersList, setShowFollowersList] = useState(_historyState.showFollowersList || false);
+  const [followersListType, setFollowersListType] = useState(_historyState.followersListType || 'followers');
+  const [followersListUserId, setFollowersListUserId] = useState(_historyState.followersListUserId || null);
+  const [showSettings, setShowSettings] = useState(_historyState.showSettings || false);
   const settingsReturnState = useRef(null); // tracks where to go back to when settings closes
   const prevNavState = useRef(null); // tracks nav state before any overlay page opens
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showCampaigns, setShowCampaigns] = useState(false);
-  const [showCampaignLeaderboard, setShowCampaignLeaderboard] = useState(false);
-  const [showCampaignFeed, setShowCampaignFeed] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(_historyState.showNotifications || false);
+  const [showCampaigns, setShowCampaigns] = useState(_historyState.showCampaigns || false);
+  const [showCampaignLeaderboard, setShowCampaignLeaderboard] = useState(_historyState.showCampaignLeaderboard || false);
+  const [showCampaignFeed, setShowCampaignFeed] = useState(_historyState.showCampaignFeed || false);
+  const [showCampaignDetail, setShowCampaignDetail] = useState(_historyState.showCampaignDetail || false);
+  const [campaignId, setCampaignId] = useState(_historyState.campaignId || null);
 
   // ── Parse shared post link (/post/:id or ?post=:id) SYNCHRONOUSLY so the
   //    shared content opens on the very first render — no flash of home/landing.
@@ -388,14 +401,14 @@ export default function WerqRoot() {
       showCampaigns: newState.showCampaigns !== undefined ? newState.showCampaigns : showCampaigns,
       showCampaignLeaderboard: newState.showCampaignLeaderboard !== undefined ? newState.showCampaignLeaderboard : showCampaignLeaderboard,
       showCampaignFeed: newState.showCampaignFeed !== undefined ? newState.showCampaignFeed : showCampaignFeed,
+      showCampaignDetail: newState.showCampaignDetail !== undefined ? newState.showCampaignDetail : showCampaignDetail,
+      campaignId: newState.campaignId !== undefined ? newState.campaignId : campaignId,
       showVideoDetail: newState.showVideoDetail !== undefined ? newState.showVideoDetail : showVideoDetail,
       videoDetailId: newState.videoDetailId !== undefined ? newState.videoDetailId : videoDetailId,
       showExplorer: newState.showExplorer !== undefined ? newState.showExplorer : showExplorer,
     };
     window.history.pushState(state, '');
   };
-  const [showCampaignDetail, setShowCampaignDetail] = useState(false);
-  const [campaignId, setCampaignId] = useState(null);
 
   // Function to reset all special page states
   const resetAllPages = () => {
