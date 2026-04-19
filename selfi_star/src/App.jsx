@@ -982,17 +982,19 @@ export default function WerqRoot() {
           </LazyLoadErrorBoundary>
         )}
         {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab === 'home' && (
-          <Suspense fallback={<PageSkeleton />}>
-            <HomePage
-              user={authUser}
-              onShowProfile={handleShowProfile}
-              onShowPostPage={handleShowPostPage}
-              onRequireAuth={handleRequireAuth}
-              onShowExplorer={handleShowExplorer}
-              onShowVideoDetail={handleShowVideoDetail}
-              onShowCampaigns={handleShowCampaigns}
-            />
-          </Suspense>
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
+              <HomePage
+                user={authUser}
+                onShowProfile={handleShowProfile}
+                onShowPostPage={handleShowPostPage}
+                onRequireAuth={handleRequireAuth}
+                onShowExplorer={handleShowExplorer}
+                onShowVideoDetail={handleShowVideoDetail}
+                onShowCampaigns={handleShowCampaigns}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
         )}
         {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab !== 'home' && (
           <TikTokLayout
