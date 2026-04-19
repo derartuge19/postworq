@@ -288,6 +288,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       bottom: 0,
       background: "#fff",
       overflowY: "auto",
+      overflowX: "hidden",
       zIndex: 200,
     }}>
       {loading ? (
@@ -375,7 +376,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           </div>
 
       {/* ── Centered content container (Instagram-style) ─── */}
-      <div style={{ maxWidth: 680, margin: '0 auto', width: '100%' }}>
+      <div style={{ maxWidth: 680, margin: '0 auto', width: '100%', overflowX: 'hidden' }}>
 
       {/* Profile Info */}
       <div style={{ padding: "20px" }}>
