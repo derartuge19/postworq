@@ -166,10 +166,10 @@ export function PostPage({ user, onBack }) {
           disabled={!selectedFile || isUploading}
           style={{
             padding: "10px 24px",
-            background: selectedFile && !isUploading ? T.pri : T.sub + "40",
-            border: "none",
+            background: selectedFile && !isUploading ? T.pri : "#f0f0f0",
+            border: selectedFile && !isUploading ? "none" : "1px solid #d0d0d0",
             borderRadius: 8,
-            color: selectedFile && !isUploading ? "#fff" : T.sub,
+            color: selectedFile && !isUploading ? "#fff" : "#666",
             fontSize: 14,
             fontWeight: 600,
             cursor: selectedFile && !isUploading ? "pointer" : "not-allowed",
