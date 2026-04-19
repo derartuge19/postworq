@@ -108,7 +108,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
         textAlign: 'center',
         marginBottom: 32,
         padding: '32px 20px',
-        background: `linear-gradient(135deg, ${theme.pri}15, ${theme.orange}15)`,
+        background: `linear-gradient(135deg, ${T.pri}15, #F59E0B15)`,
         borderRadius: 16,
         position: 'relative',
         overflow: 'hidden',
@@ -120,9 +120,9 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
           width: 56,
           height: 56,
           margin: '0 auto 16px',
-          background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+          background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
           borderRadius: '50%',
-          boxShadow: `0 4px 16px ${theme.pri}40`,
+          boxShadow: `0 4px 16px ${T.pri}40`,
         }}>
           <Trophy size={28} color="#fff" strokeWidth={2.5} />
         </div>
@@ -130,7 +130,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
           margin: 0,
           fontSize: 28,
           fontWeight: 900,
-          background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+          background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -141,7 +141,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
         </h1>
         <p style={{
           fontSize: 14,
-          color: theme.sub,
+          color: T.sub,
           maxWidth: 500,
           margin: '0 auto',
           lineHeight: 1.5
@@ -160,10 +160,10 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
       }}>
           {[
             { id: 'all', label: 'All', icon: Trophy, color: '#DA9B2A' },
-            { id: 'active', label: 'Active Now', icon: Trophy, color: theme.green },
-            { id: 'voting', label: 'Voting Open', icon: Award, color: theme.blue },
-            { id: 'upcoming', label: 'Coming Soon', icon: Clock, color: theme.orange },
-            { id: 'completed', label: 'Completed', icon: Calendar, color: theme.sub },
+            { id: 'active', label: 'Active Now', icon: Trophy, color: '#10B981' },
+            { id: 'voting', label: 'Voting Open', icon: Award, color: '#3B82F6' },
+            { id: 'upcoming', label: 'Coming Soon', icon: Clock, color: '#F59E0B' },
+            { id: 'completed', label: 'Completed', icon: Calendar, color: T.sub },
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = filter === tab.id;
@@ -173,10 +173,10 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                 onClick={() => setFilter(tab.id)}
                 style={{
                   padding: '8px 16px',
-                  background: isActive ? `linear-gradient(135deg, ${tab.color}, ${tab.color}dd)` : theme.card,
-                  border: `2px solid ${isActive ? tab.color : theme.border}`,
+                  background: isActive ? `linear-gradient(135deg, ${tab.color}, ${tab.color}dd)` : T.cardBg,
+                  border: `2px solid ${isActive ? tab.color : T.border}`,
                   borderRadius: 16,
-                  color: isActive ? '#fff' : theme.txt,
+                  color: isActive ? '#fff' : T.txt,
                   fontSize: 15,
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -224,21 +224,21 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                   background: '#fff',
                   borderRadius: 12,
                   overflow: 'hidden',
-                  border: `1px solid ${theme.border}`,
+                  border: `1px solid ${T.border}`,
                   boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                 }}
               >
                 <div style={{
                   width: '100%',
                   height: 160,
-                  background: `linear-gradient(90deg, ${theme.bg} 0%, ${theme.border} 50%, ${theme.bg} 100%)`,
+                  background: `linear-gradient(90deg, ${T.bg} 0%, ${T.border} 50%, ${T.bg} 100%)`,
                   backgroundSize: '1000px 100%',
                   animation: 'shimmer 2s infinite',
                 }} />
                 <div style={{ padding: 16 }}>
                   <div style={{
                     height: 16,
-                    background: `linear-gradient(90deg, ${theme.bg} 0%, ${theme.border} 50%, ${theme.bg} 100%)`,
+                    background: `linear-gradient(90deg, ${T.bg} 0%, ${T.border} 50%, ${T.bg} 100%)`,
                     backgroundSize: '1000px 100%',
                     animation: 'shimmer 2s infinite',
                     borderRadius: 8,
@@ -246,7 +246,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                   }} />
                   <div style={{
                     height: 24,
-                    background: `linear-gradient(90deg, ${theme.bg} 0%, ${theme.border} 50%, ${theme.bg} 100%)`,
+                    background: `linear-gradient(90deg, ${T.bg} 0%, ${T.border} 50%, ${T.bg} 100%)`,
                     backgroundSize: '1000px 100%',
                     animation: 'shimmer 2s infinite',
                     borderRadius: 8,
@@ -254,7 +254,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                   }} />
                   <div style={{
                     height: 40,
-                    background: `linear-gradient(90deg, ${theme.bg} 0%, ${theme.border} 50%, ${theme.bg} 100%)`,
+                    background: `linear-gradient(90deg, ${T.bg} 0%, ${T.border} 50%, ${T.bg} 100%)`,
                     backgroundSize: '1000px 100%',
                     animation: 'shimmer 2s infinite',
                     borderRadius: 12,
@@ -308,7 +308,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                     background: '#fff',
                     borderRadius: 12,
                     overflow: 'hidden',
-                    border: `1px solid ${theme.border}`,
+                    border: `1px solid ${T.border}`,
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
@@ -320,7 +320,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-                    e.currentTarget.style.borderColor = theme.border;
+                    e.currentTarget.style.borderColor = T.border;
                   }}
                 >
                   {/* Campaign Image */}
@@ -357,7 +357,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                     <div style={{
                       width: '100%',
                       height: 160,
-                      background: `linear-gradient(135deg, ${theme.pri}25, ${theme.orange}25)`,
+                      background: `linear-gradient(135deg, ${T.pri}25, #F59E0B25)`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -369,10 +369,10 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                         width: 200,
                         height: 200,
                         borderRadius: '50%',
-                        background: `radial-gradient(circle, ${theme.pri}15, transparent)`,
+                        background: `radial-gradient(circle, ${T.pri}15, transparent)`,
                         animation: 'pulse 3s ease-in-out infinite',
                       }} />
-                      <Trophy size={48} color={theme.pri} opacity={0.4} strokeWidth={1.5} />
+                      <Trophy size={48} color={T.pri} opacity={0.4} strokeWidth={1.5} />
                       <div style={{
                         position: 'absolute',
                         top: 16,
@@ -402,8 +402,8 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                     }}>
                       <span style={{
                         padding: '2px 8px',
-                        background: `${theme.pri}15`,
-                        color: theme.pri,
+                        background: `${T.pri}15`,
+                        color: T.pri,
                         borderRadius: 12,
                         fontSize: 10,
                         fontWeight: 800,
@@ -419,7 +419,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                       margin: 0,
                       fontSize: 15,
                       fontWeight: 700,
-                      color: theme.txt,
+                      color: T.txt,
                       marginBottom: 6,
                       lineHeight: 1.3,
                     }}>
@@ -429,7 +429,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                     <p style={{
                       margin: 0,
                       fontSize: 12,
-                      color: theme.sub,
+                      color: T.sub,
                       marginBottom: 12,
                       lineHeight: 1.5,
                       display: '-webkit-box',
@@ -443,10 +443,10 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                     {/* Prize */}
                     <div style={{
                       padding: 10,
-                      background: `linear-gradient(135deg, ${theme.pri}12, ${theme.orange}12)`,
+                      background: `linear-gradient(135deg, ${T.pri}12, #F59E0B12)`,
                       borderRadius: 8,
                       marginBottom: 12,
-                      border: `1px solid ${theme.pri}25`,
+                      border: `1px solid ${T.pri}25`,
                       position: 'relative',
                       overflow: 'hidden',
                     }}>
@@ -460,18 +460,18 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                           width: 36,
                           height: 36,
                           borderRadius: '50%',
-                          background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+                          background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          boxShadow: `0 2px 8px ${theme.pri}40`,
+                          boxShadow: `0 2px 8px ${T.pri}40`,
                         }}>
                           <Award size={18} color="#fff" strokeWidth={2.5} />
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{
                             fontSize: 10,
-                            color: theme.sub,
+                            color: T.sub,
                             marginBottom: 2,
                             fontWeight: 600,
                             textTransform: 'uppercase',
@@ -482,7 +482,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                           <div style={{
                             fontSize: 18,
                             fontWeight: 900,
-                            background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+                            background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             backgroundClip: 'text',
@@ -493,7 +493,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                           </div>
                           <div style={{
                             fontSize: 13,
-                            color: theme.txt,
+                            color: T.txt,
                             fontWeight: 600,
                           }}>
                             {campaign.prize_title}
@@ -509,17 +509,17 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                       gap: 8,
                       marginBottom: 12,
                       paddingTop: 12,
-                      borderTop: `1px solid ${theme.border}`,
+                      borderTop: `1px solid ${T.border}`,
                     }}>
                       <div style={{
                         textAlign: 'center',
                         padding: '8px 4px',
-                        background: theme.bg,
+                        background: T.bg,
                         borderRadius: 6,
                       }}>
                         <div style={{
                           fontSize: 9,
-                          color: theme.sub,
+                          color: T.sub,
                           marginBottom: 4,
                           fontWeight: 600,
                           textTransform: 'uppercase',
@@ -530,7 +530,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                         <div style={{
                           fontSize: 16,
                           fontWeight: 700,
-                          color: theme.blue,
+                          color: '#3B82F6',
                         }}>
                           {campaign.total_entries || 0}
                         </div>
@@ -538,12 +538,12 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                       <div style={{
                         textAlign: 'center',
                         padding: '8px 4px',
-                        background: theme.bg,
+                        background: T.bg,
                         borderRadius: 6,
                       }}>
                         <div style={{
                           fontSize: 10,
-                          color: theme.sub,
+                          color: T.sub,
                           marginBottom: 6,
                           fontWeight: 600,
                           textTransform: 'uppercase',
@@ -554,7 +554,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                         <div style={{
                           fontSize: 20,
                           fontWeight: 800,
-                          color: theme.red,
+                          color: '#EF4444',
                         }}>
                           {campaign.total_votes || 0}
                         </div>
@@ -562,12 +562,12 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                       <div style={{
                         textAlign: 'center',
                         padding: '12px 8px',
-                        background: theme.bg,
+                        background: T.bg,
                         borderRadius: 10,
                       }}>
                         <div style={{
                           fontSize: 10,
-                          color: theme.sub,
+                          color: T.sub,
                           marginBottom: 6,
                           fontWeight: 600,
                           textTransform: 'uppercase',
@@ -590,7 +590,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                       style={{
                         width: '100%',
                         padding: '14px',
-                        background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+                        background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
                         border: 'none',
                         borderRadius: 12,
                         color: '#fff',
@@ -601,7 +601,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 8,
-                        boxShadow: `0 4px 16px ${theme.pri}40`,
+                        boxShadow: `0 4px 16px ${T.pri}40`,
                         transition: 'all 0.3s',
                       }}
                       onMouseEnter={(e) => {
