@@ -105,6 +105,21 @@ export const ThemeProvider = ({ children }) => {
     applyCSS(resolveColors());
   }, [preset, darkMode, customPrimary]);
 
+  // Listen for storage events from admin panel saves (same-tab via dispatchEvent + cross-tab native)
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key !== STORAGE_KEY) return;
+      try {
+        const d = JSON.parse(e.newValue || '{}');
+        if (d.preset !== undefined) setPreset(d.preset || 'flipstar');
+        setDarkMode(d.darkMode ?? false);
+        setCustomPrimary(d.customPrimary || null);
+      } catch {}
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   const setThemePreset = useCallback((newPreset) => {
     setPreset(newPreset);
     setCustomPrimary(null);

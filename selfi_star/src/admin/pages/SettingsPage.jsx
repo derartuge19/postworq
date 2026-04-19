@@ -84,7 +84,17 @@ export function SettingsPage({ theme }) {
         method: 'POST',
         body: JSON.stringify(settings)
       });
-      setAlertModal({ isOpen: true, title: 'Success', message: 'Settings saved successfully!', type: 'success' });
+      // Apply theme to entire app immediately — no reload needed
+      try {
+        const themeData = {
+          preset: settings.theme_preset || 'flipstar',
+          darkMode: settings.dark_mode_default || false,
+          customPrimary: settings.primary_color_override || null,
+        };
+        localStorage.setItem('_platform_theme', JSON.stringify(themeData));
+        window.dispatchEvent(new StorageEvent('storage', { key: '_platform_theme', newValue: JSON.stringify(themeData) }));
+      } catch (_) {}
+      setAlertModal({ isOpen: true, title: 'Success', message: 'Settings saved! Theme applied across the app.', type: 'success' });
     } catch (error) {
       console.error('Failed to save settings:', error);
       setAlertModal({ isOpen: true, title: 'Error', message: 'Failed to save settings', type: 'error' });
@@ -94,7 +104,7 @@ export function SettingsPage({ theme }) {
   };
 
   const handleChange = (field, value) => {
-    setSettings({ ...settings, [field]: value });
+    setSettings(prev => ({ ...prev, [field]: value }));
   };
 
   if (loading) {
@@ -645,7 +655,7 @@ export function SettingsPage({ theme }) {
         )}
 
         {activeTab === 'theme' && (
-          <ThemeTab settings={settings} handleChange={handleChange} theme={theme} />
+          <ThemeTab settings={settings} handleChange={handleChange} setSettings={setSettings} theme={theme} />
         )}
 
         {activeTab === 'content' && (
@@ -823,7 +833,20 @@ export function SettingsPage({ theme }) {
 }
 
 // ─── Theme Tab ─────────────────────────────────────────────────────────────────
-function ThemeTab({ settings, handleChange, theme }) {
+function applyThemeCSSLive(presetKey, dark, customPrimary) {
+  const p = PRESET_THEMES[presetKey] || PRESET_THEMES.flipstar;
+  const c = { ...(dark ? p.dark : p.light) };
+  if (customPrimary) c.pri = customPrimary;
+  const r = document.documentElement;
+  r.style.setProperty('--color-primary', c.pri);
+  r.style.setProperty('--color-bg', c.bg);
+  r.style.setProperty('--color-txt', c.txt);
+  r.style.setProperty('--color-sub', c.sub);
+  r.style.setProperty('--color-border', c.border);
+  r.style.setProperty('--color-card', c.cardBg);
+}
+
+function ThemeTab({ settings, handleChange, setSettings, theme }) {
   const selectedPreset = settings.theme_preset || 'flipstar';
   const isDark = settings.dark_mode_default ?? false;
 
@@ -835,6 +858,22 @@ function ThemeTab({ settings, handleChange, theme }) {
   })();
 
   const presetKeys = Object.keys(PRESET_THEMES);
+
+  const selectPreset = (key) => {
+    setSettings(prev => ({ ...prev, theme_preset: key, primary_color_override: null }));
+    applyThemeCSSLive(key, isDark, null);
+  };
+
+  const toggleDarkMode = () => {
+    const nd = !isDark;
+    setSettings(prev => ({ ...prev, dark_mode_default: nd }));
+    applyThemeCSSLive(selectedPreset, nd, settings.primary_color_override || null);
+  };
+
+  const updateCustomColor = (color) => {
+    handleChange('primary_color_override', color || null);
+    applyThemeCSSLive(selectedPreset, isDark, color || null);
+  };
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 32 }}>
@@ -849,7 +888,7 @@ function ThemeTab({ settings, handleChange, theme }) {
               <div style={{ fontSize: 12, color: theme.sub }}>{isDark ? 'Currently showing dark variant' : 'Currently showing light variant'}</div>
             </div>
           </div>
-          <button onClick={() => handleChange('dark_mode_default', !isDark)}
+          <button onClick={toggleDarkMode}
             style={{ width: 48, height: 28, borderRadius: 14, background: isDark ? theme.pri : theme.border, border: 'none', cursor: 'pointer', position: 'relative', transition: 'all 0.2s', flexShrink: 0 }}>
             <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, left: isDark ? 22 : 2, transition: 'all 0.2s' }} />
           </button>
@@ -863,7 +902,7 @@ function ThemeTab({ settings, handleChange, theme }) {
             const c = isDark ? p.dark : p.light;
             const isActive = selectedPreset === key;
             return (
-              <button key={key} onClick={() => { handleChange('theme_preset', key); handleChange('primary_color_override', null); }}
+              <button key={key} onClick={() => selectPreset(key)}
                 style={{ background: c.cardBg, border: `2px solid ${isActive ? c.pri : theme.border}`, borderRadius: 12, padding: '12px', cursor: 'pointer', textAlign: 'left', position: 'relative', transition: 'all 0.15s', boxShadow: isActive ? `0 0 0 3px ${c.pri}30` : 'none' }}>
                 {/* Swatch row */}
                 <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
@@ -889,14 +928,14 @@ function ThemeTab({ settings, handleChange, theme }) {
           <div style={{ fontSize: 13, color: theme.sub, marginBottom: 12 }}>Override the preset's primary color with your own brand color.</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <input type="color" value={settings.primary_color_override || previewColors.pri}
-              onChange={(e) => handleChange('primary_color_override', e.target.value)}
+              onChange={(e) => updateCustomColor(e.target.value)}
               style={{ width: 44, height: 44, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: 'pointer', padding: 2, flexShrink: 0 }} />
             <input type="text" value={settings.primary_color_override || ''}
-              onChange={(e) => handleChange('primary_color_override', e.target.value)}
+              onChange={(e) => updateCustomColor(e.target.value)}
               placeholder="Leave blank to use preset color"
               style={{ flex: 1, padding: '10px 12px', border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 13, outline: 'none', background: theme.card, color: theme.txt }} />
             {settings.primary_color_override && (
-              <button onClick={() => handleChange('primary_color_override', null)}
+              <button onClick={() => updateCustomColor(null)}
                 style={{ padding: '10px 14px', background: '#EF444420', border: '1px solid #EF4444', borderRadius: 8, color: '#EF4444', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                 Reset
               </button>
