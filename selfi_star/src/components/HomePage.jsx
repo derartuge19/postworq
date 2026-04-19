@@ -47,8 +47,6 @@ function writeHomeCache(data) {
 
 /* ── Comment Sheet ── */
 const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T, onCommentAdded }) {
-  // Ensure T is defined with fallback values
-  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666' };
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -80,44 +78,44 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: colors.cardBg, borderRadius: '20px 20px 0 0', maxHeight: '75vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: T?.cardBg || '#fff', borderRadius: '20px 20px 0 0', maxHeight: '75vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         {/* Handle bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: `1px solid ${colors.border}` }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: colors.txt }}>Comments</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.sub }}><X size={20} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: `1px solid ${T?.border || '#e0e0e0'}` }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: T?.txt || '#000' }}>Comments</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T?.sub || '#666' }}><X size={20} /></button>
         </div>
         {/* Comments list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
           {comments.length === 0 ? (
-            <div style={{ textAlign: 'center', color: colors.sub, padding: 30, fontSize: 14 }}>No comments yet. Be first!</div>
+            <div style={{ textAlign: 'center', color: T?.sub || '#666', padding: 30, fontSize: 14 }}>No comments yet. Be first!</div>
           ) : comments.map(c => (
             <div key={c.id} style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 34, height: 34, borderRadius: '50%', background: colors.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
                 {c.user?.profile_photo ? <img src={mediaUrl(c.user.profile_photo)} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} /> : '👤'}
               </div>
               <div style={{ flex: 1 }}>
-                <span style={{ fontWeight: 700, fontSize: 13, color: colors.txt }}>{c.user?.username} </span>
-                <span style={{ fontSize: 13, color: colors.txt }}>{c.text}</span>
-                <div style={{ fontSize: 11, color: colors.sub, marginTop: 2 }}>{timeAgo(c.created_at)}</div>
+                <span style={{ fontWeight: 700, fontSize: 13, color: T?.txt || '#000' }}>{c.user?.username} </span>
+                <span style={{ fontSize: 13, color: T?.txt || '#000' }}>{c.text}</span>
+                <div style={{ fontSize: 11, color: T?.sub || '#666', marginTop: 2 }}>{timeAgo(c.created_at)}</div>
               </div>
             </div>
           ))}
         </div>
         {/* Input */}
-        <form onSubmit={handleSend} style={{ display: 'flex', gap: 8, padding: '10px 16px', borderTop: `1px solid ${colors.border}` }}>
+        <form onSubmit={handleSend} style={{ display: 'flex', gap: 8, padding: '10px 16px', borderTop: `1px solid ${T?.border || '#e0e0e0'}` }}>
           <input
             ref={inputRef}
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder={api.hasToken() ? 'Add a comment…' : 'Log in to comment'}
             disabled={!api.hasToken()}
-            style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${colors.border}`, background: colors.cardBg, color: colors.txt, fontSize: 14, outline: 'none' }}
+            style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${T?.border || '#e0e0e0'}`, background: T?.cardBg || '#fff', color: T?.txt || '#000', fontSize: 14, outline: 'none' }}
           />
           <button
             type="submit"
             disabled={!text.trim() || sending || !api.hasToken()}
-            style={{ background: colors.pri, border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0 }}
+            style={{ background: T?.pri || '#000', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0 }}
             onMouseDown={e => e.currentTarget.style.transform = 'scale(0.9)'}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
           >
@@ -131,55 +129,53 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
 
 /* ── Post Info Sheet ── */
 const PostInfoSheet = memo(function PostInfoSheet({ post, onClose, T }) {
-  // Ensure T is defined with fallback values
-  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666' };
   const raw = post.media || post.image || '';
   const isVideo = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(raw) || raw.includes('/video/upload/');
   const avatarSrc = post.user?.profile_photo ? mediaUrl(post.user.profile_photo) : null;
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9300, display: 'flex', alignItems: 'flex-end' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: colors.cardBg, borderRadius: '20px 20px 0 0', padding: '20px 20px 32px', boxSizing: 'border-box' }}>
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: colors.border, margin: '0 auto 16px' }} />
-        <div style={{ fontSize: 16, fontWeight: 700, color: colors.txt, marginBottom: 16 }}>Post Info</div>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: T?.cardBg || '#fff', borderRadius: '20px 20px 0 0', padding: '20px 20px 32px', boxSizing: 'border-box' }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: T?.border || '#e0e0e0', margin: '0 auto 16px' }} />
+        <div style={{ fontSize: 16, fontWeight: 700, color: T?.txt || '#000', marginBottom: 16 }}>Post Info</div>
 
         {/* Author */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '12px', background: colors.cardBg, borderRadius: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: colors.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '12px', background: T?.cardBg || '#fff', borderRadius: 12 }}>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {avatarSrc ? <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👤'}
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: colors.txt }}>@{post.user?.username || 'unknown'}</div>
-            <div style={{ fontSize: 12, color: colors.sub }}>{post.user?.full_name || ''}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: T?.txt || '#000' }}>@{post.user?.username || 'unknown'}</div>
+            <div style={{ fontSize: 12, color: T?.sub || '#666' }}>{post.user?.full_name || ''}</div>
           </div>
         </div>
 
         {/* Stats row */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
           {[['❤️', post.votes || 0, 'Likes'], ['💬', post.comment_count || 0, 'Comments'], ['👁️', post.view_count || 0, 'Views']].map(([emoji, val, lbl]) => (
-            <div key={lbl} style={{ flex: 1, background: colors.cardBg, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
+            <div key={lbl} style={{ flex: 1, background: T?.cardBg || '#fff', borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
               <div style={{ fontSize: 18 }}>{emoji}</div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: colors.txt }}>{Number(val).toLocaleString()}</div>
-              <div style={{ fontSize: 11, color: colors.sub }}>{lbl}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: T?.txt || '#000' }}>{Number(val).toLocaleString()}</div>
+              <div style={{ fontSize: 11, color: T?.sub || '#666' }}>{lbl}</div>
             </div>
           ))}
         </div>
 
         {/* Meta */}
-        <div style={{ fontSize: 13, color: colors.sub, marginBottom: post.caption ? 10 : 0 }}>
-          <span style={{ color: colors.pri, fontWeight: 600 }}>{isVideo ? '🎬 Video' : '🖼️ Image'}</span>
+        <div style={{ fontSize: 13, color: T?.sub || '#666', marginBottom: post.caption ? 10 : 0 }}>
+          <span style={{ color: T?.pri || '#000', fontWeight: 600 }}>{isVideo ? '🎬 Video' : '🖼️ Image'}</span>
           {' · '}
           {timeAgo(post.created_at)}
         </div>
 
         {/* Caption */}
         {post.caption && (
-          <div style={{ fontSize: 14, color: colors.txt, lineHeight: 1.55, marginTop: 8 }}>
+          <div style={{ fontSize: 14, color: T?.txt || '#000', lineHeight: 1.55, marginTop: 8 }}>
             <span style={{ fontWeight: 700 }}>@{post.user?.username} </span>
             {post.caption}
           </div>
         )}
 
-        <button onClick={onClose} style={{ marginTop: 20, width: '100%', padding: '12px', borderRadius: 12, background: colors.cardBg, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: colors.txt }}>Close</button>
+        <button onClick={onClose} style={{ marginTop: 20, width: '100%', padding: '12px', borderRadius: 12, background: T?.cardBg || '#fff', border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: T?.txt || '#000' }}>Close</button>
       </div>
     </div>
   );
@@ -187,9 +183,6 @@ const PostInfoSheet = memo(function PostInfoSheet({ post, onClose, T }) {
 
 /* ── Post Options Popover ── */
 const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorRect }) {
-  // Ensure T is defined with fallback values
-  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666' };
-  if (!colors) return null;
   const isOwn = currentUser?.id === post.user?.id;
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -287,10 +280,10 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
           position: 'fixed',
           top, left, width: menuWidth,
           zIndex: 9200,
-          background: colors.cardBg,
+          background: T?.cardBg || '#fff',
           borderRadius: 12,
           boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)',
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${T?.border || '#e0e0e0'}`,
           overflow: 'hidden',
           animation: 'menuFadeIn 0.15s ease',
         }}
@@ -298,7 +291,7 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
         <style>{`@keyframes menuFadeIn { from { opacity:0; transform:scale(0.95) translateY(-6px); } to { opacity:1; transform:scale(1) translateY(0); } }`}</style>
         {groups.map((group, gi) => (
           <div key={gi}>
-            {gi > 0 && <div style={{ height: 1, background: colors.border }} />}
+            {gi > 0 && <div style={{ height: 1, background: T?.border || '#e0e0e0' }} />}
             {group.map(opt => {
               const i = idx++;
               const { Icon } = opt;
@@ -311,14 +304,14 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     width: '100%', padding: '12px 16px',
-                    background: hoveredIdx === i ? colors.cardBg : 'transparent',
+                    background: hoveredIdx === i ? T?.cardBg || '#fff' : 'transparent',
                     border: 'none', cursor: 'pointer', textAlign: 'left',
                     fontSize: 14, fontWeight: 500,
-                    color: opt.danger ? '#EF4444' : colors.txt,
+                    color: opt.danger ? '#EF4444' : T?.txt || '#000',
                     transition: 'background 0.12s',
                   }}
                 >
-                  <Icon size={17} strokeWidth={1.8} color={opt.danger ? '#EF4444' : colors.sub} />
+                  <Icon size={17} strokeWidth={1.8} color={opt.danger ? '#EF4444' : T?.sub || '#666'} />
                   {opt.label}
                 </button>
               );
@@ -333,8 +326,6 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
 
 /* ── Post Card ── */
 const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onNavigateToReel, onCommentAdded, onVoteAdded, videoObserver }) {
-  // Ensure T is defined with fallback values
-  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666' };
   const [liked, setLiked] = useState(post.is_liked || false);
   const [likes, setLikes] = useState(post.votes || 0);
   const [saved, setSaved] = useState(post.is_saved || false);
@@ -583,12 +574,12 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{
-          background: colors.cardBg,
+          background: T?.cardBg || '#fff',
           borderRadius: 16,
           boxShadow: isHovered
             ? `0 16px 48px rgba(0,0,0,0.16), 0 4px 16px rgba(0,0,0,0.10)`
             : '0 2px 16px rgba(0,0,0,0.08)',
-          border: `1px solid ${isHovered ? colors.pri + '50' : colors.border}`,
+          border: `1px solid ${isHovered ? (T?.pri || '#000') + '50' : T?.border || '#e0e0e0'}`,
           overflow: 'hidden',
           marginBottom: 20,
           maxWidth: 560,
@@ -613,7 +604,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
           >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', background: colors.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: `2px solid ${colors.pri}30` }}>
+            <div style={{ width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: `2px solid ${(T?.pri || '#000')}30` }}>
               {avatarSrc
                 ? <img src={avatarSrc} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
                 : '👤'}
@@ -624,18 +615,18 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               <button
                 className="hp-btn"
                 onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14, fontWeight: 700, color: colors.txt }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14, fontWeight: 700, color: T?.txt || '#000' }}
               >
                 {post.user?.username || 'user'}
               </button>
-              <CheckCircle size={14} fill={colors.pri} color="#fff" />
+              <CheckCircle size={14} fill={T?.pri || '#000'} color="#fff" />
             </div>
-            <div style={{ fontSize: 12, color: colors.sub }}>{timeAgo(post.created_at)}</div>
+            <div style={{ fontSize: 12, color: T?.sub || '#666' }}>{timeAgo(post.created_at)}</div>
           </div>
           <button
             className="hp-btn"
             onClick={(e) => { e.stopPropagation(); setOptionsAnchor(e.currentTarget.getBoundingClientRect()); setShowOptions(true); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: colors.sub, display: 'flex', alignItems: 'center' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: T?.sub || '#666', display: 'flex', alignItems: 'center' }}
           >
             <MoreHorizontal size={20} />
           </button>
@@ -682,7 +673,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               />
             )
           ) : (
-            <div style={{ width: '100%', height: 260, background: colors.cardBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.sub, fontSize: 14 }}>No media</div>
+            <div style={{ width: '100%', height: 260, background: T?.cardBg || '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: T?.sub || '#666', fontSize: 14 }}>No media</div>
           )}
 
           {/* Play button overlay - only shows when paused */}
@@ -738,21 +729,21 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   padding: '6px 10px', borderRadius: 10,
                   display: 'flex', alignItems: 'center', gap: 5,
                   animation: likeAnim ? 'heartPop 0.4s ease' : 'none',
-                  '--hp-hover': liked ? '#EF444420' : colors.border + '60',
+                  '--hp-hover': liked ? '#EF444420' : (T?.border || '#e0e0e0') + '60',
                 }}
               >
                 {isCampaignPost ? (
                   <Trophy
                     size={24}
-                    fill={liked ? colors.pri : 'none'}
-                    color={liked ? colors.pri : colors.txt}
+                    fill={liked ? T?.pri || '#000' : 'none'}
+                    color={liked ? T?.pri || '#000' : T?.txt || '#000'}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 ) : (
                   <Heart
                     size={24}
                     fill={liked ? '#EF4444' : 'none'}
-                    color={liked ? '#EF4444' : colors.txt}
+                    color={liked ? '#EF4444' : T?.txt || '#000'}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
@@ -765,10 +756,10 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   background: 'none', border: 'none', cursor: 'pointer',
                   padding: '6px 10px', borderRadius: 10,
                   display: 'flex', alignItems: 'center', gap: 5,
-                  '--hp-hover': colors.border + '60',
+                  '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <MessageCircle size={24} color={colors.txt} style={{ transition: 'transform 0.15s' }} />
+                <MessageCircle size={24} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
               </button>
               {/* Share */}
               <button
@@ -779,11 +770,11 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   background: 'none', border: 'none', cursor: 'pointer',
                   padding: '6px 10px', borderRadius: 10,
                   display: 'flex', alignItems: 'center', gap: 5,
-                  '--hp-hover': colors.border + '60',
+                  '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={24} color={colors.txt} style={{ transition: 'transform 0.15s' }} />
-                {post.shares > 0 && <span style={{ fontSize: 13, color: colors.sub, fontWeight: 600 }}>{post.shares}</span>}
+                <Share2 size={24} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                {post.shares > 0 && <span style={{ fontSize: 13, color: T?.sub || '#666', fontWeight: 600 }}>{post.shares}</span>}
               </button>
             </div>
             {/* Save */}
@@ -794,19 +785,19 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 background: 'none', border: 'none', cursor: 'pointer',
                 padding: '6px 10px', borderRadius: 10,
                 animation: saveAnim ? 'savePop 0.3s ease' : 'none',
-                '--hp-hover': saved ? colors.pri + '25' : colors.border + '60',
+                '--hp-hover': saved ? (T?.pri || '#000') + '25' : (T?.border || '#e0e0e0') + '60',
               }}
             >
               <Bookmark
                 size={24}
-                fill={saved ? colors.pri : 'none'}
-                color={saved ? colors.pri : colors.txt}
+                fill={saved ? T?.pri || '#000' : 'none'}
+                color={saved ? T?.pri || '#000' : T?.txt || '#000'}
               />
             </button>
           </div>
 
           {/* Like count */}
-          <div style={{ fontSize: 14, fontWeight: 700, color: colors.txt, marginTop: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: T?.txt || '#000', marginTop: 4 }}>
             {likes.toLocaleString()} likes
           </div>
 
@@ -817,7 +808,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               ? post.caption
               : post.caption.slice(0, CAPTION_LIMIT).trimEnd() + '…';
             return (
-              <div style={{ fontSize: 14, color: colors.txt, marginTop: 4, lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              <div style={{ fontSize: 14, color: T?.txt || '#000', marginTop: 4, lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                 <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
                 {shown}
                 {isLong && (
@@ -825,7 +816,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                     onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
                     style={{
                       background: 'none', border: 'none', padding: 0, marginLeft: 4,
-                      color: colors.sub, fontSize: 14, fontWeight: 600,
+                      color: T?.sub || '#666', fontSize: 14, fontWeight: 600,
                       cursor: 'pointer', lineHeight: 1.55,
                     }}
                   >
@@ -843,7 +834,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 <div 
                   key={comment.id}
                   onClick={handleCommentClick}
-                  style={{ fontSize: 13, color: colors.txt, marginTop: 3, cursor: 'pointer' }}
+                  style={{ fontSize: 13, color: T?.txt || '#000', marginTop: 3, cursor: 'pointer' }}
                 >
                   <span style={{ fontWeight: 700 }}>{comment.user?.username}</span>
                   <span> {comment.text}</span>
@@ -855,7 +846,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           {/* Comments link */}
           <button
             onClick={handleCommentClick}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontSize: 13, color: colors.sub, display: 'block', marginTop: 4 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontSize: 13, color: T?.sub || '#666', display: 'block', marginTop: 4 }}
           >
             {commentCount > 0 ? `View all ${commentCount} comments` : 'Add a comment…'}
           </button>
@@ -864,7 +855,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           {hashtags.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
               {hashtags.map((tag, i) => (
-                <span key={i} style={{ fontSize: 13, color: colors.pri, fontWeight: 600 }}>
+                <span key={i} style={{ fontSize: 13, color: T?.pri || '#000', fontWeight: 600 }}>
                   {tag.startsWith('#') ? tag : `#${tag}`}
                 </span>
               ))}
@@ -915,8 +906,6 @@ const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 
 export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
   const { colors: T } = useTheme();
-  // Ensure T is defined with fallback values
-  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666', bg: '#fff' };
   const [activeTab, setActiveTab] = useState('For You');
   const [posts, setPosts] = useState(() => readHomeCache() || []);
   const [loading, setLoading] = useState(() => !readHomeCache());
@@ -1052,7 +1041,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ height: '100vh', background: colors.bg, overflowY: 'auto', overflowX: 'hidden', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      style={{ height: '100vh', background: T?.bg || '#fff', overflowY: 'auto', overflowX: 'hidden', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
       <style>{`
         div::-webkit-scrollbar {
@@ -1070,14 +1059,14 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: `linear-gradient(180deg, ${colors.bg} 0%, transparent 100%)`,
+          background: `linear-gradient(180deg, ${T?.bg || '#fff'} 0%, transparent 100%)`,
           zIndex: 40,
         }}>
           <div style={{
             width: 32,
             height: 32,
             borderRadius: '50%',
-            border: `3px solid ${colors.pri}`,
+            border: `3px solid ${T?.pri || '#000'}`,
             borderTopColor: 'transparent',
             animation: isRefreshing ? 'spin 0.8s linear infinite' : 'none',
             transform: `rotate(${(pullDistance / PULL_THRESHOLD) * 360}deg)`,
@@ -1095,8 +1084,8 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       {/* Tab bar */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 50,
-        background: colors.cardBg,
-        borderBottom: `1px solid ${colors.border}`,
+        background: T?.cardBg || '#fff',
+        borderBottom: `1px solid ${T?.border || '#e0e0e0'}`,
         display: 'flex',
         alignItems: 'center',
         overflowX: 'auto',
@@ -1120,7 +1109,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 padding: '12px 0',
                 fontSize: 15,
                 fontWeight: isActive ? 700 : 500,
-                color: isActive ? colors.txt : colors.sub,
+                color: isActive ? T?.txt || '#000' : T?.sub || '#666',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 whiteSpace: 'nowrap',
@@ -1128,8 +1117,8 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 position: 'relative',
                 fontFamily: 'inherit',
               }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = colors.txt; } }}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = colors.sub; } }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = T?.txt || '#000'; } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = T?.sub || '#666'; } }}
             >
               {tab}
               {isActive && (
@@ -1140,7 +1129,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                   transform: 'translateX(-50%)',
                   width: '20px',
                   height: '2px',
-                  background: colors.pri,
+                  background: T?.pri || '#000',
                   borderRadius: '2px',
                 }} />
               )}
@@ -1161,26 +1150,26 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         {loading && posts.length === 0 ? (
           [1,2,3].map(i => (
             <div key={i} style={{
-              width: '100%', maxWidth: 560, background: colors.cardBg,
-              borderRadius: 16, border: `1px solid ${colors.border}`,
+              width: '100%', maxWidth: 560, background: T?.cardBg || '#fff',
+              borderRadius: 16, border: `1px solid ${T?.border || '#e0e0e0'}`,
               overflow: 'hidden', marginBottom: 20,
             }}>
               <div style={{ padding: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div style={{ width: 42, height: 42, borderRadius: '50%', background: colors.border }} />
+                <div style={{ width: 42, height: 42, borderRadius: '50%', background: T?.border || '#e0e0e0' }} />
                 <div>
-                  <div style={{ width: 100, height: 12, background: colors.border, borderRadius: 6, marginBottom: 6 }} />
-                  <div style={{ width: 60, height: 10, background: colors.border, borderRadius: 5 }} />
+                  <div style={{ width: 100, height: 12, background: T?.border || '#e0e0e0', borderRadius: 6, marginBottom: 6 }} />
+                  <div style={{ width: 60, height: 10, background: T?.border || '#e0e0e0', borderRadius: 5 }} />
                 </div>
               </div>
-              <div style={{ width: '100%', height: 300, background: colors.border }} />
+              <div style={{ width: '100%', height: 300, background: T?.border || '#e0e0e0' }} />
               <div style={{ padding: 16 }}>
-                <div style={{ width: 80, height: 12, background: colors.border, borderRadius: 6, marginBottom: 8 }} />
-                <div style={{ width: '70%', height: 10, background: colors.border, borderRadius: 5 }} />
+                <div style={{ width: 80, height: 12, background: T?.border || '#e0e0e0', borderRadius: 6, marginBottom: 8 }} />
+                <div style={{ width: '70%', height: 10, background: T?.border || '#e0e0e0', borderRadius: 5 }} />
               </div>
             </div>
           ))
         ) : posts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60, color: colors.sub }}>
+          <div style={{ textAlign: 'center', padding: 60, color: T?.sub || '#666' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
             <div style={{ fontSize: 16, fontWeight: 600 }}>No posts yet</div>
             <div style={{ fontSize: 14, marginTop: 8 }}>Be the first to share something!</div>
@@ -1203,12 +1192,12 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         {/* Infinite scroll loader */}
         <div ref={loaderRef} style={{ height: 40, width: '100%' }} />
         {loading && posts.length > 0 && (
-          <div style={{ textAlign: 'center', padding: 20, color: colors.sub, fontSize: 14 }}>
+          <div style={{ textAlign: 'center', padding: 20, color: T?.sub || '#666', fontSize: 14 }}>
             Loading more...
           </div>
         )}
         {!hasMore && posts.length > 0 && (
-          <div style={{ textAlign: 'center', padding: 20, color: colors.sub, fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 20, color: T?.sub || '#666', fontSize: 13 }}>
             You're all caught up ✓
           </div>
         )}
