@@ -621,7 +621,6 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
                   style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block', background: '#111' }}
                   playsInline
                   loop
-                  muted
                   onPlay={() => setVideoPlaying(true)}
                   onPause={() => setVideoPlaying(false)}
                   onError={() => setImgError(true)}
@@ -1014,7 +1013,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ minHeight: '100vh', background: T.bg, overflowY: 'auto', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y' }}
+      style={{ height: '100vh', background: T.bg, overflowY: 'auto', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y' }}
     >
       {/* Pull to refresh indicator */}
       {pullDistance > 0 && (
