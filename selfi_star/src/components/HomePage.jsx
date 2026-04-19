@@ -47,6 +47,8 @@ function writeHomeCache(data) {
 
 /* ── Comment Sheet ── */
 const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T, onCommentAdded }) {
+  // Ensure T is defined with fallback values
+  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666' };
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -78,44 +80,44 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: T.cardBg || '#fff', borderRadius: '20px 20px 0 0', maxHeight: '75vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: colors.cardBg, borderRadius: '20px 20px 0 0', maxHeight: '75vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
         {/* Handle bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: `1px solid ${T.border}` }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: T.txt }}>Comments</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sub }}><X size={20} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: `1px solid ${colors.border}` }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: colors.txt }}>Comments</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.sub }}><X size={20} /></button>
         </div>
         {/* Comments list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
           {comments.length === 0 ? (
-            <div style={{ textAlign: 'center', color: T.sub, padding: 30, fontSize: 14 }}>No comments yet. Be first!</div>
+            <div style={{ textAlign: 'center', color: colors.sub, padding: 30, fontSize: 14 }}>No comments yet. Be first!</div>
           ) : comments.map(c => (
             <div key={c.id} style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 34, height: 34, borderRadius: '50%', background: T.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: colors.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
                 {c.user?.profile_photo ? <img src={mediaUrl(c.user.profile_photo)} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} /> : '👤'}
               </div>
               <div style={{ flex: 1 }}>
-                <span style={{ fontWeight: 700, fontSize: 13, color: T.txt }}>{c.user?.username} </span>
-                <span style={{ fontSize: 13, color: T.txt }}>{c.text}</span>
-                <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>{timeAgo(c.created_at)}</div>
+                <span style={{ fontWeight: 700, fontSize: 13, color: colors.txt }}>{c.user?.username} </span>
+                <span style={{ fontSize: 13, color: colors.txt }}>{c.text}</span>
+                <div style={{ fontSize: 11, color: colors.sub, marginTop: 2 }}>{timeAgo(c.created_at)}</div>
               </div>
             </div>
           ))}
         </div>
         {/* Input */}
-        <form onSubmit={handleSend} style={{ display: 'flex', gap: 8, padding: '10px 16px', borderTop: `1px solid ${T.border}` }}>
+        <form onSubmit={handleSend} style={{ display: 'flex', gap: 8, padding: '10px 16px', borderTop: `1px solid ${colors.border}` }}>
           <input
             ref={inputRef}
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder={api.hasToken() ? 'Add a comment…' : 'Log in to comment'}
             disabled={!api.hasToken()}
-            style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${T.border}`, background: T.bg, color: T.txt, fontSize: 14, outline: 'none' }}
+            style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${colors.border}`, background: colors.cardBg, color: colors.txt, fontSize: 14, outline: 'none' }}
           />
           <button
             type="submit"
             disabled={!text.trim() || sending || !api.hasToken()}
-            style={{ background: T.pri, border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0 }}
+            style={{ background: colors.pri, border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0 }}
             onMouseDown={e => e.currentTarget.style.transform = 'scale(0.9)'}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
           >
@@ -129,53 +131,55 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
 
 /* ── Post Info Sheet ── */
 const PostInfoSheet = memo(function PostInfoSheet({ post, onClose, T }) {
+  // Ensure T is defined with fallback values
+  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666' };
   const raw = post.media || post.image || '';
   const isVideo = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(raw) || raw.includes('/video/upload/');
   const avatarSrc = post.user?.profile_photo ? mediaUrl(post.user.profile_photo) : null;
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9300, display: 'flex', alignItems: 'flex-end' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: T.cardBg || '#fff', borderRadius: '20px 20px 0 0', padding: '20px 20px 32px', boxSizing: 'border-box' }}>
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: T.border, margin: '0 auto 16px' }} />
-        <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 16 }}>Post Info</div>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: colors.cardBg, borderRadius: '20px 20px 0 0', padding: '20px 20px 32px', boxSizing: 'border-box' }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: colors.border, margin: '0 auto 16px' }} />
+        <div style={{ fontSize: 16, fontWeight: 700, color: colors.txt, marginBottom: 16 }}>Post Info</div>
 
         {/* Author */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '12px', background: T.bg, borderRadius: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: T.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '12px', background: colors.cardBg, borderRadius: 12 }}>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: colors.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {avatarSrc ? <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👤'}
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: T.txt }}>@{post.user?.username || 'unknown'}</div>
-            <div style={{ fontSize: 12, color: T.sub }}>{post.user?.full_name || ''}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: colors.txt }}>@{post.user?.username || 'unknown'}</div>
+            <div style={{ fontSize: 12, color: colors.sub }}>{post.user?.full_name || ''}</div>
           </div>
         </div>
 
         {/* Stats row */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
           {[['❤️', post.votes || 0, 'Likes'], ['💬', post.comment_count || 0, 'Comments'], ['👁️', post.view_count || 0, 'Views']].map(([emoji, val, lbl]) => (
-            <div key={lbl} style={{ flex: 1, background: T.bg, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
+            <div key={lbl} style={{ flex: 1, background: colors.cardBg, borderRadius: 10, padding: '10px 6px', textAlign: 'center' }}>
               <div style={{ fontSize: 18 }}>{emoji}</div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: T.txt }}>{Number(val).toLocaleString()}</div>
-              <div style={{ fontSize: 11, color: T.sub }}>{lbl}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: colors.txt }}>{Number(val).toLocaleString()}</div>
+              <div style={{ fontSize: 11, color: colors.sub }}>{lbl}</div>
             </div>
           ))}
         </div>
 
         {/* Meta */}
-        <div style={{ fontSize: 13, color: T.sub, marginBottom: post.caption ? 10 : 0 }}>
-          <span style={{ color: T.pri, fontWeight: 600 }}>{isVideo ? '🎬 Video' : '🖼️ Image'}</span>
+        <div style={{ fontSize: 13, color: colors.sub, marginBottom: post.caption ? 10 : 0 }}>
+          <span style={{ color: colors.pri, fontWeight: 600 }}>{isVideo ? '🎬 Video' : '🖼️ Image'}</span>
           {' · '}
           {timeAgo(post.created_at)}
         </div>
 
         {/* Caption */}
         {post.caption && (
-          <div style={{ fontSize: 14, color: T.txt, lineHeight: 1.55, marginTop: 8 }}>
+          <div style={{ fontSize: 14, color: colors.txt, lineHeight: 1.55, marginTop: 8 }}>
             <span style={{ fontWeight: 700 }}>@{post.user?.username} </span>
             {post.caption}
           </div>
         )}
 
-        <button onClick={onClose} style={{ marginTop: 20, width: '100%', padding: '12px', borderRadius: 12, background: T.bg, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: T.txt }}>Close</button>
+        <button onClick={onClose} style={{ marginTop: 20, width: '100%', padding: '12px', borderRadius: 12, background: colors.cardBg, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: colors.txt }}>Close</button>
       </div>
     </div>
   );
@@ -183,6 +187,9 @@ const PostInfoSheet = memo(function PostInfoSheet({ post, onClose, T }) {
 
 /* ── Post Options Popover ── */
 const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorRect }) {
+  // Ensure T is defined with fallback values
+  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666' };
+  if (!colors) return null;
   const isOwn = currentUser?.id === post.user?.id;
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -280,10 +287,10 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
           position: 'fixed',
           top, left, width: menuWidth,
           zIndex: 9200,
-          background: T.cardBg || '#fff',
+          background: colors.cardBg,
           borderRadius: 12,
           boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)',
-          border: `1px solid ${T.border}`,
+          border: `1px solid ${colors.border}`,
           overflow: 'hidden',
           animation: 'menuFadeIn 0.15s ease',
         }}
@@ -291,7 +298,7 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
         <style>{`@keyframes menuFadeIn { from { opacity:0; transform:scale(0.95) translateY(-6px); } to { opacity:1; transform:scale(1) translateY(0); } }`}</style>
         {groups.map((group, gi) => (
           <div key={gi}>
-            {gi > 0 && <div style={{ height: 1, background: T.border }} />}
+            {gi > 0 && <div style={{ height: 1, background: colors.border }} />}
             {group.map(opt => {
               const i = idx++;
               const { Icon } = opt;
@@ -304,14 +311,14 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     width: '100%', padding: '12px 16px',
-                    background: hoveredIdx === i ? T.bg : 'transparent',
+                    background: hoveredIdx === i ? colors.cardBg : 'transparent',
                     border: 'none', cursor: 'pointer', textAlign: 'left',
                     fontSize: 14, fontWeight: 500,
-                    color: opt.danger ? '#EF4444' : T.txt,
+                    color: opt.danger ? '#EF4444' : colors.txt,
                     transition: 'background 0.12s',
                   }}
                 >
-                  <Icon size={17} strokeWidth={1.8} color={opt.danger ? '#EF4444' : T.sub} />
+                  <Icon size={17} strokeWidth={1.8} color={opt.danger ? '#EF4444' : colors.sub} />
                   {opt.label}
                 </button>
               );
@@ -326,6 +333,8 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
 
 /* ── Post Card ── */
 const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onNavigateToReel, onCommentAdded, onVoteAdded, videoObserver }) {
+  // Ensure T is defined with fallback values
+  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666' };
   const [liked, setLiked] = useState(post.is_liked || false);
   const [likes, setLikes] = useState(post.votes || 0);
   const [saved, setSaved] = useState(post.is_saved || false);
@@ -882,8 +891,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           currentUser={currentUser}
           onClose={() => setShowOptions(false)}
           onRequireAuth={onRequireAuth}
-          T={T}
           anchorRect={optionsAnchor}
+          T={T}
         />
       )}
 
