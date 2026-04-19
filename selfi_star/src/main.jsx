@@ -25,7 +25,7 @@ root.render(
 );
 
 // Skeleton removal is handled by components when content is ready.
-// Fallback: remove after 8s max so it never stays forever (e.g. error paths).
+// Fallback: remove after 1.5s max so it never stays forever (e.g. error paths).
 setTimeout(() => {
   const skeleton = document.getElementById('app-skeleton');
   if (skeleton) {
@@ -33,4 +33,4 @@ setTimeout(() => {
     skeleton.style.opacity = '0';
     setTimeout(() => skeleton.remove(), 220);
   }
-}, 8000);
+}, 1500);
