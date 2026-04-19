@@ -975,7 +975,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     if (!cached || cached.length === 0) {
       fetchPosts(0, true);
     }
-  }, [activeTab, fetchPosts]);
+  }, [activeTab, fetchPosts, readHomeCache]);
 
   // Infinite scroll
   useEffect(() => {
