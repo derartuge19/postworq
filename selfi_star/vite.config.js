@@ -89,5 +89,5 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom', 'lucide-react'],
   },
-  base: './'
+  base: '/'
 })
