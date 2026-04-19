@@ -532,19 +532,58 @@ export function TikTokLayout({
     setDoubleTapLike((prev) => ({ ...prev, [videoId]: Date.now() }));
   };
 
-  // Touch-based double-tap detector for reliable mobile gesture handling.
-  // `onDoubleClick` is unreliable on iOS/Android; this tracks the last tap
-  // timestamp per video and fires handleDoubleTap when two taps land within 300ms.
-  const lastTapRef = useRef({});
-  const handleTouchDoubleTap = (videoId) => {
+  // ─── Tap / Double-tap disambiguation ──────────────────────────────────────
+  // Goal: a SINGLE tap should only toggle play/pause AFTER we're sure no
+  // second tap is coming. A DOUBLE tap should like the reel and never
+  // briefly flash the pause icon in between, like TikTok / Instagram / YouTube.
+  const DOUBLE_TAP_WINDOW = 280; // ms
+  const lastTapRef = useRef({});         // per-video timestamp of the previous tap
+  const singleTapTimer = useRef({});     // per-video pending single-tap timer
+  const lastTouchTimeRef = useRef(0);    // debounces synthetic onClick after touch
+
+  const clearPendingSingleTap = (videoId) => {
+    if (singleTapTimer.current[videoId]) {
+      clearTimeout(singleTapTimer.current[videoId]);
+      singleTapTimer.current[videoId] = null;
+    }
+  };
+
+  const scheduleSingleTap = (videoId) => {
+    clearPendingSingleTap(videoId);
+    singleTapTimer.current[videoId] = setTimeout(() => {
+      toggleVideoPlayback(videoId);
+      singleTapTimer.current[videoId] = null;
+    }, DOUBLE_TAP_WINDOW);
+  };
+
+  // Mobile: touchend-based detector. Works even when the browser swallows dblclick.
+  const handleVideoTouchEnd = (videoId) => {
+    lastTouchTimeRef.current = Date.now();
     const now = Date.now();
     const last = lastTapRef.current[videoId] || 0;
-    if (now - last < 300) {
+    if (now - last < DOUBLE_TAP_WINDOW) {
+      // Second tap inside the window → treat as double-tap (like) only.
       lastTapRef.current[videoId] = 0;
+      clearPendingSingleTap(videoId);
       handleDoubleTap(videoId);
     } else {
+      // First tap → wait to see if a second one is coming. If not, toggle play/pause.
       lastTapRef.current[videoId] = now;
+      scheduleSingleTap(videoId);
     }
+  };
+
+  // Desktop: delay click so onDoubleClick has a chance to cancel it.
+  const handleVideoClick = (videoId) => {
+    // A click that arrives right after a touchend is synthetic — ignore it to
+    // avoid double-firing with handleVideoTouchEnd.
+    if (Date.now() - lastTouchTimeRef.current < 500) return;
+    scheduleSingleTap(videoId);
+  };
+
+  const handleVideoDoubleClick = (videoId) => {
+    clearPendingSingleTap(videoId);
+    handleDoubleTap(videoId);
   };
 
   const toggleVideoPlayback = (videoId) => {
@@ -1685,9 +1724,9 @@ export function TikTokLayout({
                             display: 'block',
                             background: '#000',
                           }}
-                          onClick={() => toggleVideoPlayback(video.id)}
-                          onDoubleClick={() => handleDoubleTap(video.id)}
-                          onTouchEnd={() => handleTouchDoubleTap(video.id)}
+                          onClick={() => handleVideoClick(video.id)}
+                          onDoubleClick={() => handleVideoDoubleClick(video.id)}
+                          onTouchEnd={() => handleVideoTouchEnd(video.id)}
                         >
                           Your browser does not support the video tag.
                         </video>
@@ -1830,8 +1869,8 @@ export function TikTokLayout({
                             const placeholder = e.target.nextElementSibling;
                             if (placeholder) placeholder.style.display = 'flex';
                           }}
-                          onDoubleClick={() => handleDoubleTap(video.id)}
-                          onTouchEnd={() => handleTouchDoubleTap(video.id)}
+                          onDoubleClick={() => handleVideoDoubleClick(video.id)}
+                          onTouchEnd={() => handleVideoTouchEnd(video.id)}
                         />
                         <div
                           style={{
