@@ -2389,14 +2389,40 @@ export function TikTokLayout({
             }}
           />
 
-          {/* ── Footer ────────────────────────────────────────────── */}
-          <div style={{ height: 1, background: T.border, margin: '8px 0 16px' }} />
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 12px', fontSize: 11, color: T.sub }}>
-            {['About','Help','Press','Careers','Developers'].map(lnk => (
-              <a key={lnk} href="#" style={{ color: 'inherit', textDecoration: 'none' }}>{lnk}</a>
+          {/* ── Quick Shortcuts ───────────────────────────────────── */}
+          <div style={{ height: 1, background: T.border, margin: '8px 0 14px' }} />
+          <div style={{ fontSize: 11, fontWeight: 700, color: T.sub, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+            Shortcuts
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 10px', fontSize: 12, color: T.sub, marginBottom: 14 }}>
+            {[
+              { label: 'Home',          action: () => setActiveTab('home') },
+              { label: 'Reels',         action: () => setActiveTab('reels') },
+              { label: 'Campaigns',     action: () => { if (!user) { onRequireAuth(); return; } onShowCampaigns?.(); } },
+              { label: 'Create Post',   action: () => { if (!user) { onRequireAuth(); return; } onShowPostPage?.(); } },
+              { label: 'Notifications', action: () => { if (!user) { onRequireAuth(); return; } onShowNotifications?.(); } },
+              { label: 'Profile',       action: () => { if (!user) { onRequireAuth(); return; } onShowProfile?.(user.id); } },
+              { label: 'Settings',      action: () => { if (!user) { onRequireAuth(); return; } onShowSettings?.(); } },
+              { label: 'Following',     action: () => setActiveTab('following') },
+              { label: 'Saved',         action: () => { if (!user) { onRequireAuth(); return; } setActiveTab('bookmarks'); } },
+              { label: 'Explore',       action: () => setActiveTab('explore') },
+            ].map(({ label, action }) => (
+              <button
+                key={label}
+                onClick={action}
+                style={{
+                  background: 'none', border: 'none', padding: 0,
+                  color: 'inherit', fontSize: 12, cursor: 'pointer',
+                  textDecoration: 'none', fontWeight: 500,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = T.pri; e.currentTarget.style.textDecoration = 'underline'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = T.sub; e.currentTarget.style.textDecoration = 'none'; }}
+              >
+                {label}
+              </button>
             ))}
           </div>
-          <div style={{ marginTop: 10, fontSize: 11, color: T.sub }}>© 2025 FlipStar</div>
+          <div style={{ fontSize: 11, color: T.sub }}>© 2025 FlipStar</div>
         </div>
       )}
 
