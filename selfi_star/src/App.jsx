@@ -23,23 +23,15 @@ const ExplorerPage = lazy(() => import('./components/ExplorerPage').then(m => ({
 const HomePage = lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })));
 const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
 
-// Prefetch all lazy chunks after initial load so navigation is instant
+// Prefetch critical lazy chunks after initial load for faster navigation
 const prefetchComponents = () => {
-  import('./components/ProfilePage');
-  import('./components/EditProfilePage');
-  import('./components/SettingsPage');
-  import('./components/NotificationsPage');
-  import('./components/EnhancedPostPage');
-  import('./components/FollowersListPage');
-  import('./components/ModernLoginScreen');
-  import('./components/ModernRegisterScreen');
-  import('./pages/CampaignsPage');
-  import('./pages/CampaignDetailPage');
-  import('./pages/CampaignLeaderboard');
-  import('./pages/CampaignFeed');
-  import('./components/VideoDetailPage');
-  import('./components/ExplorerPage');
-  import('./components/HomePage');
+  // Only prefetch the most commonly used components
+  setTimeout(() => {
+    import('./components/ProfilePage');
+    import('./components/EnhancedPostPage');
+    import('./components/ExplorerPage');
+    import('./components/HomePage');
+  }, 2000); // Wait 2 seconds after initial load
 };
 
 // Error boundary for lazy loading failures
