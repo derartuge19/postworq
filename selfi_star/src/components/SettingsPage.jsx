@@ -9,9 +9,13 @@ export function SettingsPage({ user, onClose, onLogout }) {
   const { language, changeLanguage, t } = useLanguage();
   const [activeSection, setActiveSection] = useState("account");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isSmallMobile, setIsSmallMobile] = useState(window.innerWidth <= 393);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsSmallMobile(window.innerWidth <= 393);
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -49,8 +53,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
       setSaving(false);
       setModal({
         isOpen: true,
-        title: 'Success',
-        message: 'Settings saved successfully!',
+        title: t('success'),
+        message: t('settingsSaved'),
         type: 'success',
         onConfirm: null
       });
@@ -74,8 +78,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
     if (password.new !== password.confirm) {
       setModal({
         isOpen: true,
-        title: 'Error',
-        message: 'New passwords do not match!',
+        title: t('error'),
+        message: t('passwordMismatch'),
         type: 'error',
         onConfirm: null
       });
@@ -84,8 +88,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
     if (password.new.length < 8) {
       setModal({
         isOpen: true,
-        title: 'Error',
-        message: 'Password must be at least 8 characters!',
+        title: t('error'),
+        message: t('passwordTooShort'),
         type: 'error',
         onConfirm: null
       });
@@ -95,8 +99,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
       // API call would go here
       setModal({
         isOpen: true,
-        title: 'Success',
-        message: 'Password changed successfully!',
+        title: t('success'),
+        message: t('passwordChanged'),
         type: 'success',
         onConfirm: null
       });
@@ -104,8 +108,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
     } catch (error) {
       setModal({
         isOpen: true,
-        title: 'Error',
-        message: 'Failed to change password',
+        title: t('error'),
+        message: t('passwordChangeFailed'),
         type: 'error',
         onConfirm: null
       });
@@ -115,21 +119,21 @@ export function SettingsPage({ user, onClose, onLogout }) {
   const handleDeleteAccount = () => {
     setModal({
       isOpen: true,
-      title: 'Delete Account',
-      message: 'Are you sure you want to delete your account? This action cannot be undone!',
+      title: t('deleteAccount'),
+      message: t('deleteConfirm'),
       type: 'warning',
       onConfirm: () => {
         setModal({
           isOpen: true,
-          title: 'Final Confirmation',
-          message: 'This will permanently delete all your data. Are you absolutely sure?',
+          title: t('finalConfirm'),
+          message: t('deleteWarning'),
           type: 'warning',
           onConfirm: () => {
             // API call would go here
             setModal({
               isOpen: true,
-              title: 'Account Deleted',
-              message: 'Account deletion initiated. You will be logged out.',
+              title: t('accountDeleted'),
+              message: t('accountDeleting'),
               type: 'info',
               onConfirm: () => onLogout()
             });
@@ -142,8 +146,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
   const handleDownloadData = () => {
     setModal({
       isOpen: true,
-      title: 'Download Initiated',
-      message: 'Your data download has been initiated. You will receive an email with a download link.',
+      title: t('downloadInitiated'),
+      message: t('downloadEmail'),
       type: 'info',
       onConfirm: null
     });
@@ -171,7 +175,7 @@ export function SettingsPage({ user, onClose, onLogout }) {
           maxWidth: isMobile ? "100%" : 900,
           height: isMobile ? "100vh" : "auto",
           maxHeight: isMobile ? "100vh" : "90vh",
-          background: "#fff",
+          background: T.cardBg,
           borderRadius: isMobile ? 0 : 20,
           display: "flex",
           overflow: "hidden",
@@ -179,20 +183,21 @@ export function SettingsPage({ user, onClose, onLogout }) {
       >
         {/* Sidebar */}
         <div style={{
-          width: isMobile ? 80 : 280,
+          width: isSmallMobile ? 60 : (isMobile ? 80 : 280),
           background: T.bg,
           borderRight: `1px solid ${T.border}`,
           display: "flex",
           flexDirection: "column",
+          flexShrink: 0,
         }}>
           <div style={{
-            padding: isMobile ? "16px 8px" : "20px",
+            padding: isSmallMobile ? "12px 4px" : (isMobile ? "16px 8px" : "20px"),
             borderBottom: `1px solid ${T.border}`,
             display: "flex",
             alignItems: "center",
             justifyContent: isMobile ? "center" : "space-between",
           }}>
-            {!isMobile && <div style={{ fontSize: 20, fontWeight: 700, color: T.txt }}>Settings</div>}
+            {!isMobile && <div style={{ fontSize: 20, fontWeight: 700, color: T.txt }}>{t('settings')}</div>}
             <button
               onClick={onClose}
               style={{
@@ -208,7 +213,7 @@ export function SettingsPage({ user, onClose, onLogout }) {
             </button>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", padding: "12px 0" }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: isSmallMobile ? "8px 0" : "12px 0" }}>
             {sections.map(section => {
               const Icon = section.icon;
               const isActive = activeSection === section.id;
@@ -218,35 +223,35 @@ export function SettingsPage({ user, onClose, onLogout }) {
                   onClick={() => setActiveSection(section.id)}
                   style={{
                     width: "100%",
-                    padding: isMobile ? "12px 8px" : "14px 20px",
+                    padding: isSmallMobile ? "8px 4px" : (isMobile ? "12px 8px" : "14px 20px"),
                     border: "none",
-                    background: isActive ? "#fff" : "transparent",
+                    background: isActive ? T.cardBg : "transparent",
                     cursor: "pointer",
                     display: "flex",
                     flexDirection: isMobile ? "column" : "row",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: isMobile ? 4 : 12,
+                    gap: isSmallMobile ? 2 : (isMobile ? 4 : 12),
                     color: isActive ? T.pri : T.txt,
                     fontWeight: isActive ? 600 : 500,
                     borderLeft: isActive ? `3px solid ${T.pri}` : "3px solid transparent",
                   }}
                 >
-                  <Icon size={isMobile ? 22 : 20} />
+                  <Icon size={isSmallMobile ? 18 : (isMobile ? 22 : 20)} />
                   {!isMobile && <span style={{ flex: 1, textAlign: "left" }}>{section.label}</span>}
-                  {isMobile && <span style={{ fontSize: 10, textAlign: "center" }}>{section.label}</span>}
+                  {isMobile && <span style={{ fontSize: isSmallMobile ? 8 : 10, textAlign: "center", lineHeight: 1.2 }}>{section.label}</span>}
                   {!isMobile && <ChevronRight size={16} style={{ opacity: 0.5 }} />}
                 </button>
               );
             })}
           </div>
 
-          <div style={{ padding: isMobile ? 8 : 20, borderTop: `1px solid ${T.border}` }}>
+          <div style={{ padding: isSmallMobile ? 6 : (isMobile ? 8 : 20), borderTop: `1px solid ${T.border}`, paddingBottom: isSmallMobile ? 12 : (isMobile ? 16 : 20) }}>
             <button
               onClick={onLogout}
               style={{
                 width: "100%",
-                padding: isMobile ? "10px 8px" : "12px 16px",
+                padding: isSmallMobile ? "8px 4px" : (isMobile ? "10px 8px" : "12px 16px"),
                 background: "#EF4444",
                 color: "#fff",
                 border: "none",
@@ -256,32 +261,33 @@ export function SettingsPage({ user, onClose, onLogout }) {
                 flexDirection: isMobile ? "column" : "row",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: isMobile ? 4 : 8,
-                fontSize: isMobile ? 10 : 14,
+                gap: isSmallMobile ? 2 : (isMobile ? 4 : 8),
+                fontSize: isSmallMobile ? 8 : (isMobile ? 10 : 14),
                 fontWeight: 600,
+                lineHeight: 1.2,
               }}
             >
-              <LogOut size={18} />
-              Logout
+              <LogOut size={isSmallMobile ? 14 : 18} />
+              {t('logout')}
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 32 }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: isSmallMobile ? 16 : (isMobile ? 24 : 32) }}>
           {activeSection === "account" && (
             <div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>Account Settings</h2>
-              <p style={{ fontSize: 14, color: T.sub, marginBottom: 32 }}>Manage your account information</p>
+              <h2 style={{ fontSize: isSmallMobile ? 18 : 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>{t('accountSettings')}</h2>
+              <p style={{ fontSize: isSmallMobile ? 12 : 14, color: T.sub, marginBottom: isSmallMobile ? 20 : 32 }}>{t('manageAccount')}</p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
                 {/* Basic Info */}
                 <div>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, color: T.txt, marginBottom: 16 }}>Basic Information</h3>
+                  <h3 style={{ fontSize: isSmallMobile ? 14 : 16, fontWeight: 600, color: T.txt, marginBottom: 16 }}>{t('basicInfo')}</h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     <div>
-                      <label style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 8, display: "block" }}>
-                        Username
+                      <label style={{ fontSize: isSmallMobile ? 12 : 14, fontWeight: 600, color: T.txt, marginBottom: 8, display: "block" }}>
+                        {t('username')}
                       </label>
                       <input
                         type="text"
@@ -300,8 +306,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
                     </div>
 
                     <div>
-                      <label style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 8, display: "block" }}>
-                        Email
+                      <label style={{ fontSize: isSmallMobile ? 12 : 14, fontWeight: 600, color: T.txt, marginBottom: 8, display: "block" }}>
+                        {t('email')}
                       </label>
                       <input
                         type="email"
@@ -323,117 +329,117 @@ export function SettingsPage({ user, onClose, onLogout }) {
 
                 {/* Password Change */}
                 <div>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, color: T.txt, marginBottom: 16 }}>Change Password</h3>
+                  <h3 style={{ fontSize: isSmallMobile ? 14 : 16, fontWeight: 600, color: T.txt, marginBottom: 16 }}>{t('changePassword')}</h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     <input
                       type="password"
-                      placeholder="Current Password"
+                      placeholder={t('currentPassword')}
                       value={password.current}
                       onChange={(e) => setPassword({...password, current: e.target.value})}
                       style={{
                         width: "100%",
-                        padding: "12px 16px",
+                        padding: isSmallMobile ? "10px 12px" : "12px 16px",
                         border: `1px solid ${T.border}`,
                         borderRadius: 8,
-                        fontSize: 14,
+                        fontSize: isSmallMobile ? 12 : 14,
                       }}
                     />
                     <input
                       type="password"
-                      placeholder="New Password (min 8 characters)"
+                      placeholder={t('newPassword')}
                       value={password.new}
                       onChange={(e) => setPassword({...password, new: e.target.value})}
                       style={{
                         width: "100%",
-                        padding: "12px 16px",
+                        padding: isSmallMobile ? "10px 12px" : "12px 16px",
                         border: `1px solid ${T.border}`,
                         borderRadius: 8,
-                        fontSize: 14,
+                        fontSize: isSmallMobile ? 12 : 14,
                       }}
                     />
                     <input
                       type="password"
-                      placeholder="Confirm New Password"
+                      placeholder={t('confirmPassword')}
                       value={password.confirm}
                       onChange={(e) => setPassword({...password, confirm: e.target.value})}
                       style={{
                         width: "100%",
-                        padding: "12px 16px",
+                        padding: isSmallMobile ? "10px 12px" : "12px 16px",
                         border: `1px solid ${T.border}`,
                         borderRadius: 8,
-                        fontSize: 14,
+                        fontSize: isSmallMobile ? 12 : 14,
                       }}
                     />
                     <button
                       onClick={handlePasswordChange}
                       style={{
-                        padding: "12px 24px",
+                        padding: isSmallMobile ? "10px 16px" : "12px 24px",
                         background: T.pri,
                         color: "#fff",
                         border: "none",
                         borderRadius: 8,
-                        fontSize: 14,
+                        fontSize: isSmallMobile ? 12 : 14,
                         fontWeight: 600,
                         cursor: "pointer",
                         alignSelf: "flex-start",
                       }}
                     >
-                      Update Password
+                      {t('updatePassword')}
                     </button>
                   </div>
                 </div>
 
                 {/* Data Management */}
                 <div>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, color: T.txt, marginBottom: 16 }}>Data Management</h3>
+                  <h3 style={{ fontSize: isSmallMobile ? 14 : 16, fontWeight: 600, color: T.txt, marginBottom: 16 }}>{t('dataManagement')}</h3>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <button
                       onClick={handleDownloadData}
                       style={{
-                        padding: "12px 20px",
+                        padding: isSmallMobile ? "10px 16px" : "12px 20px",
                         background: T.bg,
                         border: `1px solid ${T.border}`,
                         borderRadius: 8,
-                        fontSize: 14,
+                        fontSize: isSmallMobile ? 12 : 14,
                         fontWeight: 600,
                         cursor: "pointer",
                         textAlign: "left",
                         color: T.txt,
                       }}
                     >
-                      📥 Download Your Data
+                      📥 {t('downloadData')}
                     </button>
-                    <p style={{ fontSize: 12, color: T.sub, marginTop: -8 }}>
-                      Download a copy of all your posts, comments, and profile data
+                    <p style={{ fontSize: isSmallMobile ? 10 : 12, color: T.sub, marginTop: -8 }}>
+                      {t('downloadDataDesc')}
                     </p>
                   </div>
                 </div>
 
                 {/* Danger Zone */}
                 <div style={{
-                  padding: 20,
+                  padding: isSmallMobile ? 16 : 20,
                   background: "#FEE2E2",
                   borderRadius: 12,
                   border: "2px solid #EF4444",
                 }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, color: "#DC2626", marginBottom: 8 }}>Danger Zone</h3>
-                  <p style={{ fontSize: 13, color: "#991B1B", marginBottom: 16 }}>
-                    Once you delete your account, there is no going back. Please be certain.
+                  <h3 style={{ fontSize: isSmallMobile ? 14 : 16, fontWeight: 600, color: "#DC2626", marginBottom: 8 }}>{t('dangerZone')}</h3>
+                  <p style={{ fontSize: isSmallMobile ? 11 : 13, color: "#991B1B", marginBottom: 16 }}>
+                    {t('deleteWarning')}
                   </p>
                   <button
                     onClick={handleDeleteAccount}
                     style={{
-                      padding: "12px 24px",
+                      padding: isSmallMobile ? "10px 16px" : "12px 24px",
                       background: "#DC2626",
                       color: "#fff",
                       border: "none",
                       borderRadius: 8,
-                      fontSize: 14,
+                      fontSize: isSmallMobile ? 12 : 14,
                       fontWeight: 600,
                       cursor: "pointer",
                     }}
                   >
-                    Delete Account
+                    {t('deleteAccount')}
                   </button>
                 </div>
               </div>
@@ -442,18 +448,18 @@ export function SettingsPage({ user, onClose, onLogout }) {
 
           {activeSection === "notifications" && (
             <div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>Notifications</h2>
-              <p style={{ fontSize: 14, color: T.sub, marginBottom: 32 }}>Manage your notification preferences</p>
+              <h2 style={{ fontSize: isSmallMobile ? 18 : 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>{t('notificationsSettings')}</h2>
+              <p style={{ fontSize: isSmallMobile ? 12 : 14, color: T.sub, marginBottom: isSmallMobile ? 20 : 32 }}>{t('manageNotifications')}</p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 {Object.entries(notifications).map(([key, value]) => (
                   <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: T.txt, marginBottom: 4 }}>
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      <div style={{ fontSize: isSmallMobile ? 13 : 15, fontWeight: 600, color: T.txt, marginBottom: 4 }}>
+                        {t(key) || key.charAt(0).toUpperCase() + key.slice(1)}
                       </div>
-                      <div style={{ fontSize: 13, color: T.sub }}>
-                        Receive notifications for {key}
+                      <div style={{ fontSize: isSmallMobile ? 11 : 13, color: T.sub }}>
+                        {t('receiveNotifications')} {t(key) || key}
                       </div>
                     </div>
                     <label style={{ position: "relative", display: "inline-block", width: 48, height: 28 }}>
@@ -472,8 +478,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
                             if (newValue) {
                               setModal({
                                 isOpen: true,
-                                title: 'Notification Enabled',
-                                message: `You will now receive notifications for ${key}`,
+                                title: t('notificationEnabled'),
+                                message: `${t('willReceive')} ${t(key) || key}`,
                                 type: 'success',
                                 onConfirm: null
                               });
@@ -516,8 +522,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
 
           {activeSection === "privacy" && (
             <div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>Privacy & Security</h2>
-              <p style={{ fontSize: 14, color: T.sub, marginBottom: 32 }}>Control your privacy settings</p>
+              <h2 style={{ fontSize: isSmallMobile ? 18 : 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>{t('privacy')}</h2>
+              <p style={{ fontSize: isSmallMobile ? 12 : 14, color: T.sub, marginBottom: isSmallMobile ? 20 : 32 }}>{t('controlPrivacy')}</p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 {Object.entries(privacy).map(([key, value]) => (
@@ -526,10 +532,10 @@ export function SettingsPage({ user, onClose, onLogout }) {
                       <div style={{ fontSize: 15, fontWeight: 600, color: T.txt, marginBottom: 4 }}>
                         {key.replace(/([A-Z])/g, ' $1').trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                       </div>
-                      <div style={{ fontSize: 13, color: T.sub }}>
-                        {key === 'privateAccount' && 'Only approved followers can see your posts'}
-                        {key === 'showActivity' && 'Show your activity status to others'}
-                        {key === 'allowMessages' && 'Allow others to send you messages'}
+                      <div style={{ fontSize: isSmallMobile ? 11 : 13, color: T.sub }}>
+                        {key === 'privateAccount' && t('privateAccountDesc')}
+                        {key === 'showActivity' && t('showActivityDesc')}
+                        {key === 'allowMessages' && t('allowMessagesDesc')}
                       </div>
                     </div>
                     <label style={{ position: "relative", display: "inline-block", width: 48, height: 28 }}>
@@ -547,8 +553,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
                             // Show confirmation modal
                             setModal({
                               isOpen: true,
-                              title: 'Privacy Updated',
-                              message: `Privacy setting "${key.replace(/([A-Z])/g, ' $1').trim()}" has been ${newValue ? 'enabled' : 'disabled'}`,
+                              title: t('privacyUpdated'),
+                              message: `${t('privacySettingChanged')} "${key.replace(/([A-Z])/g, ' $1').trim()}" ${t(newValue ? 'enabled' : 'disabled')}`,
                               type: 'success',
                               onConfirm: null
                             });
@@ -592,18 +598,18 @@ export function SettingsPage({ user, onClose, onLogout }) {
 
           {activeSection === "appearance" && (
             <div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>Appearance</h2>
-              <p style={{ fontSize: 14, color: T.sub, marginBottom: 32 }}>Customize how FlipStar looks</p>
+              <h2 style={{ fontSize: isSmallMobile ? 18 : 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>{t('appearance')}</h2>
+              <p style={{ fontSize: isSmallMobile ? 12 : 14, color: T.sub, marginBottom: isSmallMobile ? 20 : 32 }}>{t('customizeAppearance')}</p>
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, background: T.bg, borderRadius: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   {darkMode ? <Moon size={24} color={T.pri} /> : <Sun size={24} color={T.pri} />}
                   <div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: T.txt, marginBottom: 4 }}>
-                      Dark Mode
+                    <div style={{ fontSize: isSmallMobile ? 13 : 15, fontWeight: 600, color: T.txt, marginBottom: 4 }}>
+                      {t('darkMode')}
                     </div>
-                    <div style={{ fontSize: 13, color: T.sub }}>
-                      {darkMode ? "Dark theme enabled" : "Light theme enabled"}
+                    <div style={{ fontSize: isSmallMobile ? 11 : 13, color: T.sub }}>
+                      {darkMode ? t('darkEnabled') : t('lightEnabled')}
                     </div>
                   </div>
                 </div>
@@ -644,8 +650,8 @@ export function SettingsPage({ user, onClose, onLogout }) {
 
           {activeSection === "language" && (
             <div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>Language</h2>
-              <p style={{ fontSize: 14, color: T.sub, marginBottom: 32 }}>Choose your preferred language</p>
+              <h2 style={{ fontSize: isSmallMobile ? 18 : 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>{t('language')}</h2>
+              <p style={{ fontSize: isSmallMobile ? 12 : 14, color: T.sub, marginBottom: isSmallMobile ? 20 : 32 }}>{t('chooseLanguage')}</p>
 
               <select
                 value={language}
@@ -672,12 +678,12 @@ export function SettingsPage({ user, onClose, onLogout }) {
 
           {activeSection === "help" && (
             <div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>Help & Support</h2>
-              <p style={{ fontSize: 14, color: T.sub, marginBottom: 32 }}>Get help and support</p>
+              <h2 style={{ fontSize: isSmallMobile ? 18 : 24, fontWeight: 700, marginBottom: 8, color: T.txt }}>{t('help')}</h2>
+              <p style={{ fontSize: isSmallMobile ? 12 : 14, color: T.sub, marginBottom: isSmallMobile ? 20 : 32 }}>{t('getHelp')}</p>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 <button style={{
-                  padding: "16px 20px",
+                  padding: isSmallMobile ? "12px 16px" : "16px 20px",
                   background: T.bg,
                   border: `1px solid ${T.border}`,
                   borderRadius: 12,
@@ -687,12 +693,12 @@ export function SettingsPage({ user, onClose, onLogout }) {
                   alignItems: "center",
                   justifyContent: "space-between",
                 }}>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: T.txt }}>Help Center</span>
+                  <span style={{ fontSize: isSmallMobile ? 13 : 15, fontWeight: 600, color: T.txt }}>{t('helpCenter')}</span>
                   <ChevronRight size={20} color={T.sub} />
                 </button>
 
                 <button style={{
-                  padding: "16px 20px",
+                  padding: isSmallMobile ? "12px 16px" : "16px 20px",
                   background: T.bg,
                   border: `1px solid ${T.border}`,
                   borderRadius: 12,
@@ -702,12 +708,12 @@ export function SettingsPage({ user, onClose, onLogout }) {
                   alignItems: "center",
                   justifyContent: "space-between",
                 }}>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: T.txt }}>Report a Problem</span>
+                  <span style={{ fontSize: isSmallMobile ? 13 : 15, fontWeight: 600, color: T.txt }}>{t('reportProblem')}</span>
                   <ChevronRight size={20} color={T.sub} />
                 </button>
 
                 <button style={{
-                  padding: "16px 20px",
+                  padding: isSmallMobile ? "12px 16px" : "16px 20px",
                   background: T.bg,
                   border: `1px solid ${T.border}`,
                   borderRadius: 12,
@@ -717,12 +723,12 @@ export function SettingsPage({ user, onClose, onLogout }) {
                   alignItems: "center",
                   justifyContent: "space-between",
                 }}>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: T.txt }}>Terms of Service</span>
+                  <span style={{ fontSize: isSmallMobile ? 13 : 15, fontWeight: 600, color: T.txt }}>{t('termsOfService')}</span>
                   <ChevronRight size={20} color={T.sub} />
                 </button>
 
                 <button style={{
-                  padding: "16px 20px",
+                  padding: isSmallMobile ? "12px 16px" : "16px 20px",
                   background: T.bg,
                   border: `1px solid ${T.border}`,
                   borderRadius: 12,
@@ -732,13 +738,13 @@ export function SettingsPage({ user, onClose, onLogout }) {
                   alignItems: "center",
                   justifyContent: "space-between",
                 }}>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: T.txt }}>Privacy Policy</span>
+                  <span style={{ fontSize: isSmallMobile ? 13 : 15, fontWeight: 600, color: T.txt }}>{t('privacyPolicy')}</span>
                   <ChevronRight size={20} color={T.sub} />
                 </button>
 
-                <div style={{ marginTop: 20, padding: 20, background: T.bg, borderRadius: 12, textAlign: "center" }}>
-                  <div style={{ fontSize: 13, color: T.sub, marginBottom: 4 }}>Version</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: T.txt }}>FlipStar 1.0.0</div>
+                <div style={{ marginTop: 20, padding: isSmallMobile ? 16 : 20, background: T.bg, borderRadius: 12, textAlign: "center" }}>
+                  <div style={{ fontSize: isSmallMobile ? 11 : 13, color: T.sub, marginBottom: 4 }}>{t('version')}</div>
+                  <div style={{ fontSize: isSmallMobile ? 13 : 15, fontWeight: 600, color: T.txt }}>FlipStar 1.0.0</div>
                 </div>
               </div>
             </div>
@@ -765,24 +771,24 @@ export function SettingsPage({ user, onClose, onLogout }) {
         >
           <div
             style={{
-              background: "#fff",
+              background: T.cardBg,
               borderRadius: 16,
-              padding: "24px",
-              maxWidth: 400,
+              padding: isSmallMobile ? 16 : "24px",
+              maxWidth: isSmallMobile ? 320 : 400,
               width: "90%",
               boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ 
-              fontSize: 20, 
+              fontSize: isSmallMobile ? 16 : 20, 
               fontWeight: 700, 
               color: modal.type === 'error' ? '#EF4444' : modal.type === 'warning' ? '#F59E0B' : modal.type === 'success' ? '#10B981' : T.txt, 
               marginBottom: 12 
             }}>
               {modal.title}
             </h3>
-            <p style={{ fontSize: 14, color: T.txt, lineHeight: 1.6, marginBottom: 20 }}>
+            <p style={{ fontSize: isSmallMobile ? 12 : 14, color: T.txt, lineHeight: 1.6, marginBottom: 20 }}>
               {modal.message}
             </p>
             
@@ -791,17 +797,17 @@ export function SettingsPage({ user, onClose, onLogout }) {
                 <button
                   onClick={() => setModal({ ...modal, isOpen: false })}
                   style={{
-                    padding: "10px 20px",
+                    padding: isSmallMobile ? "8px 16px" : "10px 20px",
                     border: `1px solid ${T.border}`,
                     borderRadius: 8,
-                    background: "#fff",
+                    background: T.cardBg,
                     cursor: "pointer",
-                    fontSize: 14,
+                    fontSize: isSmallMobile ? 12 : 14,
                     fontWeight: 600,
                     color: T.txt,
                   }}
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
               )}
               <button
@@ -812,17 +818,17 @@ export function SettingsPage({ user, onClose, onLogout }) {
                   setModal({ ...modal, isOpen: false });
                 }}
                 style={{
-                  padding: "10px 20px",
+                  padding: isSmallMobile ? "8px 16px" : "10px 20px",
                   border: "none",
                   borderRadius: 8,
                   background: modal.type === 'error' ? '#EF4444' : modal.type === 'warning' ? '#F59E0B' : modal.type === 'success' ? '#10B981' : T.pri,
                   cursor: "pointer",
-                  fontSize: 14,
+                  fontSize: isSmallMobile ? 12 : 14,
                   fontWeight: 600,
                   color: "#fff",
                 }}
               >
-                {modal.onConfirm ? 'Confirm' : 'OK'}
+                {modal.onConfirm ? t('confirm') : t('ok')}
               </button>
             </div>
           </div>
