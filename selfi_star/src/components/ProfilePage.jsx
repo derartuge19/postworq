@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag } from "lucide-react";
+import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2 } from "lucide-react";
 import { GamificationBar } from "./GamificationBar";
 import api from "../api";
 import config from "../config";
@@ -495,6 +495,27 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               >
                 {isFollowing ? <UserCheck size={18} /> : <UserPlus size={18} />}
                 {isFollowing ? "Following" : "Follow"}
+              </button>
+              <button
+                onClick={() => {
+                  const url = window.location.origin + '/profile/' + (userId || user?.id);
+                  navigator.clipboard?.writeText(url).catch(() => {});
+                  alert('Profile link copied!');
+                }}
+                style={{
+                  padding: "10px 14px",
+                  border: `1px solid ${T.border}`,
+                  background: "#fff",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: T.txt,
+                }}
+                title="Share profile"
+              >
+                <Share2 size={18} />
               </button>
               <button
                 onClick={() => setShowReportUser(true)}

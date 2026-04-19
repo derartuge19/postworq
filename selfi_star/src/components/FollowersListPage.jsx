@@ -11,6 +11,7 @@ export function FollowersListPage({ user, userId, type = "followers", onBack, on
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [followingStates, setFollowingStates] = useState({});
+  const [mutualUsers, setMutualUsers] = useState(new Set());
 
   useEffect(() => {
     if (user && userId) {
@@ -33,15 +34,41 @@ export function FollowersListPage({ user, userId, type = "followers", onBack, on
         : await api.getFollowing(userId);
       
       const data = Array.isArray(raw) ? raw : (raw.results || []);
-      setUsers(data);
       
       // Initialize following states
       const states = {};
+      const mutual = new Set();
+      
       data.forEach(item => {
-        const user = type === "followers" ? item.follower : item.following;
-        states[user.id] = user.is_following || false;
+        const userItem = type === "followers" ? item.follower : item.following;
+        states[userItem.id] = userItem.is_following || false;
+        
+        // Check if this user is mutual (both current user and profile user follow each other)
+        if (userItem.id === user?.id) {
+          mutual.add(userItem.id);
+        }
       });
+      
       setFollowingStates(states);
+      setMutualUsers(mutual);
+      
+      // Sort users: current user first, then mutual users, then others
+      const sortedData = [...data].sort((a, b) => {
+        const userA = type === "followers" ? a.follower : a.following;
+        const userB = type === "followers" ? b.follower : b.following;
+        
+        // Current user first
+        if (userA.id === user?.id) return -1;
+        if (userB.id === user?.id) return 1;
+        
+        // Then mutual users
+        if (mutual.has(userA.id) && !mutual.has(userB.id)) return -1;
+        if (!mutual.has(userA.id) && mutual.has(userB.id)) return 1;
+        
+        return 0;
+      });
+      
+      setUsers(sortedData);
     } catch (error) {
       console.error("Failed to fetch users:", error);
     } finally {
@@ -188,9 +215,36 @@ export function FollowersListPage({ user, userId, type = "followers", onBack, on
                         color: T.txt,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
+                        whiteSpace: "nowrap",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
                       }}>
                         {user.username}
+                        {user.id === user?.id && (
+                          <span style={{
+                            fontSize: 10,
+                            background: T.pri,
+                            color: "#fff",
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            fontWeight: 600,
+                          }}>
+                            You
+                          </span>
+                        )}
+                        {mutualUsers.has(user.id) && user.id !== user?.id && (
+                          <span style={{
+                            fontSize: 10,
+                            background: T.pri + "20",
+                            color: T.pri,
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            fontWeight: 600,
+                          }}>
+                            Mutual
+                          </span>
+                        )}
                       </div>
                       <div style={{ 
                         fontSize: 13, 
