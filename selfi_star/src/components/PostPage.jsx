@@ -191,8 +191,8 @@ export function PostPage({ user, onBack }) {
         {/* Media Upload Area */}
         <div style={{
           width: "100%",
-          aspectRatio: "9/16",
-          background: T.cardBg,
+          aspectRatio: "1/1",
+          background: "#f5f5f5",
           borderRadius: 12,
           overflow: "hidden",
           marginBottom: 24,
@@ -200,13 +200,13 @@ export function PostPage({ user, onBack }) {
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
-          border: `2px dashed ${T.border}`,
+          border: `2px dashed #ccc`,
           cursor: "pointer",
           transition: "border-color 0.2s",
         }}
         onClick={() => document.getElementById('file-input').click()}
         onMouseEnter={(e) => e.currentTarget.style.borderColor = T.pri}
-        onMouseLeave={(e) => e.currentTarget.style.borderColor = T.border}
+        onMouseLeave={(e) => e.currentTarget.style.borderColor = "#ccc"}
         >
           {preview ? (
             <>
@@ -229,7 +229,7 @@ export function PostPage({ user, onBack }) {
                   position: "absolute",
                   top: 12,
                   right: 12,
-                  background: "rgba(0,0,0,0.6)",
+                  background: "rgba(0,0,0,0.7)",
                   border: "none",
                   borderRadius: 8,
                   width: 32,
@@ -248,10 +248,10 @@ export function PostPage({ user, onBack }) {
           ) : (
             <div style={{
               textAlign: "center",
-              color: T.sub,
+              color: "#666",
             }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>📹</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: T.txt, marginBottom: 4 }}>Tap to upload</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#1a1a1a", marginBottom: 4 }}>Tap to upload</div>
               <div style={{ fontSize: 13 }}>Video or image</div>
             </div>
           )}
@@ -267,7 +267,7 @@ export function PostPage({ user, onBack }) {
 
         {/* Caption Input */}
         <div style={{ marginBottom: 24 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: T.sub, display: "block", marginBottom: 8 }}>Caption</label>
+          <label style={{ fontSize: 13, fontWeight: 600, color: "#666", display: "block", marginBottom: 8 }}>Caption</label>
           <textarea
             placeholder="Write a caption..."
             value={caption}
@@ -276,24 +276,24 @@ export function PostPage({ user, onBack }) {
               width: "100%",
               minHeight: 100,
               padding: "14px",
-              border: `1px solid ${T.border}`,
+              border: `1px solid #d0d0d0`,
               borderRadius: 8,
               fontSize: 14,
               resize: "vertical",
               outline: "none",
               fontFamily: "inherit",
-              background: T.cardBg,
-              color: T.txt,
+              background: "#fff",
+              color: "#1a1a1a",
               transition: "border-color 0.2s",
             }}
             onFocus={(e) => e.currentTarget.style.borderColor = T.pri}
-            onBlur={(e) => e.currentTarget.style.borderColor = T.border}
+            onBlur={(e) => e.currentTarget.style.borderColor = "#d0d0d0"}
           />
         </div>
 
         {/* Hashtags Input */}
         <div style={{ marginBottom: 24 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: T.sub, display: "block", marginBottom: 8 }}>Hashtags</label>
+          <label style={{ fontSize: 13, fontWeight: 600, color: "#666", display: "block", marginBottom: 8 }}>Hashtags</label>
           <input
             type="text"
             placeholder="#fashion, #style, #trending"
@@ -302,29 +302,29 @@ export function PostPage({ user, onBack }) {
             style={{
               width: "100%",
               padding: "14px",
-              border: `1px solid ${T.border}`,
+              border: `1px solid #d0d0d0`,
               borderRadius: 8,
               fontSize: 14,
               outline: "none",
               fontFamily: "inherit",
-              background: T.cardBg,
-              color: T.txt,
+              background: "#fff",
+              color: "#1a1a1a",
               transition: "border-color 0.2s",
             }}
             onFocus={(e) => e.currentTarget.style.borderColor = T.pri}
-            onBlur={(e) => e.currentTarget.style.borderColor = T.border}
+            onBlur={(e) => e.currentTarget.style.borderColor = "#d0d0d0"}
           />
-          <div style={{ fontSize: 12, color: T.sub, marginTop: 6 }}>Separate with commas</div>
+          <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>Separate with commas</div>
         </div>
 
         {/* Post Options */}
         <div style={{
           padding: 16,
-          background: T.cardBg,
+          background: "#fff",
           borderRadius: 12,
-          border: `1px solid ${T.border}`,
+          border: `1px solid #e0e0e0`,
         }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.sub, marginBottom: 16, textTransform: "uppercase" }}>Post Settings</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#666", marginBottom: 16, textTransform: "uppercase" }}>Post Settings</div>
           <div style={{
             display: "flex",
             flexDirection: "column",
@@ -335,7 +335,7 @@ export function PostPage({ user, onBack }) {
               alignItems: "center",
               justifyContent: "space-between",
             }}>
-              <span style={{ fontSize: 14, color: T.txt }}>Allow comments</span>
+              <span style={{ fontSize: 14, color: "#1a1a1a" }}>Allow comments</span>
               <input type="checkbox" defaultChecked style={{ cursor: "pointer", width: 18, height: 18 }} />
             </div>
             <div style={{
@@ -343,7 +343,7 @@ export function PostPage({ user, onBack }) {
               alignItems: "center",
               justifyContent: "space-between",
             }}>
-              <span style={{ fontSize: 14, color: T.txt }}>Allow duets</span>
+              <span style={{ fontSize: 14, color: "#1a1a1a" }}>Allow duets</span>
               <input type="checkbox" defaultChecked style={{ cursor: "pointer", width: 18, height: 18 }} />
             </div>
             <div style={{
@@ -351,7 +351,7 @@ export function PostPage({ user, onBack }) {
               alignItems: "center",
               justifyContent: "space-between",
             }}>
-              <span style={{ fontSize: 14, color: T.txt }}>Allow stitches</span>
+              <span style={{ fontSize: 14, color: "#1a1a1a" }}>Allow stitches</span>
               <input type="checkbox" defaultChecked style={{ cursor: "pointer", width: 18, height: 18 }} />
             </div>
           </div>

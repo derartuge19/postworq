@@ -84,7 +84,7 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
         overflowY: "auto",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: T.txt }}>Create Video 📹</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#1a1a1a" }}>Create Video 📹</div>
           <button
             onClick={onClose}
             style={{
@@ -92,7 +92,7 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
               border: "none",
               fontSize: 24,
               cursor: "pointer",
-              color: T.sub,
+              color: "#666",
             }}
           >
             ✕
@@ -143,22 +143,22 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
               width: "100%",
               height: 300,
               borderRadius: 12,
-              border: `2px dashed ${T.border}`,
+              border: `2px dashed #ccc`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexDirection: "column",
               cursor: "pointer",
-              background: T.bg,
+              background: "#f5f5f5",
               marginBottom: 16,
               transition: "all .2s",
             }}
             onMouseEnter={(e) => e.currentTarget.style.borderColor = T.pri}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = T.border}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = "#ccc"}
           >
             <div style={{ fontSize: 48, marginBottom: 8 }}>📸</div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>Click to upload image</div>
-            <div style={{ fontSize: 12, color: T.sub, marginTop: 4 }}>or drag and drop</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#1a1a1a" }}>Click to upload image</div>
+            <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>or drag and drop</div>
           </div>
         )}
 
@@ -172,7 +172,7 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
 
         {/* Caption Input */}
         <div style={{ marginBottom: 16 }}>
-          <label style={{ fontSize: 12, fontWeight: 700, color: T.sub, textTransform: "uppercase", display: "block", marginBottom: 6 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: "#666", textTransform: "uppercase", display: "block", marginBottom: 6 }}>
             Caption
           </label>
           <textarea
@@ -183,13 +183,14 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
               width: "100%",
               minHeight: 100,
               padding: 12,
-              border: `1.5px solid ${T.border}`,
+              border: `1.5px solid #d0d0d0`,
               borderRadius: 12,
               fontSize: 14,
               fontFamily: "inherit",
               outline: "none",
               resize: "vertical",
-              color: T.txt,
+              background: "#fff",
+              color: "#1a1a1a",
             }}
           />
         </div>
@@ -215,10 +216,10 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
             style={{
               flex: 1,
               padding: 12,
-              background: T.bg,
-              border: "none",
+              background: "#f0f0f0",
+              border: "1px solid #d0d0d0",
               borderRadius: 8,
-              color: T.txt,
+              color: "#1a1a1a",
               fontSize: 14,
               fontWeight: 600,
               cursor: "pointer",
@@ -232,7 +233,7 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
             style={{
               flex: 1,
               padding: 12,
-              background: loading ? "#ccc" : `linear-gradient(135deg, ${T.pri}, #B8821E)`,
+              background: loading ? "#ccc" : T.pri,
               border: "none",
               borderRadius: 8,
               color: "#fff",
