@@ -158,6 +158,7 @@ export default function WerqRoot() {
   const [followersListType, setFollowersListType] = useState('followers');
   const [followersListUserId, setFollowersListUserId] = useState(null);
   const [showSettings, setShowSettings] = useState(() => !!_savedNav.showSettings);
+  const settingsReturnState = useRef(null); // tracks where to go back to when settings closes
   const [showNotifications, setShowNotifications] = useState(() => !!_savedNav.showNotifications);
   const [showCampaigns, setShowCampaigns] = useState(() => !!_savedNav.showCampaigns);
   const [showCampaignLeaderboard, setShowCampaignLeaderboard] = useState(false);
@@ -551,6 +552,12 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    // Save current state so X button restores it
+    settingsReturnState.current = {
+      activeTab,
+      showProfile,
+      profileUserId,
+    };
     setActiveTab('settings');
     setShowSettings(true);
     setShowProfile(false);
@@ -563,6 +570,21 @@ export default function WerqRoot() {
     setShowCampaignLeaderboard(false);
     setShowCampaignFeed(false);
     pushHistoryState({ showSettings: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showNotifications: false, showCampaigns: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false });
+  };
+
+  const handleCloseSettings = () => {
+    setShowSettings(false);
+    const ret = settingsReturnState.current;
+    if (ret) {
+      setActiveTab(ret.activeTab || 'home');
+      if (ret.showProfile) {
+        setShowProfile(true);
+        setProfileUserId(ret.profileUserId || null);
+      }
+      settingsReturnState.current = null;
+    } else {
+      setActiveTab('home');
+    }
   };
 
   const handleShowCampaigns = () => {
@@ -663,7 +685,7 @@ export default function WerqRoot() {
             <Suspense fallback={<PageSkeleton />}>
               <SettingsPage
                 user={authUser}
-                onClose={() => setShowSettings(false)}
+                onClose={handleCloseSettings}
                 onLogout={handleLogout}
               />
             </Suspense>
