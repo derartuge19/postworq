@@ -316,15 +316,20 @@ export function TikTokLayout({
     });
   }, [activeTab]);
 
-  // Scroll to specific video when initialVideoId is provided
+  // Scroll to specific video when initialVideoId is provided — run ONCE
+  // (per deep-link) so that subsequent state changes like liking a reel
+  // don't yank the user back to the initial video.
+  const initialScrollDoneRef = useRef(false);
+  useEffect(() => { initialScrollDoneRef.current = false; }, [initialVideoId]);
   useEffect(() => {
     if (!initialVideoId || !videos.length) return;
-    
+    if (initialScrollDoneRef.current) return;
     const videoIndex = videos.findIndex(v => v.id === initialVideoId);
     if (videoIndex !== -1) {
       const videoElement = videoContainerRefs.current[videos[videoIndex].id];
       if (videoElement) {
         videoElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        initialScrollDoneRef.current = true;
       }
     }
   }, [initialVideoId, videos]);
@@ -525,6 +530,21 @@ export function TikTokLayout({
     
     // Show double-tap heart animation (use timestamp key for re-triggering)
     setDoubleTapLike((prev) => ({ ...prev, [videoId]: Date.now() }));
+  };
+
+  // Touch-based double-tap detector for reliable mobile gesture handling.
+  // `onDoubleClick` is unreliable on iOS/Android; this tracks the last tap
+  // timestamp per video and fires handleDoubleTap when two taps land within 300ms.
+  const lastTapRef = useRef({});
+  const handleTouchDoubleTap = (videoId) => {
+    const now = Date.now();
+    const last = lastTapRef.current[videoId] || 0;
+    if (now - last < 300) {
+      lastTapRef.current[videoId] = 0;
+      handleDoubleTap(videoId);
+    } else {
+      lastTapRef.current[videoId] = now;
+    }
   };
 
   const toggleVideoPlayback = (videoId) => {
@@ -1131,6 +1151,13 @@ export function TikTokLayout({
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
+          @keyframes heartPop {
+            0%   { transform: translate(-50%, -50%) scale(0.2) rotate(-15deg); opacity: 0; }
+            15%  { transform: translate(-50%, -50%) scale(1.25) rotate(8deg);  opacity: 1; }
+            35%  { transform: translate(-50%, -50%) scale(1.0)  rotate(-4deg); opacity: 1; }
+            70%  { transform: translate(-50%, -50%) scale(1.05) rotate(0deg);  opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.6)  rotate(0deg);  opacity: 0; }
+          }
         `}</style>
       
         {/* Feed Header - desktop only; hiding on mobile fixes scroll-snap offset */}
@@ -1656,6 +1683,7 @@ export function TikTokLayout({
                           }}
                           onClick={() => toggleVideoPlayback(video.id)}
                           onDoubleClick={() => handleDoubleTap(video.id)}
+                          onTouchEnd={() => handleTouchDoubleTap(video.id)}
                         >
                           Your browser does not support the video tag.
                         </video>
@@ -1798,6 +1826,8 @@ export function TikTokLayout({
                             const placeholder = e.target.nextElementSibling;
                             if (placeholder) placeholder.style.display = 'flex';
                           }}
+                          onDoubleClick={() => handleDoubleTap(video.id)}
+                          onTouchEnd={() => handleTouchDoubleTap(video.id)}
                         />
                         <div
                           style={{
