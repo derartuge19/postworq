@@ -159,6 +159,7 @@ export default function WerqRoot() {
   const [followersListUserId, setFollowersListUserId] = useState(null);
   const [showSettings, setShowSettings] = useState(() => !!_savedNav.showSettings);
   const settingsReturnState = useRef(null); // tracks where to go back to when settings closes
+  const prevNavState = useRef(null); // tracks nav state before any overlay page opens
   const [showNotifications, setShowNotifications] = useState(() => !!_savedNav.showNotifications);
   const [showCampaigns, setShowCampaigns] = useState(() => !!_savedNav.showCampaigns);
   const [showCampaignLeaderboard, setShowCampaignLeaderboard] = useState(false);
@@ -519,12 +520,25 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    prevNavState.current = { activeTab, showProfile, profileUserId };
     setActiveTab('create');
     setShowPostPage(true);
     setShowProfile(false);
     setShowEditProfile(false);
     setShowFollowersList(false);
     pushHistoryState({ showPostPage: true, showProfile: false, showEditProfile: false, showFollowersList: false });
+  };
+
+  const handleClosePostPage = () => {
+    setShowPostPage(false);
+    const ret = prevNavState.current;
+    if (ret) {
+      setActiveTab(ret.activeTab || 'home');
+      if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); }
+      prevNavState.current = null;
+    } else {
+      setActiveTab('home');
+    }
   };
 
   const handleShowEditProfile = () => {
@@ -592,6 +606,7 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    prevNavState.current = { activeTab, showProfile, profileUserId };
     setActiveTab('campaigns');
     setShowCampaigns(true);
     setShowProfile(false);
@@ -611,6 +626,7 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    prevNavState.current = { activeTab, showProfile, profileUserId };
     setActiveTab('notifications');
     setShowNotifications(true);
     setUnreadNotifCount(0);
@@ -700,7 +716,11 @@ export default function WerqRoot() {
                   setShowNotifications(false);
                   handleShowProfile(userId);
                 }}
-                onBack={() => setShowNotifications(false)}
+                onBack={() => {
+                  setShowNotifications(false);
+                  const ret = prevNavState.current;
+                  if (ret) { setActiveTab(ret.activeTab || 'home'); if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); } prevNavState.current = null; } else { setActiveTab('home'); }
+                }}
                 onShowPostPage={handleShowPostPage}
                 onLogout={handleLogout}
                 onShowProfile={() => handleShowProfile(null)}
@@ -849,7 +869,11 @@ export default function WerqRoot() {
                   setShowCampaigns(false);
                   setShowCampaignDetail(true);
                 }}
-                onBack={() => setShowCampaigns(false)}
+                onBack={() => {
+                  setShowCampaigns(false);
+                  const ret = prevNavState.current;
+                  if (ret) { setActiveTab(ret.activeTab || 'home'); if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); } prevNavState.current = null; } else { setActiveTab('home'); }
+                }}
               />
             </Suspense>
           </LazyLoadErrorBoundary>
@@ -859,7 +883,7 @@ export default function WerqRoot() {
             <Suspense fallback={<PageSkeleton />}>
               <EnhancedPostPage
                 user={authUser}
-                onBack={() => setShowPostPage(false)}
+                onBack={handleClosePostPage}
               />
             </Suspense>
           </LazyLoadErrorBoundary>
