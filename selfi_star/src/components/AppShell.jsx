@@ -39,10 +39,16 @@ export function AppShell({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Sidebar-only items (Explore & Campaigns moved to top nav bar)
+  // Sidebar-only items (Explore moved to top nav bar, Campaigns kept in sidebar)
   const menuItems = [
     { id: 'home', icon: Home, label: 'Home' },
     { id: 'reels', icon: Film, label: 'Reels' },
+    {
+      id: 'campaigns',
+      icon: Trophy,
+      label: 'Campaigns',
+      action: onShowCampaigns,
+    },
     {
       id: 'notifications',
       icon: Bell,
