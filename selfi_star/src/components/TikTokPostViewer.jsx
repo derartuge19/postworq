@@ -136,16 +136,31 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      <style>{`
+        @keyframes fadeOut {
+          0% { opacity: 1; }
+          70% { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in {
+          animation: slideIn 0.3s ease-out;
+        }
+      `}</style>
+
       {/* Close Button */}
       <button
         onClick={onClose}
         style={{
           position: 'absolute',
-          top: 16,
-          left: 16,
+          top: 12,
+          left: 12,
           zIndex: 100,
-          width: 40,
-          height: 40,
+          width: 36,
+          height: 36,
           borderRadius: '50%',
           background: 'rgba(0,0,0,0.5)',
           border: 'none',
@@ -157,7 +172,7 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
           backdropFilter: 'blur(10px)',
         }}
       >
-        <X size={24} />
+        <X size={20} />
       </button>
 
       {/* Navigation Arrows (Desktop) */}
@@ -166,12 +181,12 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
           onClick={goToPrev}
           style={{
             position: 'absolute',
-            left: 16,
+            left: 12,
             top: '50%',
             transform: 'translateY(-50%)',
             zIndex: 100,
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             borderRadius: '50%',
             background: 'rgba(0,0,0,0.5)',
             border: 'none',
@@ -183,7 +198,7 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
             backdropFilter: 'blur(10px)',
           }}
         >
-          <ChevronLeft size={28} />
+          <ChevronLeft size={24} />
         </button>
       )}
       {hasNext && (
@@ -191,12 +206,12 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
           onClick={goToNext}
           style={{
             position: 'absolute',
-            right: 16,
+            right: 12,
             top: '50%',
             transform: 'translateY(-50%)',
             zIndex: 100,
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             borderRadius: '50%',
             background: 'rgba(0,0,0,0.5)',
             border: 'none',
@@ -208,21 +223,21 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
             backdropFilter: 'blur(10px)',
           }}
         >
-          <ChevronRight size={28} />
+          <ChevronRight size={24} />
         </button>
       )}
 
       {/* Progress Indicator */}
       <div style={{
         position: 'absolute',
-        top: 20,
-        right: 20,
+        top: 12,
+        right: 12,
         zIndex: 100,
         background: 'rgba(0,0,0,0.6)',
-        padding: '8px 16px',
-        borderRadius: 20,
+        padding: '6px 12px',
+        borderRadius: 16,
         color: '#fff',
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: 600,
       }}>
         {currentIndex + 1} / {posts.length}
@@ -237,6 +252,7 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
           justifyContent: 'center',
           position: 'relative',
           cursor: isVideo ? 'pointer' : 'default',
+          overflow: 'hidden',
         }}
         onClick={isVideo ? handleVideoClick : undefined}
       >
@@ -245,8 +261,8 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
             ref={videoRef}
             src={videoUrl}
             style={{
-              maxWidth: '100%',
-              maxHeight: '100vh',
+              width: '100%',
+              height: '100%',
               objectFit: 'contain',
             }}
             autoPlay
@@ -259,8 +275,8 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
             src={fullUrl}
             alt={currentPost.caption}
             style={{
-              maxWidth: '100%',
-              maxHeight: '100vh',
+              width: '100%',
+              height: '100%',
               objectFit: 'contain',
             }}
           />
@@ -293,14 +309,15 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
         )}
       </div>
 
-      {/* Right Side Info Panel */}
+      {/* Bottom Info Panel */}
       <div style={{
         position: 'absolute',
         right: 0,
         bottom: 0,
         left: 0,
-        padding: '20px',
-        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+        padding: '16px 20px 24px',
+        paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+        background: 'linear-gradient(transparent 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.85) 100%)',
         color: '#fff',
         zIndex: 50,
       }}>
@@ -316,33 +333,41 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
               src={profileUser.profile_photo.startsWith('http') ? profileUser.profile_photo : `${config.API_BASE_URL.replace('/api', '')}${profileUser.profile_photo}`}
               alt="Profile"
               style={{
-                width: 44,
-                height: 44,
+                width: 40,
+                height: 40,
                 borderRadius: '50%',
                 objectFit: 'cover',
                 border: '2px solid #fff',
+                flexShrink: 0,
               }}
             />
           ) : (
             <div style={{
-              width: 44,
-              height: 44,
+              width: 40,
+              height: 40,
               borderRadius: '50%',
               background: 'rgba(255,255,255,0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 20,
+              fontSize: 18,
               border: '2px solid #fff',
+              flexShrink: 0,
             }}>
               👤
             </div>
           )}
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ 
+              fontSize: 15, 
+              fontWeight: 700,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
               @{profileUser?.username}
             </div>
-            <div style={{ fontSize: 13, opacity: 0.8 }}>
+            <div style={{ fontSize: 12, opacity: 0.8 }}>
               {getRelativeTime(new Date(currentPost.created_at || currentPost.timestamp))}
             </div>
           </div>
@@ -351,13 +376,17 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
         {/* Caption */}
         {currentPost.caption && (
           <div style={{
-            fontSize: 15,
+            fontSize: 14,
             lineHeight: 1.5,
-            marginBottom: 16,
-            maxHeight: 80,
+            marginBottom: 14,
+            maxHeight: 72,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
           }}>
+            <span style={{ fontWeight: 700 }}>{profileUser?.username} </span>
             {currentPost.caption}
           </div>
         )}
@@ -365,16 +394,16 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
         {/* Action Buttons */}
         <div style={{
           display: 'flex',
-          gap: 24,
+          gap: 20,
           alignItems: 'center',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Heart size={24} fill="#fff" color="#fff" />
-            <span style={{ fontSize: 16, fontWeight: 700 }}>{currentPost.votes || 0}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Heart size={22} fill="#fff" color="#fff" />
+            <span style={{ fontSize: 14, fontWeight: 700 }}>{currentPost.votes || 0}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <MessageCircle size={24} color="#fff" />
-            <span style={{ fontSize: 16, fontWeight: 700 }}>{currentPost.comments_count || 0}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <MessageCircle size={22} color="#fff" />
+            <span style={{ fontSize: 14, fontWeight: 700 }}>{currentPost.comments_count || 0}</span>
           </div>
           
           {/* Edit/Delete for own profile */}
@@ -392,10 +421,12 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 4,
+                  fontSize: 13,
+                  fontWeight: 600,
                 }}
               >
-                <span style={{ fontSize: 14 }}>✏️ Edit</span>
+                ✏️ Edit
               </button>
               <button
                 onClick={(e) => {
@@ -409,10 +440,12 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 4,
+                  fontSize: 13,
+                  fontWeight: 600,
                 }}
               >
-                <span style={{ fontSize: 14 }}>🗑️ Delete</span>
+                🗑️ Delete
               </button>
             </>
           )}
@@ -422,7 +455,7 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
       {/* Swipe hint for mobile */}
       <div style={{
         position: 'absolute',
-        bottom: 100,
+        bottom: 120,
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 40,
@@ -430,7 +463,7 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
         padding: '8px 16px',
         borderRadius: 20,
         color: '#fff',
-        fontSize: 13,
+        fontSize: 12,
         display: window.innerWidth <= 768 ? 'flex' : 'none',
         alignItems: 'center',
         gap: 8,
