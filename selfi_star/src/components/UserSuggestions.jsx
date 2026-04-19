@@ -22,7 +22,8 @@ export function UserSuggestions({ onUserClick }) {
     try {
       setLoading(true);
       const raw = await api.getUserSuggestions();
-      const data = Array.isArray(raw) ? raw : (raw.results || []);
+      const all = Array.isArray(raw) ? raw : (raw.results || []);
+      const data = all.filter(u => !u.is_staff && !u.is_superuser);
       setSuggestions(data);
       
       // Initialize following states

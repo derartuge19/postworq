@@ -148,27 +148,27 @@ export default function WerqRoot() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
-  // ── Read the saved nav snapshot (written on every navigation action) ──────
-  const _savedNav = (() => { try { return JSON.parse(sessionStorage.getItem('_nav') || '{}'); } catch { return {}; } })();
+  // ── Read the saved nav snapshot — ONLY restore the active tab, never overlays ──
+  const _savedActiveTab = (() => { try { return JSON.parse(sessionStorage.getItem('_nav') || '{}').activeTab || localStorage.getItem('_activeTab') || 'home'; } catch { return 'home'; } })();
 
-  const [showPostPage, setShowPostPage] = useState(() => !!_savedNav.showPostPage);
-  const [showProfile, setShowProfile] = useState(() => !!_savedNav.showProfile);
-  const [profileUserId, setProfileUserId] = useState(() => _savedNav.profileUserId || null);
-  const [activeTab, setActiveTab] = useState(() => _savedNav.activeTab || localStorage.getItem('_activeTab') || 'home');
+  const [showPostPage, setShowPostPage] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileUserId, setProfileUserId] = useState(null);
+  const [activeTab, setActiveTab] = useState(_savedActiveTab);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showFollowersList, setShowFollowersList] = useState(false);
   const [followersListType, setFollowersListType] = useState('followers');
   const [followersListUserId, setFollowersListUserId] = useState(null);
-  const [showSettings, setShowSettings] = useState(() => !!_savedNav.showSettings);
+  const [showSettings, setShowSettings] = useState(false);
   const settingsReturnState = useRef(null); // tracks where to go back to when settings closes
   const prevNavState = useRef(null); // tracks nav state before any overlay page opens
-  const [showNotifications, setShowNotifications] = useState(() => !!_savedNav.showNotifications);
-  const [showCampaigns, setShowCampaigns] = useState(() => !!_savedNav.showCampaigns);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showCampaigns, setShowCampaigns] = useState(false);
   const [showCampaignLeaderboard, setShowCampaignLeaderboard] = useState(false);
   const [showCampaignFeed, setShowCampaignFeed] = useState(false);
   const [showVideoDetail, setShowVideoDetail] = useState(false);
   const [videoDetailId, setVideoDetailId] = useState(null);
-  const [showExplorer, setShowExplorer] = useState(() => !!_savedNav.showExplorer);
+  const [showExplorer, setShowExplorer] = useState(false);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
   // Poll unread notification count every 30s when user is logged in

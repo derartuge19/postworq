@@ -973,11 +973,19 @@ class FollowViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def suggestions(self, request):
+        # Never suggest admins, staff, or superusers
+        privileged_exclusion = {'is_staff': False, 'is_superuser': False}
         if request.user.is_authenticated:
             following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
-            suggestions = User.objects.exclude(id__in=following_ids).exclude(id=request.user.id)[:10]
+            suggestions = (
+                User.objects
+                .filter(**privileged_exclusion)
+                .exclude(id__in=following_ids)
+                .exclude(id=request.user.id)
+                .order_by('?')[:10]
+            )
         else:
-            suggestions = User.objects.all()[:10]
+            suggestions = User.objects.filter(**privileged_exclusion).order_by('?')[:10]
         serializer = UserSerializer(suggestions, many=True, context={'request': request})
         return Response(serializer.data)
 
