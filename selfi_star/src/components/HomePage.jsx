@@ -583,12 +583,12 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{
-          background: T.cardBg || '#fff',
+          background: colors.cardBg,
           borderRadius: 16,
           boxShadow: isHovered
             ? `0 16px 48px rgba(0,0,0,0.16), 0 4px 16px rgba(0,0,0,0.10)`
             : '0 2px 16px rgba(0,0,0,0.08)',
-          border: `1px solid ${isHovered ? T.pri + '50' : T.border}`,
+          border: `1px solid ${isHovered ? colors.pri + '50' : colors.border}`,
           overflow: 'hidden',
           marginBottom: 20,
           maxWidth: 560,
@@ -613,7 +613,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
           >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', background: T.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: `2px solid ${T.pri}30` }}>
+            <div style={{ width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', background: colors.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: `2px solid ${colors.pri}30` }}>
               {avatarSrc
                 ? <img src={avatarSrc} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
                 : '👤'}
@@ -624,18 +624,18 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               <button
                 className="hp-btn"
                 onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14, fontWeight: 700, color: T.txt }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14, fontWeight: 700, color: colors.txt }}
               >
                 {post.user?.username || 'user'}
               </button>
-              <CheckCircle size={14} fill={T.pri} color="#fff" />
+              <CheckCircle size={14} fill={colors.pri} color="#fff" />
             </div>
-            <div style={{ fontSize: 12, color: T.sub }}>{timeAgo(post.created_at)}</div>
+            <div style={{ fontSize: 12, color: colors.sub }}>{timeAgo(post.created_at)}</div>
           </div>
           <button
             className="hp-btn"
             onClick={(e) => { e.stopPropagation(); setOptionsAnchor(e.currentTarget.getBoundingClientRect()); setShowOptions(true); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: T.sub, display: 'flex', alignItems: 'center' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: colors.sub, display: 'flex', alignItems: 'center' }}
           >
             <MoreHorizontal size={20} />
           </button>
@@ -682,7 +682,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               />
             )
           ) : (
-            <div style={{ width: '100%', height: 260, background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.sub, fontSize: 14 }}>No media</div>
+            <div style={{ width: '100%', height: 260, background: colors.cardBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.sub, fontSize: 14 }}>No media</div>
           )}
 
           {/* Play button overlay - only shows when paused */}
@@ -738,21 +738,21 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   padding: '6px 10px', borderRadius: 10,
                   display: 'flex', alignItems: 'center', gap: 5,
                   animation: likeAnim ? 'heartPop 0.4s ease' : 'none',
-                  '--hp-hover': liked ? '#EF444420' : T.border + '60',
+                  '--hp-hover': liked ? '#EF444420' : colors.border + '60',
                 }}
               >
                 {isCampaignPost ? (
                   <Trophy
                     size={24}
-                    fill={liked ? (T.priFallback || T.pri) : 'none'}
-                    color={liked ? (T.priFallback || T.pri) : T.txt}
+                    fill={liked ? colors.pri : 'none'}
+                    color={liked ? colors.pri : colors.txt}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 ) : (
                   <Heart
                     size={24}
                     fill={liked ? '#EF4444' : 'none'}
-                    color={liked ? '#EF4444' : T.txt}
+                    color={liked ? '#EF4444' : colors.txt}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
@@ -765,10 +765,10 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   background: 'none', border: 'none', cursor: 'pointer',
                   padding: '6px 10px', borderRadius: 10,
                   display: 'flex', alignItems: 'center', gap: 5,
-                  '--hp-hover': T.border + '60',
+                  '--hp-hover': colors.border + '60',
                 }}
               >
-                <MessageCircle size={24} color={T.txt} style={{ transition: 'transform 0.15s' }} />
+                <MessageCircle size={24} color={colors.txt} style={{ transition: 'transform 0.15s' }} />
               </button>
               {/* Share */}
               <button
@@ -779,11 +779,11 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   background: 'none', border: 'none', cursor: 'pointer',
                   padding: '6px 10px', borderRadius: 10,
                   display: 'flex', alignItems: 'center', gap: 5,
-                  '--hp-hover': T.border + '60',
+                  '--hp-hover': colors.border + '60',
                 }}
               >
-                <Share2 size={24} color={T.txt} style={{ transition: 'transform 0.15s' }} />
-                {post.shares > 0 && <span style={{ fontSize: 13, color: T.sub, fontWeight: 600 }}>{post.shares}</span>}
+                <Share2 size={24} color={colors.txt} style={{ transition: 'transform 0.15s' }} />
+                {post.shares > 0 && <span style={{ fontSize: 13, color: colors.sub, fontWeight: 600 }}>{post.shares}</span>}
               </button>
             </div>
             {/* Save */}
@@ -794,19 +794,19 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 background: 'none', border: 'none', cursor: 'pointer',
                 padding: '6px 10px', borderRadius: 10,
                 animation: saveAnim ? 'savePop 0.3s ease' : 'none',
-                '--hp-hover': saved ? T.pri + '25' : T.border + '60',
+                '--hp-hover': saved ? colors.pri + '25' : colors.border + '60',
               }}
             >
               <Bookmark
                 size={24}
-                fill={saved ? T.pri : 'none'}
-                color={saved ? T.pri : T.txt}
+                fill={saved ? colors.pri : 'none'}
+                color={saved ? colors.pri : colors.txt}
               />
             </button>
           </div>
 
           {/* Like count */}
-          <div style={{ fontSize: 14, fontWeight: 700, color: T.txt, marginTop: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: colors.txt, marginTop: 4 }}>
             {likes.toLocaleString()} likes
           </div>
 
@@ -817,7 +817,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               ? post.caption
               : post.caption.slice(0, CAPTION_LIMIT).trimEnd() + '…';
             return (
-              <div style={{ fontSize: 14, color: T.txt, marginTop: 4, lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              <div style={{ fontSize: 14, color: colors.txt, marginTop: 4, lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                 <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
                 {shown}
                 {isLong && (
@@ -825,7 +825,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                     onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
                     style={{
                       background: 'none', border: 'none', padding: 0, marginLeft: 4,
-                      color: T.sub, fontSize: 14, fontWeight: 600,
+                      color: colors.sub, fontSize: 14, fontWeight: 600,
                       cursor: 'pointer', lineHeight: 1.55,
                     }}
                   >
@@ -843,7 +843,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 <div 
                   key={comment.id}
                   onClick={handleCommentClick}
-                  style={{ fontSize: 13, color: T.txt, marginTop: 3, cursor: 'pointer' }}
+                  style={{ fontSize: 13, color: colors.txt, marginTop: 3, cursor: 'pointer' }}
                 >
                   <span style={{ fontWeight: 700 }}>{comment.user?.username}</span>
                   <span> {comment.text}</span>
@@ -855,7 +855,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           {/* Comments link */}
           <button
             onClick={handleCommentClick}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontSize: 13, color: T.sub, display: 'block', marginTop: 4 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontSize: 13, color: colors.sub, display: 'block', marginTop: 4 }}
           >
             {commentCount > 0 ? `View all ${commentCount} comments` : 'Add a comment…'}
           </button>
@@ -864,7 +864,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           {hashtags.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
               {hashtags.map((tag, i) => (
-                <span key={i} style={{ fontSize: 13, color: T.pri, fontWeight: 600 }}>
+                <span key={i} style={{ fontSize: 13, color: colors.pri, fontWeight: 600 }}>
                   {tag.startsWith('#') ? tag : `#${tag}`}
                 </span>
               ))}
@@ -915,6 +915,8 @@ const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 
 export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
   const { colors: T } = useTheme();
+  // Ensure T is defined with fallback values
+  const colors = T || { cardBg: '#fff', border: '#e0e0e0', txt: '#000', pri: '#000', sub: '#666', bg: '#fff' };
   const [activeTab, setActiveTab] = useState('For You');
   const [posts, setPosts] = useState(() => readHomeCache() || []);
   const [loading, setLoading] = useState(() => !readHomeCache());
@@ -1050,7 +1052,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ height: '100vh', background: T.bg, overflowY: 'auto', overflowX: 'hidden', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      style={{ height: '100vh', background: colors.bg, overflowY: 'auto', overflowX: 'hidden', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
       <style>{`
         div::-webkit-scrollbar {
@@ -1068,14 +1070,14 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: `linear-gradient(180deg, ${T.bg} 0%, transparent 100%)`,
+          background: `linear-gradient(180deg, ${colors.bg} 0%, transparent 100%)`,
           zIndex: 40,
         }}>
           <div style={{
             width: 32,
             height: 32,
             borderRadius: '50%',
-            border: `3px solid ${T.pri}`,
+            border: `3px solid ${colors.pri}`,
             borderTopColor: 'transparent',
             animation: isRefreshing ? 'spin 0.8s linear infinite' : 'none',
             transform: `rotate(${(pullDistance / PULL_THRESHOLD) * 360}deg)`,
@@ -1093,8 +1095,8 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       {/* Tab bar */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 50,
-        background: T.cardBg || '#fff',
-        borderBottom: `1px solid ${T.border}`,
+        background: colors.cardBg,
+        borderBottom: `1px solid ${colors.border}`,
         display: 'flex',
         alignItems: 'center',
         overflowX: 'auto',
@@ -1118,7 +1120,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 padding: '12px 0',
                 fontSize: 15,
                 fontWeight: isActive ? 700 : 500,
-                color: isActive ? T.txt : T.sub,
+                color: isActive ? colors.txt : colors.sub,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 whiteSpace: 'nowrap',
@@ -1126,8 +1128,8 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 position: 'relative',
                 fontFamily: 'inherit',
               }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = T.txt; } }}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = T.sub; } }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = colors.txt; } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = colors.sub; } }}
             >
               {tab}
               {isActive && (
@@ -1138,7 +1140,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                   transform: 'translateX(-50%)',
                   width: '20px',
                   height: '2px',
-                  background: T.pri,
+                  background: colors.pri,
                   borderRadius: '2px',
                 }} />
               )}
@@ -1159,26 +1161,26 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         {loading && posts.length === 0 ? (
           [1,2,3].map(i => (
             <div key={i} style={{
-              width: '100%', maxWidth: 560, background: T.cardBg || '#fff',
-              borderRadius: 16, border: `1px solid ${T.border}`,
+              width: '100%', maxWidth: 560, background: colors.cardBg,
+              borderRadius: 16, border: `1px solid ${colors.border}`,
               overflow: 'hidden', marginBottom: 20,
             }}>
               <div style={{ padding: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div style={{ width: 42, height: 42, borderRadius: '50%', background: T.border }} />
+                <div style={{ width: 42, height: 42, borderRadius: '50%', background: colors.border }} />
                 <div>
-                  <div style={{ width: 100, height: 12, background: T.border, borderRadius: 6, marginBottom: 6 }} />
-                  <div style={{ width: 60, height: 10, background: T.border, borderRadius: 5 }} />
+                  <div style={{ width: 100, height: 12, background: colors.border, borderRadius: 6, marginBottom: 6 }} />
+                  <div style={{ width: 60, height: 10, background: colors.border, borderRadius: 5 }} />
                 </div>
               </div>
-              <div style={{ width: '100%', height: 300, background: T.border }} />
+              <div style={{ width: '100%', height: 300, background: colors.border }} />
               <div style={{ padding: 16 }}>
-                <div style={{ width: 80, height: 12, background: T.border, borderRadius: 6, marginBottom: 8 }} />
-                <div style={{ width: '70%', height: 10, background: T.border, borderRadius: 5 }} />
+                <div style={{ width: 80, height: 12, background: colors.border, borderRadius: 6, marginBottom: 8 }} />
+                <div style={{ width: '70%', height: 10, background: colors.border, borderRadius: 5 }} />
               </div>
             </div>
           ))
         ) : posts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60, color: T.sub }}>
+          <div style={{ textAlign: 'center', padding: 60, color: colors.sub }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>📸</div>
             <div style={{ fontSize: 16, fontWeight: 600 }}>No posts yet</div>
             <div style={{ fontSize: 14, marginTop: 8 }}>Be the first to share something!</div>
@@ -1201,12 +1203,12 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         {/* Infinite scroll loader */}
         <div ref={loaderRef} style={{ height: 40, width: '100%' }} />
         {loading && posts.length > 0 && (
-          <div style={{ textAlign: 'center', padding: 20, color: T.sub, fontSize: 14 }}>
+          <div style={{ textAlign: 'center', padding: 20, color: colors.sub, fontSize: 14 }}>
             Loading more...
           </div>
         )}
         {!hasMore && posts.length > 0 && (
-          <div style={{ textAlign: 'center', padding: 20, color: T.sub, fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 20, color: colors.sub, fontSize: 13 }}>
             You're all caught up ✓
           </div>
         )}
