@@ -173,8 +173,27 @@ export default function WerqRoot() {
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [showCampaignLeaderboard, setShowCampaignLeaderboard] = useState(false);
   const [showCampaignFeed, setShowCampaignFeed] = useState(false);
-  const [showVideoDetail, setShowVideoDetail] = useState(false);
-  const [videoDetailId, setVideoDetailId] = useState(null);
+
+  // ── Parse shared post link (/post/:id or ?post=:id) SYNCHRONOUSLY so the
+  //    shared content opens on the very first render — no flash of home/landing.
+  const _sharedPostId = (() => {
+    try {
+      const path = window.location.pathname;
+      const m = path.match(/^\/post\/(\d+)/);
+      if (m) return parseInt(m[1], 10);
+      const params = new URLSearchParams(window.location.search);
+      const p = params.get('post');
+      if (p && /^\d+$/.test(p)) return parseInt(p, 10);
+    } catch {}
+    return null;
+  })();
+  // Clean the URL immediately so reloads/refreshes still work
+  if (_sharedPostId) {
+    try { window.history.replaceState({}, '', '/'); } catch {}
+  }
+
+  const [showVideoDetail, setShowVideoDetail] = useState(!!_sharedPostId);
+  const [videoDetailId, setVideoDetailId] = useState(_sharedPostId || null);
   const [showExplorer, setShowExplorer] = useState(false);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
@@ -427,32 +446,6 @@ export default function WerqRoot() {
       setTimeout(prefetchComponents, 2000);
     }
 
-    // Handle shared post links: /post/:id or ?post=:id
-    const handleSharedLink = () => {
-      const path = window.location.pathname;
-      const params = new URLSearchParams(window.location.search);
-      let postId = null;
-
-      // Check /post/:id format
-      const postMatch = path.match(/^\/post\/(\d+)/);
-      if (postMatch) {
-        postId = postMatch[1];
-      } else if (params.has('post')) {
-        // Check ?post=:id format
-        postId = params.get('post');
-      }
-
-      if (postId) {
-        console.log('📤 Opening shared post:', postId);
-        setVideoDetailId(parseInt(postId));
-        setShowVideoDetail(true);
-        setActiveTab('home');
-        // Clean URL without reload
-        window.history.replaceState({}, '', '/');
-      }
-    };
-
-    handleSharedLink();
   }, []);
 
   // Refresh user profile from backend on startup to sync across devices
