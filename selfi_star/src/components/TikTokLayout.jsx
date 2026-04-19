@@ -1650,7 +1650,7 @@ export function TikTokLayout({
                           style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: 'cover',
+                            objectFit: 'contain',
                             display: 'block',
                             background: '#000',
                           }}
@@ -1789,8 +1789,9 @@ export function TikTokLayout({
                             left: 0,
                             width: '100%',
                             height: '100%',
-                            objectFit: 'cover',
+                            objectFit: 'contain',
                             display: 'block',
+                            background: '#000',
                           }}
                           onError={(e) => {
                             e.target.style.display = 'none';
