@@ -28,244 +28,140 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fff" }}>
+    <div style={{ minHeight: "100vh", background: T.bg }}>
       {/* Hero Section */}
       <div style={{
-        background: `linear-gradient(135deg, ${T.dark}, ${T.pri})`,
-        color: "#fff",
-        padding: "60px 20px",
+        background: T.cardBg,
+        padding: "100px 20px 80px",
         textAlign: "center",
+        borderBottom: `1px solid ${T.border}`,
       }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ fontSize: 72, marginBottom: 20 }}>✨</div>
+        <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <h1 style={{ 
-            fontSize: 56, 
-            fontWeight: 900, 
+            fontSize: 48, 
+            fontWeight: 800, 
             marginBottom: 16,
-            background: "linear-gradient(to right, #fff, #FFD700)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
+            color: T.txt,
+            letterSpacing: -0.5,
           }}>
             FlipStar
           </h1>
-          <div style={{ fontSize: 20, marginBottom: 8, opacity: 0.95 }}>
-            FlipStar - Share Your Story
-          </div>
-          <p style={{ fontSize: 18, opacity: 0.9, marginBottom: 40, maxWidth: 600, margin: "0 auto 40px" }}>
-            Join millions of creators sharing videos, images, and moments. Connect with friends, discover new content, and express yourself.
+          <p style={{ fontSize: 18, color: T.sub, marginBottom: 32, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 32px" }}>
+            Share your story with the world. Create, connect, and discover content that matters.
           </p>
-          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <button
               onClick={onRegister}
               style={{
-                padding: "16px 40px",
-                background: "#fff",
-                color: T.dark,
+                padding: "14px 32px",
+                background: T.pri,
+                color: "#fff",
                 border: "none",
-                borderRadius: 12,
-                fontSize: 16,
-                fontWeight: 700,
+                borderRadius: 8,
+                fontSize: 15,
+                fontWeight: 600,
                 cursor: "pointer",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+                transition: "opacity 0.2s",
               }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = "0.9"}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
             >
-              Get Started Free
+              {t('signUp')}
             </button>
             <button
               onClick={onLogin}
               style={{
-                padding: "16px 40px",
+                padding: "14px 32px",
                 background: "transparent",
-                color: "#fff",
-                border: "2px solid #fff",
-                borderRadius: 12,
-                fontSize: 16,
-                fontWeight: 700,
+                color: T.txt,
+                border: `1px solid ${T.border}`,
+                borderRadius: 8,
+                fontSize: 15,
+                fontWeight: 600,
                 cursor: "pointer",
+                transition: "background 0.2s",
               }}
+              onMouseEnter={(e) => e.currentTarget.style.background = T.bg}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
             >
-              Log In
+              {t('login')}
             </button>
             <button
               onClick={onShowCampaigns}
               style={{
-                padding: "16px 40px",
-                background: "linear-gradient(135deg, #FFD700, #FFA500)",
-                color: "#000",
-                border: "none",
-                borderRadius: 12,
-                fontSize: 16,
-                fontWeight: 700,
+                padding: "14px 24px",
+                background: T.cardBg,
+                color: T.txt,
+                border: `1px solid ${T.border}`,
+                borderRadius: 8,
+                fontSize: 15,
+                fontWeight: 600,
                 cursor: "pointer",
-                boxShadow: "0 4px 20px rgba(255,215,0,0.4)",
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
+                transition: "background 0.2s",
               }}
+              onMouseEnter={(e) => e.currentTarget.style.background = T.bg}
+              onMouseLeave={(e) => e.currentTarget.style.background = T.cardBg}
             >
-              <Trophy size={20} />
-              View Campaigns
+              <Trophy size={18} />
+              {t('campaigns')}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Features Section */}
-      <div style={{ padding: "80px 20px", background: "#fff" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <h2 style={{ fontSize: 36, fontWeight: 800, textAlign: "center", marginBottom: 60, color: T.txt }}>
-            Why Choose FlipStar?
-          </h2>
+      {/* Features Section - Simplified */}
+      <div style={{ padding: "60px 20px", background: T.bg }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <div style={{ 
             display: "grid", 
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", 
-            gap: 40 
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", 
+            gap: 24 
           }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: T.pri + "20",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}>
-                <Play size={40} color={T.pri} />
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: T.txt }}>
-                Share Videos & Images
+            <div style={{
+              padding: 24,
+              borderRadius: 12,
+              background: T.cardBg,
+              border: `1px solid ${T.border}`,
+            }}>
+              <Play size={28} color={T.pri} style={{ marginBottom: 16 }} />
+              <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: T.txt }}>
+                Share Content
               </h3>
-              <p style={{ fontSize: 14, color: T.sub, lineHeight: 1.6 }}>
-                Upload and share your favorite moments with high-quality video and image support.
+              <p style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>
+                Upload videos and images with high-quality support
               </p>
             </div>
 
-            <div style={{ textAlign: "center" }}>
-              <div style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: T.pri + "20",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}>
-                <Users size={40} color={T.pri} />
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: T.txt }}>
-                Connect with Friends
+            <div style={{
+              padding: 24,
+              borderRadius: 12,
+              background: T.cardBg,
+              border: `1px solid ${T.border}`,
+            }}>
+              <Users size={28} color={T.pri} style={{ marginBottom: 16 }} />
+              <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: T.txt }}>
+                Connect
               </h3>
-              <p style={{ fontSize: 14, color: T.sub, lineHeight: 1.6 }}>
-                Follow your friends, discover new creators, and build your community.
+              <p style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>
+                Follow friends and build your community
               </p>
             </div>
 
-            <div style={{ textAlign: "center" }}>
-              <div style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: T.pri + "20",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}>
-                <Heart size={40} color={T.pri} />
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: T.txt }}>
-                Engage & Interact
+            <div style={{
+              padding: 24,
+              borderRadius: 12,
+              background: T.cardBg,
+              border: `1px solid ${T.border}`,
+            }}>
+              <Trophy size={28} color={T.pri} style={{ marginBottom: 16 }} />
+              <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: T.txt }}>
+                Compete
               </h3>
-              <p style={{ fontSize: 14, color: T.sub, lineHeight: 1.6 }}>
-                Like, comment, and share content. Join conversations and express yourself.
-              </p>
-            </div>
-
-            <div style={{ textAlign: "center" }}>
-              <div style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: T.pri + "20",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}>
-                <Trophy size={40} color={T.pri} />
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: T.txt }}>
-                Win Prizes
-              </h3>
-              <p style={{ fontSize: 14, color: T.sub, lineHeight: 1.6 }}>
-                Join exciting campaigns and competitions. Showcase your creativity and win amazing prizes!
-              </p>
-            </div>
-
-            <div style={{ textAlign: "center" }}>
-              <div style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: T.pri + "20",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}>
-                <TrendingUp size={40} color={T.pri} />
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: T.txt }}>
-                Trending Content
-              </h3>
-              <p style={{ fontSize: 14, color: T.sub, lineHeight: 1.6 }}>
-                Discover what's trending and stay updated with the latest viral content.
-              </p>
-            </div>
-
-            <div style={{ textAlign: "center" }}>
-              <div style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: T.pri + "20",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}>
-                <MessageCircle size={40} color={T.pri} />
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: T.txt }}>
-                Real-time Chat
-              </h3>
-              <p style={{ fontSize: 14, color: T.sub, lineHeight: 1.6 }}>
-                Message your friends and followers with instant notifications.
-              </p>
-            </div>
-
-            <div style={{ textAlign: "center" }}>
-              <div style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                background: T.pri + "20",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}>
-                <Zap size={40} color={T.pri} />
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: T.txt }}>
-                Competitions & Rewards
-              </h3>
-              <p style={{ fontSize: 14, color: T.sub, lineHeight: 1.6 }}>
-                Participate in competitions, earn votes, and win amazing prizes.
+              <p style={{ fontSize: 13, color: T.sub, lineHeight: 1.5 }}>
+                Join campaigns and win prizes
               </p>
             </div>
           </div>
@@ -273,43 +169,41 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
       </div>
 
       {/* Posts Preview Section */}
-      <div style={{ padding: "80px 20px", background: "#fff" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <h2 style={{ fontSize: 36, fontWeight: 800, textAlign: "center", marginBottom: 16, color: T.txt }}>
-            Trending Posts
+      <div style={{ padding: "60px 20px", background: T.bg }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700, textAlign: "center", marginBottom: 8, color: T.txt }}>
+            Trending Now
           </h2>
-          <p style={{ textAlign: "center", fontSize: 16, color: T.sub, marginBottom: 60 }}>
-            See what's popular on FlipStar. Join to like, comment, and share!
+          <p style={{ textAlign: "center", fontSize: 14, color: T.sub, marginBottom: 32 }}>
+            Discover popular content on FlipStar
           </p>
           
           {loading ? (
-            <div style={{ textAlign: "center", padding: 40, color: T.sub }}>Loading posts...</div>
+            <div style={{ textAlign: "center", padding: 40, color: T.sub }}>{t('loading')}</div>
           ) : (
             <div style={{ 
               display: "grid", 
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", 
-              gap: 20 
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
+              gap: 16 
             }}>
               {posts.map(post => (
                 <div key={post.id} style={{
-                  borderRadius: 12,
+                  borderRadius: 8,
                   overflow: "hidden",
                   border: `1px solid ${T.border}`,
-                  background: "#fff",
+                  background: T.cardBg,
                   cursor: "pointer",
-                  transition: "transform 0.2s, box-shadow 0.2s",
+                  transition: "transform 0.2s",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-4px)";
-                  e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)";
+                  e.currentTarget.style.transform = "translateY(-2px)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
                 }}
                 >
                   {post.media || post.image ? (
-                    <div style={{ aspectRatio: "1", background: "#000", position: "relative" }}>
+                    <div style={{ aspectRatio: "1", background: T.bg, position: "relative" }}>
                       {(post.media?.match(/\.(mp4|webm|ogg)$/i) || post.media?.includes('video')) ? (
                         <video
                           src={post.media?.startsWith('http') ? post.media : `${config.API_BASE_URL.replace('/api', '')}${post.media}`}
@@ -324,21 +218,21 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
                       )}
                     </div>
                   ) : (
-                    <div style={{ aspectRatio: "1", background: T.pri + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
+                    <div style={{ aspectRatio: "1", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>
                       🎬
                     </div>
                   )}
-                  <div style={{ padding: 16 }}>
-                    <div style={{ fontSize: 14, color: T.txt, marginBottom: 8, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                      {post.caption || "No caption"}
+                  <div style={{ padding: 12 }}>
+                    <div style={{ fontSize: 13, color: T.txt, marginBottom: 8, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {post.caption || t('noCaption') || "No caption"}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 13, color: T.sub }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: T.sub }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <Heart size={16} />
+                        <Heart size={14} />
                         {post.votes || 0}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <MessageCircle size={16} />
+                        <MessageCircle size={14} />
                         {post.comment_count || 0}
                       </div>
                     </div>
@@ -348,21 +242,24 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
             </div>
           )}
           
-          <div style={{ textAlign: "center", marginTop: 40 }}>
+          <div style={{ textAlign: "center", marginTop: 32 }}>
             <button
               onClick={onRegister}
               style={{
-                padding: "14px 32px",
+                padding: "12px 28px",
                 background: T.pri,
                 color: "#fff",
                 border: "none",
                 borderRadius: 8,
-                fontSize: 16,
-                fontWeight: 700,
+                fontSize: 14,
+                fontWeight: 600,
                 cursor: "pointer",
+                transition: "opacity 0.2s",
               }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = "0.9"}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
             >
-              Join to See More
+              {t('signUp')}
             </button>
           </div>
         </div>
@@ -370,45 +267,48 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
 
       {/* CTA Section */}
       <div style={{
-        padding: "80px 20px",
-        background: `linear-gradient(135deg, ${T.pri}20, ${T.dark}10)`,
+        padding: "60px 20px",
+        background: T.cardBg,
+        borderTop: `1px solid ${T.border}`,
         textAlign: "center",
       }}>
-        <div style={{ maxWidth: 600, margin: "0 auto" }}>
-          <h2 style={{ fontSize: 36, fontWeight: 800, marginBottom: 20, color: T.txt }}>
-            Ready to Get Started?
+        <div style={{ maxWidth: 500, margin: "0 auto" }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12, color: T.txt }}>
+            Ready to join?
           </h2>
-          <p style={{ fontSize: 16, color: T.sub, marginBottom: 40 }}>
-            Join thousands of creators and start sharing your story today. It's free!
+          <p style={{ fontSize: 14, color: T.sub, marginBottom: 24 }}>
+            Start sharing your story today. It's free to get started.
           </p>
           <button
             onClick={onRegister}
             style={{
-              padding: "16px 48px",
-              background: `linear-gradient(135deg, ${T.pri}, ${T.dark})`,
+              padding: "14px 36px",
+              background: T.pri,
               color: "#fff",
               border: "none",
-              borderRadius: 12,
-              fontSize: 18,
-              fontWeight: 700,
+              borderRadius: 8,
+              fontSize: 15,
+              fontWeight: 600,
               cursor: "pointer",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+              transition: "opacity 0.2s",
             }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = "0.9"}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
           >
-            Create Your Account
+            Create Account
           </button>
         </div>
       </div>
 
       {/* Footer */}
       <div style={{
-        padding: "40px 20px",
-        background: T.dark,
-        color: "#fff",
+        padding: "24px 20px",
+        background: T.bg,
+        borderTop: `1px solid ${T.border}`,
         textAlign: "center",
       }}>
-        <div style={{ fontSize: 10, opacity: 0.7 }}>
-          © 2025 FlipStar - All rights reserved
+        <div style={{ fontSize: 12, color: T.sub }}>
+          © 2025 FlipStar
         </div>
       </div>
     </div>
