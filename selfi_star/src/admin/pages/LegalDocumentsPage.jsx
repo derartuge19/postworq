@@ -655,6 +655,7 @@ function DocumentEditor({ theme, document, documentTypes, onClose, onSave }) {
         {/* Footer */}
         <div style={{
           padding: '16px 24px', borderTop: `1px solid ${theme.border}`,
+          background: '#fff',
           display: 'flex', justifyContent: 'flex-end', gap: 12,
         }}>
           <button

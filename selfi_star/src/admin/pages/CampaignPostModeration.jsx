@@ -257,7 +257,7 @@ const ModerationModal = ({ post, onClose, onModerate }) => {
           </div>
 
           {/* Footer */}
-          <div style={{ display: 'flex', gap: 10, padding: '14px 20px', borderTop: `1.5px solid ${BORDER}`, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 10, padding: '14px 20px', borderTop: `1.5px solid ${BORDER}`, background: '#fff', flexShrink: 0 }}>
             <button onClick={onClose} style={{ flex: 1, padding: '11px', background: BG, border: `1.5px solid ${BORDER}`, borderRadius: 8, fontWeight: 600, cursor: 'pointer', color: TXT, fontSize: 13 }}>Cancel</button>
             <button onClick={handleSubmit} disabled={submitting}
               style={{ flex: 2, padding: '11px', background: submitting ? `${action === 'approve' ? GREEN : RED}aa` : action === 'approve' ? GREEN : RED, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>

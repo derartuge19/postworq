@@ -205,6 +205,7 @@ export function AdminLogin({ onLogin, theme }) {
           marginTop: 24,
           paddingTop: 24,
           borderTop: `1px solid ${theme.border}`,
+          background: '#fff',
           textAlign: 'center',
         }}>
           <p style={{

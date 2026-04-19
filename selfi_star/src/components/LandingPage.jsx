@@ -303,7 +303,7 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
       {/* Footer */}
       <div style={{
         padding: "24px 20px",
-        background: T.bg,
+        background: "#fff",
         borderTop: `1px solid ${T.border}`,
         textAlign: "center",
       }}>
