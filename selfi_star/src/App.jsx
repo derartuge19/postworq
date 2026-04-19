@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, lazy, Suspense, startTransition } from 'react';
 import { AppShell } from './components/AppShell';
 import { TikTokLayout } from './components/TikTokLayout';
+import { useTheme } from './contexts/ThemeContext';
 import api from './api';
 
 // Lazy load ALL non-critical components for smaller initial bundle
@@ -128,6 +129,7 @@ export default function WerqRoot() {
   }
 
   const [screen, setScreen] = useState('app');
+  const { applyFromSettings } = useTheme();
 
   // ── Restore auth synchronously so pages never receive user=null on first render
   (() => {
@@ -301,6 +303,7 @@ export default function WerqRoot() {
         
         console.log('[Typography] Styles applied successfully');
         console.log('[Typography] Current font:', fontSecondary);
+        applyFromSettings(settings);
         setTypographyLoaded(true);
         setTypographyError(null);
       } catch (error) {

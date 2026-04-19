@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Settings, Save, Key, Database, Bell, Shield, Zap, Globe, Type, Palette } from 'lucide-react';
+import { Settings, Save, Key, Database, Bell, Shield, Zap, Globe, Type, Palette, Moon, Sun, Check } from 'lucide-react';
 import api from '../../api';
 import { AlertModal } from '../components/AlertModal';
+import { PRESET_THEMES } from '../../contexts/ThemeContext';
 
 // Available Google Fonts
 const AVAILABLE_FONTS = [
@@ -644,142 +645,7 @@ export function SettingsPage({ theme }) {
         )}
 
         {activeTab === 'theme' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{
-              padding: 16,
-              background: `${theme.pri}10`,
-              borderRadius: 8,
-              marginBottom: 8,
-            }}>
-              <p style={{ margin: 0, fontSize: 14, color: theme.sub }}>
-                Customize the brand colors used throughout the platform.
-              </p>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: theme.txt,
-                  marginBottom: 8,
-                }}>
-                  Primary Color
-                </label>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input
-                    type="color"
-                    value={settings.primary_color || '#8B5CF6'}
-                    onChange={(e) => handleChange('primary_color', e.target.value)}
-                    style={{
-                      width: 48,
-                      height: 48,
-                      border: `1px solid ${theme.border}`,
-                      borderRadius: 8,
-                      cursor: 'pointer',
-                      padding: 2,
-                    }}
-                  />
-                  <input
-                    type="text"
-                    value={settings.primary_color || '#8B5CF6'}
-                    onChange={(e) => handleChange('primary_color', e.target.value)}
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      border: `1px solid ${theme.border}`,
-                      borderRadius: 8,
-                      fontSize: 14,
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-              </div>
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: theme.txt,
-                  marginBottom: 8,
-                }}>
-                  Secondary Color
-                </label>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input
-                    type="color"
-                    value={settings.secondary_color || '#F97316'}
-                    onChange={(e) => handleChange('secondary_color', e.target.value)}
-                    style={{
-                      width: 48,
-                      height: 48,
-                      border: `1px solid ${theme.border}`,
-                      borderRadius: 8,
-                      cursor: 'pointer',
-                      padding: 2,
-                    }}
-                  />
-                  <input
-                    type="text"
-                    value={settings.secondary_color || '#F97316'}
-                    onChange={(e) => handleChange('secondary_color', e.target.value)}
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      border: `1px solid ${theme.border}`,
-                      borderRadius: 8,
-                      fontSize: 14,
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            {/* Color Preview */}
-            <div style={{
-              padding: 24,
-              background: theme.bg,
-              borderRadius: 12,
-              border: `1px solid ${theme.border}`,
-            }}>
-              <h4 style={{ margin: '0 0 16px 0', color: theme.txt }}>Color Preview</h4>
-              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                <button style={{
-                  padding: '12px 24px',
-                  background: settings.primary_color || '#8B5CF6',
-                  border: 'none',
-                  borderRadius: 8,
-                  color: '#fff',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}>
-                  Primary Button
-                </button>
-                <button style={{
-                  padding: '12px 24px',
-                  background: settings.secondary_color || '#F97316',
-                  border: 'none',
-                  borderRadius: 8,
-                  color: '#fff',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}>
-                  Secondary Button
-                </button>
-                <div style={{
-                  padding: '12px 24px',
-                  background: `${settings.primary_color || '#8B5CF6'}20`,
-                  borderRadius: 8,
-                  color: settings.primary_color || '#8B5CF6',
-                  fontWeight: 600,
-                }}>
-                  Badge Style
-                </div>
-              </div>
-            </div>
-          </div>
+          <ThemeTab settings={settings} handleChange={handleChange} theme={theme} />
         )}
 
         {activeTab === 'content' && (
@@ -952,6 +818,164 @@ export function SettingsPage({ theme }) {
         onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
         showCancel={false}
       />
+    </div>
+  );
+}
+
+// ─── Theme Tab ─────────────────────────────────────────────────────────────────
+function ThemeTab({ settings, handleChange, theme }) {
+  const selectedPreset = settings.theme_preset || 'flipstar';
+  const isDark = settings.dark_mode_default ?? false;
+
+  const previewColors = (() => {
+    const p = PRESET_THEMES[selectedPreset] || PRESET_THEMES.flipstar;
+    const base = isDark ? p.dark : p.light;
+    const cp = settings.primary_color_override;
+    return cp ? { ...base, pri: cp } : base;
+  })();
+
+  const presetKeys = Object.keys(PRESET_THEMES);
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 32 }}>
+      {/* ── Left: Controls ── */}
+      <div>
+        {/* Dark mode toggle */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: theme.bg, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {isDark ? <Moon size={18} color={theme.pri} /> : <Sun size={18} color={theme.pri} />}
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: theme.txt }}>Dark Mode</div>
+              <div style={{ fontSize: 12, color: theme.sub }}>{isDark ? 'Currently showing dark variant' : 'Currently showing light variant'}</div>
+            </div>
+          </div>
+          <button onClick={() => handleChange('dark_mode_default', !isDark)}
+            style={{ width: 48, height: 28, borderRadius: 14, background: isDark ? theme.pri : theme.border, border: 'none', cursor: 'pointer', position: 'relative', transition: 'all 0.2s', flexShrink: 0 }}>
+            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, left: isDark ? 22 : 2, transition: 'all 0.2s' }} />
+          </button>
+        </div>
+
+        {/* Preset grid */}
+        <div style={{ fontSize: 13, fontWeight: 700, color: theme.txt, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Choose Preset</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginBottom: 28 }}>
+          {presetKeys.map(key => {
+            const p = PRESET_THEMES[key];
+            const c = isDark ? p.dark : p.light;
+            const isActive = selectedPreset === key;
+            return (
+              <button key={key} onClick={() => { handleChange('theme_preset', key); handleChange('primary_color_override', null); }}
+                style={{ background: c.cardBg, border: `2px solid ${isActive ? c.pri : theme.border}`, borderRadius: 12, padding: '12px', cursor: 'pointer', textAlign: 'left', position: 'relative', transition: 'all 0.15s', boxShadow: isActive ? `0 0 0 3px ${c.pri}30` : 'none' }}>
+                {/* Swatch row */}
+                <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+                  <div style={{ width: 20, height: 20, borderRadius: 6, background: c.pri }} />
+                  <div style={{ width: 20, height: 20, borderRadius: 6, background: c.bg }} />
+                  <div style={{ width: 20, height: 20, borderRadius: 6, background: c.cardBg, border: `1px solid ${c.border}` }} />
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: isActive ? c.pri : theme.txt, marginBottom: 2 }}>{p.emoji} {p.name}</div>
+                <div style={{ fontSize: 10, color: theme.sub }}>{p.category}</div>
+                {isActive && (
+                  <div style={{ position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: '50%', background: c.pri, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Check size={10} color="#fff" strokeWidth={3} />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Custom primary color override */}
+        <div style={{ fontSize: 13, fontWeight: 700, color: theme.txt, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Custom Accent Color</div>
+        <div style={{ padding: 16, background: theme.bg, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: theme.sub, marginBottom: 12 }}>Override the preset's primary color with your own brand color.</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input type="color" value={settings.primary_color_override || previewColors.pri}
+              onChange={(e) => handleChange('primary_color_override', e.target.value)}
+              style={{ width: 44, height: 44, border: `1px solid ${theme.border}`, borderRadius: 8, cursor: 'pointer', padding: 2, flexShrink: 0 }} />
+            <input type="text" value={settings.primary_color_override || ''}
+              onChange={(e) => handleChange('primary_color_override', e.target.value)}
+              placeholder="Leave blank to use preset color"
+              style={{ flex: 1, padding: '10px 12px', border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 13, outline: 'none', background: theme.card, color: theme.txt }} />
+            {settings.primary_color_override && (
+              <button onClick={() => handleChange('primary_color_override', null)}
+                style={{ padding: '10px 14px', background: '#EF444420', border: '1px solid #EF4444', borderRadius: 8, color: '#EF4444', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Secondary (legacy) */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+          <input type="color" value={settings.secondary_color || '#F97316'}
+            onChange={(e) => handleChange('secondary_color', e.target.value)}
+            style={{ width: 36, height: 36, border: `1px solid ${theme.border}`, borderRadius: 6, cursor: 'pointer', padding: 2, flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 2 }}>Secondary / Accent Color</div>
+            <input type="text" value={settings.secondary_color || '#F97316'}
+              onChange={(e) => handleChange('secondary_color', e.target.value)}
+              style={{ width: '100%', padding: '8px 10px', border: `1px solid ${theme.border}`, borderRadius: 6, fontSize: 13, outline: 'none', background: theme.card, color: theme.txt }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Right: Live Preview ── */}
+      <div style={{ position: 'sticky', top: 20, height: 'fit-content' }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: theme.sub, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>Live Preview</div>
+        {/* Phone mockup */}
+        <div style={{ background: '#111', borderRadius: 28, padding: '10px 6px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', width: 220, margin: '0 auto' }}>
+          <div style={{ background: previewColors.bg, borderRadius: 22, overflow: 'hidden', minHeight: 380 }}>
+            {/* App bar */}
+            <div style={{ background: previewColors.cardBg, padding: '14px 14px 10px', borderBottom: `1px solid ${previewColors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: previewColors.pri }}>FlipStar</div>
+              <div style={{ width: 24, height: 24, borderRadius: '50%', background: previewColors.pri + '30', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: previewColors.pri }} />
+              </div>
+            </div>
+            {/* Feed cards */}
+            {[0,1].map(i => (
+              <div key={i} style={{ margin: '10px 10px 0', background: previewColors.cardBg, borderRadius: 12, padding: 10, border: `1px solid ${previewColors.border}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: previewColors.pri }} />
+                  <div>
+                    <div style={{ width: 56, height: 7, background: previewColors.txt + '50', borderRadius: 4, marginBottom: 3 }} />
+                    <div style={{ width: 36, height: 5, background: previewColors.sub + '40', borderRadius: 4 }} />
+                  </div>
+                </div>
+                <div style={{ height: 60, background: previewColors.bg, borderRadius: 8, marginBottom: 8 }} />
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ padding: '4px 10px', background: previewColors.pri, borderRadius: 6, color: '#fff', fontSize: 9, fontWeight: 700 }}>Like</div>
+                  <div style={{ padding: '4px 10px', background: previewColors.border, borderRadius: 6, color: previewColors.sub, fontSize: 9, fontWeight: 600 }}>Share</div>
+                </div>
+              </div>
+            ))}
+            {/* Bottom nav */}
+            <div style={{ margin: '12px 0 0', padding: '8px 0', background: previewColors.cardBg, borderTop: `1px solid ${previewColors.border}`, display: 'flex', justifyContent: 'space-around' }}>
+              {['🏠','🔍','➕','🔔','👤'].map((icon, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                  <div style={{ fontSize: 14 }}>{icon}</div>
+                  {i === 0 && <div style={{ width: 4, height: 4, borderRadius: '50%', background: previewColors.pri }} />}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Swatch strip */}
+        <div style={{ marginTop: 14, padding: 12, background: theme.bg, borderRadius: 10, border: `1px solid ${theme.border}` }}>
+          {[
+            { label: 'Primary', color: previewColors.pri },
+            { label: 'Background', color: previewColors.bg },
+            { label: 'Card', color: previewColors.cardBg },
+            { label: 'Text', color: previewColors.txt },
+            { label: 'Border', color: previewColors.border },
+          ].map(({ label, color }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+              <div style={{ width: 14, height: 14, borderRadius: 4, background: color, border: `1px solid ${theme.border}`, flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: theme.sub, flex: 1 }}>{label}</span>
+              <span style={{ fontSize: 10, color: theme.sub, fontFamily: 'monospace' }}>{color}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
