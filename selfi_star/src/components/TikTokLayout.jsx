@@ -2297,15 +2297,15 @@ export function TikTokLayout({
                       >
                         <Bookmark
                           size={32}
-                          color={video.saved ? '#F59E0B' : '#fff'}
-                          fill={video.saved ? '#F59E0B' : 'none'}
+                          color={video.saved ? T.pri : '#fff'}
+                          fill={video.saved ? T.pri : 'none'}
                         />
                       </button>
                       <div
                         style={{
                           fontSize: 12,
                           fontWeight: 600,
-                          color: video.saved ? '#F59E0B' : '#fff',
+                          color: video.saved ? T.pri : '#fff',
                           textShadow: '0 1px 3px rgba(0,0,0,0.5)',
                           textAlign: 'center',
                         }}
