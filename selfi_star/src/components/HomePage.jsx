@@ -978,10 +978,10 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       const currentY = e.touches[0].clientY;
       const distance = Math.max(0, currentY - touchStartY.current);
       if (distance > 0) {
-        // Only prevent default if we can (not passive listener)
-        if (e.cancelable) {
-          e.preventDefault();
-        }
+        // React's synthetic touchmove listener is passive, so preventDefault
+        // would be a no-op and just emit a console warning. Skip it and rely
+        // on `overscroll-behavior: contain` to suppress the browser's own
+        // pull-to-refresh.
         setPullDistance(Math.min(distance, PULL_THRESHOLD * 1.5));
       }
     }
@@ -1014,7 +1014,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ minHeight: '100vh', background: T.bg, overflowY: 'auto', position: 'relative' }}
+      style={{ minHeight: '100vh', background: T.bg, overflowY: 'auto', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y' }}
     >
       {/* Pull to refresh indicator */}
       {pullDistance > 0 && (

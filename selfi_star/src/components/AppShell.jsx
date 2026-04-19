@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Home,
   Compass,
@@ -78,6 +78,51 @@ export function AppShell({
     if (item.action) {
       item.action();
     }
+  };
+
+  // ─── Mobile: swipe left/right to switch bottom-nav tabs (TikTok-style) ──────
+  // Tab order follows the mobile bottom bar, skipping the center "create" action.
+  const MOBILE_TAB_ORDER = ['home', 'reels', 'messages', 'profile'];
+  const swipeStart = useRef({ x: 0, y: 0, t: 0, active: false });
+  const handleMainTouchStart = (e) => {
+    if (!isMobile) return;
+    const t0 = e.touches[0];
+    // Ignore swipes that start on common interactive controls so we don't hijack
+    // carousels, sliders, or horizontal pickers.
+    const tag = (e.target?.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+      swipeStart.current.active = false;
+      return;
+    }
+    swipeStart.current = { x: t0.clientX, y: t0.clientY, t: Date.now(), active: true };
+  };
+  const handleMainTouchEnd = (e) => {
+    if (!isMobile || !swipeStart.current.active) return;
+    const t1 = e.changedTouches[0];
+    const dx = t1.clientX - swipeStart.current.x;
+    const dy = t1.clientY - swipeStart.current.y;
+    const dt = Date.now() - swipeStart.current.t;
+    swipeStart.current.active = false;
+
+    // Must be a fast, clearly horizontal flick:
+    //  - horizontal distance > 70px
+    //  - horizontal is at least 1.8x vertical (so vertical scrolling & pull-to-refresh win)
+    //  - gesture completes in under 600ms
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    if (absX < 70 || absX < absY * 1.8 || dt > 600) return;
+
+    // Find where we are in the tab order. Map common aliases back onto the
+    // canonical tab id used by the bottom bar.
+    const aliasMap = { foryou: 'home', feed: 'home' };
+    const current = aliasMap[activeTab] || activeTab;
+    const idx = MOBILE_TAB_ORDER.indexOf(current);
+    if (idx === -1) return; // current page isn't one of the swipeable tabs
+
+    const nextIdx = dx < 0 ? idx + 1 : idx - 1; // swipe left = next, right = prev
+    if (nextIdx < 0 || nextIdx >= MOBILE_TAB_ORDER.length) return;
+    const target = menuItems.find((m) => m.id === MOBILE_TAB_ORDER[nextIdx]);
+    if (target) handleItemClick(target);
   };
 
   return (
@@ -277,6 +322,8 @@ export function AppShell({
       {/* 3. Main Content Area */}
       <main
         className="appshell-main"
+        onTouchStart={handleMainTouchStart}
+        onTouchEnd={handleMainTouchEnd}
         style={{
           flex: 1,
           position: 'relative',
@@ -285,6 +332,8 @@ export function AppShell({
           paddingBottom: isMobile ? 70 : 0,
           boxSizing: 'border-box',
           WebkitOverflowScrolling: 'touch',
+          // Disable browser's native pull-to-refresh so our custom one can run.
+          overscrollBehaviorY: 'contain',
         }}
       >
         {children}

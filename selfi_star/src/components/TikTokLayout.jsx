@@ -1117,6 +1117,10 @@ export function TikTokLayout({
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           position: 'relative',
+          // Suppress the browser's native pull-to-refresh so our custom
+          // in-app pull-to-refresh is the only one that fires.
+          overscrollBehaviorY: 'contain',
+          touchAction: 'pan-y',
           ...(isMobile ? { scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch' } : {}),
         }}
       >
