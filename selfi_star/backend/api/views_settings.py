@@ -106,6 +106,9 @@ def get_public_settings(request):
             'line_height': '1.5',
             'primary_color': '#8B5CF6',
             'secondary_color': '#F97316',
+            'theme_preset': 'flipstar',
+            'dark_mode_default': False,
+            'primary_color_override': None,
         })
     
     return Response({
@@ -121,6 +124,9 @@ def get_public_settings(request):
         'line_height': settings.line_height,
         'primary_color': settings.primary_color,
         'secondary_color': settings.secondary_color,
+        'theme_preset': settings.theme_preset,
+        'dark_mode_default': settings.dark_mode_default,
+        'primary_color_override': settings.primary_color_override,
     })
 
 

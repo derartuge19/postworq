@@ -79,6 +79,11 @@ class PlatformSettings(models.Model):
     primary_color = models.CharField(max_length=20, default='#8B5CF6', help_text='Primary brand color')
     secondary_color = models.CharField(max_length=20, default='#F97316', help_text='Secondary/accent color')
     
+    # Global Theme Settings (applies to all users)
+    theme_preset = models.CharField(max_length=50, default='flipstar', help_text='Theme preset name (flipstar, ocean, forest, etc.)')
+    dark_mode_default = models.BooleanField(default=False, help_text='Default dark mode for all users')
+    primary_color_override = models.CharField(max_length=200, blank=True, null=True, help_text='Custom primary color or gradient override')
+    
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     
