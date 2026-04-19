@@ -3,6 +3,12 @@ import WerqRoot from './App'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { LanguageProvider } from './contexts/LanguageContext'
 
+// Remove skeleton immediately to prevent infinite loading
+const skeleton = document.getElementById('app-skeleton');
+if (skeleton) {
+  skeleton.style.display = 'none';
+}
+
 // When Vite deploys a new build, old chunk filenames (content-hashed) no longer exist.
 // Browsers with cached HTML will try to import old chunk URLs → 404.
 // Reload once to pick up the fresh HTML with new chunk references.
@@ -23,14 +29,3 @@ root.render(
     </LanguageProvider>
   </ThemeProvider>,
 );
-
-// Skeleton removal is handled by components when content is ready.
-// Fallback: remove after 1.5s max so it never stays forever (e.g. error paths).
-setTimeout(() => {
-  const skeleton = document.getElementById('app-skeleton');
-  if (skeleton) {
-    skeleton.style.transition = 'opacity 0.2s ease';
-    skeleton.style.opacity = '0';
-    setTimeout(() => skeleton.remove(), 220);
-  }
-}, 1500);
