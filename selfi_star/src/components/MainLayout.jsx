@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { FeedPage } from "./FeedPage";
-
-const T = { bg:"#FAFAF7" };
+import { useLegacyT } from "../contexts/ThemeContext";
 
 export function MainLayout({ user, onLogout }) {
+  const T = useLegacyT();
   const [activeTab, setActiveTab] = useState("feed");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 

@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import config from "../config";
-
-const T = { pri:"#DA9B2A", txt:"#1C1917", sub:"#78716C", bg:"#FAFAF7", dark:"#0C1A12", border:"#2a2a2a", red:"#EF4444" };
+import { useLegacyT } from "../contexts/ThemeContext";
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -34,6 +33,7 @@ const overlayCSS = (ov) => {
 const LONG_PRESS_MS = 500;
 
 export function VideoCard({ video, onLike, onComment, onShare }) {
+  const T = useLegacyT();
   const [liked, setLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);

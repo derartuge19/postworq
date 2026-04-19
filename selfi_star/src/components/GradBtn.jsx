@@ -1,5 +1,7 @@
+import { useLegacyT } from "../contexts/ThemeContext";
+
 export function GradBtn({ children, onClick, disabled, style={}, small }) {
-  const T = { pri:"#DA9B2A", priD:"#B8821E" };
+  const T = useLegacyT();
   
   return (
     <button onClick={onClick} disabled={disabled} style={{

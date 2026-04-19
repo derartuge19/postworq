@@ -2,17 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Heart, MessageCircle, Share2, Bookmark, MoreVertical } from 'lucide-react';
 import api from '../api';
 import config from '../config';
-
-const T = {
-  pri: '#DA9B2A',
-  txt: '#1C1917',
-  sub: '#78716C',
-  bg: '#FAFAF9',
-  card: '#FFFFFF',
-  border: '#E7E5E4',
-};
+import { useLegacyT } from '../contexts/ThemeContext';
 
 export function VideoDetailPage({ reelId, onBack, onShowProfile, user }) {
+  const T = useLegacyT();
   const [reel, setReel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);

@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
-
-const T = { pri:"#DA9B2A", txt:"#1C1917", sub:"#78716C", bg:"#FAFAF7", dark:"#0C1A12", border:"#E7E5E4", red:"#EF4444" };
+import { useLegacyT } from "../contexts/ThemeContext";
 
 export function CreateVideoModal({ onClose, onVideoCreated }) {
+  const T = useLegacyT();
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);

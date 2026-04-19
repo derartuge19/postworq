@@ -381,6 +381,9 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
   }, [post.id]);
 
   const handleMouseMove = (e) => {
+    // Tilt + shine disabled: keep hover to scale/lift only.
+    return;
+    // eslint-disable-next-line no-unreachable
     const card = cardRef.current;
     if (!card) return;
     const rect = card.getBoundingClientRect();
@@ -400,8 +403,6 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
   const handleMouseEnter = () => { setIsHovered(true); };
   const handleMouseLeave = () => {
     setIsHovered(false);
-    setTilt({ x: 0, y: 0 });
-    setShine(s => ({ ...s, opacity: 0 }));
   };
 
   const handleTouchStart = (e) => {
@@ -553,8 +554,8 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
           position: 'relative',
           transform: mounted
             ? isPressed
-              ? 'perspective(900px) scale(0.975)'
-              : `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(${isHovered ? -4 : 0}px) scale(${isHovered ? 1.012 : 1})`
+              ? 'scale(0.985)'
+              : `translateY(${isHovered ? -3 : 0}px) scale(${isHovered ? 1.015 : 1})`
             : 'translateY(28px) scale(0.97)',
           opacity: mounted ? 1 : 0,
           transition: isPressed
@@ -563,15 +564,6 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
           willChange: 'transform',
         }}
       >
-        {/* Shine overlay */}
-        <div
-          style={{
-            position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none',
-            borderRadius: 16,
-            background: `radial-gradient(circle at ${shine.x}% ${shine.y}%, rgba(255,255,255,${shine.opacity}) 0%, transparent 60%)`,
-            transition: shine.opacity === 0 ? 'opacity 0.4s' : 'none',
-          }}
-        />
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', gap: 10 }}>
           <button

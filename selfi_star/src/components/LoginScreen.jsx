@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Inp } from "./Inp";
 import { GradBtn } from "./GradBtn";
 import api from "../api";
-
-const T = { txt:"#1C1917", sub:"#78716C", border:"#E7E5E4", pri:"#DA9B2A", red:"#EF4444", redL:"#FEE2E2", dark:"#0C1A12" };
+import { useLegacyT } from "../contexts/ThemeContext";
 
 export function LoginScreen({ onSuccess, onRegister, onBack }) {
+  const T = useLegacyT();
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [showPw, setShowPw] = useState(false);

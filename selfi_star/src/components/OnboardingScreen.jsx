@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { GradBtn } from "./GradBtn";
-
-const T = { pri:"#DA9B2A", txt:"#1C1917", sub:"#78716C", bg:"#FAFAF7", dark:"#0C1A12" };
+import { useLegacyT } from "../contexts/ThemeContext";
 
 export function OnboardingScreen({ user, onDone }) {
+  const T = useLegacyT();
   const [step, setStep] = useState(0);
   const steps = [
     { title: "Welcome to Selfie Star! 🌟", desc: "Share your best moments and win amazing prizes", emoji: "📸" },

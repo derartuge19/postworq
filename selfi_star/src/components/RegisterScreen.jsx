@@ -2,8 +2,7 @@ import { useState, useRef } from "react";
 import { Inp } from "./Inp";
 import { GradBtn } from "./GradBtn";
 import api from "../api";
-
-const T = { pri:"#DA9B2A", txt:"#1C1917", sub:"#78716C", border:"#E7E5E4", red:"#EF4444", redL:"#FEE2E2", dark:"#0C1A12", bg:"#FAFAF7", goldL:"#FFFBEB", grn:"#10B981", secL:"#D1FAE5" };
+import { useLegacyT } from "../contexts/ThemeContext";
 
 const PLANS = [
   { id:"free", name:"Explorer", am:"ተመራማሪ", emoji:"🌱", price:"Free", period:"", color:"#10B981", popular:false, features:["1 post/day","Basic analytics","Community access"] },
@@ -12,6 +11,7 @@ const PLANS = [
 ];
 
 export function RegisterScreen({ onSuccess, onLogin, onBack }) {
+  const T = useLegacyT();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({ name:"", email:"", pw:"", phone:"", country:"+251" });
   const [otp, setOtp] = useState(["","","","",""]);

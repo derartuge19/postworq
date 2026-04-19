@@ -148,6 +148,33 @@ export const useTheme = () => {
   return ctx;
 };
 
+// Legacy adapter: returns a T-shaped object compatible with components that
+// historically used a hard-coded `const T = { pri, txt, sub, bg, dark, border, ... }`.
+// This keeps those components in sync with the admin-selected theme.
+export const useLegacyT = () => {
+  const { colors } = useTheme();
+  return {
+    pri: colors.pri,
+    priGradient: colors.priGradient || colors.pri,
+    priD: colors.pri,
+    priL: colors.bg,
+    txt: colors.txt,
+    sub: colors.sub,
+    bg: colors.bg,
+    card: colors.cardBg,
+    dark: colors.dark || '#0C1A12',
+    border: colors.border,
+    // Non-theme constants kept for backwards compatibility
+    red: '#EF4444',
+    redL: '#FEE2E2',
+    white: '#FFFFFF',
+    gold: '#DA9B2A',
+    goldL: '#FFFBEB',
+    grn: '#10B981',
+    secL: '#D1FAE5',
+  };
+};
+
 export const ThemeProvider = ({ children }) => {
   const stored = loadStored();
   const [preset, setPreset] = useState(stored.preset || 'flipstar');

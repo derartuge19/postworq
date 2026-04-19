@@ -6,12 +6,7 @@ import {
   Bookmark, Eye, FileText, Heart, MessageCircle, Share2, Volume2, VolumeX
 } from "lucide-react";
 import api from "../api";
-
-// ── Tokens ──────────────────────────────────────────────────────────────────
-const T = {
-  pri: '#DA9B2A', bg: '#000', card: '#111', border: '#2a2a2a',
-  white: '#fff', sub: 'rgba(255,255,255,0.55)', red: '#FF3B57',
-};
+import { useLegacyT } from "../contexts/ThemeContext";
 
 const FILTERS = [
   { id:'none',      name:'Original', css:'none' },
@@ -60,6 +55,7 @@ function ProgressRing({ radius, stroke, progress, color }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export function EnhancedPostPage({ user, onBack }) {
+  const T = useLegacyT();
   // Stage
   const [stage, setStage] = useState('capture'); // 'capture' | 'details'
   const [captureMode, setCaptureMode] = useState('upload'); // 'upload' | 'camera'

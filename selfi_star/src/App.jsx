@@ -352,6 +352,17 @@ export default function WerqRoot() {
     };
     
     loadTypographySettings();
+
+    // Re-pull settings when tab regains focus/visibility so theme changes
+    // from the admin propagate to other devices without a hard reload.
+    const refresh = () => { loadTypographySettings(); };
+    const onVisible = () => { if (!document.hidden) refresh(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   // Browser history support

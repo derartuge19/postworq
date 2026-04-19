@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
-
-const T = { pri: "#DA9B2A", txt: "#1C1917", sub: "#78716C", bg: "#FAFAF7", dark: "#0C1A12", border: "#E7E5E4", red: "#EF4444" };
+import { useLegacyT } from "../contexts/ThemeContext";
 
 export function AlertModal({ 
   isOpen, 
@@ -13,6 +12,7 @@ export function AlertModal({
   cancelText = "Cancel",
   showCancel = false
 }) {
+  const T = useLegacyT();
   if (!isOpen) return null;
 
   const getIcon = () => {

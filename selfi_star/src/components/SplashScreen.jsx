@@ -1,7 +1,7 @@
+import { useLegacyT } from "../contexts/ThemeContext";
+
 export function SplashScreen({ onLogin, onRegister }) {
-  const T = {
-    pri:"#DA9B2A", dark:"#0C1A12", txt:"#1C1917", sub:"#78716C",
-  };
+  const T = useLegacyT();
 
   return (
     <div style={{ minHeight:"100vh", background:`linear-gradient(135deg, ${T.dark}, #1a2f1f)`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"20px" }}>
