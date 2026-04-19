@@ -22,7 +22,18 @@ DATABASES = {
 }
 
 # CORS for production
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+cors_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+if cors_env:
+    CORS_ALLOWED_ORIGINS = cors_env.split(',')
+else:
+    # Default allowed origins for production if env var not set
+    CORS_ALLOWED_ORIGINS = [
+        'https://postworqq.vercel.app',
+        'https://postworq.onrender.com',
+    ]
+
+# Allow all origins for development flexibility in production
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True').lower() in ('true', '1', 'yes')
 
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
