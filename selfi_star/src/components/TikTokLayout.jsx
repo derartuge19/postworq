@@ -326,10 +326,13 @@ export const TikTokLayout = memo(function TikTokLayout({
     if (initialScrollDoneRef.current) return;
     const videoIndex = videos.findIndex(v => v.id === initialVideoId);
     if (videoIndex !== -1) {
-      const videoElement = videoContainerRefs.current[videos[videoIndex].id];
+      const targetVideo = videos[videoIndex];
+      const videoElement = videoContainerRefs.current[targetVideo.id];
       if (videoElement) {
-        videoElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        initialScrollDoneRef.current = true;
+        setTimeout(() => {
+          videoElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          initialScrollDoneRef.current = true;
+        }, 100);
       }
     }
   }, [initialVideoId, videos]);
