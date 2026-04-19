@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, startTransition } from 'react';
+import React, { useState, useEffect, useRef, useCallback, startTransition, memo } from 'react';
 import {
   MessageCircle,
   Share2,
@@ -182,7 +182,7 @@ export function TikTokLayout({
     
     try {
       let reelsData = [];
-      const limit = 5; // Load 5 videos at a time for faster initial paint
+      const limit = pageNum === 1 ? 3 : 5; // Load fewer videos on first page for faster initial paint
       const offset = (pageNum - 1) * limit;
 
       // Fetch different content based on active tab
