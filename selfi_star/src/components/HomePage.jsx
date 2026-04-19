@@ -1041,8 +1041,13 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ height: '100vh', background: T.bg, overflowY: 'auto', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y' }}
+      style={{ height: '100vh', background: T.bg, overflowY: 'auto', overflowX: 'hidden', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
+      <style>{`
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       {/* Pull to refresh indicator */}
       {pullDistance > 0 && (
         <div style={{
