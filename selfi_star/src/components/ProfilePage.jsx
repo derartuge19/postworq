@@ -74,18 +74,24 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   
   const handleDeletePost = async (postId) => {
     setConfirmDeleteId(null);
+    // Optimistic UI: remove immediately; rollback on error
+    const prevPosts = posts;
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    if (selectedPost?.id === postId) setSelectedPost(null);
     try {
       await api.deletePost(postId);
-      setPosts(prev => prev.filter(p => p.id !== postId));
-      if (selectedPost?.id === postId) setSelectedPost(null);
       setSuccessMsg('Post deleted!');
       setTimeout(() => setSuccessMsg(''), 2500);
     } catch (error) {
       console.error('Failed to delete post:', error);
+      // Rollback optimistic update
+      setPosts(prevPosts);
+      let msg = 'Could not delete this post. Please try again.';
       try {
         const parsed = JSON.parse(error.message);
-        alert('Delete failed:\n' + (parsed.traceback || parsed.error || error.message));
-      } catch { alert('Delete failed: ' + error.message); }
+        if (parsed.error) msg = parsed.error;
+      } catch {}
+      alert('Delete failed: ' + msg);
     }
   };
 
@@ -314,7 +320,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             <div style={{ width: 160, height: 36, background: "#f0f0f0", borderRadius: 20, marginTop: 8 }} />
           </div>
           {/* Skeleton grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, padding: "4px 16px 16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, padding: "4px 16px 120px" }}>
             {[0,1,2,3,4,5].map(i => (
               <div key={i} style={{ aspectRatio: "1", background: "#f5f5f5", borderRadius: 8 }} />
             ))}
@@ -586,7 +592,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
         gap: 4,
-        padding: "4px 16px 16px",
+        padding: "4px 16px 120px",
       }}>
         {posts.map(post => (
           <div

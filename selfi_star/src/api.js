@@ -117,10 +117,15 @@ const api = {
     });
 
     let data;
-    try {
-      data = await response.json();
-    } catch (e) {
-      data = { error: 'Failed to parse response' };
+    // 204 No Content has no body (common for DELETE responses)
+    if (response.status === 204) {
+      data = { success: true };
+    } else {
+      try {
+        data = await response.json();
+      } catch (e) {
+        data = response.ok ? { success: true } : { error: 'Failed to parse response' };
+      }
     }
 
     if (!response.ok) {

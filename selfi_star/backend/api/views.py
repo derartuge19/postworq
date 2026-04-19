@@ -600,86 +600,84 @@ class ReelViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """Delete a reel - only owner can delete"""
         import traceback as _tb
+        from django.db import connection, transaction
+
         try:
             # Check authentication first
             if not request.user.is_authenticated:
-                print(f"[REEL DELETE] Unauthenticated request")
                 return Response(
                     {'error': 'Authentication required'},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
-            
+
             reel = self.get_object()
             print(f"[REEL DELETE] User: {request.user.username}, Reel: {reel.id}, Owner: {reel.user.username}")
 
             # Check ownership
             if reel.user != request.user and not request.user.is_staff:
-                print(f"[REEL DELETE] Permission denied - not owner")
                 return Response(
                     {'error': 'You can only delete your own posts'},
                     status=status.HTTP_403_FORBIDDEN
                 )
 
             reel_id = reel.id
-            print(f"[REEL DELETE] Raw SQL deleting reel {reel_id}...")
 
-            from django.db import connection
+            # Wrap entire deletion in a single atomic transaction so savepoints work
+            with transaction.atomic():
+                with connection.cursor() as cur:
+                    def _safe(sql, params, critical=False):
+                        """Execute SQL using a savepoint so optional-table failures don't abort the txn."""
+                        sid = transaction.savepoint()
+                        try:
+                            cur.execute(sql, params)
+                            transaction.savepoint_commit(sid)
+                            return True
+                        except Exception as _e:
+                            transaction.savepoint_rollback(sid)
+                            if critical:
+                                print(f"[REEL DELETE] CRITICAL step failed: {_e}")
+                                raise
+                            print(f"[REEL DELETE] optional step skipped ({_e})")
+                            return False
 
-            def _safe(cur, sql, params, critical=False):
-                """Execute SQL using a savepoint so failures don't abort the transaction."""
-                cur.execute("SAVEPOINT _del_sp")
-                try:
-                    cur.execute(sql, params)
-                    cur.execute("RELEASE SAVEPOINT _del_sp")
-                    return True
-                except Exception as _e:
-                    if critical:
-                        print(f"[REEL DELETE] CRITICAL step failed: {_e}")
-                        raise
-                    else:
-                        print(f"[REEL DELETE] optional step skipped ({_e})")
-                        cur.execute("ROLLBACK TO SAVEPOINT _del_sp")
-                    return False
-
-            with connection.cursor() as cur:
-                # 1. Notifications linked to comments on this reel
-                _safe(cur, """DELETE FROM api_notification
-                    WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)""", [reel_id])
-                # 2. CommentLikes / CommentReplies
-                _safe(cur, "DELETE FROM api_commentlike WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
-                _safe(cur, "DELETE FROM api_commentreply WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
-                # 3. Comments
-                _safe(cur, "DELETE FROM api_comment WHERE reel_id=%s", [reel_id])
-                # 4. Votes
-                _safe(cur, "DELETE FROM api_vote WHERE reel_id=%s", [reel_id])
-                # 5. Saved posts
-                _safe(cur, "DELETE FROM api_savedpost WHERE reel_id=%s", [reel_id])
-                # 6. Notifications (direct reel ref)
-                _safe(cur, "DELETE FROM api_notification WHERE reel_id=%s", [reel_id])
-                # 7. Not-interested flags
-                _safe(cur, "DELETE FROM api_notinterested WHERE reel_id=%s", [reel_id])
-                # 8. Reports
-                _safe(cur, "DELETE FROM api_report WHERE reported_reel_id=%s", [reel_id])
-                # 9. Winners
-                _safe(cur, "DELETE FROM api_winner WHERE reel_id=%s", [reel_id])
-                # 10. Optional tables (use savepoints so missing table doesn't abort txn)
-                for sql_opt in [
-                    "DELETE FROM api_moderationaction WHERE reel_id=%s",
-                    "DELETE FROM api_campaignentry WHERE reel_id=%s",
-                    "DELETE FROM api_postscore WHERE reel_id=%s",
-                    "DELETE FROM api_postboost WHERE reel_id=%s",
-                    "DELETE FROM api_contestpostscore WHERE reel_id=%s",
-                    "DELETE FROM api_gifttocreator WHERE reel_id=%s",
-                    "DELETE FROM api_grandfinaleentry WHERE reel_id=%s",
-                    "DELETE FROM api_grandfinalistentry WHERE reel_id=%s",
-                    "DELETE FROM api_fraudalert WHERE reel_id=%s",
-                    "DELETE FROM api_contestscore WHERE reel_id=%s",
-                    "DELETE FROM api_mastercampaignparticipant WHERE reel_id=%s",
-                ]:
-                    _safe(cur, sql_opt, [reel_id])
-                # 11. Clear file columns then delete the reel row (CRITICAL - must succeed)
-                _safe(cur, "UPDATE api_reel SET media='', image='' WHERE id=%s", [reel_id], critical=True)
-                _safe(cur, "DELETE FROM api_reel WHERE id=%s", [reel_id], critical=True)
+                    # 1. Notifications linked to comments on this reel
+                    _safe("""DELETE FROM api_notification
+                        WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)""", [reel_id])
+                    # 2. CommentLikes / CommentReplies (optional tables)
+                    _safe("DELETE FROM api_commentlike WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
+                    _safe("DELETE FROM api_commentreply WHERE comment_id IN (SELECT id FROM api_comment WHERE reel_id=%s)", [reel_id])
+                    # 3. Comments
+                    _safe("DELETE FROM api_comment WHERE reel_id=%s", [reel_id])
+                    # 4. Votes
+                    _safe("DELETE FROM api_vote WHERE reel_id=%s", [reel_id])
+                    # 5. Saved posts
+                    _safe("DELETE FROM api_savedpost WHERE reel_id=%s", [reel_id])
+                    # 6. Notifications (direct reel ref)
+                    _safe("DELETE FROM api_notification WHERE reel_id=%s", [reel_id])
+                    # 7. Not-interested flags
+                    _safe("DELETE FROM api_notinterested WHERE reel_id=%s", [reel_id])
+                    # 8. Reports
+                    _safe("DELETE FROM api_report WHERE reported_reel_id=%s", [reel_id])
+                    # 9. Winners
+                    _safe("DELETE FROM api_winner WHERE reel_id=%s", [reel_id])
+                    # 10. Optional related tables
+                    for sql_opt in [
+                        "DELETE FROM api_moderationaction WHERE reel_id=%s",
+                        "DELETE FROM api_campaignentry WHERE reel_id=%s",
+                        "DELETE FROM api_postscore WHERE reel_id=%s",
+                        "DELETE FROM api_postboost WHERE reel_id=%s",
+                        "DELETE FROM api_contestpostscore WHERE reel_id=%s",
+                        "DELETE FROM api_gifttocreator WHERE reel_id=%s",
+                        "DELETE FROM api_grandfinaleentry WHERE reel_id=%s",
+                        "DELETE FROM api_grandfinalistentry WHERE reel_id=%s",
+                        "DELETE FROM api_fraudalert WHERE reel_id=%s",
+                        "DELETE FROM api_contestscore WHERE reel_id=%s",
+                        "DELETE FROM api_mastercampaignparticipant WHERE reel_id=%s",
+                    ]:
+                        _safe(sql_opt, [reel_id])
+                    # 11. Clear file columns then delete the reel row (CRITICAL)
+                    _safe("UPDATE api_reel SET media='', image='' WHERE id=%s", [reel_id], critical=True)
+                    _safe("DELETE FROM api_reel WHERE id=%s", [reel_id], critical=True)
 
             print(f"[REEL DELETE] Successfully deleted reel {reel_id}")
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -688,7 +686,7 @@ class ReelViewSet(viewsets.ModelViewSet):
             tb = _tb.format_exc()
             print(f"[REEL DELETE] Error: {type(e).__name__}: {e}\n{tb}")
             return Response(
-                {'error': str(e), 'type': type(e).__name__, 'traceback': tb},
+                {'error': str(e), 'type': type(e).__name__},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
