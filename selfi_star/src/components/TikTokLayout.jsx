@@ -2069,7 +2069,7 @@ export function TikTokLayout({
                           style={{
                             background: (followStates[video.user?.id] ?? video.user?.is_following)
                               ? 'rgba(255,255,255,0.15)'
-                              : 'linear-gradient(135deg, #DA9B2A 0%, #f0b840 100%)',
+                              : (T.priGradient || T.pri),
                             color: '#fff',
                             border: (followStates[video.user?.id] ?? video.user?.is_following)
                               ? '1px solid rgba(255,255,255,0.4)'
@@ -2082,7 +2082,7 @@ export function TikTokLayout({
                             letterSpacing: 0.3,
                             boxShadow: (followStates[video.user?.id] ?? video.user?.is_following)
                               ? 'none'
-                              : '0 2px 8px rgba(218,155,42,0.45)',
+                              : `0 2px 8px ${T.pri}73`,
                             transition: 'all 0.2s ease',
                             backdropFilter: (followStates[video.user?.id] ?? video.user?.is_following) ? 'blur(8px)' : 'none',
                             WebkitBackdropFilter: (followStates[video.user?.id] ?? video.user?.is_following) ? 'blur(8px)' : 'none',

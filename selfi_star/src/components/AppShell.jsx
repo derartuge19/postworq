@@ -115,7 +115,13 @@ export function AppShell({
         >
           <div style={{ padding: '0 16px', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 10 }}>
             <img src="/logo.jpeg" alt="FlipStar" style={{ width: 28, height: 28, objectFit: 'contain' }} />
-            <span style={{ fontSize: 16, fontWeight: 900, background: `linear-gradient(135deg, ${T.pri}, ${T.dark || T.pri})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>FlipStar</span>
+            <span style={T.priGradient ? {
+              fontSize: 16, fontWeight: 900,
+              background: T.priGradient,
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            } : {
+              fontSize: 16, fontWeight: 900, color: T.pri,
+            }}>FlipStar</span>
           </div>
 
           <nav
@@ -322,7 +328,7 @@ export function AppShell({
                 className="mob-nav-btn"
                 onClick={() => handleItemClick(item)}
                 style={{
-                  background: `linear-gradient(135deg, ${T.pri}, ${T.dark || T.pri})`,
+                  background: T.priGradient || T.pri,
                   border: 'none',
                   borderRadius: '50%',
                   width: 52, height: 52,
@@ -364,7 +370,7 @@ export function AppShell({
                   width: isActive ? 20 : 0,
                   height: 3,
                   borderRadius: 2,
-                  background: `linear-gradient(90deg, ${T.pri}, ${T.dark || T.pri})`,
+                  background: T.priGradient || T.pri,
                   transition: 'width 0.25s cubic-bezier(0.34,1.56,0.64,1)',
                 }} />
 

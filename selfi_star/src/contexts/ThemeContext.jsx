@@ -109,10 +109,29 @@ function loadStored() {
   catch { return {}; }
 }
 
+// Normalize colors so `pri` is ALWAYS a solid color (safe for CSS `color:` + hex ops).
+// Gradient (if any) is exposed as `priGradient` for use on backgrounds.
+function normalizeColors(raw) {
+  const rawPri = raw.pri || '';
+  const isGradient = typeof rawPri === 'string' && rawPri.trim().toLowerCase().startsWith('linear-gradient');
+  const solid = raw.priFallback || (isGradient ? '#DA9B2A' : rawPri);
+  // Legacy components reference T.dark for gradient endpoints — provide a sensible default
+  // so gradients stay valid. Use a dark contrast color that works for both light & dark themes.
+  const darkAccent = raw.dark || '#0C1A12';
+  return {
+    ...raw,
+    pri: solid,                                   // solid color — always safe
+    priGradient: isGradient ? rawPri : null,      // gradient if present
+    priFallback: solid,                           // backwards-compat alias
+    dark: darkAccent,                             // legacy fallback for gradient endpoints
+  };
+}
+
 function applyCSS(c) {
   const r = document.documentElement;
   r.style.setProperty('--color-primary', c.pri);
-  r.style.setProperty('--color-primary-fallback', c.priFallback || c.pri);
+  r.style.setProperty('--color-primary-gradient', c.priGradient || c.pri);
+  r.style.setProperty('--color-primary-fallback', c.pri);
   r.style.setProperty('--color-bg', c.bg);
   r.style.setProperty('--color-txt', c.txt);
   r.style.setProperty('--color-sub', c.sub);
@@ -142,7 +161,7 @@ export const ThemeProvider = ({ children }) => {
       c.pri = cp;
       c.priFallback = cp;
     }
-    return c;
+    return normalizeColors(c);
   }, [preset, darkMode, customPrimary]);
 
   const colors = resolveColors();
