@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense, startTransition } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense, startTransition } from 'react';
 import { AppShell } from './components/AppShell';
 import { TikTokLayout } from './components/TikTokLayout';
 import api from './api';
