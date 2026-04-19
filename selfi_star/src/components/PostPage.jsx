@@ -129,7 +129,7 @@ export function PostPage({ user, onBack }) {
       left: 0,
       right: 0,
       bottom: 0,
-      background: "#fff",
+      background: T.bg,
       zIndex: 4000,
       display: "flex",
       flexDirection: "column",
@@ -140,16 +140,18 @@ export function PostPage({ user, onBack }) {
         alignItems: "center",
         padding: "16px 20px",
         borderBottom: `1px solid ${T.border}`,
-        background: "#fff",
+        background: T.cardBg,
       }}>
         <button
           onClick={onBack}
           style={{
             background: "none",
             border: "none",
-            fontSize: 24,
+            fontSize: 20,
             cursor: "pointer",
             marginRight: 16,
+            color: T.txt,
+            padding: 8,
           }}
         >
           ←
@@ -159,33 +161,24 @@ export function PostPage({ user, onBack }) {
         </div>
         <div style={{ flex: 1 }} />
         <button
-          onClick={handleTestPost}
-          style={{
-            background: "#28a745",
-            border: "none",
-            borderRadius: 20,
-            color: "#fff",
-            padding: "12px 24px",
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: "pointer",
-            marginRight: 8,
-          }}
-        >
-          Test Post
-        </button>
-        <button
           onClick={handlePost}
           disabled={!selectedFile || isUploading}
           style={{
+            padding: "10px 24px",
             background: selectedFile && !isUploading ? T.pri : T.sub + "40",
             border: "none",
-            borderRadius: 20,
+            borderRadius: 8,
             color: selectedFile && !isUploading ? "#fff" : T.sub,
-            padding: "8px 20px",
             fontSize: 14,
             fontWeight: 600,
             cursor: selectedFile && !isUploading ? "pointer" : "not-allowed",
+            transition: "opacity 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            if (selectedFile && !isUploading) e.currentTarget.style.opacity = "0.9";
+          }}
+          onMouseLeave={(e) => {
+            if (selectedFile && !isUploading) e.currentTarget.style.opacity = "1";
           }}
         >
           {isUploading ? "Posting..." : "Post"}
@@ -193,74 +186,87 @@ export function PostPage({ user, onBack }) {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
-        {/* Preview Area */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px", maxWidth: 600, margin: "0 auto", width: "100%" }}>
+        {/* Media Upload Area */}
         <div style={{
           width: "100%",
-          maxWidth: 400,
-          margin: "0 auto",
           aspectRatio: "9/16",
-          background: "#000",
+          background: T.cardBg,
           borderRadius: 12,
           overflow: "hidden",
-          marginBottom: 20,
+          marginBottom: 24,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
-        }}>
+          border: `2px dashed ${T.border}`,
+          cursor: "pointer",
+          transition: "border-color 0.2s",
+        }}
+        onClick={() => document.getElementById('file-input').click()}
+        onMouseEnter={(e) => e.currentTarget.style.borderColor = T.pri}
+        onMouseLeave={(e) => e.currentTarget.style.borderColor = T.border}
+        >
           {preview ? (
-            <img
-              src={preview}
-              alt="Preview"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
+            <>
+              <img
+                src={preview}
+                alt="Preview"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedFile(null);
+                  setPreview(null);
+                }}
+                style={{
+                  position: "absolute",
+                  top: 12,
+                  right: 12,
+                  background: "rgba(0,0,0,0.6)",
+                  border: "none",
+                  borderRadius: 8,
+                  width: 32,
+                  height: 32,
+                  color: "#fff",
+                  fontSize: 16,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                ✕
+              </button>
+            </>
           ) : (
             <div style={{
               textAlign: "center",
-              color: "#666",
+              color: T.sub,
             }}>
-              <div style={{ fontSize: 48, marginBottom: 8 }}>📹</div>
-              <div style={{ fontSize: 14 }}>No media selected</div>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>📹</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: T.txt, marginBottom: 4 }}>Tap to upload</div>
+              <div style={{ fontSize: 13 }}>Video or image</div>
             </div>
           )}
         </div>
 
-        {/* File Input */}
-        <div style={{ marginBottom: 20 }}>
-          <label
-            htmlFor="file-input"
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "12px",
-              background: T.bg,
-              border: `2px dashed ${T.border}`,
-              borderRadius: 8,
-              textAlign: "center",
-              cursor: "pointer",
-              fontSize: 14,
-              color: T.txt,
-            }}
-          >
-            {selectedFile ? `Selected: ${selectedFile.name}` : "Click to select video or image"}
-          </label>
-          <input
-            id="file-input"
-            type="file"
-            accept="*/*"  // Temporarily accept all files for testing
-            onChange={handleFileSelect}
-            style={{ display: "none" }}
-          />
-        </div>
+        <input
+          id="file-input"
+          type="file"
+          accept="video/*,image/*"
+          onChange={handleFileSelect}
+          style={{ display: "none" }}
+        />
 
         {/* Caption Input */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontSize: 12, fontWeight: 700, color: T.sub, display: "block", marginBottom: 6 }}>Caption</label>
+        <div style={{ marginBottom: 24 }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: T.sub, display: "block", marginBottom: 8 }}>Caption</label>
           <textarea
             placeholder="Write a caption..."
             value={caption}
@@ -268,76 +274,85 @@ export function PostPage({ user, onBack }) {
             style={{
               width: "100%",
               minHeight: 100,
-              padding: "12px",
+              padding: "14px",
               border: `1px solid ${T.border}`,
               borderRadius: 8,
               fontSize: 14,
               resize: "vertical",
               outline: "none",
               fontFamily: "inherit",
+              background: T.cardBg,
+              color: T.txt,
+              transition: "border-color 0.2s",
             }}
+            onFocus={(e) => e.currentTarget.style.borderColor = T.pri}
+            onBlur={(e) => e.currentTarget.style.borderColor = T.border}
           />
         </div>
 
         {/* Hashtags Input */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontSize: 12, fontWeight: 700, color: T.sub, display: "block", marginBottom: 6 }}>Hashtags</label>
+        <div style={{ marginBottom: 24 }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: T.sub, display: "block", marginBottom: 8 }}>Hashtags</label>
           <input
             type="text"
-            placeholder="#fashion, #style, #trending (comma separated)"
+            placeholder="#fashion, #style, #trending"
             value={hashtags}
             onChange={(e) => setHashtags(e.target.value)}
             style={{
               width: "100%",
-              padding: "12px",
+              padding: "14px",
               border: `1px solid ${T.border}`,
               borderRadius: 8,
               fontSize: 14,
               outline: "none",
               fontFamily: "inherit",
+              background: T.cardBg,
+              color: T.txt,
+              transition: "border-color 0.2s",
             }}
+            onFocus={(e) => e.currentTarget.style.borderColor = T.pri}
+            onBlur={(e) => e.currentTarget.style.borderColor = T.border}
           />
-          <div style={{ fontSize: 11, color: T.sub, marginTop: 4 }}>Separate hashtags with commas</div>
+          <div style={{ fontSize: 12, color: T.sub, marginTop: 6 }}>Separate with commas</div>
         </div>
 
         {/* Post Options */}
         <div style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
+          padding: 16,
+          background: T.cardBg,
+          borderRadius: 12,
+          border: `1px solid ${T.border}`,
         }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.sub, marginBottom: 16, textTransform: "uppercase" }}>Post Settings</div>
           <div style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "12px",
-            background: T.bg,
-            borderRadius: 8,
+            flexDirection: "column",
+            gap: 12,
           }}>
-            <span style={{ fontSize: 14, color: T.txt }}>Allow comments</span>
-            <input type="checkbox" defaultChecked style={{ cursor: "pointer" }} />
-          </div>
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "12px",
-            background: T.bg,
-            borderRadius: 8,
-          }}>
-            <span style={{ fontSize: 14, color: T.txt }}>Allow duets</span>
-            <input type="checkbox" defaultChecked style={{ cursor: "pointer" }} />
-          </div>
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "12px",
-            background: T.bg,
-            borderRadius: 8,
-          }}>
-            <span style={{ fontSize: 14, color: T.txt }}>Allow stitches</span>
-            <input type="checkbox" defaultChecked style={{ cursor: "pointer" }} />
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}>
+              <span style={{ fontSize: 14, color: T.txt }}>Allow comments</span>
+              <input type="checkbox" defaultChecked style={{ cursor: "pointer", width: 18, height: 18 }} />
+            </div>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}>
+              <span style={{ fontSize: 14, color: T.txt }}>Allow duets</span>
+              <input type="checkbox" defaultChecked style={{ cursor: "pointer", width: 18, height: 18 }} />
+            </div>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}>
+              <span style={{ fontSize: 14, color: T.txt }}>Allow stitches</span>
+              <input type="checkbox" defaultChecked style={{ cursor: "pointer", width: 18, height: 18 }} />
+            </div>
           </div>
         </div>
       </div>
@@ -357,25 +372,25 @@ export function PostPage({ user, onBack }) {
           zIndex: 5000,
         }}>
           <div style={{
-            background: "#fff",
+            background: T.cardBg,
             borderRadius: 16,
             padding: 32,
             maxWidth: 500,
             width: "90%",
           }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: T.txt, marginBottom: 16, textAlign: "center" }}>🔒 Subscription Required</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: T.txt, marginBottom: 12, textAlign: "center" }}>🔒 Subscription Required</div>
             <div style={{ fontSize: 14, color: T.sub, marginBottom: 24, textAlign: "center", lineHeight: 1.6 }}>
               To upload videos and images, you need to subscribe to our Pro or Premium plan.
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
               <div style={{
-                padding: 16,
+                padding: 20,
                 background: T.bg,
                 borderRadius: 12,
                 border: `2px solid ${T.border}`,
               }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 4 }}>⭐ Pro Plan</div>
-                <div style={{ fontSize: 13, color: T.sub, marginBottom: 8 }}>Upload unlimited videos & images</div>
+                <div style={{ fontSize: 13, color: T.sub, marginBottom: 16 }}>Upload unlimited videos & images</div>
                 <button
                   onClick={async () => {
                     try {
@@ -388,7 +403,7 @@ export function PostPage({ user, onBack }) {
                   }}
                   style={{
                     width: "100%",
-                    padding: 10,
+                    padding: 12,
                     background: T.pri,
                     border: "none",
                     borderRadius: 8,
@@ -396,18 +411,21 @@ export function PostPage({ user, onBack }) {
                     fontSize: 14,
                     fontWeight: 600,
                     cursor: "pointer",
+                    transition: "opacity 0.2s",
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = "0.9"}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
                 >
                   Upgrade to Pro
                 </button>
               </div>
               <div style={{
-                padding: 16,
+                padding: 20,
                 background: "linear-gradient(135deg, #FFD700, #FFA500)",
                 borderRadius: 12,
               }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: "#000", marginBottom: 4 }}>💎 Premium Plan</div>
-                <div style={{ fontSize: 13, color: "#333", marginBottom: 8 }}>All Pro features + priority support</div>
+                <div style={{ fontSize: 13, color: "#333", marginBottom: 16 }}>All Pro features + priority support</div>
                 <button
                   onClick={async () => {
                     try {
@@ -420,7 +438,7 @@ export function PostPage({ user, onBack }) {
                   }}
                   style={{
                     width: "100%",
-                    padding: 10,
+                    padding: 12,
                     background: "#000",
                     border: "none",
                     borderRadius: 8,
@@ -428,7 +446,10 @@ export function PostPage({ user, onBack }) {
                     fontSize: 14,
                     fontWeight: 600,
                     cursor: "pointer",
+                    transition: "opacity 0.2s",
                   }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = "0.9"}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
                 >
                   Upgrade to Premium
                 </button>
@@ -439,14 +460,17 @@ export function PostPage({ user, onBack }) {
               style={{
                 width: "100%",
                 padding: 12,
-                background: T.bg,
-                border: "none",
+                background: "transparent",
+                border: `1px solid ${T.border}`,
                 borderRadius: 8,
                 color: T.txt,
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: "pointer",
+                transition: "background 0.2s",
               }}
+              onMouseEnter={(e) => e.currentTarget.style.background = T.bg}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
             >
               Maybe Later
             </button>
