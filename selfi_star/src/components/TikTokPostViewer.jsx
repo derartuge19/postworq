@@ -12,6 +12,8 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isPlaying, setIsPlaying] = useState(true);
   const [showComments, setShowComments] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
   const videoRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -28,6 +30,23 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
       }
     }
   }, [currentIndex, isPlaying]);
+
+  // Sync like state with current post
+  useEffect(() => {
+    if (currentPost) {
+      setLiked(currentPost.is_liked || false);
+      setLikeCount(currentPost.votes || 0);
+    }
+  }, [currentPost]);
+
+  const handleLike = () => {
+    setLiked(!liked);
+    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+  };
+
+  const handleComment = () => {
+    setShowComments(true);
+  };
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -182,6 +201,8 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
           zIndex: 100,
           width: 32,
           height: 32,
+          minWidth: 32,
+          minHeight: 32,
           borderRadius: '50%',
           background: 'rgba(0,0,0,0.5)',
           border: 'none',
@@ -191,63 +212,11 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
           justifyContent: 'center',
           color: '#fff',
           backdropFilter: 'blur(10px)',
-          aspectRatio: '1 / 1',
+          padding: 0,
         }}
       >
         <X size={18} />
       </button>
-
-      {/* Navigation Arrows (Desktop) */}
-      {hasPrev && (
-        <button
-          onClick={goToPrev}
-          style={{
-            position: 'absolute',
-            left: 12,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 100,
-            width: 44,
-            height: 44,
-            borderRadius: '50%',
-            background: 'rgba(0,0,0,0.5)',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          <ChevronLeft size={24} />
-        </button>
-      )}
-      {hasNext && (
-        <button
-          onClick={goToNext}
-          style={{
-            position: 'absolute',
-            right: 12,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            zIndex: 100,
-            width: 44,
-            height: 44,
-            borderRadius: '50%',
-            background: 'rgba(0,0,0,0.5)',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            backdropFilter: 'blur(10px)',
-          }}
-        >
-          <ChevronRight size={24} />
-        </button>
-      )}
 
       {/* Progress Indicator */}
       <div style={{
@@ -420,14 +389,36 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
           gap: 20,
           alignItems: 'center',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Heart size={22} fill="#fff" color="#fff" />
-            <span style={{ fontSize: 14, fontWeight: 700 }}>{currentPost.votes || 0}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={handleLike}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: 0,
+            }}
+          >
+            <Heart size={22} fill={liked ? "#fff" : "none"} color="#fff" />
+            <span style={{ fontSize: 14, fontWeight: 700 }}>{likeCount}</span>
+          </button>
+          <button
+            onClick={handleComment}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: 0,
+            }}
+          >
             <MessageCircle size={22} color="#fff" />
             <span style={{ fontSize: 14, fontWeight: 700 }}>{currentPost.comments_count || 0}</span>
-          </div>
+          </button>
           
           {/* Edit/Delete for own profile */}
           {isOwnProfile && (
