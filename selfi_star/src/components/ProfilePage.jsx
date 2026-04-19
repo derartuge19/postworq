@@ -804,9 +804,11 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              width: '100%', maxWidth: 480, background: '#fff',
-              borderRadius: '20px 20px 0 0', padding: '8px 0 env(safe-area-inset-bottom, 40px)',
-              paddingBottom: 'max(40px, env(safe-area-inset-bottom, 40px))',
+              width: '100%', maxWidth: 480,
+              background: T.cardBg || '#fff',
+              borderRadius: '20px 20px 0 0',
+              paddingTop: 8,
+              paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
             }}
           >
