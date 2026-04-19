@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import api from '../api';
@@ -16,7 +16,7 @@ const SPIN_SEGMENTS = [
 ];
 
 /* ─── FULL-SCREEN MODAL WRAPPER ──────────────── */
-function Modal({ onClose, children }) {
+const Modal = memo(function Modal({ onClose, children }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -40,9 +40,9 @@ function Modal({ onClose, children }) {
     </div>,
     document.body
   );
-}
+});
 
-function ModalHeader({ title, onClose }) {
+const ModalHeader = memo(function ModalHeader({ title, onClose }) {
   return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px 8px'}}>
       <span style={{fontSize:18,fontWeight:800,color:'#1C1917'}}>{title}</span>
@@ -51,10 +51,10 @@ function ModalHeader({ title, onClose }) {
       </button>
     </div>
   );
-}
+});
 
 /* ─── COINS MODAL ────────────────────────────── */
-function CoinsModal({ coins, onClose }) {
+const CoinsModal = memo(function CoinsModal({ coins, onClose }) {
   return (
     <Modal onClose={onClose}>
       <ModalHeader title="💰 Coin Balance" onClose={onClose}/>
@@ -82,10 +82,10 @@ function CoinsModal({ coins, onClose }) {
       </div>
     </Modal>
   );
-}
+});
 
 /* ─── STREAK MODAL ───────────────────────────── */
-function StreakModal({ streak, onClaim, onClose }) {
+const StreakModal = memo(function StreakModal({ streak, onClaim, onClose }) {
   const [claimed, setClaimed] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const cur = streak?.current ?? 0;
@@ -184,10 +184,10 @@ function StreakModal({ streak, onClaim, onClose }) {
       </div>
     </Modal>
   );
-}
+});
 
 /* ─── SPIN MODAL ─────────────────────────────── */
-function SpinModal({ spin, onSpin, onClose }) {
+const SpinModal = memo(function SpinModal({ spin, onSpin, onClose }) {
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
@@ -292,10 +292,10 @@ function SpinModal({ spin, onSpin, onClose }) {
       </div>
     </Modal>
   );
-}
+});
 
 /* ─── GIFT MODAL ─────────────────────────────── */
-function GiftModal({ coins, onClose, onRefresh }) {
+const GiftModal = memo(function GiftModal({ coins, onClose, onRefresh }) {
   const [recipientId, setRecipientId] = useState('');
   const [amount, setAmount] = useState(10);
   const [message, setMessage] = useState('');
@@ -392,10 +392,10 @@ function GiftModal({ coins, onClose, onRefresh }) {
       </div>
     </Modal>
   );
-}
+});
 
 /* ─── SPIN WHEEL ICON ──────────────────────────── */
-function SpinWheelIcon({ size = 28, color = '#DA9B2A' }) {
+const SpinWheelIcon = memo(function SpinWheelIcon({ size = 28, color = '#DA9B2A' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="10" stroke={color} strokeWidth="2" fill="none"/>
@@ -411,10 +411,10 @@ function SpinWheelIcon({ size = 28, color = '#DA9B2A' }) {
       <path d="M12 0 L10 3 L14 3 Z" fill={color}/>
     </svg>
   );
-}
+});
 
 /* ─── ICON CARD ──────────────────────────────────── */
-function IconCard({ emoji, icon, value, label, color, badge, onClick, disabled }) {
+const IconCard = memo(function IconCard({ emoji, icon, value, label, color, badge, onClick, disabled }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
       flex:1,
@@ -451,7 +451,7 @@ function IconCard({ emoji, icon, value, label, color, badge, onClick, disabled }
       <div style={{fontSize:10,color:'#78716C',textTransform:'uppercase',letterSpacing:.5,fontWeight:600}}>{label}</div>
     </button>
   );
-}
+});
 
 /* ─── MAIN BAR ───────────────────────────────── */
 export function GamificationBar({ userId, theme }) {

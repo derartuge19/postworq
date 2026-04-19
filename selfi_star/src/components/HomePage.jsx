@@ -325,7 +325,7 @@ function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorR
 }
 
 /* ── Post Card ── */
-const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRequireAuth, onShowVideoDetail, index = 0, videoObserver }) {
+const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onNavigateToReel, onCommentAdded, onVoteAdded }) {
   const { colors: T } = useTheme();
   const [liked, setLiked] = useState(post.is_liked || false);
   const [likes, setLikes] = useState(post.votes || 0);

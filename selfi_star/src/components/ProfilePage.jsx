@@ -9,23 +9,51 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { TikTokPostViewer } from "./TikTokPostViewer";
 import CampaignStats from "./CampaignStats";
 
+// Profile page cache helpers
+const PROFILE_CACHE_KEY = (userId) => `profile_cache_${userId}`;
+const PROFILE_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+function readProfileCache(userId) {
+  try {
+    const raw = localStorage.getItem(PROFILE_CACHE_KEY(userId));
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > PROFILE_CACHE_TTL) {
+      localStorage.removeItem(PROFILE_CACHE_KEY(userId));
+      return null;
+    }
+    return data;
+  } catch { return null; }
+}
+
+function writeProfileCache(userId, data) {
+  try {
+    localStorage.setItem(PROFILE_CACHE_KEY(userId), JSON.stringify({ ts: Date.now(), data }));
+  } catch {}
+}
+
 export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const isOwnProfile = !userId || userId === user?.id;
+  const targetUserId = userId || user?.id;
 
   // For own profile, initialize immediately from cache so no loading screen
   const cachedUser = isOwnProfile ? (() => {
     try { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : user; } catch { return user; }
   })() : null;
-  const [profileUser, setProfileUser] = useState(cachedUser);
-  const [posts, setPosts] = useState([]);
+  
+  // Try to read from profile cache
+  const profileCache = readProfileCache(targetUserId);
+  
+  const [profileUser, setProfileUser] = useState(cachedUser || profileCache?.profileUser);
+  const [posts, setPosts] = useState(profileCache?.posts || []);
   const [activeTab, setActiveTab] = useState("posts");
-  const [profileData, setProfileData] = useState(cachedUser);
-  const [loading, setLoading] = useState(!isOwnProfile);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followersCount, setFollowersCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
+  const [profileData, setProfileData] = useState(cachedUser || profileCache?.profileUser);
+  const [loading, setLoading] = useState(!isOwnProfile && !profileCache);
+  const [isFollowing, setIsFollowing] = useState(profileCache?.isFollowing || false);
+  const [followersCount, setFollowersCount] = useState(profileCache?.followersCount || 0);
+  const [followingCount, setFollowingCount] = useState(profileCache?.followingCount || 0);
   const [showPostMenu, setShowPostMenu] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [postMenuId, setPostMenuId] = useState(null);
@@ -195,7 +223,6 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       try {
         const targetUserId = userId || user?.id;
         
-        
         if (isOwnProfile) {
           // Own profile: already initialized from cache, just refresh counts in background
           const storedUser = localStorage.getItem('user');
@@ -207,7 +234,21 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           // Don't block — fetch counts in background
           fetchFollowCounts(targetUserId);
         } else {
-          // Other user profile: show skeleton until data arrives
+          // Other user profile: check cache first
+          const cachedData = readProfileCache(targetUserId);
+          if (cachedData) {
+            setProfileUser(cachedData.profileUser);
+            setProfileData(cachedData.profileUser);
+            setFollowersCount(cachedData.followersCount);
+            setFollowingCount(cachedData.followingCount);
+            setIsFollowing(cachedData.isFollowing);
+            setLoading(false);
+            // Refresh in background
+            fetchFollowCounts(targetUserId);
+            return;
+          }
+          
+          // No cache, show skeleton until data arrives
           setLoading(true);
           try {
             const [userData] = await Promise.all([
@@ -215,6 +256,14 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               fetchFollowCounts(targetUserId),
             ]);
             setProfileUser(userData);
+            // Write to cache
+            writeProfileCache(targetUserId, {
+              profileUser: userData,
+              posts: posts,
+              followersCount,
+              followingCount,
+              isFollowing,
+            });
           } finally {
             setLoading(false);
           }
@@ -254,6 +303,14 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           data = Array.isArray(raw) ? raw : (raw.results || []);
         }
         setPosts(data || []);
+        // Update cache with new posts
+        writeProfileCache(targetUserId, {
+          profileUser: profileUser,
+          posts: data,
+          followersCount,
+          followingCount,
+          isFollowing,
+        });
       } catch (error) {
         console.error('Failed to fetch posts:', error);
         setPosts([]);
@@ -261,23 +318,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
     };
     
     fetchPosts();
-  }, [activeTab, userId, user, isOwnProfile]);
-
-  const handleFollowToggle = async () => {
-    try {
-      const response = await api.toggleFollow(userId);
-      setIsFollowing(response.following);
-      
-      // Immediately update counts based on action
-      setFollowersCount(prev => response.following ? prev + 1 : prev - 1);
-      
-      // Fetch fresh counts from server to ensure accuracy
-      const targetUserId = userId || user?.id;
-      await fetchFollowCounts(targetUserId);
-    } catch (error) {
-      console.error("Failed to toggle follow:", error);
-    }
-  };
+  }, [userId, user, activeTab]);
 
   return (
     <div style={{
