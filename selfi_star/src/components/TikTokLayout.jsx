@@ -1693,14 +1693,18 @@ export function TikTokLayout({
                             }}
                           >
                             <span style={{
-                              fontSize: ov.fontSize || 22,
+                              fontSize: `${ov.fontSize || 22}px`,
                               fontWeight: 800,
                               color: ov.color || '#fff',
                               textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5)',
                               background: 'rgba(0,0,0,0.3)',
                               padding: '4px 12px',
                               borderRadius: 8,
-                              whiteSpace: 'nowrap',
+                              whiteSpace: 'pre-wrap',
+                              maxWidth: '260px',
+                              display: 'inline-block',
+                              lineHeight: 1.2,
+                              textAlign: ov.align || 'center',
                             }}>
                               {ov.text}
                             </span>

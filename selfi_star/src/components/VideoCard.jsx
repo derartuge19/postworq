@@ -11,12 +11,22 @@ const mediaUrl = (url) => {
 
 // Mirrors overlayCSS from EnhancedPostPage
 const overlayCSS = (ov) => {
-  const base = { fontWeight: 800, fontSize: ov.fontSize || 22, color: ov.color || '#fff', textAlign: ov.align || 'center', whiteSpace: 'pre-wrap', maxWidth: 260, display: 'inline-block' };
+  const base = { 
+    fontWeight: 800, 
+    fontSize: `${ov.fontSize || 22}px`, 
+    color: ov.color || '#fff', 
+    textAlign: ov.align || 'center', 
+    whiteSpace: 'pre-wrap', 
+    maxWidth: '260px', 
+    display: 'inline-block',
+    lineHeight: 1.2,
+    userSelect: 'none'
+  };
   switch (ov.style) {
-    case 'plain':     return { ...base, textShadow: '0 2px 8px rgba(0,0,0,0.9)', background: 'transparent', padding: '4px 6px' };
-    case 'outline':   return { ...base, textShadow: 'none', WebkitTextStroke: `2px ${ov.color || '#fff'}`, color: 'transparent', background: 'transparent', padding: '4px 6px' };
-    case 'neon':      return { ...base, textShadow: `0 0 8px ${ov.color||'#fff'}, 0 0 20px ${ov.color||'#fff'}, 0 0 40px ${ov.color||'#fff'}`, background: 'transparent', padding: '4px 6px' };
-    case 'highlight': return { ...base, background: ov.color || '#fff', color: (ov.color === '#fff' || ov.color === '#ffffff') ? '#000' : '#fff', padding: '4px 12px', borderRadius: 6 };
+    case 'plain':     return { ...base, textShadow: '0 2px 8px rgba(0,0,0,0.9)', background: 'transparent', padding: '4px 6px', borderRadius: 0 };
+    case 'outline':   return { ...base, textShadow: 'none', WebkitTextStroke: `2px ${ov.color}`, color: 'transparent', background: 'transparent', padding: '4px 6px' };
+    case 'neon':      return { ...base, textShadow: `0 0 8px ${ov.color}, 0 0 20px ${ov.color}, 0 0 40px ${ov.color}`, background: 'transparent', padding: '4px 6px' };
+    case 'highlight': return { ...base, background: ov.color, color: (ov.color === '#fff' || ov.color === '#ffffff') ? '#000' : '#fff', padding: '4px 12px', borderRadius: 6 };
     default:          return { ...base, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', padding: '4px 10px', borderRadius: 8, textShadow: '0 1px 4px rgba(0,0,0,0.6)' };
   }
 };

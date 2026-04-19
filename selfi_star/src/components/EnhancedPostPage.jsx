@@ -496,7 +496,18 @@ export function EnhancedPostPage({ user, onBack }) {
 
   // ── Overlay CSS helper ────────────────────────────────────────────────────
   const overlayCSS = (ov) => {
-    const base = { fontWeight: 800, fontSize: ov.fontSize, color: ov.color, textAlign: ov.align || 'center', userSelect: 'none', cursor: 'move', whiteSpace: 'pre-wrap', maxWidth: 260 };
+    const base = { 
+      fontWeight: 800, 
+      fontSize: `${ov.fontSize || 22}px`, 
+      color: ov.color, 
+      textAlign: ov.align || 'center', 
+      userSelect: 'none', 
+      cursor: 'move', 
+      whiteSpace: 'pre-wrap', 
+      maxWidth: '260px',
+      lineHeight: 1.2,
+      display: 'inline-block'
+    };
     switch (ov.style) {
       case 'plain':     return { ...base, textShadow: '0 2px 8px rgba(0,0,0,0.9)', background: 'transparent', padding: '4px 6px', borderRadius: 0 };
       case 'outline':   return { ...base, textShadow: 'none', WebkitTextStroke: `2px ${ov.color}`, color: 'transparent', background: 'transparent', padding: '4px 6px' };
