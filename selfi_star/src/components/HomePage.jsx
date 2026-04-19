@@ -882,8 +882,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           currentUser={currentUser}
           onClose={() => setShowOptions(false)}
           onRequireAuth={onRequireAuth}
-          anchorRect={optionsAnchor}
           T={T}
+          anchorRect={optionsAnchor}
         />
       )}
 
