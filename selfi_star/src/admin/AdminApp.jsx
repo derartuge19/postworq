@@ -1,6 +1,6 @@
 // Admin App - Complete with Campaign Management
 // Force rebuild: 2026-04-07
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { UserManagement } from './pages/UserManagement';
 import { ContentModeration } from './pages/ContentModeration';
@@ -50,10 +50,40 @@ export function AdminApp() {
   const [loading, setLoading] = useState(true);
   const [selectedCampaignId, setSelectedCampaignId] = useState(null);
   const [selectedCampaignType, setSelectedCampaignType] = useState('daily');
+  const [adminFont, setAdminFont] = useState('Inter, sans-serif');
 
   useEffect(() => {
     checkAdminAuth();
+    loadAdminFonts();
   }, []);
+
+  const loadAdminFonts = async () => {
+    try {
+      const settings = await api.request('/settings/public/');
+      if (!settings) return;
+      const fonts = [
+        settings.font_family_primary,
+        settings.font_family_secondary,
+        settings.font_family_username,
+        settings.font_family_caption,
+      ].filter((f, i, arr) => f && arr.indexOf(f) === i);
+      fonts.forEach(font => {
+        if (font && font !== 'Inter' && !document.querySelector(`link[href*="${font.replace(/ /g, '+')}"]`)) {
+          const link = document.createElement('link');
+          link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@300;400;500;600;700;800;900&display=swap`;
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
+      });
+      const primary = settings.font_family_primary || 'Inter';
+      const secondary = settings.font_family_secondary || 'Inter';
+      setAdminFont(`"${secondary}", "${primary}", sans-serif`);
+      document.documentElement.style.setProperty('--font-primary', `"${primary}", sans-serif`);
+      document.documentElement.style.setProperty('--font-secondary', `"${secondary}", sans-serif`);
+    } catch (e) {
+      console.warn('[Admin] Failed to load platform fonts:', e);
+    }
+  };
 
   const checkAdminAuth = async () => {
     const token = localStorage.getItem('adminToken');
@@ -188,6 +218,7 @@ export function AdminApp() {
       height: '100vh',
       background: T.bg,
       overflow: 'hidden',
+      fontFamily: adminFont,
     }}>
       <AdminSidebar
         theme={T}
