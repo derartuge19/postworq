@@ -149,7 +149,14 @@ export default function WerqRoot() {
   const [showRegister, setShowRegister] = useState(false);
 
   // ── Read the saved nav snapshot — ONLY restore the active tab, never overlays ──
-  const _savedActiveTab = (() => { try { return JSON.parse(sessionStorage.getItem('_nav') || '{}').activeTab || localStorage.getItem('_activeTab') || 'home'; } catch { return 'home'; } })();
+  // On first launch (no sessionStorage), always start with 'home', ignore localStorage
+  const _savedActiveTab = (() => { 
+    try { 
+      const navData = sessionStorage.getItem('_nav');
+      if (!navData) return 'home'; // First launch → always home
+      return JSON.parse(navData).activeTab || 'home';
+    } catch { return 'home'; } 
+  })();
 
   const [showPostPage, setShowPostPage] = useState(false);
   const [showProfile, setShowProfile] = useState(false);

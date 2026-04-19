@@ -54,20 +54,21 @@ export function TikTokLayout({
   // Map external tab names to internal tab names
   const mapTabName = (tab) => {
     const tabMap = {
-      home: 'foryou',
+      home: 'home',
       search: 'search',
       explore: 'explore',
-      reels: 'foryou',
+      reels: 'reels',
       messages: 'inbox',
       notifications: 'notifications',
       following: 'following',
       bookmarks: 'bookmarks',
+      foryou: 'home',
     };
-    return tabMap[tab] || 'foryou';
+    return tabMap[tab] || 'home';
   };
 
   const [activeTab, setActiveTab] = useState(
-    mapTabName(propActiveTab) || 'foryou',
+    mapTabName(propActiveTab) || 'home',
   );
 
   // Update internal state when prop changes
@@ -93,8 +94,8 @@ export function TikTokLayout({
     try { localStorage.setItem(CACHE_KEY(tab), JSON.stringify({ ts: Date.now(), data })); } catch {}
   };
 
-  const [videos, setVideos] = useState(() => readFeedCache('foryou') || []);
-  const [loading, setLoading] = useState(() => !(readFeedCache('foryou')?.length > 0));
+  const [videos, setVideos] = useState(() => readFeedCache('home') || readFeedCache('foryou') || []);
+  const [loading, setLoading] = useState(() => !((readFeedCache('home') || readFeedCache('foryou'))?.length > 0));
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
@@ -1151,7 +1152,8 @@ export function TikTokLayout({
               color: '#000',
             }}
           >
-            {activeTab === 'foryou' && 'For You'}
+            {activeTab === 'home' && 'Home'}
+            {activeTab === 'reels' && 'Reels'}
             {activeTab === 'following' && 'Following'}
             {activeTab === 'inbox' && 'Messages'}
             {activeTab === 'bookmarks' && 'Saved'}
@@ -1254,7 +1256,7 @@ export function TikTokLayout({
                   {activeTab === 'following' && '👥'}
                   {activeTab === 'bookmarks' && '🔖'}
                   {activeTab === 'explore' && '🔍'}
-                  {activeTab === 'foryou' && '🎬'}
+                  {(activeTab === 'home' || activeTab === 'reels') && '🎬'}
                 </div>
                 <h3
                   style={{
@@ -1268,7 +1270,7 @@ export function TikTokLayout({
                     'No posts from followed users yet'}
                   {activeTab === 'bookmarks' && 'No saved posts yet'}
                   {activeTab === 'explore' && 'No trending posts'}
-                  {activeTab === 'foryou' && 'No videos yet'}
+                  {(activeTab === 'home' || activeTab === 'reels') && 'No videos yet'}
                 </h3>
                 <p style={{ fontSize: 14, color: T.sub, margin: 0 }}>
                   {activeTab === 'following' &&
@@ -1276,7 +1278,7 @@ export function TikTokLayout({
                   {activeTab === 'bookmarks' && 'Save posts to see them here'}
                   {activeTab === 'explore' &&
                     'Check back soon for trending content'}
-                  {activeTab === 'foryou' && 'Be the first to post!'}
+                  {(activeTab === 'home' || activeTab === 'reels') && 'Be the first to post!'}
                 </p>
               </div>
             ) : (
