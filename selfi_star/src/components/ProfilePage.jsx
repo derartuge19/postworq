@@ -290,7 +290,14 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       overflowY: "auto",
       overflowX: "hidden",
       zIndex: 200,
+      scrollbarWidth: 'none',
+      msOverflowStyle: 'none',
     }}>
+      <style>{`
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       {loading ? (
         <>
           {/* Skeleton header */}
