@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Trophy, Calendar, Award, Users, Clock, ChevronRight, ArrowLeft } from 'lucide-react';
 import api from '../api';
 import config from '../config.js';
+import { useTheme } from '../contexts/ThemeContext';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -30,7 +31,8 @@ if (!document.head.querySelector('style[data-campaigns]')) {
   document.head.appendChild(style);
 }
 
-export function CampaignsPage({ theme, onCampaignClick, onBack }) {
+export function CampaignsPage({ onCampaignClick, onBack }) {
+  const { colors: T } = useTheme();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -53,11 +55,11 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return theme.green;
-      case 'voting': return theme.blue;
-      case 'upcoming': return theme.orange;
-      case 'completed': return theme.sub;
-      default: return theme.sub;
+      case 'active': return T.pri;
+      case 'voting': return '#3B82F6';
+      case 'upcoming': return '#F97316';
+      case 'completed': return T.sub;
+      default: return T.sub;
     }
   };
 
@@ -83,7 +85,7 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: theme.bg,
+      background: T.bg,
       padding: '20px 24px',
       boxSizing: 'border-box',
     }}>
@@ -93,7 +95,7 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
           background: 'none', border: 'none', cursor: 'pointer',
-          color: theme.txt, fontSize: 14, fontWeight: 600,
+          color: T.txt, fontSize: 14, fontWeight: 600,
           padding: '4px 0', marginBottom: 16,
         }}
       >
@@ -263,18 +265,18 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
           </div>
       ) : campaigns.length === 0 ? (
           <div style={{
-            background: theme.card,
+            background: T.cardBg,
             borderRadius: 16,
             padding: 40,
             textAlign: 'center',
-            border: `1px solid ${theme.border}`,
+            border: `1px solid ${T.border}`,
           }}>
-            <Trophy size={48} color={theme.sub} style={{ marginBottom: 16 }} />
+            <Trophy size={48} color={T.pri} style={{ marginBottom: 12 }} />
             <h3 style={{
               margin: 0,
               fontSize: 18,
               fontWeight: 600,
-              color: theme.txt,
+              color: T.txt,
               marginBottom: 8,
             }}>
               No {filter} campaigns
@@ -282,7 +284,7 @@ export function CampaignsPage({ theme, onCampaignClick, onBack }) {
             <p style={{
               margin: 0,
               fontSize: 14,
-              color: theme.sub,
+              color: T.sub,
             }}>
               Check back later for new opportunities!
             </p>

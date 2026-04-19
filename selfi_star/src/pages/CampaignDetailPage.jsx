@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Trophy, Calendar, Award, Users, Clock, Upload, Video, Check, X, Heart, Share2, ArrowLeft, AlertCircle, Star, Zap, TrendingUp, Medal, Crown, Target, Flame, List, BarChart3 } from 'lucide-react';
 import api from '../api';
 import config from '../config.js';
+import { useTheme } from '../contexts/ThemeContext';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -9,7 +10,8 @@ const mediaUrl = (url) => {
   return `${config.API_BASE_URL.replace('/api', '')}${url}`;
 };
 
-export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboard, onShowFeed }) {
+export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onShowFeed }) {
+  const { colors: T } = useTheme();
   const [campaign, setCampaign] = useState(null);
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,13 +122,13 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
     return (
       <div style={{
         minHeight: '100vh',
-        background: theme.bg,
+        background: T.bg,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         marginLeft: '240px',
       }}>
-        <div style={{ color: theme.sub }}>Loading campaign...</div>
+        <div style={{ color: T.sub }}>Loading campaign...</div>
       </div>
     );
   }
@@ -135,15 +137,15 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
     return (
       <div style={{
         minHeight: '100vh',
-        background: theme.bg,
+        background: T.bg,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         marginLeft: '240px',
       }}>
         <div style={{ textAlign: 'center' }}>
-          <AlertCircle size={48} color={theme.red} style={{ marginBottom: 16 }} />
-          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: theme.txt, marginBottom: 8 }}>
+          <AlertCircle size={48} color={T.red} style={{ marginBottom: 16 }} />
+          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: T.txt, marginBottom: 8 }}>
             Campaign Not Found
           </h2>
           <button
@@ -151,7 +153,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
             style={{
               marginTop: 16,
               padding: '12px 24px',
-              background: theme.pri,
+              background: T.pri,
               border: 'none',
               borderRadius: 8,
               color: '#fff',
@@ -170,7 +172,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
   return (
     <div style={{
       minHeight: '100vh',
-      background: theme.bg,
+      background: T.bg,
       padding: '24px 32px 60px 32px',
       boxSizing: 'border-box',
     }}>
@@ -188,7 +190,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
             padding: '8px 16px',
             background: 'transparent',
             border: 'none',
-            color: theme.sub,
+            color: T.sub,
             fontSize: 14,
             fontWeight: 600,
             cursor: 'pointer',
@@ -201,10 +203,10 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
 
         {/* Campaign Header */}
         <div style={{
-          background: theme.card,
+          background: T.card,
           borderRadius: 16,
           overflow: 'hidden',
-          border: `1px solid ${theme.border}`,
+          border: `1px solid ${T.border}`,
           marginBottom: 32,
         }}>
           {campaign.image && (
@@ -230,8 +232,8 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                     display: 'inline-block',
                     padding: '6px 12px',
                     borderRadius: 8,
-                    background: theme.pri + '20',
-                    color: theme.pri,
+                    background: T.pri + '20',
+                    color: T.pri,
                     fontSize: 12,
                     fontWeight: 700,
                     textTransform: 'uppercase',
@@ -242,8 +244,8 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                     display: 'inline-block',
                     padding: '6px 12px',
                     borderRadius: 8,
-                    background: theme.blue + '20',
-                    color: theme.blue,
+                    background: T.blue + '20',
+                    color: T.blue,
                     fontSize: 12,
                     fontWeight: 700,
                     textTransform: 'uppercase',
@@ -258,7 +260,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   margin: 0,
                   fontSize: 36,
                   fontWeight: 800,
-                  color: theme.txt,
+                  color: T.txt,
                   marginBottom: 12,
                 }}>
                   {campaign.title}
@@ -267,7 +269,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                 <p style={{
                   margin: 0,
                   fontSize: 16,
-                  color: theme.sub,
+                  color: T.sub,
                   lineHeight: 1.6,
                 }}>
                   {campaign.description}
@@ -286,7 +288,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                     }}
                     style={{
                       padding: '16px 32px',
-                      background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+                      background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
                       border: 'none',
                       borderRadius: 16,
                       color: '#fff',
@@ -296,17 +298,17 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                       display: 'flex',
                       alignItems: 'center',
                       gap: 10,
-                      boxShadow: `0 8px 24px ${theme.pri}60`,
+                      boxShadow: `0 8px 24px ${T.pri}60`,
                       transition: 'all 0.3s ease',
                       animation: 'pulse 2s ease-in-out infinite',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = `0 12px 32px ${theme.pri}80`;
+                      e.currentTarget.style.boxShadow = `0 12px 32px ${T.pri}80`;
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = `0 8px 24px ${theme.pri}60`;
+                      e.currentTarget.style.boxShadow = `0 8px 24px ${T.pri}60`;
                     }}
                   >
                     <Upload size={22} strokeWidth={2.5} />
@@ -315,10 +317,10 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                 ) : userEntry ? (
                   <div style={{
                     padding: '12px 20px',
-                    background: `${theme.green}15`,
-                    border: `2px solid ${theme.green}`,
+                    background: `${T.green}15`,
+                    border: `2px solid ${T.green}`,
                     borderRadius: 16,
-                    color: theme.green,
+                    color: T.green,
                     fontSize: 14,
                     fontWeight: 700,
                     display: 'flex',
@@ -331,10 +333,10 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                 ) : (
                   <div style={{
                     padding: '12px 20px',
-                    background: `${theme.red}15`,
-                    border: `2px solid ${theme.red}`,
+                    background: `${T.red}15`,
+                    border: `2px solid ${T.red}`,
                     borderRadius: 16,
-                    color: theme.red,
+                    color: T.red,
                     fontSize: 14,
                     fontWeight: 700,
                     display: 'flex',
@@ -353,10 +355,10 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                     style={{
                       flex: 1,
                       padding: '10px 16px',
-                      background: theme.card,
-                      border: `1px solid ${theme.border}`,
+                      background: T.card,
+                      border: `1px solid ${T.border}`,
                       borderRadius: 8,
-                      color: theme.txt,
+                      color: T.txt,
                       fontSize: 14,
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -374,10 +376,10 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                     style={{
                       flex: 1,
                       padding: '10px 16px',
-                      background: theme.card,
-                      border: `1px solid ${theme.border}`,
+                      background: T.card,
+                      border: `1px solid ${T.border}`,
                       borderRadius: 8,
-                      color: theme.txt,
+                      color: T.txt,
                       fontSize: 14,
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -397,9 +399,9 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
             {/* Prize Section */}
             <div style={{
               padding: 24,
-              background: `linear-gradient(135deg, ${theme.pri}15, ${theme.orange}15)`,
+              background: `linear-gradient(135deg, ${T.pri}15, ${T.orange}15)`,
               borderRadius: 12,
-              border: `2px solid ${theme.pri}30`,
+              border: `2px solid ${T.pri}30`,
               marginBottom: 24,
             }}>
               <div style={{
@@ -411,7 +413,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   width: 60,
                   height: 60,
                   borderRadius: '50%',
-                  background: theme.pri,
+                  background: T.pri,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -421,7 +423,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                 <div style={{ flex: 1 }}>
                   <div style={{
                     fontSize: 14,
-                    color: theme.sub,
+                    color: T.sub,
                     marginBottom: 4,
                   }}>
                     Prize
@@ -429,14 +431,14 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   <div style={{
                     fontSize: 28,
                     fontWeight: 800,
-                    color: theme.pri,
+                    color: T.pri,
                     marginBottom: 4,
                   }}>
                     ${campaign.prize_value}
                   </div>
                   <div style={{
                     fontSize: 15,
-                    color: theme.txt,
+                    color: T.txt,
                   }}>
                     {campaign.prize_title}
                   </div>
@@ -453,9 +455,9 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
             }}>
               <div style={{
                 padding: 16,
-                background: `linear-gradient(135deg, ${theme.blue}15, ${theme.blue}05)`,
+                background: `linear-gradient(135deg, ${T.blue}15, ${T.blue}05)`,
                 borderRadius: 12,
-                border: `2px solid ${theme.blue}30`,
+                border: `2px solid ${T.blue}30`,
                 position: 'relative',
                 overflow: 'hidden',
               }}>
@@ -466,7 +468,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   width: 60,
                   height: 60,
                   borderRadius: '50%',
-                  background: `${theme.blue}10`,
+                  background: `${T.blue}10`,
                 }} />
                 <div style={{
                   display: 'flex',
@@ -474,15 +476,15 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   gap: 8,
                   marginBottom: 8,
                 }}>
-                  <Users size={18} color={theme.blue} />
-                  <span style={{ fontSize: 12, color: theme.sub, fontWeight: 600 }}>
+                  <Users size={18} color={T.blue} />
+                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
                     Participants
                   </span>
                 </div>
                 <div style={{
                   fontSize: 28,
                   fontWeight: 800,
-                  color: theme.blue,
+                  color: T.blue,
                 }}>
                   {campaign.total_entries || 0}
                 </div>
@@ -490,9 +492,9 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
 
               <div style={{
                 padding: 16,
-                background: `linear-gradient(135deg, ${theme.red}15, ${theme.red}05)`,
+                background: `linear-gradient(135deg, ${T.red}15, ${T.red}05)`,
                 borderRadius: 12,
-                border: `2px solid ${theme.red}30`,
+                border: `2px solid ${T.red}30`,
                 position: 'relative',
                 overflow: 'hidden',
               }}>
@@ -503,7 +505,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   width: 60,
                   height: 60,
                   borderRadius: '50%',
-                  background: `${theme.red}10`,
+                  background: `${T.red}10`,
                 }} />
                 <div style={{
                   display: 'flex',
@@ -511,15 +513,15 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   gap: 8,
                   marginBottom: 8,
                 }}>
-                  <Flame size={18} color={theme.red} />
-                  <span style={{ fontSize: 12, color: theme.sub, fontWeight: 600 }}>
+                  <Flame size={18} color={T.red} />
+                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
                     Total Votes
                   </span>
                 </div>
                 <div style={{
                   fontSize: 28,
                   fontWeight: 800,
-                  color: theme.red,
+                  color: T.red,
                 }}>
                   {campaign.total_votes || 0}
                 </div>
@@ -527,9 +529,9 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
 
               <div style={{
                 padding: 16,
-                background: `linear-gradient(135deg, ${theme.orange}15, ${theme.orange}05)`,
+                background: `linear-gradient(135deg, ${T.orange}15, ${T.orange}05)`,
                 borderRadius: 12,
-                border: `2px solid ${theme.orange}30`,
+                border: `2px solid ${T.orange}30`,
                 position: 'relative',
                 overflow: 'hidden',
               }}>
@@ -540,7 +542,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   width: 60,
                   height: 60,
                   borderRadius: '50%',
-                  background: `${theme.orange}10`,
+                  background: `${T.orange}10`,
                 }} />
                 <div style={{
                   display: 'flex',
@@ -548,15 +550,15 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   gap: 8,
                   marginBottom: 8,
                 }}>
-                  <Clock size={18} color={theme.orange} />
-                  <span style={{ fontSize: 12, color: theme.sub, fontWeight: 600 }}>
+                  <Clock size={18} color={T.orange} />
+                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
                     Time Left
                   </span>
                 </div>
                 <div style={{
                   fontSize: 18,
                   fontWeight: 800,
-                  color: theme.orange,
+                  color: T.orange,
                 }}>
                   {getTimeRemaining(campaign.voting_end || campaign.entry_deadline)}
                 </div>
@@ -565,9 +567,9 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
               {/* Engagement Score */}
               <div style={{
                 padding: 16,
-                background: `linear-gradient(135deg, ${theme.purple}15, ${theme.purple}05)`,
+                background: `linear-gradient(135deg, ${T.purple}15, ${T.purple}05)`,
                 borderRadius: 12,
-                border: `2px solid ${theme.purple}30`,
+                border: `2px solid ${T.purple}30`,
                 position: 'relative',
                 overflow: 'hidden',
               }}>
@@ -578,7 +580,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   width: 60,
                   height: 60,
                   borderRadius: '50%',
-                  background: `${theme.purple}10`,
+                  background: `${T.purple}10`,
                 }} />
                 <div style={{
                   display: 'flex',
@@ -586,15 +588,15 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   gap: 8,
                   marginBottom: 8,
                 }}>
-                  <TrendingUp size={18} color={theme.purple} />
-                  <span style={{ fontSize: 12, color: theme.sub, fontWeight: 600 }}>
+                  <TrendingUp size={18} color={T.purple} />
+                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
                     Engagement
                   </span>
                 </div>
                 <div style={{
                   fontSize: 28,
                   fontWeight: 800,
-                  color: theme.purple,
+                  color: T.purple,
                 }}>
                   {campaign.total_entries > 0 ? Math.round((campaign.total_votes / campaign.total_entries) * 10) / 10 : 0}
                 </div>
@@ -605,9 +607,9 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
             {(campaign.min_followers > 0 || campaign.min_level > 0 || campaign.min_votes_per_reel > 0 || campaign.required_hashtags) && (
               <div style={{
                 padding: 20,
-                background: `linear-gradient(135deg, ${theme.blue}10, ${theme.purple}10)`,
+                background: `linear-gradient(135deg, ${T.blue}10, ${T.purple}10)`,
                 borderRadius: 12,
-                border: `2px solid ${theme.blue}30`,
+                border: `2px solid ${T.blue}30`,
                 marginBottom: 24,
               }}>
                 <div style={{
@@ -620,7 +622,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                     width: 40,
                     height: 40,
                     borderRadius: '50%',
-                    background: theme.blue,
+                    background: T.blue,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -631,7 +633,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                     margin: 0,
                     fontSize: 18,
                     fontWeight: 700,
-                    color: theme.txt,
+                    color: T.txt,
                   }}>
                     Entry Requirements
                   </h3>
@@ -645,14 +647,14 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   {campaign.required_hashtags && (
                     <div style={{
                       padding: 16,
-                      background: theme.card,
+                      background: T.card,
                       borderRadius: 10,
-                      border: `1px solid ${theme.border}`,
+                      border: `1px solid ${T.border}`,
                     }}>
-                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                         Required Hashtags
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: theme.pri }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: T.pri }}>
                         {campaign.required_hashtags}
                       </div>
                     </div>
@@ -660,14 +662,14 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   {campaign.min_followers > 0 && (
                     <div style={{
                       padding: 16,
-                      background: theme.card,
+                      background: T.card,
                       borderRadius: 10,
-                      border: `1px solid ${theme.border}`,
+                      border: `1px solid ${T.border}`,
                     }}>
-                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                         Minimum Followers
                       </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: theme.blue }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: T.blue }}>
                         {campaign.min_followers}+
                       </div>
                     </div>
@@ -675,14 +677,14 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   {campaign.min_level > 0 && (
                     <div style={{
                       padding: 16,
-                      background: theme.card,
+                      background: T.card,
                       borderRadius: 10,
-                      border: `1px solid ${theme.border}`,
+                      border: `1px solid ${T.border}`,
                     }}>
-                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                         Minimum Level
                       </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: theme.orange }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: T.orange }}>
                         Level {campaign.min_level}
                       </div>
                     </div>
@@ -690,14 +692,14 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   {campaign.min_votes_per_reel > 0 && (
                     <div style={{
                       padding: 16,
-                      background: theme.card,
+                      background: T.card,
                       borderRadius: 10,
-                      border: `1px solid ${theme.border}`,
+                      border: `1px solid ${T.border}`,
                     }}>
-                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                         Minimum Votes per Reel
                       </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: theme.red }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: T.red }}>
                         {campaign.min_votes_per_reel}+
                       </div>
                     </div>
@@ -705,14 +707,14 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   {campaign.winner_count > 0 && (
                     <div style={{
                       padding: 16,
-                      background: theme.card,
+                      background: T.card,
                       borderRadius: 10,
-                      border: `1px solid ${theme.border}`,
+                      border: `1px solid ${T.border}`,
                     }}>
-                      <div style={{ fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
+                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                         Number of Winners
                       </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: theme.green }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: T.green }}>
                         {campaign.winner_count}
                       </div>
                     </div>
@@ -724,15 +726,15 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
             {/* Timeline */}
             <div style={{
               padding: 20,
-              background: theme.bg,
+              background: T.bg,
               borderRadius: 12,
-              border: `1px solid ${theme.border}`,
+              border: `1px solid ${T.border}`,
             }}>
               <h3 style={{
                 margin: 0,
                 fontSize: 18,
                 fontWeight: 700,
-                color: theme.txt,
+                color: T.txt,
                 marginBottom: 16,
               }}>
                 Campaign Timeline
@@ -744,26 +746,26 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                 gap: 16,
               }}>
                 <div>
-                  <div style={{ fontSize: 12, color: theme.sub, marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>
                     Start Date
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: theme.txt }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
                     {formatDate(campaign.start_date)}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 12, color: theme.sub, marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>
                     Entry Deadline
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: theme.txt }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
                     {formatDate(campaign.entry_deadline)}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 12, color: theme.sub, marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>
                     Voting Period
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: theme.txt }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
                     {formatDate(campaign.voting_start)} - {formatDate(campaign.voting_end)}
                   </div>
                 </div>
@@ -775,10 +777,10 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
         {/* User's Entry with Gamification */}
         {userEntry && (
           <div style={{
-            background: `linear-gradient(135deg, ${theme.green}10, ${theme.pri}10)`,
+            background: `linear-gradient(135deg, ${T.green}10, ${T.pri}10)`,
             borderRadius: 16,
             padding: 24,
-            border: `2px solid ${theme.green}`,
+            border: `2px solid ${T.green}`,
             marginBottom: 32,
             position: 'relative',
             overflow: 'hidden',
@@ -790,7 +792,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
               width: 100,
               height: 100,
               borderRadius: '50%',
-              background: `${theme.green}15`,
+              background: `${T.green}15`,
             }} />
             <div style={{
               display: 'flex',
@@ -807,7 +809,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   width: 48,
                   height: 48,
                   borderRadius: '50%',
-                  background: theme.green,
+                  background: T.green,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -819,14 +821,14 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                     margin: 0,
                     fontSize: 20,
                     fontWeight: 700,
-                    color: theme.txt,
+                    color: T.txt,
                   }}>
                     Your Entry Submitted!
                   </h3>
                   <p style={{
                     margin: 0,
                     fontSize: 13,
-                    color: theme.sub,
+                    color: T.sub,
                   }}>
                     Good luck! 🍀
                   </p>
@@ -853,30 +855,30 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
             }}>
               <div style={{
                 padding: 12,
-                background: theme.card,
+                background: T.card,
                 borderRadius: 8,
                 textAlign: 'center',
               }}>
-                <div style={{ fontSize: 12, color: theme.sub, marginBottom: 4 }}>Votes</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: theme.pri }}>{userEntry.vote_count || 0}</div>
+                <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>Votes</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: T.pri }}>{userEntry.vote_count || 0}</div>
               </div>
               <div style={{
                 padding: 12,
-                background: theme.card,
+                background: T.card,
                 borderRadius: 8,
                 textAlign: 'center',
               }}>
-                <div style={{ fontSize: 12, color: theme.sub, marginBottom: 4 }}>Rank</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: theme.blue }}>#{userEntry.rank || '-'}</div>
+                <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>Rank</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: T.blue }}>#{userEntry.rank || '-'}</div>
               </div>
               <div style={{
                 padding: 12,
-                background: theme.card,
+                background: T.card,
                 borderRadius: 8,
                 textAlign: 'center',
               }}>
-                <div style={{ fontSize: 12, color: theme.sub, marginBottom: 4 }}>Status</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: theme.green }}>✓ Active</div>
+                <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>Status</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.green }}>✓ Active</div>
               </div>
             </div>
           </div>
@@ -899,7 +901,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                 width: 48,
                 height: 48,
                 borderRadius: '50%',
-                background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+                background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -911,14 +913,14 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
                   margin: 0,
                   fontSize: 24,
                   fontWeight: 800,
-                  color: theme.txt,
+                  color: T.txt,
                 }}>
                   {canVote() ? '🔥 Vote for Your Favorites' : '🏆 Leaderboard'}
                 </h2>
                 <p style={{
                   margin: 0,
                   fontSize: 13,
-                  color: theme.sub,
+                  color: T.sub,
                 }}>
                   {entries.length} entries competing for ${campaign.prize_value}
                 </p>
@@ -927,33 +929,33 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
             {canVote() && (
               <div style={{
                 padding: '8px 16px',
-                background: `${theme.green}15`,
+                background: `${T.green}15`,
                 borderRadius: 20,
-                border: `2px solid ${theme.green}`,
+                border: `2px solid ${T.green}`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
               }}>
-                <Zap size={16} color={theme.green} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: theme.green }}>Voting Open</span>
+                <Zap size={16} color={T.green} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: T.green }}>Voting Open</span>
               </div>
             )}
           </div>
 
           {entries.length === 0 ? (
             <div style={{
-              background: theme.card,
+              background: T.card,
               borderRadius: 16,
               padding: 60,
               textAlign: 'center',
-              border: `1px solid ${theme.border}`,
+              border: `1px solid ${T.border}`,
             }}>
-              <Video size={48} color={theme.sub} style={{ marginBottom: 16 }} />
+              <Video size={48} color={T.sub} style={{ marginBottom: 16 }} />
               <h3 style={{
                 margin: 0,
                 fontSize: 20,
                 fontWeight: 600,
-                color: theme.txt,
+                color: T.txt,
                 marginBottom: 8,
               }}>
                 No entries yet
@@ -961,7 +963,7 @@ export function CampaignDetailPage({ theme, campaignId, onBack, onShowLeaderboar
               <p style={{
                 margin: 0,
                 fontSize: 14,
-                color: theme.sub,
+                color: T.sub,
               }}>
                 Be the first to submit your entry!
               </p>
@@ -1030,10 +1032,10 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
   return (
     <div 
       style={{
-        background: theme.card,
+        background: T.card,
         borderRadius: 16,
         overflow: 'hidden',
-        border: rankBadge ? `2px solid ${rankBadge.color}` : `1px solid ${theme.border}`,
+        border: rankBadge ? `2px solid ${rankBadge.color}` : `1px solid ${T.border}`,
         boxShadow: isHovered ? `0 8px 24px ${rankBadge ? rankBadge.color + '40' : 'rgba(0,0,0,0.1)'}` : '0 2px 8px rgba(0,0,0,0.05)',
         transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.3s ease',
@@ -1114,7 +1116,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
               width: 42,
               height: 42,
               borderRadius: '50%',
-              background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+              background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1130,14 +1132,14 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
               <div style={{
                 fontSize: 14,
                 fontWeight: 700,
-                color: theme.txt,
+                color: T.txt,
               }}>
                 @{entry.user.username}
               </div>
               {entry.rank && (
                 <div style={{
                   fontSize: 11,
-                  color: rankBadge ? rankBadge.color : theme.pri,
+                  color: rankBadge ? rankBadge.color : T.pri,
                   fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
@@ -1152,7 +1154,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
           {entry.is_winner && (
             <div style={{
               padding: '4px 10px',
-              background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+              background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
               borderRadius: 12,
               fontSize: 11,
               fontWeight: 700,
@@ -1170,7 +1172,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
         <p style={{
           margin: 0,
           fontSize: 14,
-          color: theme.sub,
+          color: T.sub,
           marginBottom: 16,
           lineHeight: 1.5,
         }}>
@@ -1182,21 +1184,21 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingTop: 12,
-          borderTop: `1px solid ${theme.border}`,
+          borderTop: `1px solid ${T.border}`,
         }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: 8,
             padding: '8px 12px',
-            background: hasVoted ? `${theme.red}15` : theme.bg,
+            background: hasVoted ? `${T.red}15` : T.bg,
             borderRadius: 20,
-            border: hasVoted ? `2px solid ${theme.red}` : `1px solid ${theme.border}`,
+            border: hasVoted ? `2px solid ${T.red}` : `1px solid ${T.border}`,
           }}>
             <Heart 
               size={20} 
-              color={theme.red} 
-              fill={hasVoted ? theme.red : 'none'}
+              color={T.red} 
+              fill={hasVoted ? T.red : 'none'}
               style={{
                 transition: 'all 0.3s ease',
                 transform: hasVoted ? 'scale(1.2)' : 'scale(1)',
@@ -1205,13 +1207,13 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
             <span style={{
               fontSize: 18,
               fontWeight: 800,
-              color: hasVoted ? theme.red : theme.txt,
+              color: hasVoted ? T.red : T.txt,
             }}>
               {voteCount}
             </span>
             <span style={{
               fontSize: 11,
-              color: theme.sub,
+              color: T.sub,
               fontWeight: 600,
             }}>
               votes
@@ -1225,8 +1227,8 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
               style={{
                 padding: '10px 20px',
                 background: hasVoted 
-                  ? `${theme.green}` 
-                  : `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+                  ? `${T.green}` 
+                  : `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
                 border: 'none',
                 borderRadius: 20,
                 color: '#fff',
@@ -1236,7 +1238,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                boxShadow: hasVoted ? 'none' : `0 4px 12px ${theme.pri}40`,
+                boxShadow: hasVoted ? 'none' : `0 4px 12px ${T.pri}40`,
                 opacity: hasVoted ? 0.7 : 1,
                 transition: 'all 0.3s ease',
               }}
@@ -1429,7 +1431,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
           margin: 0,
           fontSize: 24,
           fontWeight: 700,
-          color: theme.txt,
+          color: T.txt,
           marginBottom: 8,
         }}>
           Submit Your Entry
@@ -1437,7 +1439,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
         <p style={{
           margin: 0,
           fontSize: 14,
-          color: theme.sub,
+          color: T.sub,
           marginBottom: 16,
         }}>
           {showCreateNew ? 'Upload new content for this campaign' : 'Select existing reel or create new'}
@@ -1454,10 +1456,10 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
             style={{
               flex: 1,
               padding: '12px 16px',
-              background: !showCreateNew ? theme.pri : 'transparent',
-              border: `2px solid ${theme.pri}`,
+              background: !showCreateNew ? T.pri : 'transparent',
+              border: `2px solid ${T.pri}`,
               borderRadius: 8,
-              color: !showCreateNew ? '#fff' : theme.pri,
+              color: !showCreateNew ? '#fff' : T.pri,
               fontSize: 14,
               fontWeight: 600,
               cursor: 'pointer',
@@ -1470,10 +1472,10 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
             style={{
               flex: 1,
               padding: '12px 16px',
-              background: showCreateNew ? theme.pri : 'transparent',
-              border: `2px solid ${theme.pri}`,
+              background: showCreateNew ? T.pri : 'transparent',
+              border: `2px solid ${T.pri}`,
               borderRadius: 8,
-              color: showCreateNew ? '#fff' : theme.pri,
+              color: showCreateNew ? '#fff' : T.pri,
               fontSize: 14,
               fontWeight: 600,
               cursor: 'pointer',
@@ -1486,10 +1488,10 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
         {error && (
           <div style={{
             padding: 12,
-            background: theme.red + '15',
-            border: `1px solid ${theme.red}`,
+            background: T.red + '15',
+            border: `1px solid ${T.red}`,
             borderRadius: 8,
-            color: theme.red,
+            color: T.red,
             fontSize: 14,
             marginBottom: 20,
           }}>
@@ -1503,33 +1505,33 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
             {campaign && (
               <div style={{
                 padding: 16,
-                background: `${theme.blue}10`,
+                background: `${T.blue}10`,
                 borderRadius: 12,
-                border: `2px solid ${theme.blue}30`,
+                border: `2px solid ${T.blue}30`,
                 marginBottom: 20,
               }}>
-                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: theme.txt, marginBottom: 12 }}>
+                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: T.txt, marginBottom: 12 }}>
                   📋 Campaign Requirements
                 </h4>
-                <div style={{ fontSize: 13, color: theme.sub, lineHeight: 1.8 }}>
+                <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.8 }}>
                   {campaign.required_hashtags && (
                     <div style={{ marginBottom: 8 }}>
-                      <strong style={{ color: theme.txt }}>Required Hashtags:</strong> {campaign.required_hashtags}
+                      <strong style={{ color: T.txt }}>Required Hashtags:</strong> {campaign.required_hashtags}
                     </div>
                   )}
                   {campaign.min_followers > 0 && (
                     <div style={{ marginBottom: 8 }}>
-                      <strong style={{ color: theme.txt }}>Min Followers:</strong> {campaign.min_followers}
+                      <strong style={{ color: T.txt }}>Min Followers:</strong> {campaign.min_followers}
                     </div>
                   )}
                   {campaign.min_level > 0 && (
                     <div style={{ marginBottom: 8 }}>
-                      <strong style={{ color: theme.txt }}>Min Level:</strong> {campaign.min_level}
+                      <strong style={{ color: T.txt }}>Min Level:</strong> {campaign.min_level}
                     </div>
                   )}
                   {campaign.min_votes_per_reel > 0 && (
                     <div>
-                      <strong style={{ color: theme.txt }}>Min Votes Required:</strong> {campaign.min_votes_per_reel}
+                      <strong style={{ color: T.txt }}>Min Votes Required:</strong> {campaign.min_votes_per_reel}
                     </div>
                   )}
                 </div>
@@ -1547,10 +1549,10 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                 style={{
                   flex: 1,
                   padding: '14px 16px',
-                  background: theme.card,
-                  border: `2px solid ${theme.border}`,
+                  background: T.card,
+                  border: `2px solid ${T.border}`,
                   borderRadius: 12,
-                  color: theme.txt,
+                  color: T.txt,
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -1568,10 +1570,10 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                 style={{
                   flex: 1,
                   padding: '14px 16px',
-                  background: theme.card,
-                  border: `2px solid ${theme.border}`,
+                  background: T.card,
+                  border: `2px solid ${T.border}`,
                   borderRadius: 12,
-                  color: theme.txt,
+                  color: T.txt,
                   fontSize: 14,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -1589,29 +1591,29 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
             <div style={{
               marginBottom: 20,
               padding: 24,
-              border: `2px dashed ${theme.border}`,
+              border: `2px dashed ${T.border}`,
               borderRadius: 12,
               textAlign: 'center',
-              background: newReelFile ? `${theme.green}10` : theme.bg,
+              background: newReelFile ? `${T.green}10` : T.bg,
             }}
             >
               {newReelFile ? (
                 <div>
-                  <Check size={48} color={theme.green} style={{ marginBottom: 12 }} />
-                  <p style={{ margin: 0, color: theme.txt, fontWeight: 600 }}>
+                  <Check size={48} color={T.green} style={{ marginBottom: 12 }} />
+                  <p style={{ margin: 0, color: T.txt, fontWeight: 600 }}>
                     {newReelFile.name}
                   </p>
-                  <p style={{ margin: 0, fontSize: 12, color: theme.sub, marginTop: 4 }}>
+                  <p style={{ margin: 0, fontSize: 12, color: T.sub, marginTop: 4 }}>
                     Click to change file
                   </p>
                 </div>
               ) : (
                 <div>
-                  <Upload size={48} color={theme.sub} style={{ marginBottom: 12 }} />
-                  <p style={{ margin: 0, color: theme.txt, fontWeight: 600, marginBottom: 4 }}>
+                  <Upload size={48} color={T.sub} style={{ marginBottom: 12 }} />
+                  <p style={{ margin: 0, color: T.txt, fontWeight: 600, marginBottom: 4 }}>
                     Click to upload photo or video
                   </p>
-                  <p style={{ margin: 0, fontSize: 12, color: theme.sub }}>
+                  <p style={{ margin: 0, fontSize: 12, color: T.sub }}>
                     MP4, MOV, JPG, PNG up to 100MB
                   </p>
                 </div>
@@ -1630,7 +1632,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                 display: 'block',
                 fontSize: 14,
                 fontWeight: 600,
-                color: theme.txt,
+                color: T.txt,
                 marginBottom: 8,
               }}>
                 Caption {campaign?.required_hashtags ? '(Include required hashtags)' : '(optional)'}
@@ -1643,7 +1645,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                 style={{
                   width: '100%',
                   padding: 12,
-                  border: `2px solid ${theme.border}`,
+                  border: `2px solid ${T.border}`,
                   borderRadius: 8,
                   fontSize: 14,
                   outline: 'none',
@@ -1654,7 +1656,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               {campaign?.required_hashtags && (
                 <div style={{
                   fontSize: 12,
-                  color: theme.sub,
+                  color: T.sub,
                   marginTop: 6,
                 }}>
                   💡 Tip: Copy and paste: {campaign.required_hashtags}
@@ -1663,18 +1665,18 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
             </div>
           </div>
         ) : loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: theme.sub }}>
+          <div style={{ padding: 40, textAlign: 'center', color: T.sub }}>
             Loading your reels...
           </div>
         ) : userReels.length === 0 ? (
           <div style={{
             padding: 40,
             textAlign: 'center',
-            background: theme.bg,
+            background: T.bg,
             borderRadius: 12,
           }}>
-            <Video size={48} color={theme.sub} style={{ marginBottom: 16 }} />
-            <p style={{ margin: 0, color: theme.sub, marginBottom: 20 }}>
+            <Video size={48} color={T.sub} style={{ marginBottom: 16 }} />
+            <p style={{ margin: 0, color: T.sub, marginBottom: 20 }}>
               You don't have any reels yet. Create one first!
             </p>
             <button
@@ -1685,14 +1687,14 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               }}
               style={{
                 padding: '12px 24px',
-                background: `linear-gradient(135deg, ${theme.pri}, ${theme.orange})`,
+                background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
                 border: 'none',
                 borderRadius: 12,
                 color: '#fff',
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: 'pointer',
-                boxShadow: `0 4px 12px ${theme.pri}40`,
+                boxShadow: `0 4px 12px ${T.pri}40`,
               }}
             >
               🎬 Create Reel Now
@@ -1715,7 +1717,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                   borderRadius: 12,
                   overflow: 'hidden',
                   cursor: 'pointer',
-                  border: selectedReel === reel.id ? `3px solid ${theme.pri}` : `1px solid ${theme.border}`,
+                  border: selectedReel === reel.id ? `3px solid ${T.pri}` : `1px solid ${T.border}`,
                 }}
               >
                 {reel.image ? (
@@ -1732,12 +1734,12 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                   <div style={{
                     width: '100%',
                     height: '100%',
-                    background: theme.bg,
+                    background: T.bg,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}>
-                    <Video size={32} color={theme.sub} />
+                    <Video size={32} color={T.sub} />
                   </div>
                 )}
                 {selectedReel === reel.id && (
@@ -1748,7 +1750,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                     width: 24,
                     height: 24,
                     borderRadius: '50%',
-                    background: theme.pri,
+                    background: T.pri,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1765,7 +1767,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
           display: 'flex',
           gap: 12,
           paddingTop: 24,
-          borderTop: `1px solid ${theme.border}`,
+          borderTop: `1px solid ${T.border}`,
         }}>
           <button
             onClick={onClose}
@@ -1773,9 +1775,9 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               flex: 1,
               padding: 14,
               background: '#fff',
-              border: `2px solid ${theme.border}`,
+              border: `2px solid ${T.border}`,
               borderRadius: 8,
-              color: theme.txt,
+              color: T.txt,
               fontSize: 15,
               fontWeight: 600,
               cursor: 'pointer',
@@ -1789,10 +1791,10 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
             style={{
               flex: 1,
               padding: 14,
-              background: ((showCreateNew ? newReelFile : selectedReel) && !submitting) ? theme.pri : theme.sub + '30',
+              background: ((showCreateNew ? newReelFile : selectedReel) && !submitting) ? T.pri : T.sub + '30',
               border: 'none',
               borderRadius: 8,
-              color: ((showCreateNew ? newReelFile : selectedReel) && !submitting) ? '#fff' : theme.sub,
+              color: ((showCreateNew ? newReelFile : selectedReel) && !submitting) ? '#fff' : T.sub,
               fontSize: 15,
               fontWeight: 600,
               cursor: ((showCreateNew ? newReelFile : selectedReel) && !submitting) ? 'pointer' : 'not-allowed',

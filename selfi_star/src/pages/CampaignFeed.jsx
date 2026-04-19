@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../api';
 import config from '../config';
 import { ArrowLeft, Heart, MessageCircle, Award, TrendingUp, Clock, Star, Trophy } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Add CSS animation for points notification
 if (typeof document !== 'undefined' && !document.getElementById('points-earned-animation')) {
@@ -36,14 +37,6 @@ const mediaUrl = (url) => {
   return `${config.API_BASE_URL.replace('/api', '')}${url}`;
 };
 
-const PRI = '#DA9B2A';
-const PRI_LIGHT = '#DA9B2A18';
-const BORDER = '#E7E5E4';
-const TXT = '#1C1917';
-const SUB = '#78716C';
-const BG = '#FAFAF9';
-const RED = '#EF4444';
-
 const RANK_STYLES = {
   1: { bg: '#FFD70020', border: '#FFD700', text: '#B8860B', label: '🥇 #1' },
   2: { bg: '#C0C0C020', border: '#C0C0C0', text: '#808080', label: '🥈 #2' },
@@ -51,6 +44,7 @@ const RANK_STYLES = {
 };
 
 const CampaignFeed = ({ campaignId, onBack }) => {
+  const { colors: T } = useTheme();
   const [loading, setLoading] = useState(true);
   const [campaign, setCampaign] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -157,11 +151,11 @@ const CampaignFeed = ({ campaignId, onBack }) => {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, boxSizing: 'border-box' }}>
+    <div style={{ minHeight: '100vh', background: T.bg, boxSizing: 'border-box' }}>
       {/* Header */}
       <div style={{
         background: '#fff',
-        borderBottom: `1px solid ${BORDER}`,
+        borderBottom: `1px solid ${T.border}`,
         padding: '16px 24px',
         position: 'sticky',
         top: 0,
@@ -173,7 +167,7 @@ const CampaignFeed = ({ campaignId, onBack }) => {
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'transparent', border: 'none', cursor: 'pointer',
-              color: SUB, fontSize: 14, fontWeight: 600, padding: '4px 0',
+              color: T.sub, fontSize: 14, fontWeight: 600, padding: '4px 0',
               marginBottom: 10,
             }}
           >
@@ -182,8 +176,8 @@ const CampaignFeed = ({ campaignId, onBack }) => {
           </button>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TXT }}>{campaign?.title}</h1>
-              <p style={{ margin: 0, fontSize: 13, color: SUB }}>Campaign Feed · {posts.length} entries</p>
+              <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: T.txt }}>{campaign?.title}</h1>
+              <p style={{ margin: 0, fontSize: 13, color: T.sub }}>Campaign Feed · {posts.length} entries</p>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               {FILTERS.map(f => (
@@ -193,9 +187,9 @@ const CampaignFeed = ({ campaignId, onBack }) => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '7px 14px',
-                    background: filter === f.id ? PRI : '#fff',
-                    color: filter === f.id ? '#fff' : SUB,
-                    border: `1.5px solid ${filter === f.id ? PRI : BORDER}`,
+                    background: filter === f.id ? T.pri : '#fff',
+                    color: filter === f.id ? '#fff' : T.sub,
+                    border: `1.5px solid ${filter === f.id ? T.pri : T.border}`,
                     borderRadius: 20, cursor: 'pointer',
                     fontSize: 13, fontWeight: 600,
                     whiteSpace: 'nowrap',
@@ -212,17 +206,17 @@ const CampaignFeed = ({ campaignId, onBack }) => {
       {/* Content */}
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px 24px 60px' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: SUB }}>
+          <div style={{ textAlign: 'center', padding: '60px 0', color: T.sub }}>
             <div style={{ fontSize: 15 }}>Loading posts...</div>
           </div>
         ) : posts.length === 0 ? (
           <div style={{
             background: '#fff', borderRadius: 14, padding: '48px 24px',
-            textAlign: 'center', border: `1px solid ${BORDER}`,
+            textAlign: 'center', border: `1px solid ${T.border}`,
           }}>
-            <Award size={44} color={PRI} style={{ marginBottom: 16, opacity: 0.5 }} />
-            <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: TXT }}>No Posts Yet</h3>
-            <p style={{ margin: 0, color: SUB, fontSize: 14 }}>Be the first to participate!</p>
+            <Award size={44} color={T.pri} style={{ marginBottom: 16, opacity: 0.5 }} />
+            <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: T.txt }}>No Posts Yet</h3>
+            <p style={{ margin: 0, color: T.sub, fontSize: 14 }}>Be the first to participate!</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -255,23 +249,23 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
   return (
     <div style={{
       background: '#fff', borderRadius: 14, overflow: 'hidden',
-      border: `1.5px solid ${rankStyle ? rankStyle.border : BORDER}`,
+      border: `1.5px solid ${rankStyle ? rankStyle.border : T.border}`,
       boxShadow: rankStyle ? `0 2px 12px ${rankStyle.border}30` : '0 1px 4px rgba(0,0,0,0.06)',
     }}>
       {/* User Row */}
       <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
           width: 40, height: 40, borderRadius: '50%',
-          background: `linear-gradient(135deg, ${PRI}, #F59E0B)`,
+          background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: '#fff', fontSize: 16, fontWeight: 700, flexShrink: 0,
         }}>
           {post.user?.username?.[0]?.toUpperCase() || '?'}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: TXT }}>{post.user?.username}</div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: T.txt }}>{post.user?.username}</div>
           {createdAt && (
-            <div style={{ fontSize: 12, color: SUB }}>
+            <div style={{ fontSize: 12, color: T.sub }}>
               {new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </div>
           )}
@@ -289,8 +283,8 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
           )}
           {!rankStyle && rank && (
             <div style={{
-              background: BG, color: SUB,
-              border: `1px solid ${BORDER}`,
+              background: T.bg, color: T.sub,
+              border: `1px solid ${T.border}`,
               padding: '4px 10px', borderRadius: 20,
               fontSize: 12, fontWeight: 600,
             }}>
@@ -299,8 +293,8 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
           )}
           {totalScore > 0 && (
             <div style={{
-              background: PRI_LIGHT, color: PRI,
-              border: `1px solid ${PRI}40`,
+              background: T.pri + '18', color: T.pri,
+              border: `1px solid ${T.pri}40`,
               padding: '5px 12px', borderRadius: 20,
               fontSize: 13, fontWeight: 700,
             }}>
@@ -333,13 +327,13 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
       {/* Caption */}
       {post.reel?.caption && (
         <div style={{ padding: '12px 16px' }}>
-          <p style={{ margin: 0, fontSize: 14, color: TXT, lineHeight: 1.55 }}>{post.reel.caption}</p>
+          <p style={{ margin: 0, fontSize: 14, color: T.txt, lineHeight: 1.55 }}>{post.reel.caption}</p>
         </div>
       )}
 
       {/* Actions */}
       <div style={{
-        padding: '10px 16px', borderTop: `1px solid ${BORDER}`,
+        padding: '10px 16px', borderTop: `1px solid ${T.border}`,
         display: 'flex', alignItems: 'center', gap: 16,
       }}>
         <button
@@ -350,24 +344,24 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
           }}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
-            background: userLiked ? `${RED}12` : 'transparent',
-            border: `1.5px solid ${userLiked ? RED : BORDER}`,
+            background: userLiked ? `${T.red}12` : 'transparent',
+            border: `1.5px solid ${userLiked ? T.red : T.border}`,
             borderRadius: 20, padding: '5px 12px',
             cursor: (campaignType === 'grand' && isVotingOpen) ? 'pointer' : 'default',
             fontSize: 14, fontWeight: 700,
-            color: userLiked ? RED : SUB,
+            color: userLiked ? T.red : T.sub,
             transition: 'all 0.18s ease',
             opacity: (campaignType === 'grand' && isVotingOpen) ? 1 : 0.7,
           }}
           disabled={campaignType !== 'grand' || !isVotingOpen}
         >
-          <Heart size={16} fill={userLiked ? RED : 'none'} color={userLiked ? RED : SUB} />
+          <Heart size={16} fill={userLiked ? T.red : 'none'} color={userLiked ? T.red : T.sub} />
           {likes}
         </button>
         <button style={{
           display: 'flex', alignItems: 'center', gap: 6,
           background: 'transparent', border: 'none', cursor: 'default',
-          fontSize: 14, fontWeight: 600, color: SUB,
+          fontSize: 14, fontWeight: 600, color: T.sub,
         }}>
           <MessageCircle size={18} />
           {comments}
@@ -378,7 +372,7 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
             style={{
               marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5,
               background: 'transparent', border: 'none', cursor: 'pointer',
-              fontSize: 13, fontWeight: 600, color: PRI,
+              fontSize: 13, fontWeight: 600, color: T.pri,
             }}
           >
             <Award size={16} />
@@ -389,8 +383,8 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
 
       {/* Score Breakdown */}
       {showScores && totalScore > 0 && (
-        <div style={{ padding: '14px 16px', background: BG, borderTop: `1px solid ${BORDER}` }}>
-          <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: TXT }}>Score Breakdown</p>
+        <div style={{ padding: '14px 16px', background: T.bg, borderTop: `1px solid ${T.border}` }}>
+          <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: T.txt }}>Score Breakdown</p>
           <div style={{ display: 'grid', gap: 8 }}>
             {scores.creativity > 0 && <ScoreBar label="Creativity" score={scores.creativity} max={30} />}
             {scores.engagement > 0 && <ScoreBar label="Engagement" score={scores.engagement} max={25} />}
@@ -408,11 +402,11 @@ const ScoreBar = ({ label, score, max }) => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5, fontSize: 12 }}>
-        <span style={{ color: SUB, fontWeight: 500 }}>{label}</span>
-        <span style={{ fontWeight: 700, color: PRI }}>{score}/{max}</span>
+        <span style={{ color: T.sub, fontWeight: 500 }}>{label}</span>
+        <span style={{ fontWeight: 700, color: T.pri }}>{score}/{max}</span>
       </div>
-      <div style={{ height: 6, background: BORDER, borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: PRI, borderRadius: 3, transition: 'width 0.4s ease' }} />
+      <div style={{ height: 6, background: T.border, borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: T.pri, borderRadius: 3, transition: 'width 0.4s ease' }} />
       </div>
     </div>
   );
