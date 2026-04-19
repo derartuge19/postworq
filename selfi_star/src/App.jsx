@@ -123,6 +123,19 @@ export default function WerqRoot() {
   const [screen, setScreen] = useState('app');
   const { applyFromSettings } = useTheme();
 
+  // Global skeleton removal - ultimate fallback to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const skeleton = document.getElementById('app-skeleton');
+      if (skeleton) {
+        skeleton.style.transition = 'opacity 0.2s ease';
+        skeleton.style.opacity = '0';
+        setTimeout(() => skeleton.remove(), 220);
+      }
+    }, 2000); // Remove after 2 seconds regardless of state
+    return () => clearTimeout(timeout);
+  }, []);
+
   // ── Restore auth synchronously so pages never receive user=null on first render
   (() => {
     try {
