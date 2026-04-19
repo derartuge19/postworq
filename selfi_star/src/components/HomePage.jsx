@@ -344,6 +344,7 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
   const [isPressed, setIsPressed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [viewCount, setViewCount] = useState(post.view_count || 0);
+  const [shareToast, setShareToast] = useState('');
   const cardRef = useRef(null);
   const videoRef = useRef(null);
   const rafRef = useRef(null);
@@ -446,6 +447,38 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
     setSaveAnim(true);
     setTimeout(() => setSaveAnim(false), 300);
     try { await api.request(`/reels/${post.id}/save/`, { method: 'POST' }); } catch {}
+  };
+
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/post/${post.id}`;
+    const title = post.caption ? post.caption.slice(0, 80) : 'Check out this post on FlipStar';
+    // Prefer native share (mobile + modern browsers), fall back to clipboard
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text: title, url });
+        // increment share count (best-effort)
+        try { await api.request(`/reels/${post.id}/share/`, { method: 'POST' }); } catch {}
+        return;
+      } catch (err) {
+        if (err?.name === 'AbortError') return; // user cancelled
+        // fall through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareToast('🔗 Link copied!');
+      setTimeout(() => setShareToast(''), 1800);
+      try { await api.request(`/reels/${post.id}/share/`, { method: 'POST' }); } catch {}
+    } catch {
+      // Ultimate fallback: legacy exec
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); setShareToast('🔗 Link copied!'); setTimeout(() => setShareToast(''), 1800); } catch { setShareToast('Could not copy'); setTimeout(() => setShareToast(''), 1800); }
+      document.body.removeChild(ta);
+    }
   };
 
   const handleVideoClick = (e) => {
@@ -697,7 +730,8 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
               {/* Share */}
               <button
                 className="hp-btn hp-action"
-                onClick={e => e.stopPropagation()}
+                onClick={handleShare}
+                title="Share"
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   padding: '6px 10px', borderRadius: 10,
@@ -706,6 +740,7 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
                 }}
               >
                 <Share2 size={24} color={T.txt} style={{ transition: 'transform 0.15s' }} />
+                {post.shares > 0 && <span style={{ fontSize: 13, color: T.sub, fontWeight: 600 }}>{post.shares}</span>}
               </button>
             </div>
             {/* Save */}
@@ -798,6 +833,18 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
           anchorRect={optionsAnchor}
           T={T}
         />
+      )}
+
+      {/* Share toast */}
+      {shareToast && (
+        <div style={{
+          position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(0,0,0,0.88)', color: '#fff', padding: '10px 18px',
+          borderRadius: 20, fontSize: 14, fontWeight: 600, zIndex: 10000,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.25)', animation: 'toastIn 0.2s ease-out',
+        }}>
+          {shareToast}
+        </div>
       )}
     </>
   );
