@@ -921,7 +921,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
 
-  const LIMIT = 10;
+  const LIMIT = 5; // Load fewer posts initially for faster first paint
   const PULL_THRESHOLD = 80;
 
   // Create shared IntersectionObserver for all videos
@@ -955,12 +955,12 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {
     try {
       setLoading(true);
-      const data = await api.request(`/reels/?limit=${LIMIT}&offset=${offset}`);
+      const data = await api.request(`/reels/?limit=${reset ? LIMIT * 2 : LIMIT}&offset=${offset}`);
       const results = Array.isArray(data) ? data : (data.results || []);
       const newPosts = reset ? results : [...posts, ...results];
       setPosts(newPosts);
       if (reset) writeHomeCache(newPosts); // Save to cache on initial fetch
-      setHasMore(Array.isArray(data) ? results.length === LIMIT : !!data.next);
+      setHasMore(Array.isArray(data) ? results.length === (reset ? LIMIT * 2 : LIMIT) : !!data.next);
       setPage(offset);
     } catch (e) {
       console.error('HomePage fetch error:', e);
