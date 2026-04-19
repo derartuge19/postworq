@@ -33,7 +33,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import './TikTokLayout.css';
 
-export function TikTokLayout({
+export const TikTokLayout = memo(function TikTokLayout({
   user,
   activeTab: propActiveTab,
   videosOnly = false,
@@ -2629,4 +2629,4 @@ export function TikTokLayout({
       />
     </div>
   );
-}
+});
