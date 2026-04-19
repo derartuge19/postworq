@@ -1087,8 +1087,8 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         overflowY: 'hidden',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
-        padding: '0 12px',
-        gap: 0,
+        padding: '0 16px',
+        gap: 24,
         WebkitOverflowScrolling: 'touch',
       }}>
         <style>{`.hp-tabbar::-webkit-scrollbar { display: none; }`}</style>
@@ -1099,23 +1099,35 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
               key={tab}
               onClick={() => handleTabClick(tab)}
               style={{
-                background: isActive ? T.pri : 'transparent',
-                border: `1.5px solid ${isActive ? T.pri : T.border}`,
-                borderRadius: 24,
-                padding: '8px 18px',
-                fontSize: 14,
+                background: 'transparent',
+                border: 'none',
+                padding: '12px 0',
+                fontSize: 15,
                 fontWeight: isActive ? 700 : 500,
-                color: isActive ? '#fff' : T.sub,
+                color: isActive ? T.txt : T.sub,
                 cursor: 'pointer',
-                transition: 'all 0.18s',
-                margin: '6px 3px',
+                transition: 'all 0.2s',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
+                position: 'relative',
+                fontFamily: 'inherit',
               }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.borderColor = T.pri; e.currentTarget.style.color = T.pri; } }}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.sub; } }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = T.txt; } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = T.sub; } }}
             >
               {tab}
+              {isActive && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '20px',
+                  height: '2px',
+                  background: T.pri,
+                  borderRadius: '2px',
+                }} />
+              )}
             </button>
           );
         })}
