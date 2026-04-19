@@ -320,10 +320,16 @@ export const TikTokLayout = memo(function TikTokLayout({
   // (per deep-link) so that subsequent state changes like liking a reel
   // don't yank the user back to the initial video.
   const initialScrollDoneRef = useRef(false);
-  useEffect(() => { initialScrollDoneRef.current = false; }, [initialVideoId]);
+  const initialScrollAttemptsRef = useRef(0);
+  useEffect(() => { 
+    initialScrollDoneRef.current = false; 
+    initialScrollAttemptsRef.current = 0;
+  }, [initialVideoId]);
   useEffect(() => {
     if (!initialVideoId || !videos.length) return;
     if (initialScrollDoneRef.current) return;
+    if (initialScrollAttemptsRef.current > 10) return; // Prevent infinite attempts
+
     const videoIndex = videos.findIndex(v => v.id === initialVideoId);
     if (videoIndex !== -1) {
       const targetVideo = videos[videoIndex];
@@ -332,10 +338,19 @@ export const TikTokLayout = memo(function TikTokLayout({
         setTimeout(() => {
           videoElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
           initialScrollDoneRef.current = true;
-        }, 100);
+        }, 150);
+      } else {
+        // Ref not populated yet, retry
+        initialScrollAttemptsRef.current++;
       }
+    } else {
+      // Video not in current batch, might need to fetch more
+      if (hasMore && !loadingMore) {
+        fetchVideos(page + 1, true);
+      }
+      initialScrollAttemptsRef.current++;
     }
-  }, [initialVideoId, videos]);
+  }, [initialVideoId, videos, hasMore, loadingMore, page, fetchVideos]);
 
   // Remove the HTML skeleton overlay as soon as we have content to show
   useEffect(() => {
