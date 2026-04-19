@@ -968,31 +968,6 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     }
   }, []);
 
-  // Remove skeleton screen when content is ready
-  useEffect(() => {
-    if (posts.length > 0 || !loading) {
-      const skeleton = document.getElementById('app-skeleton');
-      if (skeleton) {
-        skeleton.style.transition = 'opacity 0.2s ease';
-        skeleton.style.opacity = '0';
-        setTimeout(() => skeleton.remove(), 220);
-      }
-    }
-  }, [posts, loading]);
-
-  // Fallback: remove skeleton after 5 seconds even if loading fails
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const skeleton = document.getElementById('app-skeleton');
-      if (skeleton) {
-        skeleton.style.transition = 'opacity 0.2s ease';
-        skeleton.style.opacity = '0';
-        setTimeout(() => skeleton.remove(), 220);
-      }
-    }, 5000);
-    return () => clearTimeout(timeout);
-  }, []);
-
   useEffect(() => {
     if (activeTab === 'Explore' || activeTab === 'Campaigns') return;
     // Only fetch if no cached data
