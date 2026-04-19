@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2 } from 'lucide-react';
+import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
 import { useTheme } from '../contexts/ThemeContext';
@@ -345,8 +345,14 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
   const [mounted, setMounted] = useState(false);
   const [viewCount, setViewCount] = useState(post.view_count || 0);
   const [shareToast, setShareToast] = useState('');
+  const [captionExpanded, setCaptionExpanded] = useState(false);
   const cardRef = useRef(null);
   const videoRef = useRef(null);
+
+  // Campaign detection — a post is a campaign entry if the backend flagged it
+  // (is_campaign_post) or it is linked to a campaign (campaign_id/campaign).
+  const isCampaignPost = !!(post.is_campaign_post || post.campaign_id || post.campaign);
+  const CAPTION_LIMIT = 140;
   const rafRef = useRef(null);
   const viewTracked = useRef(false);
 
@@ -699,12 +705,21 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
                   '--hp-hover': liked ? '#EF444420' : T.border + '60',
                 }}
               >
-                <Heart
-                  size={24}
-                  fill={liked ? '#EF4444' : 'none'}
-                  color={liked ? '#EF4444' : T.txt}
-                  style={{ transition: 'transform 0.15s' }}
-                />
+                {isCampaignPost ? (
+                  <Trophy
+                    size={24}
+                    fill={liked ? (T.priFallback || T.pri) : 'none'}
+                    color={liked ? (T.priFallback || T.pri) : T.txt}
+                    style={{ transition: 'transform 0.15s' }}
+                  />
+                ) : (
+                  <Heart
+                    size={24}
+                    fill={liked ? '#EF4444' : 'none'}
+                    color={liked ? '#EF4444' : T.txt}
+                    style={{ transition: 'transform 0.15s' }}
+                  />
+                )}
               </button>
               {/* Comment */}
               <button
@@ -759,13 +774,31 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
             {likes.toLocaleString()} likes
           </div>
 
-          {/* Caption */}
-          {post.caption && (
-            <div style={{ fontSize: 14, color: T.txt, marginTop: 4, lineHeight: 1.55 }}>
-              <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
-              {post.caption}
-            </div>
-          )}
+          {/* Caption with expand/collapse (Instagram/TikTok style) */}
+          {post.caption && (() => {
+            const isLong = post.caption.length > CAPTION_LIMIT;
+            const shown = !isLong || captionExpanded
+              ? post.caption
+              : post.caption.slice(0, CAPTION_LIMIT).trimEnd() + '…';
+            return (
+              <div style={{ fontSize: 14, color: T.txt, marginTop: 4, lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
+                {shown}
+                {isLong && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
+                    style={{
+                      background: 'none', border: 'none', padding: 0, marginLeft: 4,
+                      color: T.sub, fontSize: 14, fontWeight: 600,
+                      cursor: 'pointer', lineHeight: 1.55,
+                    }}
+                  >
+                    {captionExpanded ? 'less' : 'more'}
+                  </button>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Recent comments preview */}
           {post.recent_comments && post.recent_comments.length > 0 && (

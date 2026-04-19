@@ -62,10 +62,12 @@ class ReelSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     media = serializers.SerializerMethodField()
     recent_comments = serializers.SerializerMethodField()
-    
+    campaign_id = serializers.PrimaryKeyRelatedField(source='campaign', read_only=True)
+    campaign_title = serializers.CharField(source='campaign.title', read_only=True, default=None)
+
     class Meta:
         model = Reel
-        fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'overlay_text', 'votes', 'view_count', 'comment_count', 'created_at', 'is_liked', 'is_saved', 'recent_comments']
+        fields = ['id', 'user', 'image', 'media', 'caption', 'hashtags', 'hashtags_list', 'overlay_text', 'votes', 'view_count', 'comment_count', 'created_at', 'is_liked', 'is_saved', 'recent_comments', 'is_campaign_post', 'campaign_id', 'campaign_title']
     
     def _build_url(self, field, request):
         """Build absolute URL for a file field, handling both local and Cloudinary storage."""
