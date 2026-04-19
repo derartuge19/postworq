@@ -560,13 +560,13 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
-    if (!userId) setActiveTab('profile');
+    setActiveTab('profile');
     setProfileUserId(userId);
     setShowProfile(true);
     setShowPostPage(false);
     setShowEditProfile(false);
     setShowFollowersList(false);
-    pushHistoryState({ showProfile: true, profileUserId: userId, showPostPage: false, showEditProfile: false, showFollowersList: false });
+    pushHistoryState({ showProfile: true, profileUserId: userId, showPostPage: false, showEditProfile: false, showFollowersList: false, activeTab: 'profile' });
   };
 
   const handleShowPostPage = () => {
