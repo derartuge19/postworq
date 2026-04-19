@@ -894,19 +894,6 @@ export default function WerqRoot() {
           <LazyLoadErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
               <CampaignsPage
-                theme={{
-                  pri: '#DA9B2A',
-                  txt: '#1C1917',
-                  sub: '#78716C',
-                  bg: '#FAFAF9',
-                  card: '#FFFFFF',
-                  border: '#E7E5E4',
-                  blue: '#3B82F6',
-                  green: '#10B981',
-                  red: '#EF4444',
-                  orange: '#F59E0B',
-                  purple: '#8B5CF6',
-                }}
                 onCampaignClick={(id) => {
                   setCampaignId(id);
                   setShowCampaigns(false);

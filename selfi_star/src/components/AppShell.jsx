@@ -318,9 +318,9 @@ export function AppShell({
           {[
             { item: menuItems[0], label: 'Home'    },
             { item: menuItems[1], label: 'Reels'   },
-            { item: menuItems[4], label: 'New',  isCreate: true },
-            { item: menuItems[3], label: 'Messages'},
-            { item: menuItems[5], label: 'Profile' },
+            { item: menuItems[5], label: 'New',  isCreate: true },
+            { item: menuItems[4], label: 'Messages'},
+            { item: menuItems[6], label: 'Profile' },
           ].map(({ item, label, isCreate }) => {
             const Icon = item.icon;
             let isActive = activeTab === item.id;
