@@ -364,6 +364,19 @@ export const TikTokLayout = memo(function TikTokLayout({
     }
   }, [videos.length, loading]);
 
+  // Fallback: remove skeleton after 5 seconds even if loading fails
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const skeleton = document.getElementById('app-skeleton');
+      if (skeleton) {
+        skeleton.style.transition = 'opacity 0.2s ease';
+        skeleton.style.opacity = '0';
+        setTimeout(() => skeleton.remove(), 220);
+      }
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   // Preload first video's poster with better timing and cleanup
   useEffect(() => {
     if (!videos.length) return;
