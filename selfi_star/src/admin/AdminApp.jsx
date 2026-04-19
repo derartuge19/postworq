@@ -27,23 +27,20 @@ import { SecurityPage } from './pages/SecurityPage';
 import { LegalDocumentsPage } from './pages/LegalDocumentsPage';
 import api from '../api';
 import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Trophy, Target, Zap, Award, Flag } from 'lucide-react';
-
-const T = {
-  pri: "#DA9B2A",
-  txt: "#1C1917",
-  sub: "#78716C",
-  bg: "#FAFAF9",
-  dark: "#0C1A12",
-  border: "#E7E5E4",
-  card: "#FFFFFF",
-  red: "#EF4444",
-  green: "#10B981",
-  blue: "#3B82F6",
-  purple: "#8B5CF6",
-  orange: "#F59E0B"
-};
+import { useTheme } from '../contexts/ThemeContext';
 
 export function AdminApp() {
+  const { colors } = useTheme();
+  const T = {
+    ...colors,
+    pri: colors.priFallback || colors.pri,
+    red: "#EF4444",
+    green: "#10B981",
+    blue: "#3B82F6",
+    purple: "#8B5CF6",
+    orange: "#F59E0B"
+  };
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
   const [currentPage, setCurrentPage] = useState('dashboard');

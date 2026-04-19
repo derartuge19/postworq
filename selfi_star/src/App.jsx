@@ -426,6 +426,33 @@ export default function WerqRoot() {
     } else {
       setTimeout(prefetchComponents, 2000);
     }
+
+    // Handle shared post links: /post/:id or ?post=:id
+    const handleSharedLink = () => {
+      const path = window.location.pathname;
+      const params = new URLSearchParams(window.location.search);
+      let postId = null;
+
+      // Check /post/:id format
+      const postMatch = path.match(/^\/post\/(\d+)/);
+      if (postMatch) {
+        postId = postMatch[1];
+      } else if (params.has('post')) {
+        // Check ?post=:id format
+        postId = params.get('post');
+      }
+
+      if (postId) {
+        console.log('📤 Opening shared post:', postId);
+        setVideoDetailId(parseInt(postId));
+        setShowVideoDetail(true);
+        setActiveTab('home');
+        // Clean URL without reload
+        window.history.replaceState({}, '', '/');
+      }
+    };
+
+    handleSharedLink();
   }, []);
 
   // Refresh user profile from backend on startup to sync across devices

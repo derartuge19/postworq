@@ -903,17 +903,19 @@ function ThemeTab({ settings, handleChange, setSettings, theme }) {
             const isActive = selectedPreset === key;
             return (
               <button key={key} onClick={() => selectPreset(key)}
-                style={{ background: c.cardBg, border: `2px solid ${isActive ? c.pri : theme.border}`, borderRadius: 12, padding: '12px', cursor: 'pointer', textAlign: 'left', position: 'relative', transition: 'all 0.15s', boxShadow: isActive ? `0 0 0 3px ${c.pri}30` : 'none' }}>
+                style={{ background: c.cardBg, border: `2px solid ${isActive ? (c.priFallback || c.pri) : theme.border}`, borderRadius: 12, padding: '12px', cursor: 'pointer', textAlign: 'left', position: 'relative', transition: 'all 0.15s', boxShadow: isActive ? `0 0 0 3px ${(c.priFallback || c.pri)}30` : 'none', overflow: 'hidden' }}>
                 {/* Swatch row */}
                 <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-                  <div style={{ width: 20, height: 20, borderRadius: 6, background: c.pri }} />
+                  <div style={{ width: 20, height: 20, borderRadius: 6, background: c.pri, position: 'relative' }}>
+                    {p.gradient && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%)', animation: 'shimmer 2s infinite', borderRadius: 6 }} />}
+                  </div>
                   <div style={{ width: 20, height: 20, borderRadius: 6, background: c.bg }} />
                   <div style={{ width: 20, height: 20, borderRadius: 6, background: c.cardBg, border: `1px solid ${c.border}` }} />
                 </div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: isActive ? c.pri : theme.txt, marginBottom: 2 }}>{p.emoji} {p.name}</div>
-                <div style={{ fontSize: 10, color: theme.sub }}>{p.category}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: isActive ? (c.priFallback || c.pri) : theme.txt, marginBottom: 2 }}>{p.emoji} {p.name}</div>
+                <div style={{ fontSize: 10, color: theme.sub }}>{p.category}{p.gradient ? ' • Gradient' : ''}</div>
                 {isActive && (
-                  <div style={{ position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: '50%', background: c.pri, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: '50%', background: c.priFallback || c.pri, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Check size={10} color="#fff" strokeWidth={3} />
                   </div>
                 )}
@@ -1015,6 +1017,12 @@ function ThemeTab({ settings, handleChange, setSettings, theme }) {
           ))}
         </div>
       </div>
+      <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   );
 }
