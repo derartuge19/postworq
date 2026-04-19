@@ -361,16 +361,44 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
     return () => clearTimeout(t);
   }, [index]);
 
+  // Check if this user has already viewed this post (persisted in localStorage)
+  const hasViewedPost = () => {
+    try {
+      const userId = currentUser?.id || 'anonymous';
+      const viewedPosts = JSON.parse(localStorage.getItem(`viewed_posts_${userId}`) || '[]');
+      return viewedPosts.includes(post.id);
+    } catch {
+      return false;
+    }
+  };
+
+  // Mark this post as viewed by this user
+  const markPostAsViewed = () => {
+    try {
+      const userId = currentUser?.id || 'anonymous';
+      const viewedPosts = JSON.parse(localStorage.getItem(`viewed_posts_${userId}`) || '[]');
+      if (!viewedPosts.includes(post.id)) {
+        viewedPosts.push(post.id);
+        localStorage.setItem(`viewed_posts_${userId}`, JSON.stringify(viewedPosts));
+      }
+    } catch {}
+  };
+
   // Track view when card is 50% visible for at least 1 second
   useEffect(() => {
     const card = cardRef.current;
     if (!card) return;
+    
+    // Skip if already viewed by this user
+    if (hasViewedPost()) return;
+    
     let timer = null;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !viewTracked.current) {
           timer = setTimeout(async () => {
             viewTracked.current = true;
+            markPostAsViewed();
             try {
               const res = await api.request(`/reels/${post.id}/view/`, { method: 'POST' });
               if (res?.view_count !== undefined) setViewCount(res.view_count);
@@ -384,7 +412,7 @@ const PostCard = memo(function PostCard({ post, currentUser, onShowProfile, onRe
     );
     observer.observe(card);
     return () => { observer.disconnect(); if (timer) clearTimeout(timer); };
-  }, [post.id]);
+  }, [post.id, currentUser?.id]);
 
   const handleMouseMove = (e) => {
     // Tilt + shine disabled: keep hover to scale/lift only.
