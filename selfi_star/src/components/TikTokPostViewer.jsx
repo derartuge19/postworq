@@ -60,17 +60,36 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
     }
   }, [hasPrev, currentIndex, onNavigate]);
 
-  // Touch/swipe handling
+  // Touch/swipe handling - only vertical
   const touchStartY = useRef(0);
+  const touchStartX = useRef(0);
   const handleTouchStart = (e) => {
     touchStartY.current = e.touches[0].clientY;
+    touchStartX.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = (e) => {
-    const diff = touchStartY.current - e.changedTouches[0].clientY;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) goToNext();
+    const diffY = touchStartY.current - e.changedTouches[0].clientY;
+    const diffX = touchStartX.current - e.changedTouches[0].clientX;
+    
+    // Only allow vertical swipe if horizontal movement is minimal
+    if (Math.abs(diffX) < 30 && Math.abs(diffY) > 50) {
+      if (diffY > 0) goToNext();
       else goToPrev();
+    }
+  };
+
+  // Prevent horizontal scroll/swipe
+  const handleTouchMove = (e) => {
+    // Allow vertical scroll only
+    const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
+    const diffX = Math.abs(touchX - touchStartX.current);
+    const diffY = Math.abs(touchY - touchStartY.current);
+    
+    // If horizontal movement is greater than vertical, prevent it
+    if (diffX > diffY && diffX > 10) {
+      e.preventDefault();
     }
   };
 
@@ -132,9 +151,11 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
         zIndex: 1000,
         display: 'flex',
         overflow: 'hidden',
+        touchAction: 'pan-y',
       }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
     >
       <style>{`
         @keyframes fadeOut {
@@ -156,11 +177,11 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
         onClick={onClose}
         style={{
           position: 'absolute',
-          top: 12,
-          left: 12,
+          top: 8,
+          left: 8,
           zIndex: 100,
-          width: 36,
-          height: 36,
+          width: 32,
+          height: 32,
           borderRadius: '50%',
           background: 'rgba(0,0,0,0.5)',
           border: 'none',
@@ -170,9 +191,10 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
           justifyContent: 'center',
           color: '#fff',
           backdropFilter: 'blur(10px)',
+          aspectRatio: '1 / 1',
         }}
       >
-        <X size={20} />
+        <X size={18} />
       </button>
 
       {/* Navigation Arrows (Desktop) */}
@@ -230,14 +252,14 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
       {/* Progress Indicator */}
       <div style={{
         position: 'absolute',
-        top: 12,
-        right: 12,
+        top: 8,
+        right: 8,
         zIndex: 100,
         background: 'rgba(0,0,0,0.6)',
-        padding: '6px 12px',
-        borderRadius: 16,
+        padding: '4px 10px',
+        borderRadius: 14,
         color: '#fff',
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: 600,
       }}>
         {currentIndex + 1} / {posts.length}
@@ -245,6 +267,7 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
 
       {/* Main Content - Video/Image */}
       <div 
+        className="slide-in"
         style={{
           flex: 1,
           display: 'flex',
@@ -315,8 +338,8 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
         right: 0,
         bottom: 0,
         left: 0,
-        padding: '16px 20px 24px',
-        paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+        padding: '16px 20px 80px',
+        paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
         background: 'linear-gradient(transparent 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.85) 100%)',
         color: '#fff',
         zIndex: 50,
