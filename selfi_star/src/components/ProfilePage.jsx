@@ -32,6 +32,29 @@ function writeProfileCache(userId, data) {
   } catch {}
 }
 
+// Follower/following count cache helpers
+const FOLLOW_CACHE_KEY = (userId) => `follow_cache_${userId}`;
+const FOLLOW_CACHE_TTL = 1 * 60 * 1000; // 1 minute
+
+function readFollowCache(userId) {
+  try {
+    const raw = localStorage.getItem(FOLLOW_CACHE_KEY(userId));
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > FOLLOW_CACHE_TTL) {
+      localStorage.removeItem(FOLLOW_CACHE_KEY(userId));
+      return null;
+    }
+    return data;
+  } catch { return null; }
+}
+
+function writeFollowCache(userId, data) {
+  try {
+    localStorage.setItem(FOLLOW_CACHE_KEY(userId), JSON.stringify({ ts: Date.now(), data }));
+  } catch {}
+}
+
 export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
@@ -200,6 +223,35 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
     if (!user) {
       return;
     }
+
+    // Check cache first
+    const cachedData = readFollowCache(targetUserId);
+    if (cachedData) {
+      setFollowersCount(cachedData.followersCount);
+      setFollowingCount(cachedData.followingCount);
+      setIsFollowing(cachedData.isFollowing);
+      // Refresh in background
+      setTimeout(() => {
+        api.getFollowers(targetUserId).then(followersRaw => {
+          const followers = Array.isArray(followersRaw) ? followersRaw : (followersRaw.results || []);
+          api.getFollowing(targetUserId).then(followingRaw => {
+            const following = Array.isArray(followingRaw) ? followingRaw : (followingRaw.results || []);
+            setFollowersCount(followers.length);
+            setFollowingCount(following.length);
+            if (!isOwnProfile && user) {
+              const isFollowingUser = followers.some(f => f.follower?.id === user.id);
+              setIsFollowing(isFollowingUser);
+            }
+            writeFollowCache(targetUserId, {
+              followersCount: followers.length,
+              followingCount: following.length,
+              isFollowing: isFollowingUser,
+            });
+          }).catch(() => {});
+        }).catch(() => {});
+      }, 100);
+      return;
+    }
     
     try {
       const followersRaw = await api.getFollowers(targetUserId);
@@ -209,10 +261,15 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       setFollowersCount(followers.length);
       setFollowingCount(following.length);
       
-      if (!isOwnProfile && user) {
-        const isFollowingUser = followers.some(f => f.follower?.id === user.id);
-        setIsFollowing(isFollowingUser);
-      }
+      const isFollowingUser = !isOwnProfile && user ? followers.some(f => f.follower?.id === user.id) : false;
+      setIsFollowing(isFollowingUser);
+      
+      // Write to cache
+      writeFollowCache(targetUserId, {
+        followersCount: followers.length,
+        followingCount: following.length,
+        isFollowing: isFollowingUser,
+      });
     } catch (error) {
       console.error("Failed to fetch follow counts:", error);
     }
