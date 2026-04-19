@@ -267,6 +267,17 @@
         } catch(e) {}
       })();
     </script>
+    <script>
+      // Fail-safe: remove skeleton after 2.5 seconds if React doesn't load
+      setTimeout(function() {
+        var skeleton = document.getElementById('app-skeleton');
+        if (skeleton) {
+          skeleton.style.transition = 'opacity 0.3s ease';
+          skeleton.style.opacity = '0';
+          setTimeout(function() { skeleton.remove(); }, 300);
+        }
+      }, 2500);
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
