@@ -140,7 +140,8 @@ export function PostPage({ user, onBack }) {
         alignItems: "center",
         padding: "16px 20px",
         borderBottom: `1px solid ${T.border}`,
-        background: T.cardBg,
+        background: "#fff",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
       }}>
         <button
           onClick={onBack}
@@ -150,13 +151,13 @@ export function PostPage({ user, onBack }) {
             fontSize: 20,
             cursor: "pointer",
             marginRight: 16,
-            color: T.txt,
+            color: "#1a1a1a",
             padding: 8,
           }}
         >
           ←
         </button>
-        <div style={{ fontSize: 18, fontWeight: 700, color: T.txt }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#1a1a1a" }}>
           Create Post
         </div>
         <div style={{ flex: 1 }} />
