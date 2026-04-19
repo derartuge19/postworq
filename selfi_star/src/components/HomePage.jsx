@@ -326,7 +326,6 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
 
 /* ── Post Card ── */
 const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onNavigateToReel, onCommentAdded, onVoteAdded }) {
-  const { colors: T } = useTheme();
   const [liked, setLiked] = useState(post.is_liked || false);
   const [likes, setLikes] = useState(post.votes || 0);
   const [saved, setSaved] = useState(post.is_saved || false);
