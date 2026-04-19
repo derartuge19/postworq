@@ -738,6 +738,8 @@ export default function WerqRoot() {
           startTransition(() => {
             setActiveTab(tab);
             saveNav({ activeTab: tab });
+            // Push to browser history so refresh restores the correct tab (not stale state)
+            pushHistoryState({ activeTab: tab });
           });
         }}
         onLogout={handleLogout}
