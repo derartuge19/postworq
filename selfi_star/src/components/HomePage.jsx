@@ -46,7 +46,7 @@ function writeHomeCache(data) {
 }
 
 /* ── Comment Sheet ── */
-function CommentSheet({ post, currentUser, onClose, T, onCommentAdded }) {
+const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T, onCommentAdded }) {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -125,10 +125,10 @@ function CommentSheet({ post, currentUser, onClose, T, onCommentAdded }) {
       </div>
     </div>
   );
-}
+});
 
 /* ── Post Info Sheet ── */
-function PostInfoSheet({ post, onClose, T }) {
+const PostInfoSheet = memo(function PostInfoSheet({ post, onClose, T }) {
   const raw = post.media || post.image || '';
   const isVideo = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(raw) || raw.includes('/video/upload/');
   const avatarSrc = post.user?.profile_photo ? mediaUrl(post.user.profile_photo) : null;
@@ -179,10 +179,10 @@ function PostInfoSheet({ post, onClose, T }) {
       </div>
     </div>
   );
-}
+});
 
 /* ── Post Options Popover ── */
-function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorRect }) {
+const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorRect }) {
   const isOwn = currentUser?.id === post.user?.id;
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -322,7 +322,7 @@ function PostOptionsMenu({ post, currentUser, onClose, T, onRequireAuth, anchorR
       {showInfo && <PostInfoSheet post={post} onClose={() => { setShowInfo(false); onClose(); }} T={T} />}
     </>
   );
-}
+});
 
 /* ── Post Card ── */
 const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onNavigateToReel, onCommentAdded, onVoteAdded }) {
