@@ -382,13 +382,8 @@ class ReelViewSet(viewsets.ModelViewSet):
                 votes_count_db=Count('reel_votes', distinct=True),
             ).order_by('-created_at')
             
-            # Exclude reels marked as not interested from list view only
-            if self.request.user.is_authenticated:
-                from .models import NotInterested
-                not_interested_ids = NotInterested.objects.filter(
-                    user=self.request.user
-                ).values_list('reel_id', flat=True)
-                queryset = queryset.exclude(id__in=not_interested_ids)
+            # Skip NotInterested filter to prevent crashes - it's causing performance issues
+            # If needed, can be re-enabled later with optimization
             
             # Annotate is_liked / is_saved for the current user to avoid N+1
             if self.request.user.is_authenticated:

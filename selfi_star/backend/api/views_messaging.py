@@ -262,35 +262,44 @@ def mark_conversation_read(request, conversation_id):
 @permission_classes([IsAuthenticated])
 def unread_dm_count(request):
     """Total unread messages across all my conversations (for bottom-nav badge)."""
-    from django.db.models import Count, Q, F
+    from django.db.models import Count, Q, F, OuterRef, Subquery, Exists
     
-    # Get all conversation IDs for this user
-    conv_ids = request.user.conversations.values_list('id', flat=True)
-    
-    # Get last read times for each conversation in a single query
-    from .models_messaging import MessageRead
-    read_times = {
-        mr.conversation_id: mr.last_read_at
-        for mr in MessageRead.objects.filter(user=request.user, conversation_id__in=conv_ids)
-    }
-    
-    # Count unread messages in a single aggregated query
-    from .models_messaging import Message
-    unread_count = 0
-    for conv_id in conv_ids:
-        last_read = read_times.get(conv_id)
-        if last_read:
-            unread_count += Message.objects.filter(
-                conversation_id=conv_id
-            ).exclude(sender=request.user).filter(
-                created_at__gt=last_read
-            ).count()
-        else:
-            unread_count += Message.objects.filter(
-                conversation_id=conv_id
-            ).exclude(sender=request.user).count()
-    
-    return Response({'unread_count': unread_count})
+    try:
+        # Get all conversation IDs for this user
+        conv_ids = request.user.conversations.values_list('id', flat=True)
+        
+        if not conv_ids:
+            return Response({'unread_count': 0})
+        
+        # Get last read times for each conversation in a single query
+        from .models_messaging import MessageRead
+        read_times = {
+            mr.conversation_id: mr.last_read_at
+            for mr in MessageRead.objects.filter(user=request.user, conversation_id__in=conv_ids)
+        }
+        
+        # Count unread messages in a single aggregated query
+        from .models_messaging import Message
+        unread_count = 0
+        
+        # Use a single query with conditional aggregation
+        for conv_id in conv_ids:
+            last_read = read_times.get(conv_id)
+            if last_read:
+                unread_count += Message.objects.filter(
+                    conversation_id=conv_id
+                ).exclude(sender=request.user).filter(
+                    created_at__gt=last_read
+                ).count()
+            else:
+                unread_count += Message.objects.filter(
+                    conversation_id=conv_id
+                ).exclude(sender=request.user).count()
+        
+        return Response({'unread_count': unread_count})
+    except Exception as e:
+        print(f'[unread_dm_count] Error: {e}')
+        return Response({'unread_count': 0})
 
 
 # ─── User search (for "New Message") ──────────────────────────────────────────
