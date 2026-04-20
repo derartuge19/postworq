@@ -2174,6 +2174,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                       left: 20,
                       color: '#fff',
                       textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+                      zIndex: 20,
                     }}
                   >
                     <div
@@ -2282,6 +2283,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                       flexDirection: 'column',
                       gap: 20,
                       alignItems: 'center',
+                      zIndex: 20,
                     }}
                     className="feed-action-icon"
                   >
