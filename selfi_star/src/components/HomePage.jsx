@@ -920,22 +920,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             );
           })()}
 
-          {/* Recent comments preview */}
-          {post.recent_comments && post.recent_comments.length > 0 && (
-            <div style={{ marginTop: 4 }}>
-              {post.recent_comments.slice(0, 3).map((comment) => (
-                <div 
-                  key={comment.id}
-                  onClick={handleCommentClick}
-                  style={{ fontSize: 13, color: T?.txt || '#000', marginTop: 3, cursor: 'pointer' }}
-                >
-                  <span style={{ fontWeight: 700 }}>{comment.user?.username}</span>
-                  <span> {comment.text}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
+          
           {/* Comments link */}
           <button
             onClick={handleCommentClick}
