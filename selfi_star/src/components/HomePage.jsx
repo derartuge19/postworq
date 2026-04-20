@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, startTransition } from 'react';
 import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -24,7 +24,7 @@ function timeAgo(dateStr) {
 
 // Cache helpers for HomePage
 const CACHE_KEY = 'homepage_feed_cache';
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes (same as TikTokLayout)
 
 function readHomeCache() {
   try {
@@ -982,11 +982,12 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
 
 const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 
-export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
+const HomePage = memo(function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
   const { colors: T } = useTheme();
   const [activeTab, setActiveTab] = useState('For You');
   const [posts, setPosts] = useState(() => readHomeCache() || []);
   const [loading, setLoading] = useState(() => !readHomeCache());
+  const [mounted, setMounted] = useState(false); // Prevent flash on initial load
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const videoObserverRef = useRef(null);
@@ -997,6 +998,12 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const [isRefreshing, setIsRefreshing] = useState(false);
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
+
+  // Prevent flash on initial load
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const LIMIT = 10; // Load more posts initially for better user experience
   const PULL_THRESHOLD = 80;
@@ -1044,10 +1051,12 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       
       const results = Array.isArray(data) ? data : (data.results || []);
       const newPosts = reset ? results : [...posts, ...results];
-      setPosts(newPosts);
-      if (reset) writeHomeCache(newPosts); // Save to cache on initial fetch
-      setHasMore(Array.isArray(data) ? results.length === (reset ? LIMIT * 2 : LIMIT) : !!data.next);
-      setPage(offset);
+      startTransition(() => {
+        setPosts(newPosts);
+        if (reset) writeHomeCache(newPosts); // Save to cache on initial fetch
+        setHasMore(Array.isArray(data) ? results.length === (reset ? LIMIT * 2 : LIMIT) : !!data.next);
+        setPage(offset);
+      });
     } catch (e) {
       console.error('HomePage fetch error:', e);
       // On timeout, show cached data if available
@@ -1315,4 +1324,6 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       </div>
     </div>
   );
-}
+});
+
+export default HomePage;

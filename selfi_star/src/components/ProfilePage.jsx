@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, startTransition } from "react";
 import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2 } from "lucide-react";
 import { GamificationBar } from "./GamificationBar";
 import api from "../api";
@@ -11,7 +11,7 @@ import CampaignStats from "./CampaignStats";
 
 // Profile page cache helpers
 const PROFILE_CACHE_KEY = (userId) => `profile_cache_${userId}`;
-const PROFILE_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+const PROFILE_CACHE_TTL = 30 * 60 * 1000; // 30 minutes (same as TikTokLayout)
 
 function readProfileCache(userId) {
   try {
@@ -34,7 +34,7 @@ function writeProfileCache(userId, data) {
 
 // Follower/following count cache helpers
 const FOLLOW_CACHE_KEY = (userId) => `follow_cache_${userId}`;
-const FOLLOW_CACHE_TTL = 1 * 60 * 1000; // 1 minute
+const FOLLOW_CACHE_TTL = 30 * 60 * 1000; // 30 minutes (same as TikTokLayout)
 
 function readFollowCache(userId) {
   try {
@@ -55,11 +55,12 @@ function writeFollowCache(userId, data) {
   } catch {}
 }
 
-export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
+const ProfilePage = memo(function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const isOwnProfile = !userId || userId === user?.id;
   const targetUserId = userId || user?.id;
+  const [mounted, setMounted] = useState(false); // Prevent flash on initial load
 
   // For own profile, initialize immediately from cache so no loading screen
   const cachedUser = isOwnProfile ? (() => {
@@ -91,6 +92,12 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   const [showReportUser, setShowReportUser] = useState(false);
   const [reportingUser, setReportingUser] = useState(false);
   const [reportUserMsg, setReportUserMsg] = useState(null);
+
+  // Prevent flash on initial load
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const USER_REPORT_REASONS = [
     { id: 'harassment', label: 'Harassment or Bullying', icon: '😡' },
@@ -285,8 +292,10 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           const storedUser = localStorage.getItem('user');
           if (storedUser) {
             const parsed = JSON.parse(storedUser);
-            setProfileUser(parsed);
-            setProfileData(parsed);
+            startTransition(() => {
+              setProfileUser(parsed);
+              setProfileData(parsed);
+            });
           }
           // Don't block — fetch counts in background
           fetchFollowCounts(targetUserId);
@@ -294,11 +303,13 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           // Other user profile: check cache first
           const cachedData = readProfileCache(targetUserId);
           if (cachedData) {
-            setProfileUser(cachedData.profileUser);
-            setProfileData(cachedData.profileUser);
-            setFollowersCount(cachedData.followersCount);
-            setFollowingCount(cachedData.followingCount);
-            setIsFollowing(cachedData.isFollowing);
+            startTransition(() => {
+              setProfileUser(cachedData.profileUser);
+              setProfileData(cachedData.profileUser);
+              setFollowersCount(cachedData.followersCount);
+              setFollowingCount(cachedData.followingCount);
+              setIsFollowing(cachedData.isFollowing);
+            });
             setLoading(false);
             // Refresh in background
             fetchFollowCounts(targetUserId);
@@ -312,7 +323,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               api.getUser(userId),
               fetchFollowCounts(targetUserId),
             ]);
-            setProfileUser(userData);
+            startTransition(() => setProfileUser(userData));
             // Write to cache
             writeProfileCache(targetUserId, {
               profileUser: userData,
@@ -1231,4 +1242,6 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
       )}
     </div>
   );
-}
+});
+
+export default ProfilePage;
