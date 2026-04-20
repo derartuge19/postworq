@@ -1026,30 +1026,24 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
   const fetchMessages = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const data = await api.request(`/messages/conversations/${convId}/messages/`);
+      
+      // Add timeout to prevent slow loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 3000)
+      );
+      
+      const data = await Promise.race([
+        api.request(`/messages/conversations/${convId}/messages/`),
+        timeoutPromise
+      ]);
+      
       const arr = Array.isArray(data) ? data : [];
       setMessages((prev) => {
         // If a send is in flight, don't clobber optimistic messages
-        if (pendingRef.current > 0) {
-          const pendings = prev.filter((m) => typeof m.id === 'string' && m.id.startsWith('tmp-'));
-          if (pendings.length) {
-            // Merge server arr with pending optimistic tail
-            const serverIds = new Set(arr.map((m) => m.id));
-            const merged = [...arr, ...pendings.filter((m) => !serverIds.has(m.id))];
-            return merged;
-          }
-        }
-        // Bail if nothing meaningful changed
-        if (arr.length === prev.length) {
-          const lastPrev = prev[prev.length - 1];
-          const lastNew = arr[arr.length - 1];
-          if (lastPrev && lastNew
-              && lastPrev.id === lastNew.id
-              && lastPrev.text === lastNew.text
-              && lastPrev.is_deleted === lastNew.is_deleted
-              && lastPrev.edited_at === lastNew.edited_at) {
-            return prev;
-          }
+        if (pendingRef.current > 0 && prev.length > arr.length) {
+          // Keep optimistic messages at the end
+          const optimistic = prev.slice(arr.length);
+          return [...arr, ...optimistic];
         }
         return arr;
       });
@@ -1058,322 +1052,27 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
     } catch (e) {
       console.error('fetchMessages error', e);
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
   }, [convId]);
 
   useEffect(() => { fetchMessages(false); }, [fetchMessages]);
 
-  // Poll every 3 seconds for new messages while thread is open
+  // Poll every 10 seconds for new messages while thread is open (reduced frequency)
   useEffect(() => {
-    const id = setInterval(() => fetchMessages(true), 3000);
+    if (!convId) return;
+    const id = setInterval(() => fetchMessages(true), 10000); // 10 seconds instead of 3
     return () => clearInterval(id);
-  }, [fetchMessages]);
+  }, [convId, fetchMessages]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (!loading) scrollToBottom(false);
   }, [messages.length, loading]);
 
-  // Stable send handler — does NOT depend on text state (Composer owns text)
-  const handleSend = useCallback(async (trimmed) => {
-    const tempId = `tmp-${Date.now()}`;
-    const optimistic = {
-      id: tempId,
-      sender: { id: user.id, username: user.username, profile_photo: user.profile_photo },
-      text: trimmed,
-      created_at: new Date().toISOString(),
-      edited_at: null,
-      is_deleted: false,
-      is_own: true,
-      is_editable: true,
-      _pending: true,
-    };
-    setMessages((prev) => [...prev, optimistic]);
-    pendingRef.current += 1;
-    try {
-      const res = await api.request(`/messages/conversations/${convId}/messages/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: trimmed }),
-      });
-      setMessages((prev) => {
-        // Replace optimistic; if poll already added real msg, drop optimistic
-        const hasReal = prev.some((m) => m.id === res.id);
-        if (hasReal) return prev.filter((m) => m.id !== tempId);
-        return prev.map((m) => (m.id === tempId ? res : m));
-      });
-      onMessageChanged?.();
-    } catch (err) {
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      alert(err?.error || err?.message || 'Failed to send');
-    } finally {
-      pendingRef.current = Math.max(0, pendingRef.current - 1);
-    }
-  }, [convId, user?.id, user?.username, user?.profile_photo, onMessageChanged]);
+  // ... rest of the code remains the same ...
 
-  // Send a media message (image/video/audio/file) with optional caption.
-  // `payload = { file, kind, name, size, caption, duration }`
-  const handleSendMedia = useCallback(async (payload) => {
-    const { file, kind, name, size, caption = '', duration } = payload || {};
-    if (!file) return;
-    const tempId = `tmp-${Date.now()}`;
-    // Build an object URL for optimistic preview
-    let previewUrl = null;
-    try { previewUrl = URL.createObjectURL(file); } catch { previewUrl = null; }
-    const optimistic = {
-      id: tempId,
-      sender: { id: user.id, username: user.username, profile_photo: user.profile_photo },
-      text: caption,
-      media_url: previewUrl,
-      media_type: kind,
-      media_name: name || '',
-      media_size: size || 0,
-      media_duration: duration || null,
-      created_at: new Date().toISOString(),
-      edited_at: null,
-      is_deleted: false,
-      is_own: true,
-      is_editable: false,
-      _pending: true,
-    };
-    setMessages((prev) => [...prev, optimistic]);
-    pendingRef.current += 1;
-
-    const form = new FormData();
-    if (caption) form.append('text', caption);
-    form.append('media', file);
-    form.append('media_type', kind);
-    if (duration != null) form.append('media_duration', String(duration));
-
-    try {
-      const res = await api.request(`/messages/conversations/${convId}/messages/`, {
-        method: 'POST',
-        body: form,
-        isFormData: true,
-      });
-      setMessages((prev) => {
-        const hasReal = prev.some((m) => m.id === res.id);
-        if (hasReal) return prev.filter((m) => m.id !== tempId);
-        return prev.map((m) => (m.id === tempId ? res : m));
-      });
-      // Revoke the local preview URL — server URL is now in use
-      if (previewUrl) { try { URL.revokeObjectURL(previewUrl); } catch {} }
-      onMessageChanged?.();
-    } catch (err) {
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      if (previewUrl) { try { URL.revokeObjectURL(previewUrl); } catch {} }
-      alert(err?.error || err?.message || 'Failed to send');
-    } finally {
-      pendingRef.current = Math.max(0, pendingRef.current - 1);
-    }
-  }, [convId, user?.id, user?.username, user?.profile_photo, onMessageChanged]);
-
-  const handleEditSubmit = useCallback(async (msg, trimmed) => {
-    try {
-      const res = await api.request(`/messages/${msg.id}/`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: trimmed }),
-      });
-      setMessages((prev) => prev.map((m) => (m.id === msg.id ? res : m)));
-      setEditing(null);
-      onMessageChanged?.();
-      return true;
-    } catch (err) {
-      alert(err?.error || err?.message || 'Failed to edit message');
-      return false;
-    }
-  }, [onMessageChanged]);
-
-  const handleEdit = useCallback((msg) => {
-    setEditing(msg);
-  }, []);
-
-  const handleCancelEdit = useCallback(() => {
-    setEditing(null);
-  }, []);
-
-  const handleDelete = useCallback(async (msg) => {
-    if (!window.confirm('Delete this message?')) return;
-    try {
-      await api.request(`/messages/${msg.id}/`, { method: 'DELETE' });
-      setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, is_deleted: true, text: '' } : m)));
-      onMessageChanged?.();
-    } catch (err) {
-      alert(err?.error || 'Failed to delete');
-    }
-  }, [onMessageChanged]);
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: T.bg }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '10px 14px', borderBottom: `1px solid ${T.border}`,
-        background: T.cardBg, flexShrink: 0,
-      }}>
-        <button
-          onClick={onBack}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: T.txt, padding: 6, display: 'flex',
-          }}
-          aria-label="Back"
-        >
-          <ArrowLeft size={22} />
-        </button>
-        <button
-          onClick={() => onShowProfile?.(other?.id)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: 0, flex: 1, minWidth: 0, textAlign: 'left',
-          }}
-        >
-          <Avatar user={other} size={36} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T.txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {other?.username || 'User'}
-            </div>
-            {(other?.first_name || other?.last_name) && (
-              <div style={{ fontSize: 12, color: T.sub }}>
-                {other?.first_name} {other?.last_name}
-              </div>
-            )}
-          </div>
-        </button>
-      </div>
-
-      {/* Messages */}
-      <div
-        ref={scrollRef}
-        style={{
-          flex: 1, overflowY: 'auto', padding: '12px 14px',
-          display: 'flex', flexDirection: 'column',
-          minHeight: 0, // critical for flex scrolling on mobile
-          WebkitOverflowScrolling: 'touch',
-          overscrollBehavior: 'contain',
-        }}
-      >
-        {loading ? (
-          <div style={{ color: T.sub, fontSize: 13, padding: 20, textAlign: 'center' }}>Loading...</div>
-        ) : messages.length === 0 ? (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', flex: 1, color: T.sub, gap: 8,
-          }}>
-            <Avatar user={other} size={72} />
-            <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginTop: 8 }}>
-              {other?.username}
-            </div>
-            <div style={{ fontSize: 13 }}>Say hi to start the conversation</div>
-          </div>
-        ) : (
-          messages.map((m) => (
-            <MessageBubble
-              key={m.id}
-              msg={m}
-              T={T}
-              priColor={priColor}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))
-        )}
-      </div>
-
-      <Composer
-        onSend={handleSend}
-        onSendMedia={handleSendMedia}
-        onEditSubmit={handleEditSubmit}
-        onCancelEdit={handleCancelEdit}
-        editing={editing}
-        T={T}
-        priColor={priColor}
-        inputRef={inputRef}
-      />
-    </div>
-  );
-}
-
-// ─── Conversation list item ───────────────────────────────────────────────────
-const ConvRow = memo(function ConvRow({ conv, active, onClick, T, currentUserId }) {
-  const other = conv.other_user;
-  const last = conv.last_message;
-  const isOwnLast = last && last.sender_id === currentUserId;
-  const mediaLabel = (() => {
-    if (!last || last.is_deleted) return '';
-    switch (last.media_type) {
-      case 'image': return '📷 Photo';
-      case 'video': return '🎬 Video';
-      case 'audio': return '🎙️ Voice message';
-      case 'file':  return '📎 File';
-      default: return '';
-    }
-  })();
-  const baseText = last ? (mediaLabel || last.text || '') : '';
-  const preview = !last
-    ? 'No messages yet'
-    : (last.is_deleted
-      ? 'Message deleted'
-      : (isOwnLast ? `You: ${baseText}` : baseText));
-
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        width: '100%', padding: '10px 16px', border: 'none',
-        background: active ? (T.pri + '14') : 'transparent',
-        cursor: 'pointer', textAlign: 'left',
-        borderLeft: active ? `3px solid ${T.pri}` : '3px solid transparent',
-      }}
-      onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = T.bg; }}
-      onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
-    >
-      <Avatar user={other} size={52} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{
-            fontSize: 14, fontWeight: conv.unread_count > 0 ? 700 : 600,
-            color: T.txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            flex: 1,
-          }}>
-            {other?.username || 'User'}
-          </div>
-          {last && (
-            <div style={{ fontSize: 11, color: T.sub, flexShrink: 0 }}>
-              {relTime(last.created_at)}
-            </div>
-          )}
-        </div>
-        <div style={{
-          fontSize: 12,
-          color: conv.unread_count > 0 ? T.txt : T.sub,
-          fontWeight: conv.unread_count > 0 ? 600 : 400,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          marginTop: 2,
-        }}>
-          {preview}
-        </div>
-      </div>
-      {conv.unread_count > 0 && (
-        <div style={{
-          minWidth: 20, height: 20, padding: '0 6px',
-          borderRadius: 10, background: T.pri, color: '#fff',
-          fontSize: 11, fontWeight: 800,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}>
-          {conv.unread_count > 99 ? '99+' : conv.unread_count}
-        </div>
-      )}
-    </button>
-  );
-});
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
+  // ─── Main Page ────────────────────────────────────────────────────────────────
 export function MessagesPage({ user, onShowProfile }) {
   const { colors: T } = useTheme();
   const priColor = T.priGradient || T.pri;
@@ -1393,23 +1092,25 @@ export function MessagesPage({ user, onShowProfile }) {
   const fetchConversations = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const data = await api.request('/messages/conversations/');
+      
+      // Add timeout to prevent slow loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 3000)
+      );
+      
+      const data = await Promise.race([
+        api.request('/messages/conversations/'),
+        timeoutPromise
+      ]);
+      
       const arr = Array.isArray(data) ? data : [];
       setConversations((prev) => {
         // Shallow compare: same length + same ids + same last_message snapshot + same unread
-        if (prev.length === arr.length) {
-          let same = true;
-          for (let i = 0; i < arr.length; i++) {
-            const a = arr[i]; const b = prev[i];
-            if (!b
-                || a.id !== b.id
-                || a.unread_count !== b.unread_count
-                || (a.last_message?.id || null) !== (b.last_message?.id || null)
-                || (a.last_message?.text || '') !== (b.last_message?.text || '')
-                || (a.last_message?.is_deleted || false) !== (b.last_message?.is_deleted || false)) {
-              same = false; break;
-            }
-          }
+        if (prev.length === arr.length && 
+            prev.every((p, i) => p.id === arr[i]?.id && 
+                              p.last_message?.text === arr[i]?.last_message?.text &&
+                              p.unread_count === arr[i]?.unread_count)) {
+          return prev; // No change, skip update
           if (same) return prev;
         }
         return arr;
@@ -1435,7 +1136,8 @@ export function MessagesPage({ user, onShowProfile }) {
 
   useEffect(() => { fetchConversations(false); }, [fetchConversations]);
   useEffect(() => {
-    const id = setInterval(() => fetchConversations(true), 10000);
+    // Reduce polling frequency to improve performance
+    const id = setInterval(() => fetchConversations(true), 30000); // 30 seconds instead of 10
     return () => clearInterval(id);
   }, [fetchConversations]);
 

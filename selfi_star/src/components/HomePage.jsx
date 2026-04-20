@@ -998,7 +998,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
 
-  const LIMIT = 5; // Load fewer posts initially for faster first paint
+  const LIMIT = 3; // Load even fewer posts initially for faster first paint
   const PULL_THRESHOLD = 80;
 
   // Create shared IntersectionObserver for all videos
@@ -1032,7 +1032,16 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {
     try {
       setLoading(true);
-      const data = await api.request(`/reels/?limit=${reset ? LIMIT * 2 : LIMIT}&offset=${offset}`);
+      // Add timeout to prevent slow loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 3000)
+      );
+      
+      const data = await Promise.race([
+        api.request(`/reels/?limit=${reset ? LIMIT * 2 : LIMIT}&offset=${offset}`),
+        timeoutPromise
+      ]);
+      
       const results = Array.isArray(data) ? data : (data.results || []);
       const newPosts = reset ? results : [...posts, ...results];
       setPosts(newPosts);
@@ -1041,6 +1050,13 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       setPage(offset);
     } catch (e) {
       console.error('HomePage fetch error:', e);
+      // On timeout, show cached data if available
+      if (e.message === 'Request timeout') {
+        const cached = readHomeCache();
+        if (cached && cached.length > 0) {
+          setPosts(cached);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -1048,9 +1064,13 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
 
   useEffect(() => {
     if (activeTab === 'Explore' || activeTab === 'Campaigns') return;
-    // Only fetch if no cached data
+    // Always try cached data first for instant load
     const cached = readHomeCache();
-    if (!cached || cached.length === 0) {
+    if (cached && cached.length > 0) {
+      setPosts(cached);
+      // Refresh cache in background
+      setTimeout(() => fetchPosts(0, true), 100);
+    } else {
       fetchPosts(0, true);
     }
   }, [activeTab, fetchPosts, readHomeCache]);
