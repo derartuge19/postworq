@@ -474,13 +474,14 @@ export const TikTokLayout = memo(function TikTokLayout({
                 el.pause();
               }
             });
-            // Play and optionally unmute the active video
+            // Play and optionally unmute the active video.
+            // Respect the user's global mute preference (audioEnabled).
             activeVideoIdRef.current = videoId;
-            // Try to play with sound; browser may block unmuted autoplay — fall back to muted
-            videoElement.muted = false;
+            videoElement.muted = !audioEnabled;
             videoElement
               .play()
               .catch(() => {
+                // Browser blocked unmuted autoplay — fall back to muted
                 videoElement.muted = true;
                 videoElement.play().catch((err) => console.log('Play prevented:', err));
               });
@@ -538,7 +539,7 @@ export const TikTokLayout = memo(function TikTokLayout({
     const timer = setTimeout(() => {
       if (videoElement && videoElement.paused) {
         activeVideoIdRef.current = String(firstVideo.id);
-        videoElement.muted = false;
+        videoElement.muted = !audioEnabled;
         videoElement.play()
           .then(() => {
             setPlayingVideos((prev) => ({ ...prev, [firstVideo.id]: true }));
