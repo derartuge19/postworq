@@ -209,20 +209,69 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
     const gen = ++cameraGenRef.current;  // capture generation token
     try {
       if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
-      const s = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode,
-          // Don't force resolution - use camera's natural view to prevent zoom
-          resizeMode: 'none',
+      // iPhone-compatible camera constraints
+      const constraints = {
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          // iPhone specific constraints
+          aspectRatio: { ideal: 16/9 },
+          frameRate: { ideal: 30, max: 60 },
         },
-        audio: true,
-      });
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      };
+      
+      let s;
+      try {
+        s = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (primaryError) {
+        // Fallback for iPhone - try with simpler constraints
+        console.warn('Primary camera constraints failed, trying fallback:', primaryError);
+        try {
+          const fallbackConstraints = {
+            video: {
+              facingMode: facingMode,
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+            audio: true,
+          };
+          s = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+        } catch (fallbackError) {
+          // Final fallback - minimal constraints
+          console.warn('Fallback camera constraints failed, trying minimal:', fallbackError);
+          try {
+            const minimalConstraints = {
+              video: { facingMode: facingMode },
+              audio: true,
+            };
+            s = await navigator.mediaDevices.getUserMedia(minimalConstraints);
+          } catch (finalError) {
+            // Last resort - try without facingMode specification
+            console.warn('Minimal camera constraints failed, trying without facingMode:', finalError);
+            const lastResortConstraints = {
+              video: true,
+              audio: true,
+            };
+            s = await navigator.mediaDevices.getUserMedia(lastResortConstraints);
+          }
+        }
+      }
+      
       // If stopCamera was called while we were waiting, discard the stream immediately
       if (gen !== cameraGenRef.current) { s.getTracks().forEach(t => t.stop()); return; }
       streamRef.current = s;
       if (videoRef.current) { videoRef.current.srcObject = s; await videoRef.current.play(); }
       startDrawLoop();
-    } catch (e) { console.error('Camera error', e); }
+    } catch (e) { 
+      console.error('Camera error - all attempts failed:', e);
+      alert('Camera access failed. Please check your permissions and try again.');
+    }
   }, [facingMode, startDrawLoop]);
 
   const stopCamera = useCallback(() => {
@@ -727,8 +776,15 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               onMouseMove={moveOverlayDrag} onMouseUp={endOverlayDrag} onMouseLeave={endOverlayDrag}
               onTouchMove={moveOverlayDrag} onTouchEnd={endOverlayDrag}>
               {/* Hidden video source */}
-              <video ref={videoRef} playsInline muted
-                style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} />
+              <video 
+                ref={videoRef} 
+                playsInline 
+                muted 
+                autoPlay
+                playsinline
+                webkit-playsinline
+                style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} 
+              />
               {/* Filtered canvas - contain to show full camera view without zoom, mirror for selfie */}
               <canvas ref={canvasRef}
                 style={{ 
@@ -823,7 +879,13 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 zIndex: 30,
               }}>
                 {[
-                  { icon: <RefreshCw size={22} color={T.txt} />, label: 'Flip', action: () => setFacingMode(f => f === 'user' ? 'environment' : 'user') },
+                  { icon: <RefreshCw size={22} color={T.txt} />, label: 'Flip', action: () => {
+                    const newMode = facingMode === 'user' ? 'environment' : 'user';
+                    setFacingMode(newMode);
+                    // Force camera restart with new facingMode
+                    stopCamera();
+                    setTimeout(() => startCamera(), 100);
+                  } },
                   { icon: <Type size={22} color={T.txt} />, label: 'Text', action: () => setShowTextInput(true) },
                   { icon: <Music size={22} color={backgroundSound ? T.pri : T.txt} />, label: 'Sound', action: () => setShowSoundSheet(true) },
                   { icon: <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>, label: 'Filter', action: () => setShowFilters(f => !f) },
@@ -955,8 +1017,21 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
 
                   {/* Flip camera shortcut */}
                   <button className="ep-btn" 
-                    onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')}
-                    onTouchEnd={(e) => { e.preventDefault(); setFacingMode(f => f === 'user' ? 'environment' : 'user'); }}
+                    onClick={() => {
+                      const newMode = facingMode === 'user' ? 'environment' : 'user';
+                      setFacingMode(newMode);
+                      // Force camera restart with new facingMode
+                      stopCamera();
+                      setTimeout(() => startCamera(), 100);
+                    }}
+                    onTouchEnd={(e) => { 
+                      e.preventDefault(); 
+                      const newMode = facingMode === 'user' ? 'environment' : 'user';
+                      setFacingMode(newMode);
+                      // Force camera restart with new facingMode
+                      stopCamera();
+                      setTimeout(() => startCamera(), 100);
+                    }}
                     style={{ background: `${T.pri}20`, borderRadius: '50%', width: 52, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
                     <RefreshCw size={22} color={T.txt} />
                   </button>
