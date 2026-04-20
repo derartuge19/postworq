@@ -145,15 +145,16 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
                       <>
                         <button
                           onClick={() => handleLikeComment(c)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 11, color: c.is_liked ? (T?.pri || '#000') : T?.sub || '#666', fontWeight: c.is_liked ? 700 : 400 }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
                         >
-                          {c.is_liked ? 'Liked' : 'Like'} {c.likes > 0 ? `(${c.likes})` : ''}
+                          <Heart size={14} fill={c.is_liked ? (T?.pri || '#000') : 'none'} color={c.is_liked ? (T?.pri || '#000') : T?.sub || '#666'} />
+                          {c.likes > 0 && <span style={{ fontSize: 11, color: T?.sub || '#666' }}>{c.likes}</span>}
                         </button>
                         <button
                           onClick={() => handleReply(c)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 11, color: T?.sub || '#666' }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
                         >
-                          Reply
+                          <MessageCircle size={14} color={T?.sub || '#666'} />
                         </button>
                       </>
                     )}
