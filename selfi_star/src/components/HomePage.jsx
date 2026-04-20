@@ -842,7 +842,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
-                {post.likes > 0 && <span style={{ fontSize: 13, color: T?.sub || '#666', fontWeight: 600 }}>{post.likes}</span>}
+                <span style={{ fontSize: 13, color: T?.sub || '#666', fontWeight: 600 }}>{post.likes || 0}</span>
               </button>
               {/* Comment */}
               <button
@@ -856,7 +856,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 }}
               >
                 <MessageCircle size={24} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-                {post.comments > 0 && <span style={{ fontSize: 13, color: T?.sub || '#666', fontWeight: 600 }}>{post.comments}</span>}
+                <span style={{ fontSize: 13, color: T?.sub || '#666', fontWeight: 600 }}>{post.comments || 0}</span>
               </button>
               {/* Share */}
               <button
@@ -871,7 +871,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 }}
               >
                 <Share2 size={24} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-                {post.shares > 0 && <span style={{ fontSize: 13, color: T?.sub || '#666', fontWeight: 600 }}>{post.shares}</span>}
+                <span style={{ fontSize: 13, color: T?.sub || '#666', fontWeight: 600 }}>{post.shares || 0}</span>
               </button>
             </div>
             {/* Save */}
