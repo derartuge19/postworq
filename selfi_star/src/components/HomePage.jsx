@@ -1041,9 +1041,11 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {
     try {
       setLoading(true);
-      // Add timeout to prevent slow loading - increased to 10 seconds
+      console.log('[HomePage] Fetching posts with offset:', offset, 'reset:', reset);
+      
+      // Increased timeout to 30 seconds for slow API
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
+        setTimeout(() => reject(new Error('Request timeout after 30s')), 30000)
       );
       
       const data = await Promise.race([
@@ -1051,6 +1053,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         timeoutPromise
       ]);
       
+      console.log('[HomePage] Received data:', data);
       const results = Array.isArray(data) ? data : (data.results || []);
       const newPosts = reset ? results : [...posts, ...results];
       setPosts(newPosts);
@@ -1058,12 +1061,15 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       setHasMore(Array.isArray(data) ? results.length === (reset ? LIMIT * 2 : LIMIT) : !!data.next);
       setPage(offset);
     } catch (e) {
-      console.error('HomePage fetch error:', e);
+      console.error('[HomePage] Fetch error:', e);
       // On timeout, show cached data if available
-      if (e.message === 'Request timeout') {
+      if (e.message === 'Request timeout after 30s') {
+        console.log('[HomePage] Timeout - trying cached data');
         const cached = readHomeCache();
         if (cached && cached.length > 0) {
           setPosts(cached);
+        } else {
+          console.error('[HomePage] No cached data available');
         }
       }
     } finally {
