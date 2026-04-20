@@ -16,7 +16,8 @@ from django.db.models import Q, Max
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -76,8 +77,28 @@ def list_or_create_conversations(request):
     return Response(data, status=201)
 
 
+def _infer_media_type(upload, explicit=None):
+    """Figure out a media_type value from content-type / filename."""
+    if explicit in (Message.MEDIA_IMAGE, Message.MEDIA_VIDEO,
+                    Message.MEDIA_AUDIO, Message.MEDIA_FILE):
+        return explicit
+    ct = (getattr(upload, 'content_type', '') or '').lower()
+    if ct.startswith('image/'):
+        return Message.MEDIA_IMAGE
+    if ct.startswith('video/'):
+        return Message.MEDIA_VIDEO
+    if ct.startswith('audio/'):
+        return Message.MEDIA_AUDIO
+    return Message.MEDIA_FILE
+
+
+# Max upload size: 25 MB per message media — keeps mobile uploads reasonable.
+MAX_MEDIA_BYTES = 25 * 1024 * 1024
+
+
 # ─── Messages within a conversation ───────────────────────────────────────────
 @api_view(['GET', 'POST'])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 @permission_classes([IsAuthenticated])
 def conversation_messages(request, conversation_id):
     conv = get_object_or_404(Conversation, id=conversation_id)
@@ -85,19 +106,53 @@ def conversation_messages(request, conversation_id):
         return Response({'error': 'Not a participant'}, status=403)
 
     if request.method == 'GET':
-        # Limit to last 100 to keep response small; client can paginate later.
+        # Limit to last 500 to keep response small; client can paginate later.
         qs = conv.messages.select_related('sender', 'sender__profile').order_by('created_at')[:500]
         data = MessageSerializer(qs, many=True, context={'request': request}).data
         return Response(data)
 
-    # POST: send a new message
+    # POST: send a new message (text and/or media)
     text = (request.data.get('text') or '').strip()
-    if not text:
-        return Response({'error': 'text is required'}, status=400)
-    if len(text) > 4000:
+    upload = request.FILES.get('media')
+
+    if not text and not upload:
+        return Response({'error': 'text or media is required'}, status=400)
+    if text and len(text) > 4000:
         return Response({'error': 'text too long (max 4000 chars)'}, status=400)
 
-    msg = Message.objects.create(conversation=conv, sender=request.user, text=text)
+    media_type = Message.MEDIA_TEXT
+    media_name = ''
+    media_size = None
+    media_duration = None
+
+    if upload:
+        if upload.size and upload.size > MAX_MEDIA_BYTES:
+            return Response(
+                {'error': f'File too large (max {MAX_MEDIA_BYTES // (1024 * 1024)} MB)'},
+                status=400,
+            )
+        explicit_type = (request.data.get('media_type') or '').strip() or None
+        media_type = _infer_media_type(upload, explicit_type)
+        media_name = upload.name[:255] if upload.name else ''
+        media_size = upload.size or None
+        # Optional client-provided duration (for voice/video)
+        dur_raw = request.data.get('media_duration')
+        if dur_raw not in (None, ''):
+            try:
+                media_duration = float(dur_raw)
+            except (TypeError, ValueError):
+                media_duration = None
+
+    msg = Message.objects.create(
+        conversation=conv,
+        sender=request.user,
+        text=text,
+        media=upload if upload else None,
+        media_type=media_type,
+        media_name=media_name,
+        media_size=media_size,
+        media_duration=media_duration,
+    )
     conv.last_message_at = timezone.now()
     conv.save(update_fields=['last_message_at'])
 

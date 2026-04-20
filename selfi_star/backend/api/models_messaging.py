@@ -39,13 +39,34 @@ class Conversation(models.Model):
 
 
 class Message(models.Model):
+    MEDIA_TEXT = 'text'
+    MEDIA_IMAGE = 'image'
+    MEDIA_VIDEO = 'video'
+    MEDIA_AUDIO = 'audio'
+    MEDIA_FILE = 'file'
+    MEDIA_TYPE_CHOICES = [
+        (MEDIA_TEXT, 'Text'),
+        (MEDIA_IMAGE, 'Image'),
+        (MEDIA_VIDEO, 'Video'),
+        (MEDIA_AUDIO, 'Audio / Voice'),
+        (MEDIA_FILE, 'File'),
+    ]
+
     conversation = models.ForeignKey(
         Conversation, on_delete=models.CASCADE, related_name='messages'
     )
     sender = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='messages_sent'
     )
-    text = models.TextField()
+    text = models.TextField(blank=True, default='')
+    media = models.FileField(upload_to='messages/%Y/%m/', null=True, blank=True)
+    media_type = models.CharField(
+        max_length=16, choices=MEDIA_TYPE_CHOICES, default=MEDIA_TEXT,
+    )
+    media_name = models.CharField(max_length=255, blank=True, default='')
+    media_size = models.PositiveIntegerField(null=True, blank=True)
+    # Duration in seconds — for audio/voice notes and videos.
+    media_duration = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     edited_at = models.DateTimeField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)

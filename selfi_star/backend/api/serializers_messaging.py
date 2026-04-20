@@ -29,25 +29,44 @@ class MessageSerializer(serializers.ModelSerializer):
     sender = BriefUserSerializer(read_only=True)
     is_own = serializers.SerializerMethodField()
     is_editable = serializers.BooleanField(read_only=True)
+    media_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
         fields = [
             'id', 'conversation', 'sender', 'text',
+            'media_url', 'media_type', 'media_name', 'media_size', 'media_duration',
             'created_at', 'edited_at', 'is_deleted',
             'is_own', 'is_editable',
         ]
-        read_only_fields = ['id', 'sender', 'created_at', 'edited_at', 'is_deleted', 'is_own', 'is_editable', 'conversation']
+        read_only_fields = [
+            'id', 'sender', 'created_at', 'edited_at', 'is_deleted',
+            'is_own', 'is_editable', 'conversation',
+            'media_url', 'media_type', 'media_name', 'media_size', 'media_duration',
+        ]
 
     def get_is_own(self, obj):
         request = self.context.get('request')
         return bool(request and request.user.is_authenticated and obj.sender_id == request.user.id)
 
+    def get_media_url(self, obj):
+        if not obj.media:
+            return None
+        try:
+            url = obj.media.url
+        except Exception:
+            return None
+        request = self.context.get('request')
+        if request and not url.startswith('http'):
+            return request.build_absolute_uri(url)
+        return url
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        # Soft-deleted messages show a placeholder, not the original text
+        # Soft-deleted messages show a placeholder, not the original content
         if instance.is_deleted:
             data['text'] = ''
+            data['media_url'] = None
         return data
 
 
@@ -78,6 +97,7 @@ class ConversationSerializer(serializers.ModelSerializer):
             'text': '' if last.is_deleted else last.text,
             'is_deleted': last.is_deleted,
             'sender_id': last.sender_id,
+            'media_type': last.media_type,
             'created_at': last.created_at.isoformat(),
         }
 

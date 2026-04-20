@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import {
   ArrowLeft, Send, Search, Edit3, Trash2, MoreVertical, X, PenSquare,
+  Paperclip, Mic, Image as ImageIcon, FileText, Play, Pause, Download,
+  Trash,
 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -32,6 +34,110 @@ const getPhotoUrl = (photo) => {
   if (photo.startsWith('http')) return photo;
   return `${config.API_BASE_URL.replace('/api', '')}${photo}`;
 };
+
+const formatBytes = (bytes) => {
+  if (!bytes && bytes !== 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let n = bytes; let i = 0;
+  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+  return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
+};
+
+const formatDuration = (secs) => {
+  if (!secs && secs !== 0) return '';
+  const s = Math.max(0, Math.round(secs));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${r.toString().padStart(2, '0')}`;
+};
+
+// ─── Voice / audio player (used in message bubbles) ───────────────────────────
+const AudioPlayer = memo(function AudioPlayer({ url, duration, own, T, priColor }) {
+  const audioRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [pos, setPos] = useState(0);
+  const [dur, setDur] = useState(duration || 0);
+
+  const onToggle = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (a.paused) { a.play().catch(() => {}); } else { a.pause(); }
+  };
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onEnd = () => { setPlaying(false); setPos(0); };
+    const onTime = () => setPos(a.currentTime || 0);
+    const onMeta = () => { if (!dur && a.duration && isFinite(a.duration)) setDur(a.duration); };
+    a.addEventListener('play', onPlay);
+    a.addEventListener('pause', onPause);
+    a.addEventListener('ended', onEnd);
+    a.addEventListener('timeupdate', onTime);
+    a.addEventListener('loadedmetadata', onMeta);
+    return () => {
+      a.removeEventListener('play', onPlay);
+      a.removeEventListener('pause', onPause);
+      a.removeEventListener('ended', onEnd);
+      a.removeEventListener('timeupdate', onTime);
+      a.removeEventListener('loadedmetadata', onMeta);
+    };
+  }, [url]); // eslint-disable-line
+
+  const pct = dur > 0 ? Math.min(100, (pos / dur) * 100) : 0;
+  const trackBg = own ? 'rgba(255,255,255,0.28)' : (T.border || '#ccc');
+  const fillBg = own ? '#fff' : priColor;
+  const iconColor = own ? '#fff' : (T.txt || '#000');
+
+  // Tiny fake "waveform" bars for style — purely visual
+  const bars = 26;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      minWidth: 210, padding: '2px 2px',
+    }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        style={{
+          width: 32, height: 32, borderRadius: '50%',
+          background: own ? 'rgba(255,255,255,0.22)' : (T.cardBg || '#fff'),
+          border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: iconColor, flexShrink: 0,
+        }}
+        aria-label={playing ? 'Pause' : 'Play'}
+      >
+        {playing ? <Pause size={16} /> : <Play size={16} />}
+      </button>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 20 }}>
+          {Array.from({ length: bars }).map((_, i) => {
+            const active = (i / bars) * 100 <= pct;
+            const h = 4 + ((i * 7) % 14); // pseudo-random heights
+            return (
+              <div key={i} style={{
+                width: 2, height: h,
+                background: active ? fillBg : trackBg,
+                borderRadius: 1,
+                transition: 'background 0.1s',
+              }} />
+            );
+          })}
+        </div>
+        <div style={{
+          fontSize: 10, marginTop: 3,
+          color: own ? 'rgba(255,255,255,0.85)' : T.sub,
+        }}>
+          {formatDuration(pos || dur)}
+        </div>
+      </div>
+      <audio ref={audioRef} src={url} preload="metadata" />
+    </div>
+  );
+});
 
 const Avatar = ({ user, size = 44 }) => {
   const url = getPhotoUrl(user?.profile_photo);
@@ -197,22 +303,153 @@ const MessageBubble = memo(function MessageBubble({ msg, T, onEdit, onDelete, pr
         marginBottom: 6,
       }}
     >
-      <div style={{ position: 'relative', maxWidth: '75%' }}>
-        <div
-          style={{
-            padding: '10px 14px',
-            fontSize: 14,
-            lineHeight: 1.4,
-            wordBreak: 'break-word',
-            whiteSpace: 'pre-wrap',
-            ...bubbleStyle,
-            ...(msg.is_deleted
-              ? { fontStyle: 'italic', opacity: 0.65 }
-              : {}),
-          }}
-        >
-          {msg.is_deleted ? 'Message deleted' : msg.text}
-        </div>
+      <div style={{ position: 'relative', maxWidth: '78%' }}>
+        {(() => {
+          if (msg.is_deleted) {
+            return (
+              <div style={{
+                padding: '10px 14px',
+                fontSize: 14, lineHeight: 1.4,
+                fontStyle: 'italic', opacity: 0.65,
+                ...bubbleStyle,
+              }}>
+                Message deleted
+              </div>
+            );
+          }
+
+          const mt = msg.media_type;
+          const mediaUrl = msg.media_url;
+
+          // Image
+          if (mt === 'image' && mediaUrl) {
+            return (
+              <div>
+                <a href={mediaUrl} target="_blank" rel="noreferrer"
+                   style={{ display: 'block', lineHeight: 0 }}>
+                  <img
+                    src={mediaUrl}
+                    alt={msg.media_name || 'image'}
+                    style={{
+                      maxWidth: 260, maxHeight: 340,
+                      width: '100%', height: 'auto',
+                      borderRadius: 16,
+                      display: 'block',
+                      background: '#000',
+                    }}
+                  />
+                </a>
+                {msg.text && (
+                  <div style={{
+                    padding: '8px 12px', marginTop: 4,
+                    fontSize: 14, lineHeight: 1.4,
+                    wordBreak: 'break-word', whiteSpace: 'pre-wrap',
+                    ...bubbleStyle,
+                  }}>{msg.text}</div>
+                )}
+              </div>
+            );
+          }
+
+          // Video
+          if (mt === 'video' && mediaUrl) {
+            return (
+              <div>
+                <video
+                  src={mediaUrl}
+                  controls
+                  playsInline
+                  style={{
+                    maxWidth: 280, maxHeight: 360,
+                    width: '100%',
+                    borderRadius: 16,
+                    background: '#000',
+                  }}
+                />
+                {msg.text && (
+                  <div style={{
+                    padding: '8px 12px', marginTop: 4,
+                    fontSize: 14, lineHeight: 1.4,
+                    wordBreak: 'break-word', whiteSpace: 'pre-wrap',
+                    ...bubbleStyle,
+                  }}>{msg.text}</div>
+                )}
+              </div>
+            );
+          }
+
+          // Audio / voice note
+          if (mt === 'audio' && mediaUrl) {
+            return (
+              <div style={{
+                padding: '8px 12px',
+                ...bubbleStyle,
+              }}>
+                <AudioPlayer
+                  url={mediaUrl}
+                  duration={msg.media_duration}
+                  own={own}
+                  T={T}
+                  priColor={priColor}
+                />
+              </div>
+            );
+          }
+
+          // Generic file
+          if (mt === 'file' && mediaUrl) {
+            return (
+              <a
+                href={mediaUrl}
+                target="_blank" rel="noreferrer"
+                download={msg.media_name || undefined}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 14px',
+                  textDecoration: 'none',
+                  color: own ? '#fff' : T.txt,
+                  ...bubbleStyle,
+                  minWidth: 200, maxWidth: 300,
+                }}
+              >
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10,
+                  background: own ? 'rgba(255,255,255,0.22)' : (T.cardBg || '#fff'),
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <FileText size={18} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 13, fontWeight: 600,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {msg.media_name || 'File'}
+                  </div>
+                  <div style={{
+                    fontSize: 11, opacity: 0.8, marginTop: 2,
+                  }}>
+                    {formatBytes(msg.media_size)}
+                  </div>
+                </div>
+                <Download size={16} style={{ opacity: 0.8, flexShrink: 0 }} />
+              </a>
+            );
+          }
+
+          // Plain text
+          return (
+            <div style={{
+              padding: '10px 14px',
+              fontSize: 14, lineHeight: 1.4,
+              wordBreak: 'break-word', whiteSpace: 'pre-wrap',
+              ...bubbleStyle,
+            }}>
+              {msg.text}
+            </div>
+          );
+        })()}
         <div
           style={{
             fontSize: 10,
@@ -272,7 +509,7 @@ const MessageBubble = memo(function MessageBubble({ msg, T, onEdit, onDelete, pr
                 minWidth: 130,
               }}
             >
-              {msg.is_editable && (
+              {msg.is_editable && (msg.media_type === 'text' || !msg.media_type) && (
                 <button
                   onClick={() => { setMenuOpen(false); onEdit(msg); }}
                   style={{
@@ -306,45 +543,249 @@ const MessageBubble = memo(function MessageBubble({ msg, T, onEdit, onDelete, pr
 
 // ─── Composer ─────────────────────────────────────────────────────────────────
 // Isolated so typing does NOT re-render the thread + message list.
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+
 const Composer = memo(function Composer({
-  onSend, onEditSubmit, onCancelEdit, editing, T, priColor, inputRef,
+  onSend, onSendMedia, onEditSubmit, onCancelEdit, editing, T, priColor, inputRef,
 }) {
   const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [attachment, setAttachment] = useState(null); // { file, kind, previewUrl, name, size }
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Voice recording state
+  const [recording, setRecording] = useState(false);
+  const [recSecs, setRecSecs] = useState(0);
+  const mediaRecRef = useRef(null);
+  const recChunksRef = useRef([]);
+  const recStartRef = useRef(0);
+  const recTickRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const imageInputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // When entering edit mode, prefill text. When leaving, clear.
   const editingId = editing?.id || null;
   useEffect(() => {
     if (editing) {
       setText(editing.text || '');
+      setAttachment(null);
       setTimeout(() => inputRef.current?.focus(), 0);
     } else {
       setText('');
     }
   }, [editingId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [sending, setSending] = useState(false);
+  // Cleanup preview URL and recorder on unmount
+  useEffect(() => {
+    return () => {
+      if (attachment?.previewUrl) URL.revokeObjectURL(attachment.previewUrl);
+      if (recTickRef.current) clearInterval(recTickRef.current);
+      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+    };
+  }, []); // eslint-disable-line
 
-  const submit = async (e) => {
-    e?.preventDefault?.();
-    const trimmed = text.trim();
-    if (!trimmed || sending) return;
-    setSending(true);
+  const pickAttachment = (kind) => {
+    setMenuOpen(false);
+    if (kind === 'image') imageInputRef.current?.click();
+    else fileInputRef.current?.click();
+  };
+
+  const handleFilePicked = (e, kind) => {
+    const f = e.target.files?.[0];
+    e.target.value = ''; // allow picking the same file again later
+    if (!f) return;
+    if (f.size > MAX_UPLOAD_BYTES) {
+      alert(`File too large. Max ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} MB.`);
+      return;
+    }
+    let resolvedKind = kind;
+    if (kind === 'any') {
+      if (f.type.startsWith('image/')) resolvedKind = 'image';
+      else if (f.type.startsWith('video/')) resolvedKind = 'video';
+      else if (f.type.startsWith('audio/')) resolvedKind = 'audio';
+      else resolvedKind = 'file';
+    }
+    const previewUrl = (resolvedKind === 'image' || resolvedKind === 'video')
+      ? URL.createObjectURL(f) : null;
+    if (attachment?.previewUrl) URL.revokeObjectURL(attachment.previewUrl);
+    setAttachment({
+      file: f, kind: resolvedKind, previewUrl,
+      name: f.name, size: f.size,
+    });
+  };
+
+  const clearAttachment = () => {
+    if (attachment?.previewUrl) URL.revokeObjectURL(attachment.previewUrl);
+    setAttachment(null);
+  };
+
+  // ── Voice recording ──────────────────────────────────────────────────────
+  const startRecording = async () => {
+    if (recording) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      alert('Voice recording is not supported on this device/browser.');
+      return;
+    }
     try {
-      if (editing) {
-        const ok = await onEditSubmit(editing, trimmed);
-        if (ok) setText('');
-      } else {
-        // Clear immediately for snappy UX; parent owns optimistic insert
-        setText('');
-        await onSend(trimmed);
-      }
-    } finally {
-      setSending(false);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      // Pick a reasonable mime type that most backends accept
+      let mime = '';
+      if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mime = 'audio/webm;codecs=opus';
+      else if (MediaRecorder.isTypeSupported('audio/webm')) mime = 'audio/webm';
+      else if (MediaRecorder.isTypeSupported('audio/mp4')) mime = 'audio/mp4';
+      const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      recChunksRef.current = [];
+      rec.ondataavailable = (e) => { if (e.data && e.data.size > 0) recChunksRef.current.push(e.data); };
+      rec.start();
+      mediaRecRef.current = rec;
+      recStartRef.current = Date.now();
+      setRecSecs(0);
+      setRecording(true);
+      recTickRef.current = setInterval(() => {
+        setRecSecs(Math.floor((Date.now() - recStartRef.current) / 1000));
+      }, 250);
+    } catch (err) {
+      console.error('mic error', err);
+      alert('Could not access microphone. Please allow microphone access.');
     }
   };
 
+  const stopRecording = (cancel = false) => {
+    const rec = mediaRecRef.current;
+    if (!rec) return;
+    const durationMs = Date.now() - recStartRef.current;
+    const cleanup = () => {
+      if (recTickRef.current) { clearInterval(recTickRef.current); recTickRef.current = null; }
+      if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
+      mediaRecRef.current = null;
+      setRecording(false);
+      setRecSecs(0);
+    };
+
+    rec.onstop = async () => {
+      try {
+        if (cancel) { cleanup(); return; }
+        const chunks = recChunksRef.current;
+        if (!chunks.length) { cleanup(); return; }
+        const mime = rec.mimeType || 'audio/webm';
+        const blob = new Blob(chunks, { type: mime });
+        const ext = mime.includes('mp4') ? 'm4a' : (mime.includes('ogg') ? 'ogg' : 'webm');
+        const file = new File([blob], `voice-${Date.now()}.${ext}`, { type: mime });
+        cleanup();
+        // Send immediately — voice notes are fire-and-send in Instagram
+        setSending(true);
+        try {
+          await onSendMedia({
+            file, kind: 'audio',
+            duration: durationMs / 1000,
+            name: file.name, size: file.size,
+          });
+        } finally {
+          setSending(false);
+        }
+      } catch (err) {
+        console.error(err);
+        cleanup();
+      }
+    };
+    try { rec.stop(); } catch { cleanup(); }
+  };
+
+  const submit = async (e) => {
+    e?.preventDefault?.();
+    if (sending) return;
+    const trimmed = text.trim();
+
+    // Edit mode: text only
+    if (editing) {
+      if (!trimmed) return;
+      setSending(true);
+      try {
+        const ok = await onEditSubmit(editing, trimmed);
+        if (ok) setText('');
+      } finally { setSending(false); }
+      return;
+    }
+
+    // With attachment: send media (with optional caption)
+    if (attachment) {
+      setSending(true);
+      const toSend = attachment;
+      const caption = trimmed;
+      // Optimistic clear
+      setText('');
+      setAttachment(null);
+      try {
+        await onSendMedia({
+          file: toSend.file, kind: toSend.kind,
+          name: toSend.name, size: toSend.size,
+          caption,
+        });
+      } finally { setSending(false); }
+      return;
+    }
+
+    // Plain text
+    if (!trimmed) return;
+    setSending(true);
+    try {
+      setText('');
+      await onSend(trimmed);
+    } finally { setSending(false); }
+  };
+
+  const canSend = !!(attachment || text.trim()) && !sending;
+  const showMicButton = !editing && !attachment && !text.trim();
+
   return (
     <>
+      {/* Attachment preview strip */}
+      {attachment && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '8px 12px',
+          background: T.cardBg,
+          borderTop: `1px solid ${T.border}`,
+        }}>
+          {attachment.kind === 'image' && attachment.previewUrl && (
+            <img src={attachment.previewUrl} alt="preview"
+                 style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover', background: '#000' }} />
+          )}
+          {attachment.kind === 'video' && attachment.previewUrl && (
+            <video src={attachment.previewUrl} muted
+                   style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover', background: '#000' }} />
+          )}
+          {(attachment.kind === 'file' || attachment.kind === 'audio') && (
+            <div style={{
+              width: 52, height: 52, borderRadius: 8,
+              background: T.bg, color: T.txt,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              {attachment.kind === 'audio' ? <Mic size={22} /> : <FileText size={22} />}
+            </div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: 13, fontWeight: 600, color: T.txt,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>{attachment.name}</div>
+            <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>
+              {formatBytes(attachment.size)}
+            </div>
+          </div>
+          <button type="button" onClick={clearAttachment}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sub, padding: 4, display: 'flex' }}
+                  aria-label="Remove attachment">
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Editing banner */}
       {editing && (
         <div style={{
           padding: '8px 14px', background: T.cardBg,
@@ -361,51 +802,176 @@ const Composer = memo(function Composer({
           </button>
         </div>
       )}
-      <form
-        onSubmit={submit}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '10px 12px',
-          paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
+
+      {/* Recording UI replaces the normal composer */}
+      {recording ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '12px 14px',
+          paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
           borderTop: `1px solid ${T.border}`,
           background: T.cardBg, flexShrink: 0,
-        }}
-      >
-        <input
-          ref={inputRef}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={editing ? 'Edit your message…' : 'Message…'}
-          autoComplete="off"
+        }}>
+          <button
+            type="button"
+            onClick={() => stopRecording(true)}
+            style={{
+              background: T.bg, border: 'none', cursor: 'pointer',
+              width: 38, height: 38, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#ef4444', flexShrink: 0,
+            }}
+            aria-label="Cancel recording"
+          >
+            <Trash size={18} />
+          </button>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 10, height: 10, borderRadius: '50%',
+              background: '#ef4444',
+              animation: 'msg-rec-pulse 1s ease-in-out infinite',
+            }} />
+            <style>{`@keyframes msg-rec-pulse {0%,100%{opacity:1}50%{opacity:.4}}`}</style>
+            <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
+              Recording… {formatDuration(recSecs)}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => stopRecording(false)}
+            style={{
+              background: priColor, border: 'none', cursor: 'pointer',
+              width: 42, height: 42, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', flexShrink: 0,
+            }}
+            aria-label="Send voice message"
+          >
+            <Send size={18} />
+          </button>
+        </div>
+      ) : (
+        <form
+          onSubmit={submit}
           style={{
-            flex: 1,
-            padding: '11px 16px',
-            borderRadius: 24,
-            border: `1px solid ${T.border}`,
-            background: T.bg,
-            color: T.txt,
-            fontSize: 14,
-            outline: 'none',
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '10px 10px',
+            paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
+            borderTop: `1px solid ${T.border}`,
+            background: T.cardBg, flexShrink: 0,
           }}
-        />
-        <button
-          type="submit"
-          disabled={!text.trim() || sending}
-          style={{
-            background: text.trim() && !sending ? priColor : T.border,
-            color: '#fff',
-            border: 'none',
-            width: 42, height: 42, borderRadius: '50%',
-            cursor: text.trim() && !sending ? 'pointer' : 'not-allowed',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-            transition: 'background 0.15s',
-          }}
-          aria-label="Send"
         >
-          <Send size={18} />
-        </button>
-      </form>
+          {/* Attachment menu (hidden during edit) */}
+          {!editing && (
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v) => !v)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  width: 38, height: 38, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: T.sub,
+                }}
+                aria-label="Attach"
+              >
+                <Paperclip size={20} />
+              </button>
+              {menuOpen && (
+                <>
+                  <div onClick={() => setMenuOpen(false)}
+                       style={{ position: 'fixed', inset: 0, zIndex: 30 }} />
+                  <div style={{
+                    position: 'absolute', bottom: 46, left: 0, zIndex: 31,
+                    background: T.cardBg, border: `1px solid ${T.border}`,
+                    borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                    overflow: 'hidden', minWidth: 170,
+                  }}>
+                    <button type="button" onClick={() => pickAttachment('image')}
+                            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                                     padding: '10px 14px', border: 'none', background: 'none',
+                                     cursor: 'pointer', color: T.txt, fontSize: 14, textAlign: 'left' }}>
+                      <ImageIcon size={16} /> Photo or video
+                    </button>
+                    <button type="button" onClick={() => pickAttachment('file')}
+                            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                                     padding: '10px 14px', border: 'none', background: 'none',
+                                     cursor: 'pointer', color: T.txt, fontSize: 14, textAlign: 'left' }}>
+                      <FileText size={16} /> File
+                    </button>
+                  </div>
+                </>
+              )}
+              <input
+                ref={imageInputRef} type="file" accept="image/*,video/*"
+                style={{ display: 'none' }}
+                onChange={(e) => handleFilePicked(e, 'any')}
+              />
+              <input
+                ref={fileInputRef} type="file"
+                style={{ display: 'none' }}
+                onChange={(e) => handleFilePicked(e, 'any')}
+              />
+            </div>
+          )}
+
+          <input
+            ref={inputRef}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={editing
+              ? 'Edit your message…'
+              : (attachment ? 'Add a caption…' : 'Message…')}
+            autoComplete="off"
+            style={{
+              flex: 1,
+              padding: '11px 16px',
+              borderRadius: 24,
+              border: `1px solid ${T.border}`,
+              background: T.bg,
+              color: T.txt,
+              fontSize: 14,
+              outline: 'none',
+              minWidth: 0,
+            }}
+          />
+
+          {showMicButton ? (
+            <button
+              type="button"
+              onClick={startRecording}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                width: 42, height: 42, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: priColor, flexShrink: 0,
+              }}
+              aria-label="Record voice message"
+              title="Record voice message"
+            >
+              <Mic size={22} />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!canSend}
+              style={{
+                background: canSend ? priColor : T.border,
+                color: '#fff',
+                border: 'none',
+                width: 42, height: 42, borderRadius: '50%',
+                cursor: canSend ? 'pointer' : 'not-allowed',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+                transition: 'background 0.15s',
+              }}
+              aria-label="Send"
+            >
+              <Send size={18} />
+            </button>
+          )}
+        </form>
+      )}
     </>
   );
 });
@@ -511,6 +1077,63 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
       onMessageChanged?.();
     } catch (err) {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      alert(err?.error || err?.message || 'Failed to send');
+    } finally {
+      pendingRef.current = Math.max(0, pendingRef.current - 1);
+    }
+  }, [convId, user?.id, user?.username, user?.profile_photo, onMessageChanged]);
+
+  // Send a media message (image/video/audio/file) with optional caption.
+  // `payload = { file, kind, name, size, caption, duration }`
+  const handleSendMedia = useCallback(async (payload) => {
+    const { file, kind, name, size, caption = '', duration } = payload || {};
+    if (!file) return;
+    const tempId = `tmp-${Date.now()}`;
+    // Build an object URL for optimistic preview
+    let previewUrl = null;
+    try { previewUrl = URL.createObjectURL(file); } catch { previewUrl = null; }
+    const optimistic = {
+      id: tempId,
+      sender: { id: user.id, username: user.username, profile_photo: user.profile_photo },
+      text: caption,
+      media_url: previewUrl,
+      media_type: kind,
+      media_name: name || '',
+      media_size: size || 0,
+      media_duration: duration || null,
+      created_at: new Date().toISOString(),
+      edited_at: null,
+      is_deleted: false,
+      is_own: true,
+      is_editable: false,
+      _pending: true,
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    pendingRef.current += 1;
+
+    const form = new FormData();
+    if (caption) form.append('text', caption);
+    form.append('media', file, name || 'upload');
+    form.append('media_type', kind);
+    if (duration != null) form.append('media_duration', String(duration));
+
+    try {
+      const res = await api.request(`/messages/conversations/${convId}/messages/`, {
+        method: 'POST',
+        body: form,
+        isFormData: true,
+      });
+      setMessages((prev) => {
+        const hasReal = prev.some((m) => m.id === res.id);
+        if (hasReal) return prev.filter((m) => m.id !== tempId);
+        return prev.map((m) => (m.id === tempId ? res : m));
+      });
+      // Revoke the local preview URL — server URL is now in use
+      if (previewUrl) { try { URL.revokeObjectURL(previewUrl); } catch {} }
+      onMessageChanged?.();
+    } catch (err) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      if (previewUrl) { try { URL.revokeObjectURL(previewUrl); } catch {} }
       alert(err?.error || err?.message || 'Failed to send');
     } finally {
       pendingRef.current = Math.max(0, pendingRef.current - 1);
@@ -633,6 +1256,7 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
 
       <Composer
         onSend={handleSend}
+        onSendMedia={handleSendMedia}
         onEditSubmit={handleEditSubmit}
         onCancelEdit={handleCancelEdit}
         editing={editing}
@@ -649,11 +1273,22 @@ const ConvRow = memo(function ConvRow({ conv, active, onClick, T, currentUserId 
   const other = conv.other_user;
   const last = conv.last_message;
   const isOwnLast = last && last.sender_id === currentUserId;
+  const mediaLabel = (() => {
+    if (!last || last.is_deleted) return '';
+    switch (last.media_type) {
+      case 'image': return '📷 Photo';
+      case 'video': return '🎬 Video';
+      case 'audio': return '🎙️ Voice message';
+      case 'file':  return '📎 File';
+      default: return '';
+    }
+  })();
+  const baseText = last ? (mediaLabel || last.text || '') : '';
   const preview = !last
     ? 'No messages yet'
     : (last.is_deleted
       ? 'Message deleted'
-      : (isOwnLast ? `You: ${last.text}` : last.text));
+      : (isOwnLast ? `You: ${baseText}` : baseText));
 
   return (
     <button
