@@ -787,6 +787,10 @@ export default function WerqRoot() {
           if (feedTabs.includes(tab)) resetAllPages();
           startTransition(() => {
             setActiveTab(tab);
+            // Normal tab switching must NOT carry a stale deep-link target.
+            // Otherwise clicking the Reels tab would keep re-ordering the feed
+            // to the last notification / post the user previously opened.
+            setVideoDetailId(null);
             saveNav({ activeTab: tab });
             // Explicitly clear ALL overlay flags so refresh never re-opens them
             pushHistoryState({

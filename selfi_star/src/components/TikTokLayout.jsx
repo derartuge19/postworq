@@ -335,40 +335,48 @@ export const TikTokLayout = memo(function TikTokLayout({
     return () => window.removeEventListener('tabReselected', handleTabReselect);
   }, [activeTab]); // eslint-disable-line
 
-  // Scroll to specific video when initialVideoId is provided — run ONCE
-  // (per deep-link) so that subsequent state changes like liking a reel
-  // don't yank the user back to the initial video.
-  const initialScrollDoneRef = useRef(false);
-  const initialScrollAttemptsRef = useRef(0);
-  useEffect(() => { 
-    initialScrollDoneRef.current = false; 
-    initialScrollAttemptsRef.current = 0;
+  // Deep-link to a specific reel (from home post click, notification, share, etc.)
+  // Instead of scrolling after auto-play (which caused a race where videos[0]
+  // started playing and the IO sometimes landed on the next video), we REORDER
+  // the list so the target becomes videos[0]. This makes deep-links rock solid:
+  // the target is at the top of the scroll area, auto-plays, and there's no
+  // scroll animation to race with the IntersectionObserver.
+  const initialReorderDoneRef = useRef(false);
+  useEffect(() => {
+    initialReorderDoneRef.current = false;
   }, [initialVideoId]);
   useEffect(() => {
-    if (!initialVideoId || !videos.length) return;
-    if (initialScrollDoneRef.current) return;
-    if (initialScrollAttemptsRef.current > 10) return; // Prevent infinite attempts
+    if (!initialVideoId) return;
+    if (initialReorderDoneRef.current) return;
+    if (!videos.length) return;
 
-    const videoIndex = videos.findIndex(v => v.id === initialVideoId);
-    if (videoIndex !== -1) {
-      const targetVideo = videos[videoIndex];
-      const videoElement = videoContainerRefs.current[targetVideo.id];
-      if (videoElement) {
-        setTimeout(() => {
-          videoElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          initialScrollDoneRef.current = true;
-        }, 150);
-      } else {
-        // Ref not populated yet, retry
-        initialScrollAttemptsRef.current++;
-      }
-    } else {
-      // Video not in current batch, might need to fetch more
-      if (hasMore && !loadingMore) {
-        fetchVideos(page + 1, true);
-      }
-      initialScrollAttemptsRef.current++;
+    const idx = videos.findIndex((v) => v.id === initialVideoId);
+    if (idx === -1) {
+      // Target not in current batch — fetch the next page and try again
+      if (hasMore && !loadingMore) fetchVideos(page + 1, true);
+      return;
     }
+    if (idx === 0) {
+      // Already at the front — nothing to do
+      initialReorderDoneRef.current = true;
+      return;
+    }
+
+    // Move target video to index 0
+    setVideos((prev) => {
+      const i = prev.findIndex((v) => v.id === initialVideoId);
+      if (i <= 0) return prev;
+      const next = prev.slice();
+      const [target] = next.splice(i, 1);
+      next.unshift(target);
+      return next;
+    });
+    // Also scroll to top so the user sees it immediately (no smooth scroll so
+    // the IO doesn't accidentally trip on intermediate videos during animation)
+    const scroller = document.querySelector('.feed-container');
+    if (scroller) scroller.scrollTop = 0;
+    else window.scrollTo(0, 0);
+    initialReorderDoneRef.current = true;
   }, [initialVideoId, videos, hasMore, loadingMore, page, fetchVideos]);
 
   // Remove the HTML skeleton overlay as soon as we have content to show
