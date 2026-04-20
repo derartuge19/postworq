@@ -306,14 +306,18 @@ def unread_dm_count(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def search_users_for_dm(request):
-    q = (request.GET.get('q') or '').strip()
-    if not q:
+    try:
+        q = (request.GET.get('q') or '').strip()
+        if not q:
+            return Response([])
+        users = (
+            User.objects
+            .filter(Q(username__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q))
+            .exclude(id=request.user.id)
+            .select_related('profile')
+            [:20]
+        )
+        return Response(BriefUserSerializer(users, many=True).data)
+    except Exception as e:
+        print(f'[search_users_for_dm] Error: {e}')
         return Response([])
-    users = (
-        User.objects
-        .filter(Q(username__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q))
-        .exclude(id=request.user.id)
-        .select_related('profile')
-        [:20]
-    )
-    return Response(BriefUserSerializer(users, many=True).data)
