@@ -128,7 +128,9 @@ export const TikTokLayout = memo(function TikTokLayout({
   const videoRefs = useRef({});
   const videoContainerRefs = useRef({});
   const [visibleVideos, setVisibleVideos] = useState({});
-  const [videoOrientations, setVideoOrientations] = useState({}); // { [id]: 'portrait' | 'landscape' }
+  const [videoOrientations, setVideoOrientations] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('_vidOrient') || '{}'); } catch { return {}; }
+  }); // { [id]: 'portrait' | 'landscape' } — persisted to avoid flicker on refresh
   const activeVideoIdRef = useRef(null); // only this video plays with sound
   const longPressTimer = useRef(null);
   const [longPressMenu, setLongPressMenu] = useState(null); // { videoId, x, y } for long-press context menu
@@ -458,7 +460,7 @@ export const TikTokLayout = memo(function TikTokLayout({
             });
             // Play and optionally unmute the active video
             activeVideoIdRef.current = videoId;
-            videoElement.muted = !audioEnabled;
+            videoElement.muted = true; // always muted on scroll; user taps volume to unmute
             videoElement
               .play()
               .catch((err) => console.log('Play prevented:', err));
@@ -1751,10 +1753,12 @@ export const TikTokLayout = memo(function TikTokLayout({
                             const w = e.target.videoWidth;
                             const h = e.target.videoHeight;
                             if (w && h) {
-                              setVideoOrientations(prev => ({
-                                ...prev,
-                                [video.id]: w > h ? 'landscape' : 'portrait',
-                              }));
+                              const orient = w > h ? 'landscape' : 'portrait';
+                              setVideoOrientations(prev => {
+                                const next = { ...prev, [video.id]: orient };
+                                try { localStorage.setItem('_vidOrient', JSON.stringify(next)); } catch {}
+                                return next;
+                              });
                             }
                           }}
                           onLoadedData={(e) => {
