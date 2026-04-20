@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import {
-  ArrowLeft, Send, Search, Edit3, Trash2, MoreVertical, X,
-  PenSquare, CheckCheck, Check,
+  ArrowLeft, Send, Search, Edit3, Trash2, MoreVertical, X, PenSquare,
 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -305,16 +304,118 @@ const MessageBubble = memo(function MessageBubble({ msg, T, onEdit, onDelete, pr
   );
 });
 
+// ─── Composer ─────────────────────────────────────────────────────────────────
+// Isolated so typing does NOT re-render the thread + message list.
+const Composer = memo(function Composer({
+  onSend, onEditSubmit, onCancelEdit, editing, T, priColor, inputRef,
+}) {
+  const [text, setText] = useState('');
+
+  // When entering edit mode, prefill text. When leaving, clear.
+  const editingId = editing?.id || null;
+  useEffect(() => {
+    if (editing) {
+      setText(editing.text || '');
+      setTimeout(() => inputRef.current?.focus(), 0);
+    } else {
+      setText('');
+    }
+  }, [editingId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [sending, setSending] = useState(false);
+
+  const submit = async (e) => {
+    e?.preventDefault?.();
+    const trimmed = text.trim();
+    if (!trimmed || sending) return;
+    setSending(true);
+    try {
+      if (editing) {
+        const ok = await onEditSubmit(editing, trimmed);
+        if (ok) setText('');
+      } else {
+        // Clear immediately for snappy UX; parent owns optimistic insert
+        setText('');
+        await onSend(trimmed);
+      }
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <>
+      {editing && (
+        <div style={{
+          padding: '8px 14px', background: T.cardBg,
+          borderTop: `1px solid ${T.border}`,
+          display: 'flex', alignItems: 'center', gap: 10,
+          fontSize: 13, color: T.sub,
+        }}>
+          <Edit3 size={14} /> Editing message
+          <button type="button" onClick={onCancelEdit} style={{
+            marginLeft: 'auto', background: 'none', border: 'none',
+            color: T.sub, cursor: 'pointer', padding: 4, display: 'flex',
+          }}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
+      <form
+        onSubmit={submit}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '10px 12px', borderTop: `1px solid ${T.border}`,
+          background: T.cardBg, flexShrink: 0,
+        }}
+      >
+        <input
+          ref={inputRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={editing ? 'Edit your message…' : 'Message…'}
+          autoComplete="off"
+          style={{
+            flex: 1,
+            padding: '11px 16px',
+            borderRadius: 24,
+            border: `1px solid ${T.border}`,
+            background: T.bg,
+            color: T.txt,
+            fontSize: 14,
+            outline: 'none',
+          }}
+        />
+        <button
+          type="submit"
+          disabled={!text.trim() || sending}
+          style={{
+            background: text.trim() && !sending ? priColor : T.border,
+            color: '#fff',
+            border: 'none',
+            width: 42, height: 42, borderRadius: '50%',
+            cursor: text.trim() && !sending ? 'pointer' : 'not-allowed',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            transition: 'background 0.15s',
+          }}
+          aria-label="Send"
+        >
+          <Send size={18} />
+        </button>
+      </form>
+    </>
+  );
+});
+
 // ─── Thread View (single conversation) ────────────────────────────────────────
 function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, onMessageChanged }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [text, setText] = useState('');
-  const [sending, setSending] = useState(false);
-  const [editing, setEditing] = useState(null); // message being edited
+  const [editing, setEditing] = useState(null);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
-  const lastFetchCount = useRef(0);
+  const pendingRef = useRef(0); // count of in-flight sends; pauses poll-replace
 
   const convId = conversation.id;
   const other = conversation.other_user;
@@ -331,21 +432,30 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
       const data = await api.request(`/messages/conversations/${convId}/messages/`);
       const arr = Array.isArray(data) ? data : [];
       setMessages((prev) => {
-        // Only replace if we actually got new/changed data — preserves scroll position
-        if (arr.length !== prev.length) return arr;
-        // check if last message changed
-        const lastPrev = prev[prev.length - 1];
-        const lastNew = arr[arr.length - 1];
-        if (!lastPrev || !lastNew) return arr;
-        if (lastPrev.id !== lastNew.id
-            || lastPrev.text !== lastNew.text
-            || lastPrev.is_deleted !== lastNew.is_deleted
-            || lastPrev.edited_at !== lastNew.edited_at) {
-          return arr;
+        // If a send is in flight, don't clobber optimistic messages
+        if (pendingRef.current > 0) {
+          const pendings = prev.filter((m) => typeof m.id === 'string' && m.id.startsWith('tmp-'));
+          if (pendings.length) {
+            // Merge server arr with pending optimistic tail
+            const serverIds = new Set(arr.map((m) => m.id));
+            const merged = [...arr, ...pendings.filter((m) => !serverIds.has(m.id))];
+            return merged;
+          }
         }
-        return prev;
+        // Bail if nothing meaningful changed
+        if (arr.length === prev.length) {
+          const lastPrev = prev[prev.length - 1];
+          const lastNew = arr[arr.length - 1];
+          if (lastPrev && lastNew
+              && lastPrev.id === lastNew.id
+              && lastPrev.text === lastNew.text
+              && lastPrev.is_deleted === lastNew.is_deleted
+              && lastPrev.edited_at === lastNew.edited_at) {
+            return prev;
+          }
+        }
+        return arr;
       });
-      lastFetchCount.current = arr.length;
       // Mark as read (fire and forget)
       api.request(`/messages/conversations/${convId}/read/`, { method: 'POST' }).catch(() => {});
     } catch (e) {
@@ -368,34 +478,8 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
     if (!loading) scrollToBottom(false);
   }, [messages.length, loading]);
 
-  const handleSend = async (e) => {
-    e?.preventDefault?.();
-    const trimmed = text.trim();
-    if (!trimmed || sending) return;
-
-    if (editing) {
-      // Apply edit
-      setSending(true);
-      try {
-        const res = await api.request(`/messages/${editing.id}/`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: trimmed }),
-        });
-        setMessages((prev) => prev.map((m) => (m.id === editing.id ? res : m)));
-        setEditing(null);
-        setText('');
-        onMessageChanged?.();
-      } catch (err) {
-        alert(err?.error || err?.message || 'Failed to edit message');
-      } finally {
-        setSending(false);
-      }
-      return;
-    }
-
-    setSending(true);
-    // Optimistic insert
+  // Stable send handler — does NOT depend on text state (Composer owns text)
+  const handleSend = useCallback(async (trimmed) => {
     const tempId = `tmp-${Date.now()}`;
     const optimistic = {
       id: tempId,
@@ -409,37 +493,54 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
       _pending: true,
     };
     setMessages((prev) => [...prev, optimistic]);
-    setText('');
-
+    pendingRef.current += 1;
     try {
       const res = await api.request(`/messages/conversations/${convId}/messages/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: trimmed }),
       });
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? res : m)));
+      setMessages((prev) => {
+        // Replace optimistic; if poll already added real msg, drop optimistic
+        const hasReal = prev.some((m) => m.id === res.id);
+        if (hasReal) return prev.filter((m) => m.id !== tempId);
+        return prev.map((m) => (m.id === tempId ? res : m));
+      });
       onMessageChanged?.();
     } catch (err) {
-      // Remove optimistic on failure
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       alert(err?.error || err?.message || 'Failed to send');
     } finally {
-      setSending(false);
+      pendingRef.current = Math.max(0, pendingRef.current - 1);
     }
-  };
+  }, [convId, user?.id, user?.username, user?.profile_photo, onMessageChanged]);
 
-  const handleEdit = (msg) => {
+  const handleEditSubmit = useCallback(async (msg, trimmed) => {
+    try {
+      const res = await api.request(`/messages/${msg.id}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: trimmed }),
+      });
+      setMessages((prev) => prev.map((m) => (m.id === msg.id ? res : m)));
+      setEditing(null);
+      onMessageChanged?.();
+      return true;
+    } catch (err) {
+      alert(err?.error || err?.message || 'Failed to edit message');
+      return false;
+    }
+  }, [onMessageChanged]);
+
+  const handleEdit = useCallback((msg) => {
     setEditing(msg);
-    setText(msg.text);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  };
+  }, []);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setEditing(null);
-    setText('');
-  };
+  }, []);
 
-  const handleDelete = async (msg) => {
+  const handleDelete = useCallback(async (msg) => {
     if (!window.confirm('Delete this message?')) return;
     try {
       await api.request(`/messages/${msg.id}/`, { method: 'DELETE' });
@@ -448,7 +549,7 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
     } catch (err) {
       alert(err?.error || 'Failed to delete');
     }
-  };
+  }, [onMessageChanged]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: T.bg }}>
@@ -525,66 +626,15 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
         )}
       </div>
 
-      {/* Editing banner */}
-      {editing && (
-        <div style={{
-          padding: '8px 14px', background: T.cardBg,
-          borderTop: `1px solid ${T.border}`,
-          display: 'flex', alignItems: 'center', gap: 10,
-          fontSize: 13, color: T.sub,
-        }}>
-          <Edit3 size={14} /> Editing message
-          <button onClick={handleCancelEdit} style={{
-            marginLeft: 'auto', background: 'none', border: 'none',
-            color: T.sub, cursor: 'pointer', padding: 4, display: 'flex',
-          }}>
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
-      {/* Composer */}
-      <form
-        onSubmit={handleSend}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '10px 12px', borderTop: `1px solid ${T.border}`,
-          background: T.cardBg, flexShrink: 0,
-        }}
-      >
-        <input
-          ref={inputRef}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={editing ? 'Edit your message…' : 'Message…'}
-          style={{
-            flex: 1,
-            padding: '11px 16px',
-            borderRadius: 24,
-            border: `1px solid ${T.border}`,
-            background: T.bg,
-            color: T.txt,
-            fontSize: 14,
-            outline: 'none',
-          }}
-        />
-        <button
-          type="submit"
-          disabled={!text.trim() || sending}
-          style={{
-            background: text.trim() && !sending ? priColor : T.border,
-            color: '#fff',
-            border: 'none',
-            width: 42, height: 42, borderRadius: '50%',
-            cursor: text.trim() && !sending ? 'pointer' : 'not-allowed',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}
-          aria-label="Send"
-        >
-          <Send size={18} />
-        </button>
-      </form>
+      <Composer
+        onSend={handleSend}
+        onEditSubmit={handleEditSubmit}
+        onCancelEdit={handleCancelEdit}
+        editing={editing}
+        T={T}
+        priColor={priColor}
+        inputRef={inputRef}
+      />
     </div>
   );
 }
@@ -670,29 +720,58 @@ export function MessagesPage({ user, onShowProfile }) {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // Stable fetcher — never re-created, so polling interval stays stable.
   const fetchConversations = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
       const data = await api.request('/messages/conversations/');
       const arr = Array.isArray(data) ? data : [];
-      setConversations(arr);
-      // Keep activeConv in sync with latest data
-      if (activeConv) {
-        const fresh = arr.find((c) => c.id === activeConv.id);
-        if (fresh) setActiveConv((prev) => (prev && prev.id === fresh.id ? fresh : prev));
-      }
+      setConversations((prev) => {
+        // Shallow compare: same length + same ids + same last_message snapshot + same unread
+        if (prev.length === arr.length) {
+          let same = true;
+          for (let i = 0; i < arr.length; i++) {
+            const a = arr[i]; const b = prev[i];
+            if (!b
+                || a.id !== b.id
+                || a.unread_count !== b.unread_count
+                || (a.last_message?.id || null) !== (b.last_message?.id || null)
+                || (a.last_message?.text || '') !== (b.last_message?.text || '')
+                || (a.last_message?.is_deleted || false) !== (b.last_message?.is_deleted || false)) {
+              same = false; break;
+            }
+          }
+          if (same) return prev;
+        }
+        return arr;
+      });
+      // Keep activeConv meta in sync, but do NOT force a reference change if unchanged
+      setActiveConv((curr) => {
+        if (!curr) return curr;
+        const fresh = arr.find((c) => c.id === curr.id);
+        if (!fresh) return curr;
+        if (fresh.unread_count === curr.unread_count
+            && (fresh.last_message?.id || null) === (curr.last_message?.id || null)
+            && (fresh.last_message?.text || '') === (curr.last_message?.text || '')) {
+          return curr;
+        }
+        return fresh;
+      });
     } catch (e) {
       console.error('fetchConversations', e);
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [activeConv?.id]); // eslint-disable-line
+  }, []);
 
-  useEffect(() => { fetchConversations(false); }, []); // eslint-disable-line
+  useEffect(() => { fetchConversations(false); }, [fetchConversations]);
   useEffect(() => {
     const id = setInterval(() => fetchConversations(true), 10000);
     return () => clearInterval(id);
   }, [fetchConversations]);
+
+  // Stable callback for ThreadView — prevents it from re-rendering every poll tick
+  const onMessageChanged = useCallback(() => { fetchConversations(true); }, [fetchConversations]);
 
   const handleStartChat = async (u) => {
     try {
@@ -708,6 +787,34 @@ export function MessagesPage({ user, onShowProfile }) {
       alert(e?.error || 'Failed to start conversation');
     }
   };
+
+  // On mobile, push a history entry when opening a thread so hardware/browser
+  // back closes the thread instead of leaving the messages page.
+  const openConv = useCallback((c) => {
+    setActiveConv(c);
+    if (window.innerWidth <= 1024) {
+      try { window.history.pushState({ _msgThread: true }, '', window.location.href); } catch {}
+    }
+  }, []);
+
+  const closeThread = useCallback(() => {
+    setActiveConv(null);
+    // If we pushed a state for this thread, pop it so forward nav isn't littered
+    try {
+      if (window.history.state && window.history.state._msgThread) {
+        window.history.back();
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const onPop = () => {
+      // If thread is open and user pressed browser back, close thread instead.
+      setActiveConv((curr) => (curr ? null : curr));
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   const inbox = (
@@ -771,7 +878,7 @@ export function MessagesPage({ user, onShowProfile }) {
                 conv={c}
                 active={activeConv?.id === c.id}
                 currentUserId={user?.id}
-                onClick={() => setActiveConv(c)}
+                onClick={() => openConv(c)}
                 T={T}
               />
             ))}
@@ -791,12 +898,12 @@ export function MessagesPage({ user, onShowProfile }) {
         activeConv ? (
           <ThreadView
             conversation={activeConv}
-            onBack={() => setActiveConv(null)}
+            onBack={closeThread}
             user={user}
             T={T}
             priColor={priColor}
             onShowProfile={onShowProfile}
-            onMessageChanged={() => fetchConversations(true)}
+            onMessageChanged={onMessageChanged}
           />
         ) : (
           inbox
@@ -809,12 +916,12 @@ export function MessagesPage({ user, onShowProfile }) {
             {activeConv ? (
               <ThreadView
                 conversation={activeConv}
-                onBack={() => setActiveConv(null)}
+                onBack={closeThread}
                 user={user}
                 T={T}
                 priColor={priColor}
                 onShowProfile={onShowProfile}
-                onMessageChanged={() => fetchConversations(true)}
+                onMessageChanged={onMessageChanged}
               />
             ) : (
               <div style={{
