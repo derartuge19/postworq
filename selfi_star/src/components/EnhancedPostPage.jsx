@@ -1026,7 +1026,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               </div>
 
               {/* Cards */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 44, padding: '28px 24px', position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 44, padding: '28px 24px', position: 'relative', zIndex: 1, alignItems: 'center' }}>
 
                 {/* ── Take Photo/Video card ── */}
                 <button className="ep-btn" onClick={() => setCaptureMode('camera')}
@@ -1039,7 +1039,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     cursor: 'pointer',
                     boxShadow: `${T.dark}0F`,
                     transition: 'box-shadow 0.2s, transform 0.15s',
-                    textAlign: 'left',
+                    textAlign: 'center',
+                    justifyContent: 'center',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -1047,7 +1048,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   <div style={{ width: 48, height: 48, borderRadius: 14, background: T.priGradient || T.pri, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{ fontSize: 15, fontWeight: 700, color: T.txt, marginBottom: 2 }}>Take Photo/Video</div>
                     <div style={{ fontSize: 12.5, color: T.sub }}>Use camera with filters</div>
                   </div>
@@ -1063,6 +1064,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   cursor: 'pointer',
                   boxShadow: `${T.dark}0F`,
                   transition: 'box-shadow 0.2s, transform 0.15s',
+                  justifyContent: 'center',
+                  textAlign: 'center',
                 }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -1070,7 +1073,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, #818cf8, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{ fontSize: 15, fontWeight: 700, color: T.txt, marginBottom: 2 }}>Upload Image</div>
                     <div style={{ fontSize: 12.5, color: T.sub }}>From gallery or files</div>
                   </div>
