@@ -89,44 +89,45 @@ def get_gamification_status(request):
     except Exception as e:
         print(f"Error creating UserProfile for {request.user.username}: {e}")
         return Response(
-            {'error': 'Failed to create user profile'}, 
+            {'error': 'Failed to create user profile'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-    
-    today = timezone.now().date()
-    
-    # Check if can spin today
-    can_spin = profile.last_spin_date != today
-    
-    # Check login bonus for today
-    login_bonus_available = profile.last_login_date != today
-    
-    # Calculate next login bonus
-    streak_day = min(profile.login_streak + 1, 7)
-    next_bonus = DAILY_LOGIN_BONUS.get(streak_day, DAILY_LOGIN_BONUS[7])
-    
-    # Reset daily counters if needed
-    if profile.last_gift_reset != today:
-        profile.gifts_sent_today = 0
-        profile.gifts_received_today = 0
-        profile.last_gift_reset = today
-        profile.save()
-    
-    return Response({
-        'coins': {
-            'balance': profile.coins,
-            'earned_total': profile.coins_earned_total,
-            'spent_total': profile.coins_spent_total,
-        },
-        'spin': {
-            'can_spin': can_spin,
-            'last_spin_date': profile.last_spin_date,
-            'spins_total': profile.spins_total,
-            'rewards_preview': SPIN_REWARDS,
-        },
-        'login_streak': {
-            'current': profile.login_streak,
-            'longest': profile.longest_login_streak,
+
+    try:
+        today = timezone.now().date()
+
+        # Check if can spin today
+        can_spin = profile.last_spin_date != today
+
+        # Check login bonus for today
+        login_bonus_available = profile.last_login_date != today
+
+        # Calculate next login bonus
+        streak_day = min(profile.login_streak + 1, 7)
+        next_bonus = DAILY_LOGIN_BONUS.get(streak_day, DAILY_LOGIN_BONUS[7])
+
+        # Reset daily counters if needed
+        if profile.last_gift_reset != today:
+            profile.gifts_sent_today = 0
+            profile.gifts_received_today = 0
+            profile.last_gift_reset = today
+            profile.save()
+
+        return Response({
+            'coins': {
+                'balance': profile.coins,
+                'earned_total': profile.coins_earned_total,
+                'spent_total': profile.coins_spent_total,
+            },
+            'spin': {
+                'can_spin': can_spin,
+                'last_spin_date': profile.last_spin_date,
+                'spins_total': profile.spins_total,
+                'rewards_preview': SPIN_REWARDS,
+            },
+            'login_streak': {
+                'current': profile.login_streak,
+                'longest': profile.longest_login_streak,
             'last_login': profile.last_login_date,
             'bonus_available': login_bonus_available,
             'next_bonus': next_bonus,
@@ -138,6 +139,14 @@ def get_gamification_status(request):
             'received_total': profile.gifts_received_total,
         }
     })
+    except Exception as e:
+        print(f'[gamification_status] Error: {e}')
+        return Response({
+            'coins': {'balance': 0, 'earned_total': 0, 'spent_total': 0},
+            'spin': {'can_spin': False, 'rewards_preview': SPIN_REWARDS},
+            'login_streak': {'current': 0, 'longest': 0, 'bonus_available': False},
+            'gifts': {'sent_today': 0, 'received_today': 0, 'sent_total': 0, 'received_total': 0}
+        })
 
 
 @api_view(['POST'])
