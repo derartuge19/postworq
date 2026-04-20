@@ -99,6 +99,7 @@ export const TikTokLayout = memo(function TikTokLayout({
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const [mounted, setMounted] = useState(false);
   const [showMenu, setShowMenu] = useState(null);
   const [showReportModal, setShowReportModal] = useState(null);
   const [showComments, setShowComments] = useState(null);
@@ -390,6 +391,12 @@ export const TikTokLayout = memo(function TikTokLayout({
       }
     }
   }, [videos.length, loading]);
+
+  // Set mounted state after a short delay to prevent brief video flash
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Fallback: remove skeleton after 5 seconds even if loading fails
   useEffect(() => {
@@ -1335,7 +1342,7 @@ export const TikTokLayout = memo(function TikTokLayout({
               padding: '0 20px',
             }}
           >
-            {loading ? (
+            {!mounted || loading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 0 : 20 }}>
                 {[0, 1].map(i => (
                   <div key={i} className="video-card-snap" style={{
