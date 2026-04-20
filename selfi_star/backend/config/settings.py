@@ -70,17 +70,17 @@ IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER
 
 # Database configuration
 if IS_RENDER:
-    # Use database environment variables (support both PG_* and DB_* for compatibility)
+    # Render deployment: Use Neon database with hardcoded credentials
     DATABASES = {
         'default': {
-            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
-            'NAME': config('DB_NAME', default=config('PGDATABASE', default='neondb')),
-            'USER': config('DB_USER', default=config('PGUSER', default='neondb_owner')),
-            'PASSWORD': config('DB_PASSWORD', default=config('PGPASSWORD', default='')),
-            'HOST': config('DB_HOST', default=config('PGHOST', default='localhost')),
-            'PORT': config('DB_PORT', default=config('PGPORT', default='5432')),
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default='neondb'),
+            'USER': config('DB_USER', default='neondb_owner'),
+            'PASSWORD': config('DB_PASSWORD', default='npg_gQpuHj7IBoC1'),
+            'HOST': config('DB_HOST', default='ep-rough-math-anwwqd2n-pooler.c-6.us-east-1.aws.neon.tech'),
+            'PORT': config('DB_PORT', default='5432'),
             'OPTIONS': {
-                'sslmode': config('DB_SSLMODE', default='require'),
+                'sslmode': 'require',
             },
             'CONN_MAX_AGE': 600,
         }
