@@ -971,146 +971,90 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
             <div style={{
               flex: 1, display: 'flex', flexDirection: 'column',
               height: '100%',
-              background: '#ffffff',
+              background: 'linear-gradient(180deg, #eef0f8 0%, #f5f6fb 100%)',
             }}>
-              {/* Decorative bg blobs */}
-              <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(217,155,42,0.18) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
-              <div style={{ position: 'absolute', bottom: -40, left: -40, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(217,155,42,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
               {/* Header */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: 'max(16px, env(safe-area-inset-top)) 16px 12px',
-                borderBottom: '1px solid rgba(217,155,42,0.12)',
-                background: 'rgba(255,255,255,0.5)',
-                backdropFilter: 'blur(8px)',
+                background: 'transparent',
                 position: 'relative', zIndex: 1,
               }}>
                 <button className="ep-btn" onClick={onBack}
                   style={{ background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                  <X size={20} color="#92400e" />
+                  <X size={20} color="#6b7280" />
                 </button>
                 <span style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e' }}>New Post</span>
                 {drafts.length > 0 ? (
                   <button className="ep-btn" onClick={() => setShowDrafts(true)}
-                    style={{ background: 'rgba(217,155,42,0.1)', borderRadius: 20, padding: '8px 14px', color: '#b45309', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, border: '1px solid rgba(217,155,42,0.25)' }}>
+                    style={{ background: 'rgba(124,58,237,0.08)', borderRadius: 20, padding: '8px 14px', color: '#7c3aed', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <FileText size={14} /> Drafts ({drafts.length})
                   </button>
                 ) : <div style={{ width: 40 }} />}
               </div>
 
               {/* Hero icon + title */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 36, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 24, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
                 <div style={{ position: 'relative', marginBottom: 14 }}>
-                  <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px rgba(217,155,42,0.4), 0 0 0 8px rgba(217,155,42,0.1)' }}>
-                    <svg width="34" height="34" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
+                  <div style={{ width: 72, height: 72, background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(124,58,237,0.35)' }}>
+                    <svg width="30" height="30" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
-                  <div style={{ position: 'absolute', top: -4, right: -4, width: 26, height: 26, background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, border: '2.5px solid #fef3c7', boxShadow: '0 2px 8px rgba(251,191,36,0.5)' }}>✦</div>
+                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: '2px solid #eef0f8', boxShadow: '0 2px 6px rgba(251,191,36,0.5)' }}>✦</div>
                 </div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#1a1a2e', marginBottom: 4, letterSpacing: -0.4 }}>Create Post</div>
-                <div style={{ fontSize: 14, color: '#6b7280', textAlign: 'center' }}>Choose how you want to create content</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#1a1a2e', marginBottom: 4 }}>Create Post</div>
+                <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>Choose how you want to create content</div>
               </div>
 
-              {/* Two decorative cards */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 40, padding: '50px 20px 28px', justifyContent: 'flex-start', position: 'relative', zIndex: 1 }}>
+              {/* Cards */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 44, padding: '28px 24px', position: 'relative', zIndex: 1 }}>
 
-                {/* ── Camera card ── */}
+                {/* ── Take Photo/Video card ── */}
                 <button className="ep-btn" onClick={() => setCaptureMode('camera')}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 0,
-                    background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 60%, #fde68a 100%)',
-                    border: '1.5px solid rgba(217,155,42,0.45)',
-                    borderRadius: 22,
-                    padding: '20px 18px 20px 20px',
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    background: '#ffffff',
+                    border: 'none',
+                    borderRadius: 16,
+                    padding: '28px 22px',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 20px rgba(217,155,42,0.12), inset 0 1px 0 rgba(255,255,255,0.8)',
-                    transition: 'box-shadow 0.2s, transform 0.18s',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                    transition: 'box-shadow 0.2s, transform 0.15s',
                     textAlign: 'left',
-                    position: 'relative',
-                    overflow: 'hidden',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 10px 32px rgba(217,155,42,0.25), inset 0 1px 0 rgba(255,255,255,0.8)'; e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(217,155,42,0.12), inset 0 1px 0 rgba(255,255,255,0.8)'; e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  {/* Decorative corner glow */}
-                  <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(217,155,42,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
-                  <div style={{ position: 'absolute', bottom: -14, left: 60, width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle, rgba(217,155,42,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
-                  {/* Icon with glow ring */}
-                  <div style={{ position: 'relative', flexShrink: 0, marginRight: 16 }}>
-                    <div style={{ position: 'absolute', inset: -5, borderRadius: 18, background: 'linear-gradient(135deg, rgba(217,155,42,0.3), rgba(217,155,42,0.15))', filter: 'blur(6px)' }} />
-                    <div style={{ position: 'relative', width: 58, height: 58, borderRadius: 16, background: 'linear-gradient(135deg, #f59e0b, #d97706, #b45309)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(217,155,42,0.5)' }}>
-                      <svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
-                    </div>
-                    {/* Sparkle badge */}
-                    <div style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: '2px solid #fffbeb', boxShadow: '0 2px 6px rgba(245,158,11,0.5)' }}>✦</div>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, #a855f7, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
-
-                  {/* Text */}
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#92400e', marginBottom: 4, letterSpacing: -0.2 }}>Take Image/Video</div>
-                    <div style={{ fontSize: 12.5, color: '#b45309', marginBottom: 8, opacity: 0.8 }}>Use camera with filters</div>
-                    {/* Tag chips */}
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {['📷 Photo', '🎬 Video', '✨ Filters'].map(tag => (
-                        <span key={tag} style={{ fontSize: 11, fontWeight: 600, color: '#b45309', background: 'rgba(217,155,42,0.1)', borderRadius: 20, padding: '2px 8px', border: '1px solid rgba(217,155,42,0.2)' }}>{tag}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Arrow */}
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 3px 8px rgba(217,155,42,0.35)' }}>
-                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1a2e', marginBottom: 2 }}>Take Photo/Video</div>
+                    <div style={{ fontSize: 12.5, color: '#9ca3af' }}>Use camera with filters</div>
                   </div>
                 </button>
 
-                {/* ── Upload card ── */}
+                {/* ── Upload Image card ── */}
                 <label style={{
-                  display: 'flex', alignItems: 'center', gap: 0,
-                  background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 60%, #fde68a 100%)',
-                  border: '1.5px solid rgba(217,155,42,0.4)',
-                  borderRadius: 22,
-                  padding: '20px 18px 20px 20px',
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  background: '#ffffff',
+                  border: 'none',
+                  borderRadius: 16,
+                  padding: '28px 22px',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 20px rgba(217,155,42,0.12), inset 0 1px 0 rgba(255,255,255,0.8)',
-                  transition: 'box-shadow 0.2s, transform 0.18s',
-                  position: 'relative',
-                  overflow: 'hidden',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                  transition: 'box-shadow 0.2s, transform 0.15s',
                 }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 10px 32px rgba(217,155,42,0.25), inset 0 1px 0 rgba(255,255,255,0.8)'; e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(217,155,42,0.12), inset 0 1px 0 rgba(255,255,255,0.8)'; e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  {/* Decorative corner glow */}
-                  <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(217,155,42,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
-                  <div style={{ position: 'absolute', bottom: -14, left: 60, width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle, rgba(217,155,42,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
-                  {/* Icon with glow ring */}
-                  <div style={{ position: 'relative', flexShrink: 0, marginRight: 16 }}>
-                    <div style={{ position: 'absolute', inset: -5, borderRadius: 18, background: 'linear-gradient(135deg, rgba(217,155,42,0.3), rgba(217,155,42,0.15))', filter: 'blur(6px)' }} />
-                    <div style={{ position: 'relative', width: 58, height: 58, borderRadius: 16, background: 'linear-gradient(135deg, #f59e0b, #d97706, #b45309)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(217,155,42,0.5)' }}>
-                      <svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
-                    </div>
-                    {/* Sparkle badge */}
-                    <div style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: '2px solid #fffbeb', boxShadow: '0 2px 6px rgba(245,158,11,0.5)' }}>↑</div>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, #818cf8, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
                   </div>
-
-                  {/* Text */}
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#92400e', marginBottom: 4, letterSpacing: -0.2 }}>Upload Image/Video</div>
-                    <div style={{ fontSize: 12.5, color: '#b45309', marginBottom: 8, opacity: 0.8 }}>From gallery or files</div>
-                    {/* Tag chips */}
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {['🖼 JPG', '🎥 MP4', '📁 MOV'].map(tag => (
-                        <span key={tag} style={{ fontSize: 11, fontWeight: 600, color: '#b45309', background: 'rgba(217,155,42,0.1)', borderRadius: 20, padding: '2px 8px', border: '1px solid rgba(217,155,42,0.2)' }}>{tag}</span>
-                      ))}
-                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1a2e', marginBottom: 2 }}>Upload Image</div>
+                    <div style={{ fontSize: 12.5, color: '#9ca3af' }}>From gallery or files</div>
                   </div>
-
-                  {/* Arrow */}
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 3px 8px rgba(217,155,42,0.35)' }}>
-                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </div>
-
                   <input ref={fileInputRef} type="file" accept="image/*,video/*"
                     onChange={handleFileSelect} style={{ display: 'none' }} />
                 </label>
