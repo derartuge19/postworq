@@ -87,9 +87,11 @@ if IS_RENDER:
     }
     
     # Debug: Print database configuration (remove in production)
+    print(f"=== NEW DEPLOYMENT DETECTED ===")
     print(f"DATABASE_HOST: {DATABASES['default']['HOST']}")
     print(f"DATABASE_NAME: {DATABASES['default']['NAME']}")
     print(f"DATABASE_USER: {DATABASES['default']['USER']}")
+    print(f"=== DEPLOYMENT VERSION: 2.0 ===")
 else:
     # Local development: SQLite
     DATABASES = {
