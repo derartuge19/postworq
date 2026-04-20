@@ -106,7 +106,7 @@ export const TikTokLayout = memo(function TikTokLayout({
   const [showPauseIcon, setShowPauseIcon] = useState({});
   const [manuallyPaused, setManuallyPaused] = useState({}); // Track user-paused videos
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const [likeAnimations, setLikeAnimations] = useState({});
   const [doubleTapLike, setDoubleTapLike] = useState({});
   const [alertModal, setAlertModal] = useState({
@@ -622,26 +622,18 @@ export const TikTokLayout = memo(function TikTokLayout({
     const videoElement = videoRefs.current[videoId];
     if (!videoElement) return;
 
-    if (!audioEnabled) {
-      setAudioEnabled(true);
-    }
-
-    videoElement.muted = false;
-    videoElement.volume = 1;
-
     if (videoElement.paused) {
       // User is resuming - remove manual pause flag
       setManuallyPaused((prev) => ({ ...prev, [videoId]: false }));
+      videoElement.muted = !audioEnabled;
       videoElement.play();
       setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
-      // Hide pause icon when playing
       setShowPauseIcon((prev) => ({ ...prev, [videoId]: false }));
     } else {
       // User is pausing - set manual pause flag
       setManuallyPaused((prev) => ({ ...prev, [videoId]: true }));
       videoElement.pause();
       setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
-      // Show pause icon persistently when paused
       setShowPauseIcon((prev) => ({ ...prev, [videoId]: true }));
     }
   };
