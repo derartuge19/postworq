@@ -1108,7 +1108,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   style={{
                     display: 'flex', alignItems: 'center', gap: 14,
                     background: T.card,
-                    border: 'none',
+                    border: `2px solid ${T.pri}20`,
                     borderRadius: 16,
                     padding: '28px 22px',
                     cursor: 'pointer',
@@ -1116,11 +1116,23 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     transition: 'box-shadow 0.2s, transform 0.15s',
                     textAlign: 'center',
                     justifyContent: 'center',
+                    position: 'relative',
+                    overflow: 'hidden',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: T.priGradient || T.pri, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {/* Decorative corner dots */}
+                  <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.pri, opacity: 0.6 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.pri, opacity: 0.4 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.pri, opacity: 0.2 }} />
+                  </div>
+                  {/* Decorative corner badge */}
+                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: T.pri, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#fff', fontWeight: 800, boxShadow: `0 4px 12px ${T.pri}40` }}>📸</div>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: T.priGradient || T.pri, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+                    {/* Icon glow effect */}
+                    <div style={{ position: 'absolute', inset: -4, background: T.pri, borderRadius: 16, opacity: 0.1, filter: 'blur(8px)' }} />
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>
@@ -1133,7 +1145,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: 14,
                   background: T.card,
-                  border: 'none',
+                  border: `2px solid ${T.pri}20`,
                   borderRadius: 16,
                   padding: '28px 22px',
                   cursor: 'pointer',
@@ -1141,11 +1153,23 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   transition: 'box-shadow 0.2s, transform 0.15s',
                   justifyContent: 'center',
                   textAlign: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, #818cf8, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {/* Decorative corner dots */}
+                  <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8', opacity: 0.6 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8', opacity: 0.4 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8', opacity: 0.2 }} />
+                  </div>
+                  {/* Decorative corner badge */}
+                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: 'linear-gradient(135deg, #818cf8, #6366f1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#fff', fontWeight: 800, boxShadow: '0 4px 12px rgba(129,140,248,0.4)' }}>+</div>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, #818cf8, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+                    {/* Icon glow effect */}
+                    <div style={{ position: 'absolute', inset: -4, background: '#818cf8', borderRadius: 16, opacity: 0.1, filter: 'blur(8px)' }} />
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>
