@@ -128,6 +128,7 @@ export const TikTokLayout = memo(function TikTokLayout({
   const videoRefs = useRef({});
   const videoContainerRefs = useRef({});
   const [visibleVideos, setVisibleVideos] = useState({});
+  const [videoOrientations, setVideoOrientations] = useState({}); // { [id]: 'portrait' | 'landscape' }
   const activeVideoIdRef = useRef(null); // only this video plays with sound
   const longPressTimer = useRef(null);
   const [longPressMenu, setLongPressMenu] = useState(null); // { videoId, x, y } for long-press context menu
@@ -1717,6 +1718,24 @@ export const TikTokLayout = memo(function TikTokLayout({
                           bottom: 0,
                         }}
                       >
+                        {/* Blurred background for landscape videos */}
+                        {videoOrientations[video.id] === 'landscape' && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              inset: 0,
+                              backgroundImage: getVideoPoster(video.imageUrl)
+                                ? `url(${getVideoPoster(video.imageUrl)})`
+                                : 'none',
+                              backgroundColor: '#111',
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              filter: 'blur(28px)',
+                              transform: 'scale(1.15)',
+                              zIndex: 0,
+                            }}
+                          />
+                        )}
                         <video
                           key={video.id}
                           ref={(el) => (videoRefs.current[video.id] = el)}
@@ -1736,25 +1755,35 @@ export const TikTokLayout = memo(function TikTokLayout({
                           loop
                           playsInline
                           muted
+                          onLoadedMetadata={(e) => {
+                            const w = e.target.videoWidth;
+                            const h = e.target.videoHeight;
+                            if (w && h) {
+                              setVideoOrientations(prev => ({
+                                ...prev,
+                                [video.id]: w > h ? 'landscape' : 'portrait',
+                              }));
+                            }
+                          }}
                           onLoadedData={(e) => {
-                            // Keep muted on load; IntersectionObserver controls playback
                             e.target.muted = true;
                           }}
                           onError={(e) => {
                             const code = e.target?.error?.code;
-                            // Suppress range/abort errors — these are benign browser prefetch artifacts
                             if (code === 3 || code === 2) return;
                             e.target.style.display = 'none';
                             const placeholder = e.target.parentElement?.querySelector('.video-error-placeholder');
                             if (placeholder) placeholder.style.display = 'flex';
                           }}
                           style={{
+                            position: 'relative',
+                            zIndex: 1,
                             width: '100%',
                             height: '100%',
-                            objectFit: 'cover',
+                            objectFit: videoOrientations[video.id] === 'landscape' ? 'contain' : 'cover',
                             objectPosition: 'center',
                             display: 'block',
-                            background: '#000',
+                            background: 'transparent',
                           }}
                           onClick={() => handleVideoClick(video.id)}
                           onDoubleClick={() => handleVideoDoubleClick(video.id)}
