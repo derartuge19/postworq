@@ -1810,6 +1810,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                               ? 'metadata'
                               : 'none'
                           }
+                          muted
                           loop
                           playsInline
                           onLoadedMetadata={(e) => {
