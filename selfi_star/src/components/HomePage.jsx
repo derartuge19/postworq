@@ -668,7 +668,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 src={mediaSrc}
                 alt={post.caption || ''}
                 loading="lazy"
-                style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block', cursor: 'default' }}
+                style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'contain', display: 'block', cursor: 'default' }}
                 onError={() => setImgError(true)}
               />
             )
