@@ -1280,6 +1280,8 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
               onShowProfile={onShowProfile}
               onRequireAuth={onRequireAuth}
               onShowVideoDetail={onShowVideoDetail}
+              onCommentAdded={() => {}}
+              onVoteAdded={() => {}}
               videoObserver={videoObserverRef.current}
             />
           ))
