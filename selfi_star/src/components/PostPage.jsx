@@ -129,15 +129,15 @@ export function PostPage({ user, onBack }) {
       left: 0,
       right: 0,
       bottom: 0,
-      background: "linear-gradient(160deg, #e8eaff 0%, #f3e8ff 50%, #e0e7ff 100%)",
+      background: "linear-gradient(160deg, #fff7ed 0%, #fef3c7 50%, #ffedd5 100%)",
       zIndex: 4000,
       display: "flex",
       flexDirection: "column",
       overflowY: "auto",
     }}>
       {/* Decorative bg blobs */}
-      <div style={{ position: "fixed", top: -80, right: -80, width: 260, height: 260, borderRadius: "50%", background: "radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "fixed", bottom: -60, left: -60, width: 220, height: 220, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "fixed", top: -80, right: -80, width: 260, height: 260, borderRadius: "50%", background: "radial-gradient(circle, rgba(217,155,42,0.18) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "fixed", bottom: -60, left: -60, width: 220, height: 220, borderRadius: "50%", background: "radial-gradient(circle, rgba(217,155,42,0.15) 0%, transparent 70%)", pointerEvents: "none" }} />
 
       {/* Back button */}
       <button
@@ -150,7 +150,7 @@ export function PostPage({ user, onBack }) {
           border: "none",
           fontSize: 18,
           cursor: "pointer",
-          color: "#5b21b6",
+          color: "#92400e",
           padding: "6px 12px",
           zIndex: 10,
           lineHeight: 1,
@@ -178,12 +178,12 @@ export function PostPage({ user, onBack }) {
             <div style={{
               width: 88,
               height: 88,
-              background: "linear-gradient(135deg, #c026d3, #7c3aed)",
+              background: "linear-gradient(135deg, #f59e0b, #d97706)",
               borderRadius: "50%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 10px 30px rgba(124,58,237,0.4), 0 0 0 8px rgba(124,58,237,0.1)",
+              boxShadow: "0 10px 30px rgba(217,155,42,0.4), 0 0 0 8px rgba(217,155,42,0.1)",
             }}>
               <svg width="38" height="38" fill="none" viewBox="0 0 24 24">
                 <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/>
@@ -223,26 +223,26 @@ export function PostPage({ user, onBack }) {
               width: "100%",
               borderRadius: 24,
               marginBottom: 16,
-              background: "linear-gradient(145deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%)",
+              background: "linear-gradient(145deg, #78350f 0%, #92400e 40%, #b45309 100%)",
               padding: "32px 28px",
               cursor: "pointer",
               position: "relative",
               overflow: "hidden",
-              boxShadow: "0 12px 40px rgba(49,46,129,0.45)",
+              boxShadow: "0 12px 40px rgba(217,155,42,0.45)",
               transition: "transform 0.18s, box-shadow 0.18s",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-3px)";
-              e.currentTarget.style.boxShadow = "0 18px 50px rgba(49,46,129,0.55)";
+              e.currentTarget.style.boxShadow = "0 18px 50px rgba(217,155,42,0.55)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(49,46,129,0.45)";
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(217,155,42,0.45)";
             }}
           >
             {/* Decorative circles */}
-            <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(167,139,250,0.15)", pointerEvents: "none" }} />
-            <div style={{ position: "absolute", bottom: -20, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(167,139,250,0.1)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(217,155,42,0.15)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", bottom: -20, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(217,155,42,0.1)", pointerEvents: "none" }} />
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", position: "relative" }}>
               <div style={{
                 width: 64,
@@ -264,7 +264,7 @@ export function PostPage({ user, onBack }) {
               <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: -0.2 }}>
                 Take Image/Video
               </div>
-              <div style={{ fontSize: 13, color: "rgba(196,181,253,0.85)", lineHeight: 1.4 }}>
+              <div style={{ fontSize: 13, color: "rgba(251,191,36,0.85)", lineHeight: 1.4 }}>
                 Use your camera · Capture instantly
               </div>
             </div>
@@ -276,26 +276,26 @@ export function PostPage({ user, onBack }) {
             style={{
               width: "100%",
               borderRadius: 24,
-              background: "linear-gradient(145deg, #064e3b 0%, #065f46 40%, #047857 100%)",
+              background: "linear-gradient(145deg, #92400e 0%, #b45309 40%, #d97706 100%)",
               padding: "32px 28px",
               cursor: "pointer",
               position: "relative",
               overflow: "hidden",
-              boxShadow: "0 12px 40px rgba(6,78,59,0.45)",
+              boxShadow: "0 12px 40px rgba(217,155,42,0.45)",
               transition: "transform 0.18s, box-shadow 0.18s",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-3px)";
-              e.currentTarget.style.boxShadow = "0 18px 50px rgba(6,78,59,0.55)";
+              e.currentTarget.style.boxShadow = "0 18px 50px rgba(217,155,42,0.55)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 12px 40px rgba(6,78,59,0.45)";
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(217,155,42,0.45)";
             }}
           >
             {/* Decorative circles */}
-            <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(52,211,153,0.12)", pointerEvents: "none" }} />
-            <div style={{ position: "absolute", bottom: -20, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(52,211,153,0.08)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(217,155,42,0.12)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", bottom: -20, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(217,155,42,0.08)", pointerEvents: "none" }} />
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", position: "relative" }}>
               <div style={{
                 width: 64,
@@ -318,7 +318,7 @@ export function PostPage({ user, onBack }) {
               <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: -0.2 }}>
                 Upload Image/Video
               </div>
-              <div style={{ fontSize: 13, color: "rgba(110,231,183,0.85)", lineHeight: 1.4 }}>
+              <div style={{ fontSize: 13, color: "rgba(251,191,36,0.85)", lineHeight: 1.4 }}>
                 From gallery · MP4, MOV, JPG, PNG
               </div>
             </div>
@@ -349,7 +349,7 @@ export function PostPage({ user, onBack }) {
               disabled={isUploading}
               style={{
                 padding: "9px 22px",
-                background: !isUploading ? "linear-gradient(135deg, #a855f7, #7c3aed)" : "#e5e7eb",
+                background: !isUploading ? "linear-gradient(135deg, #f59e0b, #d97706)" : "#e5e7eb",
                 border: "none",
                 borderRadius: 10,
                 color: !isUploading ? "#fff" : "#9ca3af",
@@ -407,7 +407,7 @@ export function PostPage({ user, onBack }) {
 
             {/* Caption */}
             <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 13, fontWeight: 700, color: "#5b21b6", display: "block", marginBottom: 8 }}>Caption</label>
+              <label style={{ fontSize: 13, fontWeight: 700, color: "#92400e", display: "block", marginBottom: 8 }}>Caption</label>
               <textarea
                 placeholder="Write a caption..."
                 value={caption}
@@ -427,14 +427,14 @@ export function PostPage({ user, onBack }) {
                   transition: "border-color 0.2s",
                   boxSizing: "border-box",
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = "#a855f7"}
+                onFocus={(e) => e.currentTarget.style.borderColor = "#f59e0b"}
                 onBlur={(e) => e.currentTarget.style.borderColor = "#e0e4ff"}
               />
             </div>
 
             {/* Hashtags */}
             <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 13, fontWeight: 700, color: "#5b21b6", display: "block", marginBottom: 8 }}>Hashtags</label>
+              <label style={{ fontSize: 13, fontWeight: 700, color: "#92400e", display: "block", marginBottom: 8 }}>Hashtags</label>
               <input
                 type="text"
                 placeholder="#fashion, #style, #trending"
@@ -453,7 +453,7 @@ export function PostPage({ user, onBack }) {
                   transition: "border-color 0.2s",
                   boxSizing: "border-box",
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = "#a855f7"}
+                onFocus={(e) => e.currentTarget.style.borderColor = "#f59e0b"}
                 onBlur={(e) => e.currentTarget.style.borderColor = "#e0e4ff"}
               />
               <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 5 }}>Separate with commas</div>
@@ -461,12 +461,12 @@ export function PostPage({ user, onBack }) {
 
             {/* Post Settings */}
             <div style={{ padding: "16px 20px", background: "#fff", borderRadius: 16, border: "1.5px solid #e0e4ff" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#a855f7", marginBottom: 14, textTransform: "uppercase", letterSpacing: 0.6 }}>Post Settings</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", marginBottom: 14, textTransform: "uppercase", letterSpacing: 0.6 }}>Post Settings</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {[["Allow comments"], ["Allow duets"], ["Allow stitches"]].map(([label]) => (
                   <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <span style={{ fontSize: 14, color: "#1a1a2e" }}>{label}</span>
-                    <input type="checkbox" defaultChecked style={{ cursor: "pointer", width: 18, height: 18, accentColor: "#7c3aed" }} />
+                    <input type="checkbox" defaultChecked style={{ cursor: "pointer", width: 18, height: 18, accentColor: "#f59e0b" }} />
                   </div>
                 ))}
               </div>
