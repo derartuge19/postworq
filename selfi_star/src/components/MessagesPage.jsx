@@ -365,7 +365,9 @@ const Composer = memo(function Composer({
         onSubmit={submit}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          padding: '10px 12px', borderTop: `1px solid ${T.border}`,
+          padding: '10px 12px',
+          paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
+          borderTop: `1px solid ${T.border}`,
           background: T.cardBg, flexShrink: 0,
         }}
       >
@@ -597,6 +599,9 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
         style={{
           flex: 1, overflowY: 'auto', padding: '12px 14px',
           display: 'flex', flexDirection: 'column',
+          minHeight: 0, // critical for flex scrolling on mobile
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
         }}
       >
         {loading ? (
@@ -847,7 +852,12 @@ export function MessagesPage({ user, onShowProfile }) {
         </button>
       </div>
       {/* List */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 12 }}>
+      <div style={{
+        flex: 1, overflowY: 'auto', paddingBottom: 12,
+        minHeight: 0,
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain',
+      }}>
         {loading ? (
           <div style={{ padding: 24, textAlign: 'center', color: T.sub, fontSize: 13 }}>Loading…</div>
         ) : conversations.length === 0 ? (
@@ -890,24 +900,39 @@ export function MessagesPage({ user, onShowProfile }) {
 
   return (
     <div style={{
-      display: 'flex', height: '100%', width: '100%',
+      display: 'flex',
+      height: '100%',
+      width: '100%',
       background: T.bg, overflow: 'hidden',
+      position: 'relative',
     }}>
-      {/* Mobile: show inbox OR thread */}
+      {/* Mobile: inbox in flow; thread as a fixed full-viewport overlay above bottom nav */}
       {isMobile ? (
-        activeConv ? (
-          <ThreadView
-            conversation={activeConv}
-            onBack={closeThread}
-            user={user}
-            T={T}
-            priColor={priColor}
-            onShowProfile={onShowProfile}
-            onMessageChanged={onMessageChanged}
-          />
-        ) : (
-          inbox
-        )
+        <>
+          {inbox}
+          {activeConv && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              height: '100dvh',
+              width: '100vw',
+              background: T.bg,
+              zIndex: 1500, // above AppShell bottom nav (1000)
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
+              <ThreadView
+                conversation={activeConv}
+                onBack={closeThread}
+                user={user}
+                T={T}
+                priColor={priColor}
+                onShowProfile={onShowProfile}
+                onMessageChanged={onMessageChanged}
+              />
+            </div>
+          )}
+        </>
       ) : (
         // Desktop: side-by-side
         <>
