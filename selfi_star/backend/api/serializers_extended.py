@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db import DatabaseError
 from .models import Comment, CommentLike, CommentReply, SavedPost
 from .serializers import UserSerializer
 
@@ -12,7 +13,11 @@ class CommentReplySerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'created_at', 'edited_at', 'is_deleted']
     
     def get_is_editable(self, obj):
-        return obj.is_editable
+        try:
+            return obj.is_editable
+        except (DatabaseError, AttributeError):
+            # If is_editable property fails due to missing fields, default to False
+            return False
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -28,7 +33,11 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'created_at', 'edited_at', 'is_deleted']
     
     def get_is_editable(self, obj):
-        return obj.is_editable
+        try:
+            return obj.is_editable
+        except (DatabaseError, AttributeError):
+            # If is_editable property fails due to missing fields, default to False
+            return False
     
     def get_likes_count(self, obj):
         return obj.likes_count
