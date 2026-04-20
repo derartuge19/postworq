@@ -851,7 +851,9 @@ const ProfilePage = memo(function ProfilePage({ user, userId, onBack, onEditProf
                       loop
                       playsInline
                       preload="metadata"
-                      onMouseEnter={(e) => e.target.play()}
+                      onMouseEnter={(e) => e.target.play().catch((err) => {
+                        if (err.name !== 'AbortError') console.log('Play error:', err);
+                      })}
                       onMouseLeave={(e) => e.target.pause()}
                     />
                     <div style={{

@@ -149,7 +149,9 @@ export function TikTokPostViewer({ posts, initialIndex, user, profileUser, onClo
         videoRef.current.pause();
         setIsPlaying(false);
       } else {
-        videoRef.current.play().catch(() => {});
+        videoRef.current.play().catch((err) => {
+          if (err.name !== 'AbortError') console.log('Play error:', err);
+        });
         setIsPlaying(true);
       }
     }

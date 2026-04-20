@@ -654,7 +654,12 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
   const toggleSoundPlay = () => {
     if (!audioRef.current) return;
     if (isPlayingSound) { audioRef.current.pause(); setIsPlayingSound(false); }
-    else { audioRef.current.play().catch(() => {}); setIsPlayingSound(true); }
+    else { 
+      audioRef.current.play().catch((err) => {
+        if (err.name !== 'AbortError') console.log('Play error:', err);
+      }); 
+      setIsPlayingSound(true); 
+    }
   };
 
   const handleCustomAudio = (e) => {

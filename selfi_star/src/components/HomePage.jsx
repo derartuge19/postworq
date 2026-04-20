@@ -1017,7 +1017,9 @@ const HomePage = memo(function HomePage({ user, onShowProfile, onShowPostPage, o
         entries.forEach(entry => {
           const video = entry.target;
           if (entry.isIntersecting) {
-            video.play().catch(() => {});
+            video.play().catch((err) => {
+              if (err.name !== 'AbortError') console.log('Play error:', err);
+            });
           } else {
             video.pause();
           }

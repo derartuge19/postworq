@@ -61,7 +61,13 @@ const AudioPlayer = memo(function AudioPlayer({ url, duration, own, T, priColor 
   const onToggle = () => {
     const a = audioRef.current;
     if (!a) return;
-    if (a.paused) { a.play().catch(() => {}); } else { a.pause(); }
+    if (a.paused) { 
+      a.play().catch((err) => {
+        if (err.name !== 'AbortError') console.log('Play error:', err);
+      }); 
+    } else { 
+      a.pause(); 
+    }
   };
 
   useEffect(() => {

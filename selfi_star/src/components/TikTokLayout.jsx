@@ -495,10 +495,13 @@ export const TikTokLayout = memo(function TikTokLayout({
             videoElement.muted = !audioEnabled;
             videoElement
               .play()
-              .catch(() => {
+              .catch((err) => {
+                if (err.name === 'AbortError') return; // Ignore play interrupted by pause
                 // Browser blocked unmuted autoplay — fall back to muted
                 videoElement.muted = true;
-                videoElement.play().catch((err) => console.log('Play prevented:', err));
+                videoElement.play().catch((e) => {
+                  if (e.name !== 'AbortError') console.log('Play prevented:', e);
+                });
               });
             setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
             // Hide pause icon when auto-playing
@@ -559,12 +562,15 @@ export const TikTokLayout = memo(function TikTokLayout({
           .then(() => {
             setPlayingVideos((prev) => ({ ...prev, [firstVideo.id]: true }));
           })
-          .catch(() => {
+          .catch((err) => {
+            if (err.name === 'AbortError') return; // Ignore play interrupted by pause
             // Unmuted blocked — retry muted
             videoElement.muted = true;
             videoElement.play()
               .then(() => setPlayingVideos((prev) => ({ ...prev, [firstVideo.id]: true })))
-              .catch((err) => console.log('Auto-play prevented:', err));
+              .catch((e) => {
+                if (e.name !== 'AbortError') console.log('Auto-play prevented:', e);
+              });
           });
       }
     }, 300);
@@ -662,6 +668,28 @@ export const TikTokLayout = memo(function TikTokLayout({
     handleDoubleTap(videoId);
   };
 
+  const handleResumePause = (videoId) => {
+    const videoElement = videoRefs.current[videoId];
+    if (!videoElement) return;
+
+    if (videoElement.paused) {
+      // User is resuming - remove manual pause flag
+      setManuallyPaused((prev) => ({ ...prev, [videoId]: false }));
+      videoElement.muted = !audioEnabled;
+      videoElement.play().catch((err) => {
+        if (err.name !== 'AbortError') console.log('Play error:', err);
+      });
+      setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
+      setShowPauseIcon((prev) => ({ ...prev, [videoId]: false }));
+    } else {
+      // User is pausing - set manual pause flag
+      setManuallyPaused((prev) => ({ ...prev, [videoId]: true }));
+      videoElement.pause();
+      setPlayingVideos((prev) => ({ ...prev, [videoId]: false }));
+      setShowPauseIcon((prev) => ({ ...prev, [videoId]: true }));
+    }
+  };
+
   const toggleVideoPlayback = (videoId) => {
     const videoElement = videoRefs.current[videoId];
     if (!videoElement) return;
@@ -670,7 +698,9 @@ export const TikTokLayout = memo(function TikTokLayout({
       // User is resuming - remove manual pause flag
       setManuallyPaused((prev) => ({ ...prev, [videoId]: false }));
       videoElement.muted = !audioEnabled;
-      videoElement.play();
+      videoElement.play().catch((err) => {
+        if (err.name !== 'AbortError') console.log('Play error:', err);
+      });
       setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
       setShowPauseIcon((prev) => ({ ...prev, [videoId]: false }));
     } else {
