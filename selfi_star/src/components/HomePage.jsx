@@ -50,6 +50,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -64,11 +65,48 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
     if (!api.hasToken()) return;
     setSending(true);
     try {
-      const res = await api.request('/comments/', { method: 'POST', body: JSON.stringify({ reel: post.id, text: text.trim() }), headers: { 'Content-Type': 'application/json' } });
-      setComments(prev => [...prev, res]);
+      const body = replyingTo 
+        ? { reel: post.id, text: text.trim(), parent: replyingTo.id }
+        : { reel: post.id, text: text.trim() };
+      
+      const res = await api.request('/comments/', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
+      
+      if (replyingTo) {
+        setComments(prev => prev.map(c => 
+          c.id === replyingTo.id 
+            ? { ...c, replies: [...(c.replies || []), res] }
+            : c
+        ));
+        setReplyingTo(null);
+      } else {
+        setComments(prev => [...prev, res]);
+      }
+      
       setText('');
       onCommentAdded?.();
     } catch {} finally { setSending(false); }
+  };
+
+  const handleLikeComment = async (comment) => {
+    if (!api.hasToken()) return;
+    try {
+      await api.request(`/comments/${comment.id}/like/`, { method: 'POST' });
+      setComments(prev => prev.map(c => 
+        c.id === comment.id 
+          ? { ...c, is_liked: !c.is_liked, likes: (c.likes || 0) + (c.is_liked ? -1 : 1) }
+          : c
+      ));
+    } catch {}
+  };
+
+  const handleReply = (comment) => {
+    setReplyingTo(comment);
+    inputRef.current?.focus();
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+    setText('');
   };
 
   return (
@@ -90,37 +128,94 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
           {comments.length === 0 ? (
             <div style={{ textAlign: 'center', color: T?.sub || '#666', padding: 30, fontSize: 14 }}>No comments yet. Be first!</div>
           ) : comments.map(c => (
-            <div key={c.id} style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 34, height: 34, borderRadius: '50%', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
-                {c.user?.profile_photo ? <img src={mediaUrl(c.user.profile_photo)} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} /> : '👤'}
+            <div key={c.id} style={{ marginBottom: 20 }}>
+              {/* Main comment */}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ width: 34, height: 34, borderRadius: '50%', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+                  {c.user?.profile_photo ? <img src={mediaUrl(c.user.profile_photo)} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} /> : '👤'}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: T?.txt || '#000' }}>{c.user?.username}</span>
+                    <span style={{ fontSize: 13, color: T?.txt || '#000' }}>{c.text}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                    <span style={{ fontSize: 11, color: T?.sub || '#666' }}>{timeAgo(c.created_at)}</span>
+                    {api.hasToken() && (
+                      <>
+                        <button
+                          onClick={() => handleLikeComment(c)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 11, color: c.is_liked ? (T?.pri || '#000') : T?.sub || '#666', fontWeight: c.is_liked ? 700 : 400 }}
+                        >
+                          {c.is_liked ? 'Liked' : 'Like'} {c.likes > 0 ? `(${c.likes})` : ''}
+                        </button>
+                        <button
+                          onClick={() => handleReply(c)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 11, color: T?.sub || '#666' }}
+                        >
+                          Reply
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontWeight: 700, fontSize: 13, color: T?.txt || '#000' }}>{c.user?.username} </span>
-                <span style={{ fontSize: 13, color: T?.txt || '#000' }}>{c.text}</span>
-                <div style={{ fontSize: 11, color: T?.sub || '#666', marginTop: 2 }}>{timeAgo(c.created_at)}</div>
-              </div>
+              {/* Replies */}
+              {c.replies && c.replies.length > 0 && (
+                <div style={{ marginLeft: 44, marginTop: 12 }}>
+                  {c.replies.map(r => (
+                    <div key={r.id} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: (T?.pri || '#000') + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>
+                        {r.user?.profile_photo ? <img src={mediaUrl(r.user.profile_photo)} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} /> : '👤'}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontWeight: 700, fontSize: 12, color: T?.txt || '#000' }}>{r.user?.username}</span>
+                          <span style={{ fontSize: 12, color: T?.txt || '#000' }}>{r.text}</span>
+                        </div>
+                        <span style={{ fontSize: 10, color: T?.sub || '#666', marginTop: 2 }}>{timeAgo(r.created_at)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
         {/* Input */}
-        <form onSubmit={handleSend} style={{ display: 'flex', gap: 8, padding: '10px 16px', borderTop: `1px solid ${T?.border || '#e0e0e0'}` }}>
-          <input
-            ref={inputRef}
-            value={text}
-            onChange={e => setText(e.target.value)}
-            placeholder={api.hasToken() ? 'Add a comment…' : 'Log in to comment'}
-            disabled={!api.hasToken()}
-            style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${T?.border || '#e0e0e0'}`, background: T?.cardBg || '#fff', color: T?.txt || '#000', fontSize: 14, outline: 'none' }}
-          />
-          <button
-            type="submit"
-            disabled={!text.trim() || sending || !api.hasToken()}
-            style={{ background: T?.pri || '#000', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0 }}
-            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.9)'}
-            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <Send size={16} color="#fff" />
-          </button>
+        <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 16px', borderTop: `1px solid ${T?.border || '#e0e0e0'}` }}>
+          {replyingTo && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: (T?.pri || '#000') + '10', borderRadius: 8 }}>
+              <span style={{ fontSize: 12, color: T?.txt || '#000' }}>
+                Replying to <strong>@{replyingTo.user?.username}</strong>
+              </span>
+              <button
+                onClick={handleCancelReply}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: T?.sub || '#666' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              ref={inputRef}
+              value={text}
+              onChange={e => setText(e.target.value)}
+              placeholder={replyingTo ? `Reply to @${replyingTo.user?.username}...` : (api.hasToken() ? 'Add a comment…' : 'Log in to comment')}
+              disabled={!api.hasToken()}
+              style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${T?.border || '#e0e0e0'}`, background: T?.cardBg || '#fff', color: T?.txt || '#000', fontSize: 14, outline: 'none' }}
+            />
+            <button
+              type="submit"
+              disabled={!text.trim() || sending || !api.hasToken()}
+              style={{ background: T?.pri || '#000', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0 }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.9)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <Send size={16} color="#fff" />
+            </button>
+          </div>
         </form>
       </div>
     </div>
