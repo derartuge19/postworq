@@ -1026,7 +1026,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               </div>
 
               {/* Cards */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 44, padding: '28px 24px', position: 'relative', zIndex: 1, alignItems: 'flex-start', justifyContent: 'center', marginLeft: 'auto', marginRight: 'auto', maxWidth: '500px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 44, padding: '28px 24px', position: 'relative', zIndex: 1, alignItems: 'flex-start', justifyContent: 'center', marginLeft: '10%', marginRight: 'auto', maxWidth: '500px' }}>
 
                 {/* ── Take Photo/Video card ── */}
                 <button className="ep-btn" onClick={() => setCaptureMode('camera')}
