@@ -365,10 +365,21 @@ class ReelViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         try:
+            from .models import Comment
+            # Prefetch recent comments to avoid N+1 queries in serializer
+            recent_comments_prefetch = Prefetch(
+                'comments',
+                queryset=Comment.objects.select_related('user').order_by('-created_at')[:10],
+                to_attr='prefetched_comments'
+            )
+            
             queryset = Reel.objects.select_related(
                 'user', 'user__profile'
+            ).prefetch_related(
+                recent_comments_prefetch
             ).annotate(
                 comment_count_db=Count('comments', distinct=True),
+                votes_count_db=Count('reel_votes', distinct=True),
             ).order_by('-created_at')
             
             # Exclude reels marked as not interested from list view only

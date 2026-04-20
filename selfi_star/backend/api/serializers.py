@@ -138,7 +138,10 @@ class ReelSerializer(serializers.ModelSerializer):
         return False
     
     def get_votes(self, obj):
-        # Calculate votes dynamically from Vote table to ensure accuracy
+        # Use DB annotation if available (set by ReelViewSet.get_queryset)
+        if hasattr(obj, 'votes_count_db'):
+            return obj.votes_count_db
+        # Fallback to separate query only when annotation not available
         from .models import Vote
         return Vote.objects.filter(reel=obj).count()
     
@@ -153,6 +156,11 @@ class ReelSerializer(serializers.ModelSerializer):
         return False
     
     def get_recent_comments(self, obj):
+        # Use prefetched comments if available (set by ReelViewSet.get_queryset with prefetch_related)
+        if hasattr(obj, 'prefetched_comments'):
+            comments = list(obj.prefetched_comments)[:3]
+            return CommentSerializer(comments, many=True).data
+        # Fallback to query only when prefetch not available
         from .models import Comment
         recent_comments = Comment.objects.filter(reel=obj).select_related('user').order_by('-created_at')[:3]
         return CommentSerializer(recent_comments, many=True).data
