@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo, startTransition } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -1053,12 +1053,10 @@ const HomePage = memo(function HomePage({ user, onShowProfile, onShowPostPage, o
       
       const results = Array.isArray(data) ? data : (data.results || []);
       const newPosts = reset ? results : [...posts, ...results];
-      startTransition(() => {
-        setPosts(newPosts);
-        if (reset) writeHomeCache(newPosts); // Save to cache on initial fetch
-        setHasMore(Array.isArray(data) ? results.length === (reset ? LIMIT * 2 : LIMIT) : !!data.next);
-        setPage(offset);
-      });
+      setPosts(newPosts);
+      if (reset) writeHomeCache(newPosts); // Save to cache on initial fetch
+      setHasMore(Array.isArray(data) ? results.length === (reset ? LIMIT * 2 : LIMIT) : !!data.next);
+      setPage(offset);
     } catch (e) {
       console.error('HomePage fetch error:', e);
       // On timeout, show cached data if available

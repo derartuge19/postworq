@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, startTransition } from "react";
+import { useState, useEffect, memo } from "react";
 import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2 } from "lucide-react";
 import { GamificationBar } from "./GamificationBar";
 import api from "../api";
@@ -292,10 +292,8 @@ const ProfilePage = memo(function ProfilePage({ user, userId, onBack, onEditProf
           const storedUser = localStorage.getItem('user');
           if (storedUser) {
             const parsed = JSON.parse(storedUser);
-            startTransition(() => {
-              setProfileUser(parsed);
-              setProfileData(parsed);
-            });
+            setProfileUser(parsed);
+            setProfileData(parsed);
           }
           // Don't block — fetch counts in background
           fetchFollowCounts(targetUserId);
@@ -303,13 +301,11 @@ const ProfilePage = memo(function ProfilePage({ user, userId, onBack, onEditProf
           // Other user profile: check cache first
           const cachedData = readProfileCache(targetUserId);
           if (cachedData) {
-            startTransition(() => {
-              setProfileUser(cachedData.profileUser);
-              setProfileData(cachedData.profileUser);
-              setFollowersCount(cachedData.followersCount);
-              setFollowingCount(cachedData.followingCount);
-              setIsFollowing(cachedData.isFollowing);
-            });
+            setProfileUser(cachedData.profileUser);
+            setProfileData(cachedData.profileUser);
+            setFollowersCount(cachedData.followersCount);
+            setFollowingCount(cachedData.followingCount);
+            setIsFollowing(cachedData.isFollowing);
             setLoading(false);
             // Refresh in background
             fetchFollowCounts(targetUserId);
@@ -323,7 +319,7 @@ const ProfilePage = memo(function ProfilePage({ user, userId, onBack, onEditProf
               api.getUser(userId),
               fetchFollowCounts(targetUserId),
             ]);
-            startTransition(() => setProfileUser(userData));
+            setProfileUser(userData);
             // Write to cache
             writeProfileCache(targetUserId, {
               profileUser: userData,
