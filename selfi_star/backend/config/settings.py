@@ -70,15 +70,15 @@ IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER
 
 # Database configuration
 if IS_RENDER:
-    # Neon PostgreSQL on Render
+    # Neon PostgreSQL on Render - use environment variables
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'neondb',
-            'USER': 'neondb_owner',
-            'PASSWORD': 'npg_gQpuHj7IBoC1',
-            'HOST': 'ep-rough-math-anwwqd2n-pooler.c-6.us-east-1.aws.neon.tech',
-            'PORT': '5432',
+            'NAME': config('DATABASE_NAME', default='neondb'),
+            'USER': config('DATABASE_USER', default='neondb_owner'),
+            'PASSWORD': config('DATABASE_PASSWORD', default=''),
+            'HOST': config('DATABASE_HOST', default='localhost'),
+            'PORT': config('DATABASE_PORT', default='5432'),
             'OPTIONS': {
                 'sslmode': 'require',
             },

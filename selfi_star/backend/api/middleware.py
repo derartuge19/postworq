@@ -33,7 +33,7 @@ class CustomCorsMiddleware(MiddlewareMixin):
         origin = request.META.get('HTTP_ORIGIN', '')
         
         # Always allow all origins to fix CORS issues
-        response['Access-Control-Allow-Origin'] = origin || '*'
+        response['Access-Control-Allow-Origin'] = origin if origin else '*'
         response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD'
         response['Access-Control-Allow-Headers'] = 'accept, accept-encoding, authorization, content-type, dnt, origin, user-agent, x-csrftoken, x-requested-with, x-forwarded-for, x-forwarded-host, x-forwarded-proto'
         response['Access-Control-Allow-Credentials'] = 'true'
@@ -42,7 +42,7 @@ class CustomCorsMiddleware(MiddlewareMixin):
         # Handle preflight requests - always allow OPTIONS with CORS headers
         if request.method == 'OPTIONS':
             response.status_code = 200
-            response['Access-Control-Allow-Origin'] = origin || '*'
+            response['Access-Control-Allow-Origin'] = origin if origin else '*'
             response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD'
             response['Access-Control-Allow-Headers'] = 'accept, accept-encoding, authorization, content-type, dnt, origin, user-agent, x-csrftoken, x-requested-with, x-forwarded-for, x-forwarded-host, x-forwarded-proto'
             response['Access-Control-Allow-Credentials'] = 'true'
