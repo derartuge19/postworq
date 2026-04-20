@@ -72,6 +72,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
   const [flashOn, setFlashOn] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recTime, setRecTime] = useState(0);
+  const [cameraLoading, setCameraLoading] = useState(false);
   const [recProgress, setRecProgress] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState('none');
   const [selectedSpeed, setSelectedSpeed] = useState('1x');
@@ -208,7 +209,10 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
   const startCamera = useCallback(async () => {
     const gen = ++cameraGenRef.current;  // capture generation token
     try {
+      setCameraLoading(true);
       if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+      
+      console.log('Starting camera with facingMode:', facingMode);
       // iPhone-compatible camera constraints
       const constraints = {
         video: {
@@ -270,7 +274,20 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
       startDrawLoop();
     } catch (e) { 
       console.error('Camera error - all attempts failed:', e);
-      alert('Camera access failed. Please check your permissions and try again.');
+      console.error('Error details:', e.name, e.message);
+      
+      // Show user-friendly error message
+      if (e.name === 'NotAllowedError') {
+        alert('Camera access denied. Please allow camera permissions in your browser settings.');
+      } else if (e.name === 'NotFoundError') {
+        alert('No camera found. Please connect a camera and try again.');
+      } else if (e.name === 'NotReadableError') {
+        alert('Camera is already in use by another application. Please close other apps using the camera.');
+      } else {
+        alert('Camera access failed. Please check your permissions and try again.\n\nError: ' + e.message);
+      }
+    } finally {
+      setCameraLoading(false);
     }
   }, [facingMode, startDrawLoop]);
 
@@ -775,6 +792,34 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
             <div ref={previewContainerRef} style={{ position: 'absolute', inset: 0 }}
               onMouseMove={moveOverlayDrag} onMouseUp={endOverlayDrag} onMouseLeave={endOverlayDrag}
               onTouchMove={moveOverlayDrag} onTouchEnd={endOverlayDrag}>
+              {/* Camera loading indicator */}
+              {cameraLoading && (
+                <div style={{
+                  position: 'absolute', inset: 0, background: T.bg,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  zIndex: 1000,
+                }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: '50%', background: T.pri,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    animation: 'spin 1s linear infinite',
+                  }}>
+                    <RefreshCw size={24} color="#fff" />
+                  </div>
+                  <div style={{ marginTop: 16, fontSize: 14, color: T.txt, fontWeight: 600 }}>
+                    Starting camera...
+                  </div>
+                  <div style={{ marginTop: 8, fontSize: 12, color: T.sub }}>
+                    Please allow camera permissions if prompted
+                  </div>
+                  <style>{`
+                    @keyframes spin {
+                      from { transform: rotate(0deg); }
+                      to { transform: rotate(360deg); }
+                    }
+                  `}</style>
+                </div>
+              )}
               {/* Hidden video source */}
               <video 
                 ref={videoRef} 

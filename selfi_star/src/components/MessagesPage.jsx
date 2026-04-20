@@ -1351,7 +1351,7 @@ export function MessagesPage({ user, onShowProfile }) {
         padding: '16px 18px', borderBottom: `1px solid ${T.border}`,
       }}>
         <div style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>
-          {user?.username || 'Messages'}
+          Messages
         </div>
         <button
           onClick={() => setShowNewChat(true)}
