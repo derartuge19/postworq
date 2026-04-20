@@ -1070,9 +1070,159 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
     if (!loading) scrollToBottom(false);
   }, [messages.length, loading]);
 
-  // ... rest of the code remains the same ...
+  // Message input and send functionality
+  const [text, setText] = useState('');
+  const [attachment, setAttachment] = useState(null);
+  const [recording, setRecording] = useState(false);
+  const [recSecs, setRecSecs] = useState(0);
+  const timerRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
 
-  // ─── Main Page ────────────────────────────────────────────────────────────────
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!text.trim() && !attachment) return;
+    // Handle message sending logic here...
+  };
+
+  return (
+    <>
+      {/* Messages list */}
+      <div ref={scrollRef} style={{
+        flex: 1, overflowY: 'auto', padding: '16px 12px',
+        WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain',
+      }}>
+        {loading ? (
+          <div style={{ padding: 24, textAlign: 'center', color: T.sub }}>Loading...</div>
+        ) : messages.length === 0 ? (
+          <div style={{ padding: 24, textAlign: 'center', color: T.sub }}>
+            No messages yet. Start the conversation!
+          </div>
+        ) : (
+          messages.map((msg) => (
+            <div key={msg.id} style={{
+              marginBottom: 16,
+              display: 'flex',
+              flexDirection: msg.sender === user?.id ? 'row-reverse' : 'row',
+            }}>
+              <div style={{
+                maxWidth: '70%',
+                background: msg.sender === user?.id ? priColor : T.card,
+                color: msg.sender === user?.id ? '#fff' : T.txt,
+                padding: '10px 14px',
+                borderRadius: 18,
+                borderBottomLeftRadius: msg.sender === user?.id ? 18 : 4,
+                borderBottomRightRadius: msg.sender === user?.id ? 4 : 18,
+              }}>
+                {msg.text}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Message input */}
+      <form onSubmit={submit} style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '12px 16px', borderTop: `1px solid ${T.border}`,
+        background: T.cardBg,
+      }}>
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Type a message..."
+          style={{
+            flex: 1, padding: '10px 14px', borderRadius: 20,
+            border: `1px solid ${T.border}`, background: T.bg,
+            color: T.txt, fontSize: 14, outline: 'none',
+          }}
+        />
+        <button
+          type="submit"
+          disabled={!text.trim()}
+          style={{
+            background: text.trim() ? priColor : T.border,
+            color: '#fff', border: 'none', borderRadius: '50%',
+            width: 40, height: 40, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', cursor: text.trim() ? 'pointer' : 'not-allowed',
+          }}
+        >
+          <Send size={18} />
+        </button>
+      </form>
+    </>
+  );
+}
+
+// ── Main Page ────────────────────────────────────────────────────────────────
+// Conversation row component
+function ConvRow({ conv, active, currentUserId, onClick, T }) {
+  const other = conv.other_user;
+  const isOwn = conv.last_message?.sender === currentUserId;
+  
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px 16px',
+        cursor: 'pointer',
+        background: active ? `${T.pri}10` : 'transparent',
+        borderLeft: active ? `3px solid ${T.pri}` : '3px solid transparent',
+        transition: 'background 0.15s',
+      }}
+      onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = T.bg; }}
+      onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+    >
+      <div style={{
+        width: 48, height: 48, borderRadius: '50%',
+        background: T.border, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: T.sub, fontSize: 18, fontWeight: 700,
+      }}>
+        {other?.username?.[0]?.toUpperCase() || '?'}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: 2,
+        }}>
+          <div style={{
+            fontSize: 15, fontWeight: 600, color: T.txt,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {other?.username || 'Unknown'}
+          </div>
+          <div style={{ fontSize: 12, color: T.sub, whiteSpace: 'nowrap' }}>
+            {relTime(conv.last_message?.created_at)}
+          </div>
+        </div>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <div style={{
+            fontSize: 13, color: T.sub,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            maxWidth: '200px',
+          }}>
+            {isOwn && 'You: '}{conv.last_message?.text || 'Media'}
+          </div>
+          {conv.unread_count > 0 && (
+            <div style={{
+              background: T.pri, color: '#fff', borderRadius: '50%',
+              width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 700, minWidth: 20,
+            }}>
+              {conv.unread_count > 9 ? '9+' : conv.unread_count}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MessagesPage({ user, onShowProfile }) {
   const { colors: T } = useTheme();
   const priColor = T.priGradient || T.pri;
@@ -1111,7 +1261,6 @@ export function MessagesPage({ user, onShowProfile }) {
                               p.last_message?.text === arr[i]?.last_message?.text &&
                               p.unread_count === arr[i]?.unread_count)) {
           return prev; // No change, skip update
-          if (same) return prev;
         }
         return arr;
       });
