@@ -27,6 +27,7 @@ export function AppShell({
   onShowCampaigns,
   onShowExplorer,
   unreadNotifCount = 0,
+  unreadDmCount = 0,
   children,
 }) {
   const { colors: T } = useTheme();
@@ -192,6 +193,8 @@ export function AppShell({
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               const isBell = item.id === 'notifications';
+              const isMsg = item.id === 'messages';
+              const badgeCount = isBell ? unreadNotifCount : (isMsg ? unreadDmCount : 0);
               return (
                 <button
                   key={item.id}
@@ -213,7 +216,7 @@ export function AppShell({
                 >
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                     <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                    {isBell && unreadNotifCount > 0 && (
+                    {(isBell || isMsg) && badgeCount > 0 && (
                       <div style={{
                         position: 'absolute',
                         top: -5,
@@ -233,7 +236,7 @@ export function AppShell({
                         border: '1.5px solid #fff',
                         lineHeight: 1,
                       }}>
-                        {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                        {badgeCount > 99 ? '99+' : badgeCount}
                       </div>
                     )}
                   </div>
@@ -379,6 +382,8 @@ export function AppShell({
             if (item.id === 'home' && (activeTab === 'foryou' || activeTab === 'feed' || activeTab === 'home')) isActive = true;
             if (item.id === 'reels' && activeTab === 'reels') isActive = true;
             const isBell = item.id === 'notifications';
+            const isMsg = item.id === 'messages';
+            const badgeCount = isBell ? unreadNotifCount : (isMsg ? unreadDmCount : 0);
 
             if (isCreate) return (
               <button
@@ -447,7 +452,7 @@ export function AppShell({
                     color={isActive ? T.pri : T.sub}
                     fill={isActive && (item.id === 'home') ? T.pri + '40' : 'none'}
                   />
-                  {isBell && unreadNotifCount > 0 && (
+                  {(isBell || isMsg) && badgeCount > 0 && (
                     <div style={{
                       position: 'absolute', top: 2, right: 2,
                       minWidth: 14, height: 14, borderRadius: 7,
@@ -457,7 +462,7 @@ export function AppShell({
                       padding: '0 2px', boxSizing: 'border-box',
                       border: '1.5px solid #fff', lineHeight: 1,
                     }}>
-                      {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+                      {badgeCount > 99 ? '99+' : badgeCount}
                     </div>
                   )}
                 </div>

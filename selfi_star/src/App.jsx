@@ -19,6 +19,7 @@ const CampaignDetailPage = lazy(() => import('./pages/CampaignDetailPage').then(
 const CampaignLeaderboard = lazy(() => import('./pages/CampaignLeaderboard'));
 const CampaignFeed = lazy(() => import('./pages/CampaignFeed'));
 const VideoDetailPage = lazy(() => import('./components/VideoDetailPage').then(m => ({ default: m.VideoDetailPage })));
+const MessagesPage = lazy(() => import('./components/MessagesPage').then(m => ({ default: m.MessagesPage })));
 const ExplorerPage = lazy(() => import('./components/ExplorerPage').then(m => ({ default: m.ExplorerPage })));
 const HomePage = lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })));
 const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
@@ -228,6 +229,7 @@ export default function WerqRoot() {
   const [videoDetailId, setVideoDetailId] = useState(_sharedPostId || null);
   const [showExplorer, setShowExplorer] = useState(false);
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [unreadDmCount, setUnreadDmCount] = useState(0);
 
   // Poll unread notification count every 30s when user is logged in
   useEffect(() => {
@@ -240,6 +242,20 @@ export default function WerqRoot() {
     };
     fetchCount();
     const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, [authUser]);
+
+  // Poll unread DM count every 15s
+  useEffect(() => {
+    if (!authUser) { setUnreadDmCount(0); return; }
+    const fetchDm = async () => {
+      try {
+        const data = await api.request('/messages/unread-count/');
+        setUnreadDmCount(data?.unread_count || 0);
+      } catch (_) {}
+    };
+    fetchDm();
+    const interval = setInterval(fetchDm, 15000);
     return () => clearInterval(interval);
   }, [authUser]);
 
@@ -798,6 +814,7 @@ export default function WerqRoot() {
         onShowCampaigns={handleShowCampaigns}
         onShowExplorer={handleShowExplorer}
         unreadNotifCount={unreadNotifCount}
+        unreadDmCount={unreadDmCount}
       >
         {/* Each lazy page gets its own Suspense so only one loads at a time */}
         {showSettings && (
@@ -1034,7 +1051,17 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab !== 'home' && (
+        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab === 'messages' && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
+              <MessagesPage
+                user={authUser}
+                onShowProfile={handleShowProfile}
+              />
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
+        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab !== 'home' && activeTab !== 'messages' && (
           <TikTokLayout
             user={authUser}
             activeTab={activeTab}

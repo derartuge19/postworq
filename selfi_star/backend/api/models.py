@@ -10,6 +10,8 @@ from .models_campaign_extended import (
 )
 # Import legal models
 from .models_legal import LegalDocument, LegalDocumentVersion, UserLegalAcceptance
+# Import messaging models
+from .models_messaging import Conversation, Message, MessageRead
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')

@@ -1294,31 +1294,21 @@ export const TikTokLayout = memo(function TikTokLayout({
           )}
         </div>}
 
-        {/* Messages/Inbox Tab */}
+        {/* Messages tab is now handled by MessagesPage in App.jsx */}
         {activeTab === 'inbox' ? (
           <div style={{ width: '100%', maxWidth: 600, padding: '0 20px' }}>
             <div
               style={{
-                background: '#fff',
+                background: T.cardBg,
                 borderRadius: 16,
                 padding: 60,
                 textAlign: 'center',
                 border: `1px solid ${T.border}`,
               }}
             >
-              <div style={{ fontSize: 64, marginBottom: 20 }}>💬</div>
-              <h3
-                style={{
-                  fontSize: 20,
-                  fontWeight: 700,
-                  color: T.txt,
-                  marginBottom: 8,
-                }}
-              >
-                Messages Coming Soon
-              </h3>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>💬</div>
               <p style={{ fontSize: 14, color: T.sub, margin: 0 }}>
-                Direct messaging feature will be available soon. Stay tuned!
+                Messaging is now available — use the Messages tab in the navigation.
               </p>
             </div>
           </div>

@@ -1,0 +1,92 @@
+"""Serializers for Direct Messaging."""
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from .models_messaging import Conversation, Message
+
+
+def _profile_photo_url(user):
+    try:
+        pf = user.profile.profile_photo
+        if pf and pf.name:
+            return pf.name if pf.name.startswith('http') else pf.url
+    except Exception:
+        pass
+    return None
+
+
+class BriefUserSerializer(serializers.ModelSerializer):
+    profile_photo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'profile_photo']
+
+    def get_profile_photo(self, obj):
+        return _profile_photo_url(obj)
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender = BriefUserSerializer(read_only=True)
+    is_own = serializers.SerializerMethodField()
+    is_editable = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Message
+        fields = [
+            'id', 'conversation', 'sender', 'text',
+            'created_at', 'edited_at', 'is_deleted',
+            'is_own', 'is_editable',
+        ]
+        read_only_fields = ['id', 'sender', 'created_at', 'edited_at', 'is_deleted', 'is_own', 'is_editable', 'conversation']
+
+    def get_is_own(self, obj):
+        request = self.context.get('request')
+        return bool(request and request.user.is_authenticated and obj.sender_id == request.user.id)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Soft-deleted messages show a placeholder, not the original text
+        if instance.is_deleted:
+            data['text'] = ''
+        return data
+
+
+class ConversationSerializer(serializers.ModelSerializer):
+    other_user = serializers.SerializerMethodField()
+    last_message = serializers.SerializerMethodField()
+    unread_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Conversation
+        fields = ['id', 'other_user', 'last_message', 'unread_count', 'last_message_at', 'created_at']
+
+    def get_other_user(self, obj):
+        request = self.context.get('request')
+        if not (request and request.user.is_authenticated):
+            return None
+        other = obj.other_participant(request.user)
+        if not other:
+            return None
+        return BriefUserSerializer(other).data
+
+    def get_last_message(self, obj):
+        last = obj.messages.order_by('-created_at').first()
+        if not last:
+            return None
+        return {
+            'id': last.id,
+            'text': '' if last.is_deleted else last.text,
+            'is_deleted': last.is_deleted,
+            'sender_id': last.sender_id,
+            'created_at': last.created_at.isoformat(),
+        }
+
+    def get_unread_count(self, obj):
+        request = self.context.get('request')
+        if not (request and request.user.is_authenticated):
+            return 0
+        read = obj.reads.filter(user=request.user).first()
+        qs = obj.messages.exclude(sender=request.user)
+        if read:
+            qs = qs.filter(created_at__gt=read.last_read_at)
+        return qs.count()

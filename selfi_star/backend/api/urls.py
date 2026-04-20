@@ -16,6 +16,10 @@ from .views_master_campaign import (
     join_master_campaign, master_campaign_stats, test_generate_endpoint, generate_sub_campaigns,
     update_generation_config
 )
+from .views_messaging import (
+    list_or_create_conversations, conversation_messages, edit_or_delete_message,
+    mark_conversation_read, unread_dm_count, search_users_for_dm,
+)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -190,6 +194,13 @@ urlpatterns = [
     path('notifications/read/', mark_notifications_read, name='mark-notifications-read'),
     path('notifications/<int:notification_id>/read/', mark_single_notification_read, name='notification-single-read'),
     path('search/', search, name='search'),
+    # Messaging endpoints
+    path('messages/conversations/', list_or_create_conversations, name='dm-conversations'),
+    path('messages/conversations/<int:conversation_id>/messages/', conversation_messages, name='dm-conv-messages'),
+    path('messages/conversations/<int:conversation_id>/read/', mark_conversation_read, name='dm-conv-read'),
+    path('messages/<int:message_id>/', edit_or_delete_message, name='dm-message'),
+    path('messages/unread-count/', unread_dm_count, name='dm-unread-count'),
+    path('messages/users/search/', search_users_for_dm, name='dm-user-search'),
     # Report endpoints
     path('reports/create/', create_report, name='create-report'),
     path('admin/reports/', admin_reports_list, name='admin-reports-list'),

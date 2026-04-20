@@ -1,0 +1,86 @@
+"""Direct messaging models: 1-on-1 conversations between users.
+
+Design:
+- Conversation: a thread between two users (M2M participants, always 2 for now).
+- Message: a single message with optional soft-delete + edited_at for 15-min edit window.
+- MessageRead: tracks the last-read timestamp per user per conversation so we can compute unread counts cheaply.
+"""
+from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
+
+
+EDIT_WINDOW_MINUTES = 15
+
+
+class Conversation(models.Model):
+    participants = models.ManyToManyField(User, related_name='conversations')
+    created_at = models.DateTimeField(auto_now_add=True)
+    # Bumped whenever a new message is added so we can sort inbox efficiently.
+    last_message_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-last_message_at']
+        indexes = [
+            models.Index(fields=['-last_message_at']),
+        ]
+
+    def other_participant(self, user):
+        """Return the other user in a 1-on-1 conversation."""
+        return self.participants.exclude(id=user.id).first()
+
+    def __str__(self):
+        try:
+            names = ', '.join(self.participants.values_list('username', flat=True)[:3])
+        except Exception:
+            names = 'unknown'
+        return f"Conversation #{self.id} ({names})"
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name='messages'
+    )
+    sender = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='messages_sent'
+    )
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['conversation', 'created_at']),
+        ]
+
+    @property
+    def is_editable(self):
+        """Messages can be edited within 15 minutes of creation (Instagram rule)."""
+        if self.is_deleted:
+            return False
+        return (timezone.now() - self.created_at) <= timedelta(minutes=EDIT_WINDOW_MINUTES)
+
+    def __str__(self):
+        preview = (self.text or '')[:40]
+        return f"Msg #{self.id} from {self.sender_id}: {preview}"
+
+
+class MessageRead(models.Model):
+    """Per-user, per-conversation last-read tracker — used to compute unread counts."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='message_reads')
+    conversation = models.ForeignKey(
+        Conversation, on_delete=models.CASCADE, related_name='reads'
+    )
+    last_read_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('user', 'conversation')
+        indexes = [
+            models.Index(fields=['user', 'conversation']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} read up to {self.last_read_at} in conv #{self.conversation_id}"
