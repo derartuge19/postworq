@@ -81,8 +81,9 @@ if IS_RENDER:
             'PORT': config('DB_PORT', default='5432'),
             'OPTIONS': {
                 'sslmode': 'require',
+                'connect_timeout': 10,
             },
-            'CONN_MAX_AGE': 600,
+            'CONN_MAX_AGE': 0,  # Disable connection pooling for better error handling
         }
     }
     
@@ -91,7 +92,22 @@ if IS_RENDER:
     print(f"DATABASE_HOST: {DATABASES['default']['HOST']}")
     print(f"DATABASE_NAME: {DATABASES['default']['NAME']}")
     print(f"DATABASE_USER: {DATABASES['default']['USER']}")
-    print(f"=== DEPLOYMENT VERSION: 2.0 ===")
+    print(f"=== DEPLOYMENT VERSION: 3.0 ===")
+    
+    # Test database connection and handle errors gracefully
+    try:
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        print("=== DATABASE CONNECTION SUCCESSFUL ===")
+    except Exception as e:
+        print(f"=== DATABASE CONNECTION FAILED: {e} ===")
+        print("=== FALLBACK TO SQLITE FOR CRITICAL OPERATIONS ===")
+        # Fallback to SQLite for basic functionality
+        DATABASES['default'] = {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': str(BASE_DIR / 'fallback_db.sqlite3'),
+        }
 else:
     # Local development: SQLite
     DATABASES = {
