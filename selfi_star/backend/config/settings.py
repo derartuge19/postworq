@@ -71,18 +71,24 @@ IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER
 # Database configuration
 if IS_RENDER:
     # Use Render's DATABASE_URL environment variable
-    import dj_database_url
-    
     DATABASE_URL = config('DATABASE_URL', default='')
     if DATABASE_URL:
+        import urllib.parse
+        parsed = urllib.parse.urlparse(DATABASE_URL)
         DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL)
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': parsed.path[1:],  # Remove leading slash
+                'USER': parsed.username,
+                'PASSWORD': parsed.password,
+                'HOST': parsed.hostname,
+                'PORT': parsed.port or 5432,
+                'OPTIONS': {
+                    'sslmode': 'require',
+                },
+                'CONN_MAX_AGE': 600,
+            }
         }
-        # Add SSL mode for Render
-        DATABASES['default']['OPTIONS'] = {
-            'sslmode': 'require',
-        }
-        DATABASES['default']['CONN_MAX_AGE'] = 600
     else:
         # Fallback configuration
         DATABASES = {
