@@ -15,6 +15,8 @@ if (storedToken) {
 const _cache = new Map();
 const _inflight = new Map();
 const CACHE_TTL = 60_000; // 60s default TTL for better performance
+const MAX_RETRIES = 2; // Max retries for network errors
+const RETRY_DELAY = 1000; // Delay between retries in ms
 
 function getCached(key) {
   const entry = _cache.get(key);
@@ -24,6 +26,25 @@ function getCached(key) {
 }
 function setCache(key, data, ttl = CACHE_TTL) {
   _cache.set(key, { data, ts: Date.now(), ttl });
+}
+
+// Retry function for network errors
+async function retryWithBackoff(fn, retries = MAX_RETRIES) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      // Only retry on network errors, not on 4xx/5xx HTTP errors
+      if (error.name === 'TypeError' || error.message.includes('fetch') || error.message.includes('network')) {
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+  return fn();
 }
 function invalidateCache(pattern) {
   for (const key of _cache.keys()) {
@@ -111,9 +132,11 @@ const api = {
     }
     // Debug logging removed for production performance
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
+    const response = await retryWithBackoff(async () => {
+      return await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
     });
 
     let data;
