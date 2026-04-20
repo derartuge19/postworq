@@ -231,7 +231,7 @@ export default function WerqRoot() {
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const [unreadDmCount, setUnreadDmCount] = useState(0);
 
-  // Poll unread notification count every 30s when user is logged in
+  // Poll unread notification count every 60s when user is logged in (reduced for performance)
   useEffect(() => {
     if (!authUser) { setUnreadNotifCount(0); return; }
     const fetchCount = async () => {
@@ -241,11 +241,11 @@ export default function WerqRoot() {
       } catch (_) {}
     };
     fetchCount();
-    const interval = setInterval(fetchCount, 30000);
+    const interval = setInterval(fetchCount, 60000); // 60s instead of 30s
     return () => clearInterval(interval);
   }, [authUser]);
 
-  // Poll unread DM count every 15s
+  // Poll unread DM count every 30s (reduced for performance)
   useEffect(() => {
     if (!authUser) { setUnreadDmCount(0); return; }
     const fetchDm = async () => {
@@ -255,7 +255,7 @@ export default function WerqRoot() {
       } catch (_) {}
     };
     fetchDm();
-    const interval = setInterval(fetchDm, 15000);
+    const interval = setInterval(fetchDm, 30000); // 30s instead of 15s
     return () => clearInterval(interval);
   }, [authUser]);
 

@@ -14,7 +14,7 @@ if (storedToken) {
 // --- Lightweight GET cache & request deduplication ---
 const _cache = new Map();
 const _inflight = new Map();
-const CACHE_TTL = 30_000; // 30s default TTL
+const CACHE_TTL = 60_000; // 60s default TTL for better performance
 
 function getCached(key) {
   const entry = _cache.get(key);
@@ -91,7 +91,6 @@ const api = {
     if (cacheable && cacheKey) {
       const cached = getCached(cacheKey);
       if (cached) {
-        console.log(`📦 Cache hit: ${cacheKey}`);
         return cached;
       }
     }
@@ -109,14 +108,8 @@ const api = {
     const isPublicEndpoint = endpoint.includes('/auth/') || endpoint.includes('/settings/public');
     if (currentToken && !isPublicEndpoint) {
       headers['Authorization'] = `Token ${currentToken}`;
-      console.log(`🔐 Using token for request: ${currentToken.substring(0, 10)}...`);
-    } else if (isPublicEndpoint) {
-      console.log('🌐 Public endpoint, no auth needed');
-    } else {
-      console.log('⚠️ No token available for request');
     }
-
-    console.log(`📡 API Request: ${options.method || 'GET'} ${endpoint}`, { headers, isFormData: options.isFormData });
+    // Debug logging removed for production performance
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
