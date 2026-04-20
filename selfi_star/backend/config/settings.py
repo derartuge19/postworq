@@ -168,11 +168,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5174",
 ]
 
-# Allow all origins for development - this will help with CORS issues
-CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)
-
-# Additional CORS settings for better compatibility
-CORS_ALLOW_ALL_ORIGINS = True  # Force allow all origins
+# Allow all origins to fix CORS issues
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     'accept',
