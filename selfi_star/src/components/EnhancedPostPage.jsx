@@ -918,70 +918,94 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess }) {
             /* ── UPLOAD / PICK MODE ── */
             <div style={{
               flex: 1, display: 'flex', flexDirection: 'column',
-              height: '100%', background: T.bg,
+              height: '100%',
+              background: 'linear-gradient(160deg, #e8eaff 0%, #f3e8ff 50%, #e0e7ff 100%)',
             }}>
+              {/* Decorative bg blobs */}
+              <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+              <div style={{ position: 'absolute', bottom: -40, left: -40, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+
               {/* Header */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: 'max(16px, env(safe-area-inset-top)) 16px 12px', borderBottom: `1px solid ${T.border}`,
+                padding: 'max(16px, env(safe-area-inset-top)) 16px 12px',
+                borderBottom: '1px solid rgba(124,58,237,0.12)',
+                background: 'rgba(255,255,255,0.5)',
+                backdropFilter: 'blur(8px)',
+                position: 'relative', zIndex: 1,
               }}>
                 <button className="ep-btn" onClick={onBack}
-                  style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                  <X size={20} color={T.white} />
+                  style={{ background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                  <X size={20} color="#5b21b6" />
                 </button>
-                <span style={{ fontSize: 18, fontWeight: 800, color: T.white }}>New Post</span>
+                <span style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e' }}>New Post</span>
                 {drafts.length > 0 ? (
                   <button className="ep-btn" onClick={() => setShowDrafts(true)}
-                    style={{ background: 'rgba(218,155,42,0.15)', borderRadius: 20, padding: '8px 14px', color: T.pri, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, border: `1px solid ${T.pri}40` }}>
+                    style={{ background: 'rgba(124,58,237,0.1)', borderRadius: 20, padding: '8px 14px', color: '#7c3aed', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, border: '1px solid rgba(124,58,237,0.25)' }}>
                     <FileText size={14} /> Drafts ({drafts.length})
                   </button>
                 ) : <div style={{ width: 40 }} />}
               </div>
 
-              {/* Two big cards */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, padding: 24, justifyContent: 'center' }}>
+              {/* Hero icon + title */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 36, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
+                <div style={{ position: 'relative', marginBottom: 14 }}>
+                  <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #c026d3, #7c3aed)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px rgba(124,58,237,0.4), 0 0 0 8px rgba(124,58,237,0.1)' }}>
+                    <svg width="34" height="34" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
+                  </div>
+                  <div style={{ position: 'absolute', top: -4, right: -4, width: 26, height: 26, background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, border: '2.5px solid #ede9fe', boxShadow: '0 2px 8px rgba(251,191,36,0.5)' }}>✦</div>
+                </div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#1a1a2e', marginBottom: 4, letterSpacing: -0.4 }}>Create Post</div>
+                <div style={{ fontSize: 14, color: '#6b7280', textAlign: 'center' }}>Choose how you want to create content</div>
+              </div>
+
+              {/* Two horizontal cards */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, padding: '24px 20px', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
                 {/* Camera card */}
                 <button className="ep-btn" onClick={() => setCaptureMode('camera')}
                   style={{
-                    padding: '40px 24px',
-                    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-                    border: `1px solid ${T.border}`, borderRadius: 24,
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+                    display: 'flex', alignItems: 'center', gap: 16,
+                    background: '#fff',
+                    border: '1.5px solid #e0e4ff',
+                    borderRadius: 18,
+                    padding: '16px 20px',
                     cursor: 'pointer',
-                  }}>
-                  <div style={{
-                    width: 72, height: 72, borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.08)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: `2px solid rgba(255,255,255,0.15)`,
-                  }}>
-                    <Video size={32} color={T.white} />
+                    boxShadow: '0 2px 12px rgba(99,102,241,0.08)',
+                    transition: 'box-shadow 0.2s, transform 0.15s',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 24px rgba(124,58,237,0.18)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(99,102,241,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                >
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #a855f7, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 14px rgba(124,58,237,0.35)' }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: T.white, marginBottom: 6 }}>Record Video</div>
-                    <div style={{ fontSize: 13, color: T.sub }}>Use your camera · Up to 8 min</div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1a2e', marginBottom: 3 }}>Take Image/Video</div>
+                    <div style={{ fontSize: 13, color: '#9ca3af' }}>Use camera with filters</div>
                   </div>
                 </button>
 
                 {/* Upload card */}
                 <label style={{
-                  padding: '40px 24px',
-                  background: 'linear-gradient(135deg, #0d1b0f 0%, #1a2e1a 50%, #0f3020 100%)',
-                  border: `2px dashed ${T.border}`, borderRadius: 24,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14,
+                  display: 'flex', alignItems: 'center', gap: 16,
+                  background: '#fff',
+                  border: '1.5px solid #e0e4ff',
+                  borderRadius: 18,
+                  padding: '16px 20px',
                   cursor: 'pointer',
-                }}>
-                  <div style={{
-                    width: 72, height: 72, borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.08)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: `2px solid rgba(255,255,255,0.15)`,
-                  }}>
-                    <Upload size={32} color={T.white} />
+                  boxShadow: '0 2px 12px rgba(99,102,241,0.08)',
+                  transition: 'box-shadow 0.2s, transform 0.15s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 24px rgba(79,70,229,0.18)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(99,102,241,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                >
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #6366f1, #4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 14px rgba(99,102,241,0.35)' }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: T.white, marginBottom: 6 }}>Upload File</div>
-                    <div style={{ fontSize: 13, color: T.sub }}>Video or Photo · MP4, MOV, JPG, PNG</div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1a2e', marginBottom: 3 }}>Upload Image/Video</div>
+                    <div style={{ fontSize: 13, color: '#9ca3af' }}>From gallery or files</div>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*,video/*"
                     onChange={handleFileSelect} style={{ display: 'none' }} />
