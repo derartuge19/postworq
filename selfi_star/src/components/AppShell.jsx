@@ -73,7 +73,12 @@ export function AppShell({
 
 
   const handleItemClick = (item) => {
-    // Always update the active-tab highlight first, then run any special action.
+    // If tapping the already-active feed tab (no special action), scroll to top + refresh
+    const feedTabs = ['home', 'reels', 'messages', 'following', 'bookmarks'];
+    if (item.id === activeTab && feedTabs.includes(item.id) && !item.action) {
+      window.dispatchEvent(new CustomEvent('tabReselected', { detail: { tab: item.id } }));
+      return;
+    }
     onTabChange?.(item.id);
     if (item.action) {
       item.action();

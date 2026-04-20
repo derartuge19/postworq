@@ -1073,6 +1073,17 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     }
   }, [activeTab, fetchPosts, readHomeCache]);
 
+  // Scroll to top + refresh when user taps the already-active home tab icon
+  useEffect(() => {
+    const handleTabReselect = (e) => {
+      if (e.detail?.tab !== 'home') return;
+      if (containerRef.current) containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      fetchPosts(0, true);
+    };
+    window.addEventListener('tabReselected', handleTabReselect);
+    return () => window.removeEventListener('tabReselected', handleTabReselect);
+  }, [fetchPosts]);
+
   // Infinite scroll
   useEffect(() => {
     const observer = new IntersectionObserver(

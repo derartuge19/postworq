@@ -613,6 +613,12 @@ export default function WerqRoot() {
     }
   };
 
+  const handlePostSuccess = (reelId) => {
+    setShowPostPage(false);
+    prevNavState.current = null;
+    handleShowVideoDetail(reelId);
+  };
+
   const handleShowEditProfile = () => {
     setShowEditProfile(true);
     setShowProfile(false);
@@ -969,6 +975,7 @@ export default function WerqRoot() {
               <EnhancedPostPage
                 user={authUser}
                 onBack={handleClosePostPage}
+                onPostSuccess={handlePostSuccess}
               />
             </Suspense>
           </LazyLoadErrorBoundary>

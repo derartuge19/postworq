@@ -319,6 +319,22 @@ export const TikTokLayout = memo(function TikTokLayout({
     });
   }, [activeTab]);
 
+  // Scroll to top + refresh when user taps the already-active tab icon
+  useEffect(() => {
+    const handleTabReselect = (e) => {
+      if (e.detail?.tab !== activeTab) return;
+      // Snap back to very first video
+      const container = document.querySelector('.video-feed-container');
+      if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+      // Refresh feed from page 1
+      setPage(1);
+      setHasMore(true);
+      startTransition(() => fetchVideos(1, false));
+    };
+    window.addEventListener('tabReselected', handleTabReselect);
+    return () => window.removeEventListener('tabReselected', handleTabReselect);
+  }, [activeTab]); // eslint-disable-line
+
   // Scroll to specific video when initialVideoId is provided — run ONCE
   // (per deep-link) so that subsequent state changes like liking a reel
   // don't yank the user back to the initial video.

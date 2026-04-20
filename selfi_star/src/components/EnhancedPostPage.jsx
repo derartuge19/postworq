@@ -54,7 +54,7 @@ function ProgressRing({ radius, stroke, progress, color }) {
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export function EnhancedPostPage({ user, onBack }) {
+export function EnhancedPostPage({ user, onBack, onPostSuccess }) {
   const T = useLegacyT();
   // Stage
   const [stage, setStage] = useState('capture'); // 'capture' | 'details'
@@ -623,11 +623,18 @@ export function EnhancedPostPage({ user, onBack }) {
         fd.append('overlay_text', JSON.stringify(textOverlays));
       }
       const prog = setInterval(() => setUploadProgress(p => Math.min(p + 8, 90)), 300);
-      await api.createPost(fd);
+      const newReel = await api.createPost(fd);
       clearInterval(prog);
       setUploadProgress(100);
       setShowSuccess(true);
-      setTimeout(() => { setShowSuccess(false); onBack?.(); }, 2000);
+      setTimeout(() => {
+        setShowSuccess(false);
+        if (newReel?.id && onPostSuccess) {
+          onPostSuccess(newReel.id);
+        } else {
+          onBack?.();
+        }
+      }, 2000);
     } catch (e) {
       console.error('Upload failed', e);
       const detail = e?.traceback || e?.error || e?.message || String(e);
