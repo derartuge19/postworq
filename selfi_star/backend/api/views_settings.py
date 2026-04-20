@@ -90,6 +90,23 @@ def get_public_settings(request):
     try:
         settings = PlatformSettings.objects.get(id=1)
         print(f"[PUBLIC_SETTINGS] Settings found: font_secondary={settings.font_family_secondary}")
+        return Response({
+            'platform_name': settings.platform_name,
+            'font_family_primary': settings.font_family_primary,
+            'font_family_secondary': settings.font_family_secondary,
+            'font_family_username': settings.font_family_username,
+            'font_family_caption': settings.font_family_caption,
+            'font_size_base': settings.font_size_base,
+            'font_weight_headings': settings.font_weight_headings,
+            'font_weight_body': settings.font_weight_body,
+            'letter_spacing': settings.letter_spacing,
+            'line_height': settings.line_height,
+            'primary_color': settings.primary_color,
+            'secondary_color': settings.secondary_color,
+            'theme_preset': settings.theme_preset,
+            'dark_mode_default': settings.dark_mode_default,
+            'primary_color_override': settings.primary_color_override,
+        })
     except PlatformSettings.DoesNotExist:
         print("[PUBLIC_SETTINGS] No settings found, returning defaults")
         # Return defaults if settings don't exist
@@ -110,24 +127,26 @@ def get_public_settings(request):
             'dark_mode_default': False,
             'primary_color_override': None,
         })
-    
-    return Response({
-        'platform_name': settings.platform_name,
-        'font_family_primary': settings.font_family_primary,
-        'font_family_secondary': settings.font_family_secondary,
-        'font_family_username': settings.font_family_username,
-        'font_family_caption': settings.font_family_caption,
-        'font_size_base': settings.font_size_base,
-        'font_weight_headings': settings.font_weight_headings,
-        'font_weight_body': settings.font_weight_body,
-        'letter_spacing': settings.letter_spacing,
-        'line_height': settings.line_height,
-        'primary_color': settings.primary_color,
-        'secondary_color': settings.secondary_color,
-        'theme_preset': settings.theme_preset,
-        'dark_mode_default': settings.dark_mode_default,
-        'primary_color_override': settings.primary_color_override,
-    })
+    except Exception as e:
+        print(f"[PUBLIC_SETTINGS] Error: {e}")
+        # Return defaults on any error to prevent CORS issues
+        return Response({
+            'platform_name': 'Selfie Star',
+            'font_family_primary': 'Inter',
+            'font_family_secondary': 'Inter',
+            'font_family_username': 'Inter',
+            'font_family_caption': 'Inter',
+            'font_size_base': 16,
+            'font_weight_headings': '700',
+            'font_weight_body': '400',
+            'letter_spacing': 'normal',
+            'line_height': '1.5',
+            'primary_color': '#8B5CF6',
+            'secondary_color': '#F97316',
+            'theme_preset': 'flipstar',
+            'dark_mode_default': False,
+            'primary_color_override': None,
+        })
 
 
 @api_view(['GET'])
