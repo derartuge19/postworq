@@ -1155,7 +1155,6 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
 }
 
 // ── Main Page ────────────────────────────────────────────────────────────────
-// Conversation row component
 function ConvRow({ conv, active, currentUserId, onClick, T }) {
   const other = conv.other_user;
   const isOwn = conv.last_message?.sender === currentUserId;
