@@ -1076,23 +1076,112 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
     if (!loading) scrollToBottom(false);
   }, [messages.length, loading]);
 
-  // Message input and send functionality
-  const [text, setText] = useState('');
-  const [attachment, setAttachment] = useState(null);
-  const [recording, setRecording] = useState(false);
-  const [recSecs, setRecSecs] = useState(0);
-  const timerRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const chunksRef = useRef([]);
+  // Send text message
+  const handleSend = async (text) => {
+    try {
+      pendingRef.current += 1;
+      const sent = await api.request(`/messages/conversations/${convId}/messages/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      setMessages((prev) => [...prev, sent]);
+      scrollToBottom(false);
+      onMessageChanged();
+    } catch (e) {
+      console.error('Send error', e);
+    } finally {
+      pendingRef.current -= 1;
+    }
+  };
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!text.trim() && !attachment) return;
-    // Handle message sending logic here...
+  // Send media message
+  const handleSendMedia = async ({ file, kind, name, size, duration, caption }) => {
+    try {
+      pendingRef.current += 1;
+      const formData = new FormData();
+      formData.append('media', file);
+      formData.append('media_type', kind);
+      if (caption) formData.append('text', caption);
+      if (duration) formData.append('media_duration', duration);
+      
+      const sent = await api.request(`/messages/conversations/${convId}/messages/`, {
+        method: 'POST',
+        body: formData,
+      });
+      setMessages((prev) => [...prev, sent]);
+      scrollToBottom(false);
+      onMessageChanged();
+    } catch (e) {
+      console.error('Send media error', e);
+    } finally {
+      pendingRef.current -= 1;
+    }
+  };
+
+  // Edit message
+  const handleEditSubmit = async (msg, newText) => {
+    try {
+      await api.request(`/messages/${msg.id}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newText }),
+      });
+      setMessages((prev) => prev.map(m => m.id === msg.id ? { ...m, text: newText, edited_at: new Date().toISOString() } : m));
+      setEditing(null);
+      onMessageChanged();
+      return true;
+    } catch (e) {
+      console.error('Edit error', e);
+      return false;
+    }
+  };
+
+  // Delete message
+  const handleDelete = async (msg) => {
+    try {
+      await api.request(`/messages/${msg.id}/`, { method: 'DELETE' });
+      setMessages((prev) => prev.map(m => m.id === msg.id ? { ...m, is_deleted: true, text: '' } : m));
+      onMessageChanged();
+    } catch (e) {
+      console.error('Delete error', e);
+    }
   };
 
   return (
     <>
+      {/* Thread header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '12px 16px', borderBottom: `1px solid ${T.border}`,
+        background: T.cardBg, flexShrink: 0,
+      }}>
+        <button onClick={onBack} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: T.txt, padding: 6, display: 'flex',
+        }}>
+          <ArrowLeft size={22} />
+        </button>
+        <Avatar user={other} size={40} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 15, fontWeight: 700, color: T.txt,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {other?.username || 'Unknown'}
+          </div>
+          <div style={{ fontSize: 12, color: T.sub }}>
+            {other?.first_name && other?.last_name ? `${other.first_name} ${other.last_name}` : ''}
+          </div>
+        </div>
+        <button onClick={() => onShowProfile?.(other)} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: T.txt, padding: 6, display: 'flex',
+        }}>
+          <Edit3 size={18} />
+        </button>
+      </div>
+
       {/* Messages list */}
       <div ref={scrollRef} style={{
         flex: 1, overflowY: 'auto', padding: '16px 12px',
@@ -1106,56 +1195,33 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
           </div>
         ) : (
           messages.map((msg) => (
-            <div key={msg.id} style={{
-              marginBottom: 16,
-              display: 'flex',
-              flexDirection: msg.sender === user?.id ? 'row-reverse' : 'row',
-            }}>
-              <div style={{
-                maxWidth: '70%',
-                background: msg.sender === user?.id ? priColor : T.card,
-                color: msg.sender === user?.id ? '#fff' : T.txt,
-                padding: '10px 14px',
-                borderRadius: 18,
-                borderBottomLeftRadius: msg.sender === user?.id ? 18 : 4,
-                borderBottomRightRadius: msg.sender === user?.id ? 4 : 18,
-              }}>
-                {msg.text}
-              </div>
-            </div>
+            <MessageBubble
+              key={msg.id}
+              msg={{
+                ...msg,
+                is_own: msg.sender === user?.id,
+                is_editable: msg.sender === user?.id && !msg.is_deleted,
+              }}
+              T={T}
+              onEdit={setEditing}
+              onDelete={handleDelete}
+              priColor={priColor}
+            />
           ))
         )}
       </div>
 
-      {/* Message input */}
-      <form onSubmit={submit} style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '12px 16px', borderTop: `1px solid ${T.border}`,
-        background: T.cardBg,
-      }}>
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
-          style={{
-            flex: 1, padding: '10px 14px', borderRadius: 20,
-            border: `1px solid ${T.border}`, background: T.bg,
-            color: T.txt, fontSize: 14, outline: 'none',
-          }}
-        />
-        <button
-          type="submit"
-          disabled={!text.trim()}
-          style={{
-            background: text.trim() ? priColor : T.border,
-            color: '#fff', border: 'none', borderRadius: '50%',
-            width: 40, height: 40, display: 'flex', alignItems: 'center',
-            justifyContent: 'center', cursor: text.trim() ? 'pointer' : 'not-allowed',
-          }}
-        >
-          <Send size={18} />
-        </button>
-      </form>
+      {/* Composer */}
+      <Composer
+        onSend={handleSend}
+        onSendMedia={handleSendMedia}
+        onEditSubmit={handleEditSubmit}
+        onCancelEdit={() => setEditing(null)}
+        editing={editing}
+        T={T}
+        priColor={priColor}
+        inputRef={inputRef}
+      />
     </>
   );
 }
@@ -1174,20 +1240,14 @@ function ConvRow({ conv, active, currentUserId, onClick, T }) {
         gap: 12,
         padding: '12px 16px',
         cursor: 'pointer',
-        background: active ? `${T.pri}10` : 'transparent',
+        background: active ? `${T.pri}15` : 'transparent',
         borderLeft: active ? `3px solid ${T.pri}` : '3px solid transparent',
         transition: 'background 0.15s',
       }}
       onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = T.bg; }}
       onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent'; }}
     >
-      <div style={{
-        width: 48, height: 48, borderRadius: '50%',
-        background: T.border, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: T.sub, fontSize: 18, fontWeight: 700,
-      }}>
-        {other?.username?.[0]?.toUpperCase() || '?'}
-      </div>
+      <Avatar user={other} size={48} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
