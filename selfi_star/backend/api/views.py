@@ -566,7 +566,7 @@ class ReelViewSet(viewsets.ModelViewSet):
         
         if request.method == 'GET':
             comments = Comment.objects.filter(reel=reel).select_related('user', 'user__profile')
-            serializer = CommentSerializer(comments, many=True)
+            serializer = CommentSerializer(comments, many=True, context={'request': request})
             return Response(serializer.data)
         elif request.method == 'POST':
             if not request.user.is_authenticated:
@@ -582,19 +582,9 @@ class ReelViewSet(viewsets.ModelViewSet):
                 text=text
             )
             
-            # Create notification for reel owner (don't notify self)
-            from .models import Notification
-            if reel.user != request.user:
-                Notification.objects.create(
-                    recipient=reel.user,
-                    sender=request.user,
-                    notification_type='comment',
-                    reel=reel,
-                    comment=comment,
-                    message=f"{request.user.username} commented: {text[:50]}{'...' if len(text) > 50 else ''}"
-                )
+            # Notification is created automatically by signal in signals.py
             
-            serializer = CommentSerializer(comment)
+            serializer = CommentSerializer(comment, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def destroy(self, request, *args, **kwargs):
