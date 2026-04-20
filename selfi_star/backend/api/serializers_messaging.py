@@ -52,6 +52,11 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_media_url(self, obj):
         if not obj.media:
             return None
+        # media.name may be a full Cloudinary https URL (we store it that way
+        # when uploading manually) or a relative path from FileSystemStorage.
+        name = getattr(obj.media, 'name', '') or ''
+        if name.startswith('http://') or name.startswith('https://'):
+            return name
         try:
             url = obj.media.url
         except Exception:

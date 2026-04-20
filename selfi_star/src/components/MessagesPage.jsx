@@ -656,10 +656,15 @@ const Composer = memo(function Composer({
     }
   };
 
+  const MIN_RECORD_MS = 400; // below this = treat as accidental tap, cancel silently
+
   const stopRecording = (cancel = false) => {
     const rec = mediaRecRef.current;
     if (!rec) return;
     const durationMs = Date.now() - recStartRef.current;
+    // Too-short holds are treated as accidental taps — cancel quietly
+    const tooShort = !cancel && durationMs < MIN_RECORD_MS;
+    if (tooShort) cancel = true;
     const cleanup = () => {
       if (recTickRef.current) { clearInterval(recTickRef.current); recTickRef.current = null; }
       if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
@@ -838,6 +843,9 @@ const Composer = memo(function Composer({
             <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
               Recording… {formatDuration(recSecs)}
             </div>
+            <div style={{ fontSize: 11, color: T.sub, marginLeft: 8 }}>
+              Release to send
+            </div>
           </div>
           <button
             type="button"
@@ -942,15 +950,33 @@ const Composer = memo(function Composer({
           {showMicButton ? (
             <button
               type="button"
-              onClick={startRecording}
+              onPointerDown={(e) => {
+                // Avoid the synthetic click firing after pointerup
+                e.preventDefault();
+                try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch {}
+                startRecording();
+              }}
+              onPointerUp={(e) => {
+                try { e.currentTarget.releasePointerCapture?.(e.pointerId); } catch {}
+                stopRecording(false);
+              }}
+              onPointerCancel={() => stopRecording(true)}
+              onPointerLeave={(e) => {
+                // Only cancel if the pointer is actively being held AND not captured.
+                // With pointer capture, leave won't fire — so this is a safety net.
+                if (e.buttons > 0) stopRecording(true);
+              }}
+              onContextMenu={(e) => e.preventDefault()}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 width: 42, height: 42, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: priColor, flexShrink: 0,
+                touchAction: 'none',
+                WebkitUserSelect: 'none', userSelect: 'none',
               }}
-              aria-label="Record voice message"
-              title="Record voice message"
+              aria-label="Hold to record voice message"
+              title="Hold to record"
             >
               <Mic size={22} />
             </button>
