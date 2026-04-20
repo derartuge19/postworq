@@ -60,14 +60,19 @@ class CustomCorsMiddleware(MiddlewareMixin):
                 response['Access-Control-Allow-Credentials'] = 'true'
                 response['Access-Control-Expose-Headers'] = 'content-type, x-csrftoken'
         
-        # Handle preflight requests
+        # Handle preflight requests - always allow OPTIONS with CORS headers
         if request.method == 'OPTIONS':
             response.status_code = 200
-            if origin in allowed_origins or (origin and 'vercel.app' in origin) or (origin and ('localhost' in origin or '127.0.0.1' in origin)):
+            # Always set CORS headers for OPTIONS requests
+            if origin and (origin in allowed_origins or (origin and 'vercel.app' in origin) or (origin and ('localhost' in origin or '127.0.0.1' in origin))):
                 response['Access-Control-Allow-Origin'] = origin
+            else:
+                # For unknown origins, still return CORS headers but with wildcard
+                response['Access-Control-Allow-Origin'] = '*'
             response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD'
             response['Access-Control-Allow-Headers'] = 'accept, accept-encoding, authorization, content-type, dnt, origin, user-agent, x-csrftoken, x-requested-with, x-forwarded-for, x-forwarded-host, x-forwarded-proto'
             response['Access-Control-Allow-Credentials'] = 'true'
             response['Access-Control-Max-Age'] = '86400'
+            return response
         
         return response
