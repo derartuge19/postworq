@@ -122,54 +122,6 @@ export function PostPage({ user, onBack }) {
     }
   };
 
-  const uploadOptions = [
-    {
-      id: "camera-input",
-      label: "Take Photo/Video",
-      sub: "Use camera with filters",
-      accept: "image/*,video/*",
-      capture: "environment",
-      gradient: "linear-gradient(135deg, #a855f7, #7c3aed)",
-      icon: (
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-          <path d="M23 7l-7 5 7 5V7z" fill="#fff"/>
-          <rect x="1" y="5" width="15" height="14" rx="2" fill="#fff"/>
-        </svg>
-      ),
-    },
-    {
-      id: "image-input",
-      label: "Upload Image",
-      sub: "From gallery or files",
-      accept: "image/*",
-      capture: undefined,
-      gradient: "linear-gradient(135deg, #6366f1, #4f46e5)",
-      icon: (
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-          <rect x="3" y="3" width="18" height="18" rx="3" fill="#fff" fillOpacity="0.25"/>
-          <rect x="3" y="3" width="18" height="18" rx="3" stroke="#fff" strokeWidth="2"/>
-          <circle cx="8.5" cy="8.5" r="1.5" fill="#fff"/>
-          <path d="M21 15l-5-5L5 21" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-      ),
-    },
-    {
-      id: "video-input",
-      label: "Upload Video",
-      sub: "Short or long form",
-      accept: "video/*",
-      capture: undefined,
-      gradient: "linear-gradient(135deg, #ec4899, #ef4444)",
-      icon: (
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-          <rect x="2" y="5" width="15" height="14" rx="2" fill="#fff" fillOpacity="0.25"/>
-          <rect x="2" y="5" width="15" height="14" rx="2" stroke="#fff" strokeWidth="2"/>
-          <path d="M22 8l-5 4 5 4V8z" fill="#fff"/>
-        </svg>
-      ),
-    },
-  ];
-
   return (
     <div style={{
       position: "fixed",
@@ -177,12 +129,16 @@ export function PostPage({ user, onBack }) {
       left: 0,
       right: 0,
       bottom: 0,
-      background: "#EEEEFF",
+      background: "linear-gradient(160deg, #e8eaff 0%, #f3e8ff 50%, #e0e7ff 100%)",
       zIndex: 4000,
       display: "flex",
       flexDirection: "column",
       overflowY: "auto",
     }}>
+      {/* Decorative bg blobs */}
+      <div style={{ position: "fixed", top: -80, right: -80, width: 260, height: 260, borderRadius: "50%", background: "radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "fixed", bottom: -60, left: -60, width: 220, height: 220, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)", pointerEvents: "none" }} />
+
       {/* Back button */}
       <button
         onClick={onBack}
@@ -190,14 +146,17 @@ export function PostPage({ user, onBack }) {
           position: "absolute",
           top: 16,
           left: 16,
-          background: "none",
+          background: "rgba(255,255,255,0.7)",
           border: "none",
-          fontSize: 22,
+          fontSize: 18,
           cursor: "pointer",
           color: "#5b21b6",
-          padding: 8,
+          padding: "6px 12px",
           zIndex: 10,
           lineHeight: 1,
+          borderRadius: 10,
+          backdropFilter: "blur(6px)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         }}
       >
         ←
@@ -209,119 +168,165 @@ export function PostPage({ user, onBack }) {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          padding: "70px 24px 40px",
+          padding: "70px 20px 40px",
           width: "100%",
           maxWidth: 480,
           margin: "0 auto",
         }}>
           {/* Camera hero icon */}
-          <div style={{ position: "relative", marginBottom: 20 }}>
+          <div style={{ position: "relative", marginBottom: 18 }}>
             <div style={{
-              width: 84,
-              height: 84,
+              width: 88,
+              height: 88,
               background: "linear-gradient(135deg, #c026d3, #7c3aed)",
               borderRadius: "50%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 8px 24px rgba(124,58,237,0.35)",
+              boxShadow: "0 10px 30px rgba(124,58,237,0.4), 0 0 0 8px rgba(124,58,237,0.1)",
             }}>
-              <svg width="36" height="36" fill="none" viewBox="0 0 24 24">
+              <svg width="38" height="38" fill="none" viewBox="0 0 24 24">
                 <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/>
                 <path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
               </svg>
             </div>
-            {/* Star badge */}
             <div style={{
               position: "absolute",
-              top: -2,
-              right: -2,
-              width: 26,
-              height: 26,
-              background: "#facc15",
+              top: -4,
+              right: -4,
+              width: 28,
+              height: 28,
+              background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
               borderRadius: "50%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 13,
-              border: "2px solid #EEEEFF",
+              fontSize: 14,
+              border: "2.5px solid #fff",
+              boxShadow: "0 2px 8px rgba(251,191,36,0.5)",
             }}>
-              ⭐
+              ✦
             </div>
           </div>
 
-          {/* Title */}
-          <div style={{ fontSize: 24, fontWeight: 800, color: "#1a1a2e", marginBottom: 8, letterSpacing: -0.3 }}>
+          <div style={{ fontSize: 26, fontWeight: 800, color: "#1a1a2e", marginBottom: 6, letterSpacing: -0.5 }}>
             Create Post
           </div>
-          <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 36, textAlign: "center" }}>
-            Choose how you want to create content
+          <div style={{ fontSize: 14, color: "#6b7280", marginBottom: 32, textAlign: "center", lineHeight: 1.5 }}>
+            Choose how you want to share your moment
           </div>
 
-          {/* Option cards */}
-          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }}>
-            {uploadOptions.map((opt) => (
-              <div
-                key={opt.id}
-                onClick={() => document.getElementById(opt.id).click()}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 16,
-                  background: "#fff",
-                  borderRadius: 16,
-                  padding: "16px 20px",
-                  cursor: "pointer",
-                  border: "1.5px solid #e0e4ff",
-                  boxShadow: "0 2px 12px rgba(99,102,241,0.07)",
-                  transition: "box-shadow 0.2s, transform 0.15s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(99,102,241,0.18)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "0 2px 12px rgba(99,102,241,0.07)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                <div style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 14,
-                  background: opt.gradient,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                }}>
-                  {opt.icon}
-                </div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a2e", marginBottom: 2 }}>
-                    {opt.label}
-                  </div>
-                  <div style={{ fontSize: 13, color: "#9ca3af" }}>
-                    {opt.sub}
-                  </div>
-                </div>
+          {/* ── Large card 1: Take Image/Video ── */}
+          <div
+            onClick={() => document.getElementById("camera-input").click()}
+            style={{
+              width: "100%",
+              borderRadius: 24,
+              marginBottom: 16,
+              background: "linear-gradient(145deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%)",
+              padding: "32px 28px",
+              cursor: "pointer",
+              position: "relative",
+              overflow: "hidden",
+              boxShadow: "0 12px 40px rgba(49,46,129,0.45)",
+              transition: "transform 0.18s, box-shadow 0.18s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-3px)";
+              e.currentTarget.style.boxShadow = "0 18px 50px rgba(49,46,129,0.55)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(49,46,129,0.45)";
+            }}
+          >
+            {/* Decorative circles */}
+            <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(167,139,250,0.15)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", bottom: -20, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(167,139,250,0.1)", pointerEvents: "none" }} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", position: "relative" }}>
+              <div style={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.12)",
+                border: "1.5px solid rgba(255,255,255,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+                backdropFilter: "blur(4px)",
+              }}>
+                <svg width="30" height="30" fill="none" viewBox="0 0 24 24">
+                  <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/>
+                  <path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
+                </svg>
               </div>
-            ))}
+              <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: -0.2 }}>
+                Take Image/Video
+              </div>
+              <div style={{ fontSize: 13, color: "rgba(196,181,253,0.85)", lineHeight: 1.4 }}>
+                Use your camera · Capture instantly
+              </div>
+            </div>
+          </div>
+
+          {/* ── Large card 2: Upload Image/Video ── */}
+          <div
+            onClick={() => document.getElementById("media-input").click()}
+            style={{
+              width: "100%",
+              borderRadius: 24,
+              background: "linear-gradient(145deg, #064e3b 0%, #065f46 40%, #047857 100%)",
+              padding: "32px 28px",
+              cursor: "pointer",
+              position: "relative",
+              overflow: "hidden",
+              boxShadow: "0 12px 40px rgba(6,78,59,0.45)",
+              transition: "transform 0.18s, box-shadow 0.18s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-3px)";
+              e.currentTarget.style.boxShadow = "0 18px 50px rgba(6,78,59,0.55)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 12px 40px rgba(6,78,59,0.45)";
+            }}
+          >
+            {/* Decorative circles */}
+            <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(52,211,153,0.12)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", bottom: -20, left: -20, width: 80, height: 80, borderRadius: "50%", background: "rgba(52,211,153,0.08)", pointerEvents: "none" }} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", position: "relative" }}>
+              <div style={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.12)",
+                border: "1.5px solid rgba(255,255,255,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+                backdropFilter: "blur(4px)",
+              }}>
+                <svg width="30" height="30" fill="none" viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <polyline points="17 8 12 3 7 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="12" y1="3" x2="12" y2="15" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: -0.2 }}>
+                Upload Image/Video
+              </div>
+              <div style={{ fontSize: 13, color: "rgba(110,231,183,0.85)", lineHeight: 1.4 }}>
+                From gallery · MP4, MOV, JPG, PNG
+              </div>
+            </div>
           </div>
 
           {/* Hidden file inputs */}
-          {uploadOptions.map((opt) => (
-            <input
-              key={opt.id}
-              id={opt.id}
-              type="file"
-              accept={opt.accept}
-              {...(opt.capture ? { capture: opt.capture } : {})}
-              onChange={handleFileSelect}
-              style={{ display: "none" }}
-            />
-          ))}
+          <input id="camera-input" type="file" accept="image/*,video/*" capture="environment" onChange={handleFileSelect} style={{ display: "none" }} />
+          <input id="media-input" type="file" accept="image/*,video/*" onChange={handleFileSelect} style={{ display: "none" }} />
         </div>
       ) : (
         /* ── Form screen (after file selected) ── */
