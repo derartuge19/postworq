@@ -1005,7 +1005,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     return () => clearTimeout(timer);
   }, []);
 
-  const LIMIT = 10; // Load more posts initially for better user experience
+  const LIMIT = 5; // Load fewer posts initially for faster loading
   const PULL_THRESHOLD = 80;
 
   // Create shared IntersectionObserver for all videos

@@ -162,6 +162,10 @@ class SavedPost(models.Model):
     class Meta:
         unique_together = ('user', 'reel')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'reel']),
+            models.Index(fields=['reel', 'user']),
+        ]
 
     def __str__(self):
         return f"{self.user.username} saved reel {self.reel.id}"
@@ -175,6 +179,7 @@ class Vote(models.Model):
         unique_together = ('user', 'reel')
         indexes = [
             models.Index(fields=['user', 'reel']),
+            models.Index(fields=['reel', 'user']),
         ]
 
     def __str__(self):
