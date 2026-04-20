@@ -1751,7 +1751,8 @@ export const TikTokLayout = memo(function TikTokLayout({
                           style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: 'contain',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
                             display: 'block',
                             background: '#000',
                           }}
@@ -1891,7 +1892,8 @@ export const TikTokLayout = memo(function TikTokLayout({
                             left: 0,
                             width: '100%',
                             height: '100%',
-                            objectFit: 'contain',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
                             display: 'block',
                             background: '#000',
                           }}
