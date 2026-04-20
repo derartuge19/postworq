@@ -982,7 +982,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
 
 const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 
-const HomePage = memo(function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
+export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
   const { colors: T } = useTheme();
   const [activeTab, setActiveTab] = useState('For You');
   const [posts, setPosts] = useState(() => readHomeCache() || []);
@@ -1324,6 +1324,6 @@ const HomePage = memo(function HomePage({ user, onShowProfile, onShowPostPage, o
       </div>
     </div>
   );
-});
+}
 
 export default HomePage;

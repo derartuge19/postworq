@@ -55,7 +55,7 @@ function writeFollowCache(userId, data) {
   } catch {}
 }
 
-const ProfilePage = memo(function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
+export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const isOwnProfile = !userId || userId === user?.id;
@@ -1240,6 +1240,6 @@ const ProfilePage = memo(function ProfilePage({ user, userId, onBack, onEditProf
       )}
     </div>
   );
-});
+}
 
 export default ProfilePage;
