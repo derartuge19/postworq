@@ -105,7 +105,7 @@ def cleanup_broken_reels(request):
         import traceback
         traceback.print_exc()
         return Response({'error': str(e)}, status=500)
-from .views_extended import CommentViewSet, SavedPostViewSet, ProfilePhotoViewSet
+from .views_extended import CommentViewSet, CommentReplyViewSet, SavedPostViewSet, ProfilePhotoViewSet
 from .views_admin import (
     admin_dashboard_stats, admin_users_list, admin_user_detail, admin_user_update, 
     admin_user_delete, admin_reels_list, admin_reel_delete, admin_reel_boost, 
@@ -176,6 +176,7 @@ router.register(r'competitions', CompetitionViewSet, basename='competition')
 router.register(r'winners', WinnerViewSet, basename='winner')
 router.register(r'follows', FollowViewSet, basename='follow')
 router.register(r'comments', CommentViewSet, basename='comment')
+router.register(r'comment-replies', CommentReplyViewSet, basename='comment-reply')
 router.register(r'saved', SavedPostViewSet, basename='saved')
 router.register(r'profile-photo', ProfilePhotoViewSet, basename='profile-photo')
 

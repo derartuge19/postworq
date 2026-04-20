@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
+from django.utils import timezone
 from .models import Comment, CommentLike, CommentReply, SavedPost, Reel, UserProfile
 from .serializers_extended import CommentSerializer, CommentLikeSerializer, CommentReplySerializer, SavedPostSerializer
 
@@ -32,6 +33,38 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
     
+    def update(self, request, *args, **kwargs):
+        comment = self.get_object()
+        # Only allow editing own comments
+        if comment.user != request.user:
+            return Response({'error': 'You can only edit your own comments'}, status=status.HTTP_403_FORBIDDEN)
+        # Only allow editing within 15 minutes
+        if not comment.is_editable:
+            return Response({'error': 'Edit window has expired (15 minutes)'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        text = request.data.get('text', '').strip()
+        if not text:
+            return Response({'error': 'Text is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        comment.text = text
+        comment.edited_at = timezone.now()
+        comment.save()
+        
+        serializer = self.get_serializer(comment)
+        return Response(serializer.data)
+    
+    def destroy(self, request, *args, **kwargs):
+        comment = self.get_object()
+        # Only allow deleting own comments
+        if comment.user != request.user:
+            return Response({'error': 'You can only delete your own comments'}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Soft delete
+        comment.is_deleted = True
+        comment.text = ''
+        comment.save()
+        return Response({'ok': True})
+    
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
         comment = self.get_object()
@@ -58,6 +91,53 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
         serializer = CommentReplySerializer(reply)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class CommentReplyViewSet(viewsets.ModelViewSet):
+    queryset = CommentReply.objects.all()
+    serializer_class = CommentReplySerializer
+    permission_classes = [AllowAny]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+    
+    def update(self, request, *args, **kwargs):
+        reply = self.get_object()
+        # Only allow editing own replies
+        if reply.user != request.user:
+            return Response({'error': 'You can only edit your own replies'}, status=status.HTTP_403_FORBIDDEN)
+        # Only allow editing within 15 minutes
+        if not reply.is_editable:
+            return Response({'error': 'Edit window has expired (15 minutes)'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        text = request.data.get('text', '').strip()
+        if not text:
+            return Response({'error': 'Text is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        reply.text = text
+        reply.edited_at = timezone.now()
+        reply.save()
+        
+        serializer = self.get_serializer(reply)
+        return Response(serializer.data)
+    
+    def destroy(self, request, *args, **kwargs):
+        reply = self.get_object()
+        # Only allow deleting own replies
+        if reply.user != request.user:
+            return Response({'error': 'You can only delete your own replies'}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Soft delete
+        reply.is_deleted = True
+        reply.text = ''
+        reply.save()
+        return Response({'ok': True})
 
 class SavedPostViewSet(viewsets.ModelViewSet):
     serializer_class = SavedPostSerializer

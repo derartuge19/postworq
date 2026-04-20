@@ -1142,7 +1142,7 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
 
     const form = new FormData();
     if (caption) form.append('text', caption);
-    form.append('media', file, name || 'upload');
+    form.append('media', file);
     form.append('media_type', kind);
     if (duration != null) form.append('media_duration', String(duration));
 

@@ -8,10 +8,18 @@ Design:
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
 from datetime import timedelta
 
 
 EDIT_WINDOW_MINUTES = 15
+
+# Local storage for message media to avoid Cloudinary's image-only limitation
+message_media_storage = FileSystemStorage(
+    location=settings.MEDIA_ROOT,
+    base_url=settings.MEDIA_URL,
+)
 
 
 class Conversation(models.Model):
@@ -59,7 +67,13 @@ class Message(models.Model):
         User, on_delete=models.CASCADE, related_name='messages_sent'
     )
     text = models.TextField(blank=True, default='')
-    media = models.FileField(upload_to='messages/%Y/%m/', null=True, blank=True)
+    # Use local storage for message media to avoid Cloudinary's image-only limitation
+    media = models.FileField(
+        upload_to='messages/%Y/%m/',
+        null=True,
+        blank=True,
+        storage=message_media_storage
+    )
     media_type = models.CharField(
         max_length=16, choices=MEDIA_TYPE_CHOICES, default=MEDIA_TEXT,
     )

@@ -14,6 +14,9 @@ export function VideoDetailPage({ reelId, onBack, onShowProfile, user }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [showComments, setShowComments] = useState(false);
+  const [editingComment, setEditingComment] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -98,6 +101,52 @@ export function VideoDetailPage({ reelId, onBack, onShowProfile, user }) {
       setNewComment('');
     } catch (err) {
       console.error('Failed to add comment:', err);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await api.request(`/comments/${commentId}/`, { method: 'DELETE' });
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, is_deleted: true, text: '' } : c));
+    } catch (err) {
+      console.error('Failed to delete comment:', err);
+    }
+  };
+
+  const handleEditComment = async (commentId, newText) => {
+    try {
+      const updated = await api.request(`/comments/${commentId}/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ text: newText }),
+      });
+      setComments(prev => prev.map(c => c.id === commentId ? updated : c));
+      setEditingComment(null);
+    } catch (err) {
+      console.error('Failed to edit comment:', err);
+    }
+  };
+
+  const handleReplyToComment = async (commentId) => {
+    if (!replyText.trim() || !user) return;
+    try {
+      const reply = await api.request(`/comments/${commentId}/reply/`, {
+        method: 'POST',
+        body: JSON.stringify({ text: replyText }),
+      });
+      setComments(prev => prev.map(c => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            replies: [...(c.replies || []), reply],
+            replies_count: (c.replies_count || 0) + 1,
+          };
+        }
+        return c;
+      }));
+      setReplyText('');
+      setReplyingTo(null);
+    } catch (err) {
+      console.error('Failed to reply to comment:', err);
     }
   };
 
@@ -318,31 +367,180 @@ export function VideoDetailPage({ reelId, onBack, onShowProfile, user }) {
             flex: 1, overflowY: 'auto', padding: '12px 20px',
           }}>
             {comments.map((comment) => (
-              <div
-                key={comment.id}
-                style={{
-                  marginBottom: 16, display: 'flex', gap: 12,
-                }}
-              >
-                <img
-                  src={comment.user.profile_photo || '/default-avatar.png'}
-                  alt={comment.user.username}
-                  style={{
-                    width: 32, height: 32, borderRadius: '50%',
-                    objectFit: 'cover',
-                  }}
-                />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
-                    {comment.user.username}
-                  </div>
-                  <div style={{ fontSize: 14, color: T.txt, marginTop: 4 }}>
-                    {comment.text}
-                  </div>
-                  <div style={{ fontSize: 12, color: T.sub, marginTop: 4 }}>
-                    {new Date(comment.created_at).toLocaleDateString()}
+              <div key={comment.id} style={{ marginBottom: 20 }}>
+                {/* Main comment */}
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <img
+                    src={comment.user.profile_photo || '/default-avatar.png'}
+                    alt={comment.user.username}
+                    style={{
+                      width: 32, height: 32, borderRadius: '50%',
+                      objectFit: 'cover', flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
+                        {comment.user.username}
+                      </div>
+                      {comment.edited_at && (
+                        <div style={{ fontSize: 11, color: T.sub, fontStyle: 'italic' }}>
+                          (edited)
+                        </div>
+                      )}
+                    </div>
+                    {comment.is_deleted ? (
+                      <div style={{ fontSize: 14, color: T.sub, fontStyle: 'italic', marginTop: 4 }}>
+                        Comment deleted
+                      </div>
+                    ) : editingComment === comment.id ? (
+                      <div style={{ marginTop: 4 }}>
+                        <input
+                          type="text"
+                          defaultValue={comment.text}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleEditComment(comment.id, e.target.value);
+                            }
+                          }}
+                          onBlur={(e) => handleEditComment(comment.id, e.target.value)}
+                          style={{
+                            width: '100%', padding: '6px 10px', fontSize: 14,
+                            border: `1px solid ${T.border}`, borderRadius: 8,
+                            outline: 'none',
+                          }}
+                          autoFocus
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 14, color: T.txt, marginTop: 4 }}>
+                        {comment.text}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                      <div style={{ fontSize: 12, color: T.sub }}>
+                        {new Date(comment.created_at).toLocaleDateString()}
+                      </div>
+                      {user && !comment.is_deleted && (
+                        <>
+                          <button
+                            onClick={() => setReplyingTo(comment.id)}
+                            style={{
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              fontSize: 12, color: T.sub, padding: 0,
+                            }}
+                          >
+                            Reply
+                          </button>
+                          {comment.user.id === user.id && comment.is_editable && (
+                            <>
+                              <button
+                                onClick={() => setEditingComment(comment.id)}
+                                style={{
+                                  background: 'none', border: 'none', cursor: 'pointer',
+                                  fontSize: 12, color: T.sub, padding: 0,
+                                }}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteComment(comment.id)}
+                                style={{
+                                  background: 'none', border: 'none', cursor: 'pointer',
+                                  fontSize: 12, color: '#ef4444', padding: 0,
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {/* Reply input */}
+                {replyingTo === comment.id && (
+                  <div style={{ marginLeft: 44, marginTop: 8, display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleReplyToComment(comment.id)}
+                      placeholder={`Reply to ${comment.user.username}...`}
+                      style={{
+                        flex: 1, padding: '8px 12px', fontSize: 14,
+                        border: `1px solid ${T.border}`, borderRadius: 20,
+                        outline: 'none',
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => handleReplyToComment(comment.id)}
+                      disabled={!replyText.trim()}
+                      style={{
+                        padding: '8px 16px', background: T.pri,
+                        color: '#fff', border: 'none', borderRadius: 20,
+                        fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                        opacity: replyText.trim() ? 1 : 0.5,
+                      }}
+                    >
+                      Reply
+                    </button>
+                    <button
+                      onClick={() => { setReplyingTo(null); setReplyText(''); }}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: 20, color: T.sub, padding: 0,
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+
+                {/* Nested replies */}
+                {comment.replies && comment.replies.length > 0 && (
+                  <div style={{ marginLeft: 44, marginTop: 12 }}>
+                    {comment.replies.map((reply) => (
+                      <div key={reply.id} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                        <img
+                          src={reply.user.profile_photo || '/default-avatar.png'}
+                          alt={reply.user.username}
+                          style={{
+                            width: 24, height: 24, borderRadius: '50%',
+                            objectFit: 'cover', flexShrink: 0,
+                          }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: T.txt }}>
+                              {reply.user.username}
+                            </div>
+                            {reply.edited_at && (
+                              <div style={{ fontSize: 10, color: T.sub, fontStyle: 'italic' }}>
+                                (edited)
+                              </div>
+                            )}
+                          </div>
+                          {reply.is_deleted ? (
+                            <div style={{ fontSize: 13, color: T.sub, fontStyle: 'italic', marginTop: 2 }}>
+                              Reply deleted
+                            </div>
+                          ) : (
+                            <div style={{ fontSize: 13, color: T.txt, marginTop: 2 }}>
+                              {reply.text}
+                            </div>
+                          )}
+                          <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>
+                            {new Date(reply.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

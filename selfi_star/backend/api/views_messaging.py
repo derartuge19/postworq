@@ -109,56 +109,6 @@ def _cloudinary_resource_type(media_type):
     return 'raw'  # pdfs, docs, etc.
 
 
-def _upload_message_media(upload, media_type):
-    """Return a value suitable for Message.media (string URL or uploaded file).
-
-    - If Cloudinary is configured, upload with an explicit resource_type so
-      non-image files don't get rejected. Returns the secure_url (Django's
-      FileField stores it fine; our serializer returns it as-is).
-    - Otherwise, save to local filesystem via FileSystemStorage.
-    """
-    from django.conf import settings as _settings
-
-    has_cloudinary = bool(
-        getattr(_settings, 'CLOUDINARY_CLOUD_NAME', '')
-        and getattr(_settings, 'CLOUDINARY_API_KEY', '')
-        and getattr(_settings, 'CLOUDINARY_API_SECRET', '')
-    )
-
-    if has_cloudinary:
-        try:
-            import cloudinary.uploader  # type: ignore
-            resource_type = _cloudinary_resource_type(media_type)
-            upload.seek(0)
-            result = cloudinary.uploader.upload_large(
-                upload,
-                resource_type=resource_type,
-                folder='messages',
-                use_filename=True,
-                unique_filename=True,
-                overwrite=False,
-            )
-            return result.get('secure_url') or result.get('url') or ''
-        except Exception as e:  # pragma: no cover — fall through to local
-            print(f'[messages] Cloudinary upload failed, falling back to local: {e}')
-
-    # Local fallback
-    from django.core.files.storage import FileSystemStorage
-    from django.core.files.base import ContentFile
-    fs = FileSystemStorage(
-        location=_settings.MEDIA_ROOT, base_url=_settings.MEDIA_URL,
-    )
-    upload.seek(0)
-    ext = ''
-    if upload.name and '.' in upload.name:
-        ext = '.' + upload.name.rsplit('.', 1)[-1]
-    import uuid, datetime
-    today = datetime.date.today()
-    save_name = f'messages/{today.year}/{today.month:02d}/{uuid.uuid4().hex}{ext}'
-    saved = fs.save(save_name, ContentFile(upload.read()))
-    return saved  # Django FileField stores this relative path
-
-
 # ─── Messages within a conversation ───────────────────────────────────────────
 @api_view(['GET', 'POST'])
 @parser_classes([MultiPartParser, FormParser, JSONParser])
@@ -207,23 +157,50 @@ def conversation_messages(request, conversation_id):
             except (TypeError, ValueError):
                 media_duration = None
 
-        # Upload to storage. The project's DEFAULT_FILE_STORAGE is configured
-        # as Cloudinary's MediaCloudinaryStorage which always treats uploads as
-        # resource_type='image' — that breaks videos/audio/pdfs. We upload
-        # manually with resource_type='auto' so every file type works, and fall
-        # back to local FileSystemStorage if Cloudinary isn't configured.
-        media_value = _upload_message_media(upload, media_type)
-
-    msg = Message.objects.create(
-        conversation=conv,
-        sender=request.user,
-        text=text,
-        media=media_value if upload else None,
-        media_type=media_type,
-        media_name=media_name,
-        media_size=media_size,
-        media_duration=media_duration,
-    )
+        # Create message without media first
+        msg = Message.objects.create(
+            conversation=conv,
+            sender=request.user,
+            text=text,
+            media_type=media_type,
+            media_name=media_name,
+            media_size=media_size,
+            media_duration=media_duration,
+        )
+        
+        # Ensure media directory exists before saving
+        from django.conf import settings as _settings
+        import os
+        media_root = _settings.MEDIA_ROOT
+        if not os.path.exists(media_root):
+            try:
+                os.makedirs(media_root, exist_ok=True)
+                print(f'[messages] Created media directory: {media_root}')
+            except Exception as e:
+                print(f'[messages] Failed to create media directory: {e}')
+        
+        messages_dir = os.path.join(media_root, 'messages')
+        if not os.path.exists(messages_dir):
+            try:
+                os.makedirs(messages_dir, exist_ok=True)
+                print(f'[messages] Created messages directory: {messages_dir}')
+            except Exception as e:
+                print(f'[messages] Failed to create messages directory: {e}')
+        
+        # Save media file to FileField using Django's standard method
+        try:
+            upload.seek(0)
+            msg.media.save(upload.name, upload)
+            msg.save()
+            print(f'[messages] Media saved successfully: {msg.media.name}')
+        except Exception as e:
+            print(f'[messages] Failed to save media: {e}')
+            # Delete the message if media upload failed
+            msg.delete()
+            return Response(
+                {'error': f'Failed to save media: {str(e)}'},
+                status=500,
+            )
     conv.last_message_at = timezone.now()
     conv.save(update_fields=['last_message_at'])
 

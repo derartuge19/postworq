@@ -94,6 +94,8 @@ class Comment(models.Model):
     reel = models.ForeignKey(Reel, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']
@@ -108,6 +110,14 @@ class Comment(models.Model):
     @property
     def replies_count(self):
         return self.replies.count()
+    
+    @property
+    def is_editable(self):
+        """Comments can be edited within 15 minutes of creation (similar to messages)."""
+        if self.is_deleted:
+            return False
+        from datetime import timedelta
+        return (timezone.now() - self.created_at) <= timedelta(minutes=15)
 
 class CommentLike(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comment_likes')
@@ -126,12 +136,22 @@ class CommentReply(models.Model):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='replies')
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['created_at']
 
     def __str__(self):
         return f"Reply by {self.user.username} on comment {self.comment.id}"
+    
+    @property
+    def is_editable(self):
+        """Replies can be edited within 15 minutes of creation."""
+        if self.is_deleted:
+            return False
+        from datetime import timedelta
+        return (timezone.now() - self.created_at) <= timedelta(minutes=15)
 
 class SavedPost(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_posts')

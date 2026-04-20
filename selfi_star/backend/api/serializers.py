@@ -62,6 +62,7 @@ class ReelSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     media = serializers.SerializerMethodField()
     recent_comments = serializers.SerializerMethodField()
+    votes = serializers.SerializerMethodField()  # Calculate dynamically from Vote table
     campaign_id = serializers.PrimaryKeyRelatedField(source='campaign', read_only=True)
     campaign_title = serializers.CharField(source='campaign.title', read_only=True, default=None)
 
@@ -135,6 +136,11 @@ class ReelSerializer(serializers.ModelSerializer):
             from .models import Vote
             return Vote.objects.filter(user=request.user, reel=obj).exists()
         return False
+    
+    def get_votes(self, obj):
+        # Calculate votes dynamically from Vote table to ensure accuracy
+        from .models import Vote
+        return Vote.objects.filter(reel=obj).count()
     
     def get_is_saved(self, obj):
         # Use DB annotation if available (set by ReelViewSet.get_queryset)
