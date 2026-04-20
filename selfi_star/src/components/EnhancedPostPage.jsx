@@ -1118,6 +1118,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     justifyContent: 'center',
                     position: 'relative',
                     overflow: 'hidden',
+                    width: '100%',
+                    height: '120px',
+                    minWidth: '320px',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -1155,6 +1158,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   textAlign: 'center',
                   position: 'relative',
                   overflow: 'hidden',
+                  width: '100%',
+                  height: '120px',
+                  minWidth: '320px',
                 }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
