@@ -464,7 +464,6 @@ export default function WerqRoot() {
       showProfile,
       profileUserId,
       showSettings,
-      showNotifications,
       showCampaigns,
       showExplorer,
       ...patch,
@@ -476,7 +475,7 @@ export default function WerqRoot() {
   // Persist whenever any of these state vars change
   useEffect(() => {
     saveNav();
-  }, [activeTab, showPostPage, showProfile, profileUserId, showSettings, showNotifications, showCampaigns, showExplorer]); // eslint-disable-line
+  }, [activeTab, showPostPage, showProfile, profileUserId, showSettings, showCampaigns, showExplorer]); // eslint-disable-line
 
   // Load user from localStorage on mount + prefetch lazy components
   useEffect(() => {
@@ -719,9 +718,23 @@ export default function WerqRoot() {
     resetAllPages();
     startTransition(() => {
       setActiveTab('reels');
-      // Store the reel ID to scroll to it in TikTokLayout
       setVideoDetailId(reelId);
-      pushHistoryState({ activeTab: 'reels', videoDetailId: reelId });
+      pushHistoryState({
+        activeTab: 'reels',
+        videoDetailId: reelId,
+        showNotifications: false,
+        showProfile: false,
+        showPostPage: false,
+        showSettings: false,
+        showCampaigns: false,
+        showCampaignDetail: false,
+        showCampaignLeaderboard: false,
+        showCampaignFeed: false,
+        showExplorer: false,
+        showVideoDetail: false,
+        showEditProfile: false,
+        showFollowersList: false,
+      });
     });
   };
 
