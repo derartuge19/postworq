@@ -186,7 +186,7 @@ export const TikTokLayout = memo(function TikTokLayout({
     
     try {
       let reelsData = [];
-      const limit = pageNum === 1 ? 3 : 5; // Load fewer videos on first page for faster initial paint
+      const limit = pageNum === 1 ? 10 : 5; // Load more videos on first page for better user experience
       const offset = (pageNum - 1) * limit;
 
       // Fetch different content based on active tab

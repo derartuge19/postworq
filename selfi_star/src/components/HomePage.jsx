@@ -998,7 +998,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
 
-  const LIMIT = 3; // Load even fewer posts initially for faster first paint
+  const LIMIT = 10; // Load more posts initially for better user experience
   const PULL_THRESHOLD = 80;
 
   // Create shared IntersectionObserver for all videos
@@ -1032,9 +1032,9 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {
     try {
       setLoading(true);
-      // Add timeout to prevent slow loading
+      // Add timeout to prevent slow loading - increased to 10 seconds
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 3000)
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
       );
       
       const data = await Promise.race([

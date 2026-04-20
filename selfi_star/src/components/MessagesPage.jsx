@@ -1027,9 +1027,9 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
     try {
       if (!silent) setLoading(true);
       
-      // Add timeout to prevent slow loading
+      // Add timeout to prevent slow loading - increased to 10 seconds
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 3000)
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
       );
       
       const data = await Promise.race([
@@ -1227,6 +1227,8 @@ export function MessagesPage({ user, onShowProfile }) {
   const priColor = T.priGradient || T.pri;
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
   const [conversations, setConversations] = useState([]);
+  const [filteredConversations, setFilteredConversations] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeConv, setActiveConv] = useState(null);
   const [showNewChat, setShowNewChat] = useState(false);
@@ -1242,9 +1244,9 @@ export function MessagesPage({ user, onShowProfile }) {
     try {
       if (!silent) setLoading(true);
       
-      // Add timeout to prevent slow loading
+      // Add timeout to prevent slow loading - increased to 10 seconds
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 3000)
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
       );
       
       const data = await Promise.race([
@@ -1263,6 +1265,16 @@ export function MessagesPage({ user, onShowProfile }) {
         }
         return arr;
       });
+      
+      // Update filtered conversations when conversations change
+      if (searchQuery.trim()) {
+        const filtered = arr.filter(c => 
+          c.other_user?.username?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredConversations(filtered);
+      } else {
+        setFilteredConversations(arr);
+      }
       // Keep activeConv meta in sync, but do NOT force a reference change if unchanged
       setActiveConv((curr) => {
         if (!curr) return curr;
@@ -1288,6 +1300,18 @@ export function MessagesPage({ user, onShowProfile }) {
     const id = setInterval(() => fetchConversations(true), 30000); // 30 seconds instead of 10
     return () => clearInterval(id);
   }, [fetchConversations]);
+  
+  // Filter conversations based on search query
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = conversations.filter(c => 
+        c.other_user?.username?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredConversations(filtered);
+    } else {
+      setFilteredConversations(conversations);
+    }
+  }, [searchQuery, conversations]);
 
   // Stable callback for ThreadView — prevents it from re-rendering every poll tick
   const onMessageChanged = useCallback(() => { fetchConversations(true); }, [fetchConversations]);
@@ -1347,23 +1371,61 @@ export function MessagesPage({ user, onShowProfile }) {
     }}>
       {/* Inbox header */}
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', flexDirection: 'column', gap: 12,
         padding: '16px 18px', borderBottom: `1px solid ${T.border}`,
       }}>
-        <div style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>
-          Messages
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>
+            Messages
+          </div>
+          <button
+            onClick={() => setShowNewChat(true)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: T.txt, padding: 6, display: 'flex',
+            }}
+            aria-label="New message"
+            title="New message"
+          >
+            <PenSquare size={22} />
+          </button>
         </div>
-        <button
-          onClick={() => setShowNewChat(true)}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: T.txt, padding: 6, display: 'flex',
-          }}
-          aria-label="New message"
-          title="New message"
-        >
-          <PenSquare size={22} />
-        </button>
+        {/* Search input */}
+        <div style={{ position: 'relative' }}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search conversations..."
+            style={{
+              width: '100%',
+              padding: '10px 12px 10px 36px',
+              borderRadius: 20,
+              border: `1px solid ${T.border}`,
+              background: T.bg,
+              color: T.txt,
+              fontSize: 14,
+              outline: 'none',
+            }}
+          />
+          <Search size={16} style={{
+            position: 'absolute', left: 12, top: '50%',
+            transform: 'translateY(-50%)', color: T.sub,
+          }} />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              style={{
+                position: 'absolute', right: 12, top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none', border: 'none',
+                cursor: 'pointer', color: T.sub, padding: 2,
+              }}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
       </div>
       {/* List */}
       <div style={{
@@ -1374,7 +1436,11 @@ export function MessagesPage({ user, onShowProfile }) {
       }}>
         {loading ? (
           <div style={{ padding: 24, textAlign: 'center', color: T.sub, fontSize: 13 }}>Loading…</div>
-        ) : conversations.length === 0 ? (
+        ) : filteredConversations.length === 0 && searchQuery ? (
+          <div style={{ padding: 24, textAlign: 'center', color: T.sub, fontSize: 13 }}>
+            No conversations match "{searchQuery}"
+          </div>
+        ) : filteredConversations.length === 0 ? (
           <div style={{
             padding: 24, display: 'flex', flexDirection: 'column',
             alignItems: 'center', gap: 10, color: T.sub, marginTop: 24,
@@ -1396,7 +1462,7 @@ export function MessagesPage({ user, onShowProfile }) {
           </div>
         ) : (
           <div style={{ padding: '4px 0' }}>
-            {conversations.map((c) => (
+            {filteredConversations.map((c) => (
               <ConvRow
                 key={c.id}
                 conv={c}
