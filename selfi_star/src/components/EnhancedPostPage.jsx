@@ -60,7 +60,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
   // Stage
   const [stage, setStage] = useState('capture'); // 'capture' | 'details'
   const [captureMode, setCaptureMode] = useState('upload'); // 'upload' | 'camera'
-  const [camMode, setCamMode] = useState('video'); // 'video' | 'photo'
+  const [camMode, setCamMode] = useState('photo'); // 'video' | 'photo'
 
   // File
   const [selectedFile, setSelectedFile] = useState(null);
@@ -889,7 +889,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 padding: '0 24px 48px',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
               }}>
-                {/* Upload from gallery shortcut */}
+                  {/* Upload from gallery shortcut */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                   <button className="ep-btn" 
                     onClick={() => fileInputRef.current?.click()}
@@ -932,6 +932,23 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                         : <div style={{ width: 56, height: 56, borderRadius: '50%', background: T.white, border: '3px solid #ddd' }} />
                       }
                     </button>
+                    {/* Video icon indicator */}
+                    <div style={{
+                      position: 'absolute',
+                      top: -8,
+                      right: -8,
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      background: 'rgba(0,0,0,0.7)',
+                      backdropFilter: 'blur(8px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                    }}>
+                      <Video size={14} color={T.white} strokeWidth={2.5} />
+                    </div>
                   </div>
 
                   {/* Flip camera shortcut */}
