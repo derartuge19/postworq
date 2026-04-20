@@ -1111,7 +1111,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 style={{
                   background: isUploading ? `${T.pri}66` : T.pri,
                   borderRadius: 24, padding: '10px 22px',
-                  fontSize: 15, fontWeight: 800, color: T.txt,
+                  fontSize: 15, fontWeight: 800, color: '#fff',
                   opacity: isUploading ? 0.7 : 1,
                 }}>
                 {isUploading ? 'Posting...' : 'Post'}

@@ -893,11 +893,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             </button>
           </div>
 
-          {/* Like count */}
-          <div style={{ fontSize: 14, fontWeight: 700, color: T?.txt || '#000', marginTop: 4 }}>
-            {likes.toLocaleString()} likes
-          </div>
-
+          
           {/* Caption with expand/collapse (Instagram/TikTok style) */}
           {post.caption && (() => {
             const isLong = post.caption.length > CAPTION_LIMIT;
