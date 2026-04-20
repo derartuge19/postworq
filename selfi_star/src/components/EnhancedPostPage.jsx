@@ -932,23 +932,25 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                         : <div style={{ width: 56, height: 56, borderRadius: '50%', background: T.white, border: '3px solid #ddd' }} />
                       }
                     </button>
-                    {/* Video icon indicator */}
-                    <div style={{
-                      position: 'absolute',
-                      top: -8,
-                      right: -8,
-                      width: 28,
-                      height: 28,
-                      borderRadius: '50%',
-                      background: 'rgba(0,0,0,0.7)',
-                      backdropFilter: 'blur(8px)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: '2px solid rgba(255,255,255,0.3)',
-                    }}>
-                      <Video size={14} color={T.white} strokeWidth={2.5} />
-                    </div>
+                    {/* Video icon indicator - only show in video mode */}
+                    {camMode === 'video' && (
+                      <div style={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -8,
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.7)',
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '2px solid rgba(255,255,255,0.3)',
+                      }}>
+                        <Video size={14} color={T.white} strokeWidth={2.5} />
+                      </div>
+                    )}
                   </div>
 
                   {/* Flip camera shortcut */}
