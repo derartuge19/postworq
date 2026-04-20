@@ -824,8 +824,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   background: 'none', border: 'none', cursor: 'pointer',
                   padding: '6px 10px', borderRadius: 10,
                   display: 'flex', alignItems: 'center', gap: 5,
-                  animation: likeAnim ? 'heartPop 0.4s ease' : 'none',
-                  '--hp-hover': liked ? '#EF444420' : (T?.border || '#e0e0e0') + '60',
+                  '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
                 {isCampaignPost ? (
@@ -843,6 +842,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
+                {post.likes > 0 && <span style={{ fontSize: 13, color: T?.sub || '#666', fontWeight: 600 }}>{post.likes}</span>}
               </button>
               {/* Comment */}
               <button
@@ -856,6 +856,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 }}
               >
                 <MessageCircle size={24} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                {post.comments > 0 && <span style={{ fontSize: 13, color: T?.sub || '#666', fontWeight: 600 }}>{post.comments}</span>}
               </button>
               {/* Share */}
               <button
