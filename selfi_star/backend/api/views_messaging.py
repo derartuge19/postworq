@@ -262,14 +262,35 @@ def mark_conversation_read(request, conversation_id):
 @permission_classes([IsAuthenticated])
 def unread_dm_count(request):
     """Total unread messages across all my conversations (for bottom-nav badge)."""
-    total = 0
-    for conv in request.user.conversations.all():
-        read = conv.reads.filter(user=request.user).first()
-        qs = conv.messages.exclude(sender=request.user)
-        if read:
-            qs = qs.filter(created_at__gt=read.last_read_at)
-        total += qs.count()
-    return Response({'unread_count': total})
+    from django.db.models import Count, Q, F
+    
+    # Get all conversation IDs for this user
+    conv_ids = request.user.conversations.values_list('id', flat=True)
+    
+    # Get last read times for each conversation in a single query
+    from .models_messaging import MessageRead
+    read_times = {
+        mr.conversation_id: mr.last_read_at
+        for mr in MessageRead.objects.filter(user=request.user, conversation_id__in=conv_ids)
+    }
+    
+    # Count unread messages in a single aggregated query
+    from .models_messaging import Message
+    unread_count = 0
+    for conv_id in conv_ids:
+        last_read = read_times.get(conv_id)
+        if last_read:
+            unread_count += Message.objects.filter(
+                conversation_id=conv_id
+            ).exclude(sender=request.user).filter(
+                created_at__gt=last_read
+            ).count()
+        else:
+            unread_count += Message.objects.filter(
+                conversation_id=conv_id
+            ).exclude(sender=request.user).count()
+    
+    return Response({'unread_count': unread_count})
 
 
 # ─── User search (for "New Message") ──────────────────────────────────────────

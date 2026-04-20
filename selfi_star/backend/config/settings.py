@@ -32,6 +32,16 @@ INSTALLED_APPS = [
     'api',
 ]
 
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    'https://postworqq.vercel.app',
+    'https://postworq.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+]
+CORS_ALLOW_ALL_ORIGINS = True  # Fallback to allow all origins
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Must be first
     'api.middleware.CustomCorsMiddleware',  # Custom CORS for Vercel
