@@ -70,21 +70,35 @@ IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER
 
 # Database configuration
 if IS_RENDER:
-    # Neon PostgreSQL on Render - use environment variables
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DATABASE_NAME', default='neondb'),
-            'USER': config('DATABASE_USER', default='neondb_owner'),
-            'PASSWORD': config('DATABASE_PASSWORD', default=''),
-            'HOST': config('DATABASE_HOST', default='localhost'),
-            'PORT': config('DATABASE_PORT', default='5432'),
-            'OPTIONS': {
-                'sslmode': 'require',
-            },
-            'CONN_MAX_AGE': 600,
+    # Use Render's DATABASE_URL environment variable
+    import dj_database_url
+    
+    DATABASE_URL = config('DATABASE_URL', default='')
+    if DATABASE_URL:
+        DATABASES = {
+            'default': dj_database_url.parse(DATABASE_URL)
         }
-    }
+        # Add SSL mode for Render
+        DATABASES['default']['OPTIONS'] = {
+            'sslmode': 'require',
+        }
+        DATABASES['default']['CONN_MAX_AGE'] = 600
+    else:
+        # Fallback configuration
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': config('DATABASE_NAME', default='neondb'),
+                'USER': config('DATABASE_USER', default='neondb_owner'),
+                'PASSWORD': config('DATABASE_PASSWORD', default=''),
+                'HOST': config('DATABASE_HOST', default='localhost'),
+                'PORT': config('DATABASE_PORT', default='5432'),
+                'OPTIONS': {
+                    'sslmode': 'require',
+                },
+                'CONN_MAX_AGE': 600,
+            }
+        }
 else:
     # Local development: SQLite
     DATABASES = {
