@@ -70,41 +70,26 @@ IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER
 
 # Database configuration
 if IS_RENDER:
-    # Use Render's DATABASE_URL environment variable
-    DATABASE_URL = config('DATABASE_URL', default='')
-    if DATABASE_URL:
-        import urllib.parse
-        parsed = urllib.parse.urlparse(DATABASE_URL)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': parsed.path[1:],  # Remove leading slash
-                'USER': parsed.username,
-                'PASSWORD': parsed.password,
-                'HOST': parsed.hostname,
-                'PORT': parsed.port or 5432,
-                'OPTIONS': {
-                    'sslmode': 'require',
-                },
-                'CONN_MAX_AGE': 600,
-            }
+    # Use Render's individual database environment variables
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('PGDATABASE', default='neondb'),
+            'USER': config('PGUSER', default='neondb_owner'),
+            'PASSWORD': config('PGPASSWORD', default=''),
+            'HOST': config('PGHOST', default='localhost'),
+            'PORT': config('PGPORT', default='5432'),
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+            'CONN_MAX_AGE': 600,
         }
-    else:
-        # Fallback configuration
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': config('DATABASE_NAME', default='neondb'),
-                'USER': config('DATABASE_USER', default='neondb_owner'),
-                'PASSWORD': config('DATABASE_PASSWORD', default=''),
-                'HOST': config('DATABASE_HOST', default='localhost'),
-                'PORT': config('DATABASE_PORT', default='5432'),
-                'OPTIONS': {
-                    'sslmode': 'require',
-                },
-                'CONN_MAX_AGE': 600,
-            }
-        }
+    }
+    
+    # Debug: Print database configuration (remove in production)
+    print(f"DATABASE_HOST: {DATABASES['default']['HOST']}")
+    print(f"DATABASE_NAME: {DATABASES['default']['NAME']}")
+    print(f"DATABASE_USER: {DATABASES['default']['USER']}")
 else:
     # Local development: SQLite
     DATABASES = {
