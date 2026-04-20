@@ -106,7 +106,7 @@ export const TikTokLayout = memo(function TikTokLayout({
   const [showPauseIcon, setShowPauseIcon] = useState({});
   const [manuallyPaused, setManuallyPaused] = useState({}); // Track user-paused videos
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
-  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
   const [likeAnimations, setLikeAnimations] = useState({});
   const [doubleTapLike, setDoubleTapLike] = useState({});
   const [alertModal, setAlertModal] = useState({
@@ -460,10 +460,14 @@ export const TikTokLayout = memo(function TikTokLayout({
             });
             // Play and optionally unmute the active video
             activeVideoIdRef.current = videoId;
-            videoElement.muted = true; // always muted on scroll; user taps volume to unmute
+            // Try to play with sound; browser may block unmuted autoplay — fall back to muted
+            videoElement.muted = false;
             videoElement
               .play()
-              .catch((err) => console.log('Play prevented:', err));
+              .catch(() => {
+                videoElement.muted = true;
+                videoElement.play().catch((err) => console.log('Play prevented:', err));
+              });
             setPlayingVideos((prev) => ({ ...prev, [videoId]: true }));
             // Hide pause icon when auto-playing
             setShowPauseIcon((prev) => ({ ...prev, [videoId]: false }));
@@ -518,12 +522,18 @@ export const TikTokLayout = memo(function TikTokLayout({
     const timer = setTimeout(() => {
       if (videoElement && videoElement.paused) {
         activeVideoIdRef.current = String(firstVideo.id);
-        videoElement.muted = !audioEnabled;
+        videoElement.muted = false;
         videoElement.play()
           .then(() => {
             setPlayingVideos((prev) => ({ ...prev, [firstVideo.id]: true }));
           })
-          .catch((err) => console.log('Auto-play prevented:', err));
+          .catch(() => {
+            // Unmuted blocked — retry muted
+            videoElement.muted = true;
+            videoElement.play()
+              .then(() => setPlayingVideos((prev) => ({ ...prev, [firstVideo.id]: true })))
+              .catch((err) => console.log('Auto-play prevented:', err));
+          });
       }
     }, 300);
     
@@ -1748,7 +1758,6 @@ export const TikTokLayout = memo(function TikTokLayout({
                           }
                           loop
                           playsInline
-                          muted
                           onLoadedMetadata={(e) => {
                             const w = e.target.videoWidth;
                             const h = e.target.videoHeight;
@@ -1762,7 +1771,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                             }
                           }}
                           onLoadedData={(e) => {
-                            e.target.muted = true;
+                            // keep whatever muted state was set by the playback logic
                           }}
                           onError={(e) => {
                             const code = e.target?.error?.code;
