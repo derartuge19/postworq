@@ -707,6 +707,8 @@ export const TikTokLayout = memo(function TikTokLayout({
           ),
         );
       }
+      // Invalidate any cached reels lists so stale is_liked doesn't return
+      api.invalidateCache?.('/reels/');
     } catch (error) {
       // Revert optimistic update on failure
       setVideos((prev) =>

@@ -499,7 +499,9 @@ const MessageBubble = memo(function MessageBubble({ msg, T, onEdit, onDelete, pr
               style={{
                 position: 'absolute',
                 top: 28,
-                left: -4,
+                // Own messages are right-aligned; anchor the menu to the bubble's
+                // right edge so short messages don't push the dropdown off-screen.
+                right: 0,
                 background: T.cardBg,
                 border: `1px solid ${T.border}`,
                 borderRadius: 10,
@@ -507,6 +509,7 @@ const MessageBubble = memo(function MessageBubble({ msg, T, onEdit, onDelete, pr
                 zIndex: 21,
                 overflow: 'hidden',
                 minWidth: 130,
+                maxWidth: 'calc(100vw - 24px)',
               }}
             >
               {msg.is_editable && (msg.media_type === 'text' || !msg.media_type) && (

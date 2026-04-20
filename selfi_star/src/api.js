@@ -78,10 +78,17 @@ const api = {
   async request(endpoint, options = {}) {
     // Cache logic
     const isGet = !options.method || options.method.toUpperCase() === 'GET';
-    const cacheKey = isGet ? endpoint : null;
-    
+    // Real-time endpoints must NEVER be cached — polling would otherwise be dead.
+    const isRealtime = (
+      endpoint.startsWith('/messages/') ||
+      endpoint.includes('/notifications/unread') ||
+      endpoint.includes('unread-count')
+    );
+    const cacheable = isGet && !options.skipCache && !isRealtime;
+    const cacheKey = cacheable ? endpoint : null;
+
     // Return cached data for GET requests
-    if (isGet && cacheKey) {
+    if (cacheable && cacheKey) {
       const cached = getCached(cacheKey);
       if (cached) {
         console.log(`📦 Cache hit: ${cacheKey}`);
@@ -143,7 +150,7 @@ const api = {
         let retryData;
         try { retryData = await retryResponse.json(); } catch (e) { retryData = {}; }
         if (retryResponse.ok) {
-          if (isGet && cacheKey) setCache(cacheKey, retryData);
+          if (cacheable && cacheKey) setCache(cacheKey, retryData);
           return retryData;
         }
         // If still failing after retry, NOW clear the token as it's likely invalid
@@ -163,7 +170,7 @@ const api = {
     }
 
     // Cache successful GET responses
-    if (isGet && cacheKey) setCache(cacheKey, data);
+    if (cacheable && cacheKey) setCache(cacheKey, data);
     return data;
   },
 

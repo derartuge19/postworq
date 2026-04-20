@@ -41,12 +41,25 @@ export function VideoDetailPage({ reelId, onBack, onShowProfile, user }) {
 
   const handleLike = async () => {
     if (!user) return;
+    // Optimistic UI — fill/unfill the heart immediately
+    const prevLiked = liked;
+    const prevCount = likesCount;
+    setLiked(!prevLiked);
+    setLikesCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
     try {
-      await api.request(`/reels/${reelId}/vote/`, { method: 'POST' });
-      setLiked(!liked);
-      setLikesCount(prev => liked ? prev - 1 : prev + 1);
+      const res = await api.request(`/reels/${reelId}/vote/`, { method: 'POST' });
+      // Reconcile with server truth
+      if (res && typeof res.voted === 'boolean') {
+        setLiked(res.voted);
+        if (typeof res.votes === 'number') setLikesCount(res.votes);
+      }
+      // Invalidate any cached reels lists so next fetch is fresh
+      api.invalidateCache?.('/reels/');
     } catch (err) {
       console.error('Failed to like:', err);
+      // Revert on failure
+      setLiked(prevLiked);
+      setLikesCount(prevCount);
     }
   };
 
