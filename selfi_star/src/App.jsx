@@ -761,17 +761,27 @@ export default function WerqRoot() {
         user={authUser}
         activeTab={activeTab}
         onTabChange={(tab) => {
-          // For tabs that are pure feed views, collapse any open overlay pages.
-          // Action-based tabs (campaigns, settings, etc.) manage their own page
-          // state via their dedicated handlers — just update the indicator here.
           const feedTabs = ['home', 'reels', 'messages', 'following', 'bookmarks', 'search'];
           if (feedTabs.includes(tab)) resetAllPages();
-          // Use startTransition to defer non-urgent updates for better INP
           startTransition(() => {
             setActiveTab(tab);
             saveNav({ activeTab: tab });
-            // Push to browser history so refresh restores the correct tab (not stale state)
-            pushHistoryState({ activeTab: tab });
+            // Explicitly clear ALL overlay flags so refresh never re-opens them
+            pushHistoryState({
+              activeTab: tab,
+              showNotifications: false,
+              showProfile: false,
+              showPostPage: false,
+              showSettings: false,
+              showCampaigns: false,
+              showCampaignDetail: false,
+              showCampaignLeaderboard: false,
+              showCampaignFeed: false,
+              showExplorer: false,
+              showVideoDetail: false,
+              showEditProfile: false,
+              showFollowersList: false,
+            });
           });
         }}
         onLogout={handleLogout}
