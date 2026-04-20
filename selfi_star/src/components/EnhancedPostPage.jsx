@@ -3,7 +3,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   X, Check, Music, Type, Sliders, Play, Pause, Upload, Zap, ZapOff,
   Square, ArrowLeft, RefreshCw, ChevronLeft, Image, Video, Scissors,
-  Bookmark, Eye, FileText, Heart, MessageCircle, Share2, Volume2, VolumeX
+  Bookmark, Eye, FileText, Heart, MessageCircle, Share2, Volume2, VolumeX,
+  Home, Film, User, PlusSquare
 } from "lucide-react";
 import api from "../api";
 import { useLegacyT } from "../contexts/ThemeContext";
@@ -54,7 +55,7 @@ function ProgressRing({ radius, stroke, progress, color }) {
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export function EnhancedPostPage({ user, onBack, onPostSuccess }) {
+export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNavReels, onNavMessages, onNavProfile, unreadDmCount = 0 }) {
   const T = useLegacyT();
   // Stage
   const [stage, setStage] = useState('capture'); // 'capture' | 'details'
@@ -648,11 +649,20 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess }) {
   const fmtTime = (s) => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   const activeFilter = FILTERS.find(f => f.id === selectedFilter);
 
+  const bottomNavItems = [
+    { id: 'home',     label: 'Home',     Icon: Home,       action: onNavHome },
+    { id: 'reels',    label: 'Reels',    Icon: Film,       action: onNavReels },
+    { id: 'create',   label: 'New',      Icon: PlusSquare, action: null, isCreate: true },
+    { id: 'messages', label: 'Messages', Icon: MessageCircle, action: onNavMessages, badge: unreadDmCount },
+    { id: 'profile',  label: 'Profile',  Icon: User,       action: onNavProfile },
+  ];
+
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div style={{
       position: 'fixed', inset: 0, background: T.bg, zIndex: 4000,
       display: 'flex', flexDirection: 'column', color: T.white, fontFamily: 'system-ui, sans-serif',
+      paddingBottom: 64,
     }}>
       <style>{`
         @keyframes ep-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
@@ -664,6 +674,48 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess }) {
         .ep-filter-scroll::-webkit-scrollbar { display:none; }
         .ep-hash { color:${T.pri}; font-weight:700; }
       `}</style>
+
+      {/* ── BOTTOM NAV BAR ──────────────────────────────────────────────── */}
+      <nav style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        height: 64,
+        background: 'rgba(255,255,255,0.96)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderTop: '1px solid rgba(124,58,237,0.12)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+        zIndex: 5000,
+        paddingBottom: 4,
+        boxShadow: '0 -4px 24px rgba(99,102,241,0.1)',
+      }}>
+        <style>{`
+          .ep-nav-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); border: none; background: transparent; cursor: pointer; }
+          .ep-nav-btn:active { transform: scale(0.82) !important; }
+        `}</style>
+        {bottomNavItems.map(({ id, label, Icon, action, isCreate, badge }) => {
+          if (isCreate) return (
+            <button key={id} className="ep-nav-btn"
+              style={{ background: 'linear-gradient(135deg, #c026d3, #7c3aed)', border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(124,58,237,0.5)', cursor: 'pointer', flexShrink: 0, marginBottom: 6 }}>
+              <Icon size={24} strokeWidth={2.2} color="#fff" />
+            </button>
+          );
+          return (
+            <button key={id} className="ep-nav-btn"
+              onClick={() => action?.()}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '4px 10px', minWidth: 50, position: 'relative', cursor: 'pointer' }}>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10 }}>
+                <Icon size={22} strokeWidth={1.8} color={T.sub || '#9ca3af'} />
+                {badge > 0 && (
+                  <div style={{ position: 'absolute', top: 2, right: 2, minWidth: 14, height: 14, borderRadius: 7, background: '#EF4444', color: '#fff', fontSize: 8, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px', boxSizing: 'border-box', border: '1.5px solid #fff', lineHeight: 1 }}>
+                    {badge > 99 ? '99+' : badge}
+                  </div>
+                )}
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 500, color: T.sub || '#9ca3af', lineHeight: 1 }}>{label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
       {/* ── CAPTURE STAGE ─────────────────────────────────────────────── */}
       {stage === 'capture' && (

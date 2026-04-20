@@ -997,6 +997,11 @@ export default function WerqRoot() {
                 user={authUser}
                 onBack={handleClosePostPage}
                 onPostSuccess={handlePostSuccess}
+                onNavHome={() => { setShowPostPage(false); setActiveTab('home'); }}
+                onNavReels={() => { setShowPostPage(false); setActiveTab('reels'); }}
+                onNavMessages={() => { setShowPostPage(false); setActiveTab('messages'); }}
+                onNavProfile={() => handleShowProfile(null)}
+                unreadDmCount={unreadDmCount}
               />
             </Suspense>
           </LazyLoadErrorBoundary>
