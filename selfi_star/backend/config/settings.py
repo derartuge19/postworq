@@ -70,17 +70,17 @@ IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER
 
 # Database configuration
 if IS_RENDER:
-    # Use Render's individual database environment variables
+    # Use database environment variables (support both PG_* and DB_* for compatibility)
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('PGDATABASE', default='neondb'),
-            'USER': config('PGUSER', default='neondb_owner'),
-            'PASSWORD': config('PGPASSWORD', default=''),
-            'HOST': config('PGHOST', default='localhost'),
-            'PORT': config('PGPORT', default='5432'),
+            'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
+            'NAME': config('DB_NAME', default=config('PGDATABASE', default='neondb')),
+            'USER': config('DB_USER', default=config('PGUSER', default='neondb_owner')),
+            'PASSWORD': config('DB_PASSWORD', default=config('PGPASSWORD', default='')),
+            'HOST': config('DB_HOST', default=config('PGHOST', default='localhost')),
+            'PORT': config('DB_PORT', default=config('PGPORT', default='5432')),
             'OPTIONS': {
-                'sslmode': 'require',
+                'sslmode': config('DB_SSLMODE', default='require'),
             },
             'CONN_MAX_AGE': 600,
         }
