@@ -679,14 +679,14 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
       <nav style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
         height: 64,
-        background: 'rgba(255,255,255,0.96)',
+        background: T.dark === '#0C1A12' ? 'rgba(255,255,255,0.96)' : 'rgba(10,10,10,0.96)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(217,155,42,0.12)',
+        borderTop: `1px solid ${T.pri}20`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-around',
         zIndex: 5000,
         paddingBottom: 4,
-        boxShadow: '0 -4px 24px rgba(217,155,42,0.1)',
+        boxShadow: `0 -4px 24px ${T.pri}20`,
       }}>
         <style>{`
           .ep-nav-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); border: none; background: transparent; cursor: pointer; }
@@ -695,7 +695,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
         {bottomNavItems.map(({ id, label, Icon, action, isCreate, badge }) => {
           if (isCreate) return (
             <button key={id} className="ep-nav-btn"
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(217,155,42,0.5)', cursor: 'pointer', flexShrink: 0, marginBottom: 6 }}>
+              style={{ background: T.priGradient || T.pri, border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 20px ${T.pri}40`, cursor: 'pointer', flexShrink: 0, marginBottom: 6 }}>
               <Icon size={24} strokeWidth={2.2} color="#fff" />
             </button>
           );
@@ -706,7 +706,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10 }}>
                 <Icon size={22} strokeWidth={1.8} color={T.sub || '#9ca3af'} />
                 {badge > 0 && (
-                  <div style={{ position: 'absolute', top: 2, right: 2, minWidth: 14, height: 14, borderRadius: 7, background: '#EF4444', color: '#fff', fontSize: 8, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px', boxSizing: 'border-box', border: '1.5px solid #fff', lineHeight: 1 }}>
+                  <div style={{ position: 'absolute', top: 2, right: 2, minWidth: 14, height: 14, borderRadius: 7, background: T.red, color: '#fff', fontSize: 8, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px', boxSizing: 'border-box', border: '1.5px solid #fff', lineHeight: 1 }}>
                     {badge > 99 ? '99+' : badge}
                   </div>
                 )}
@@ -831,7 +831,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 ].map((item, i) => (
                   <button key={i} className="ep-btn" onClick={item.action} onTouchEnd={(e) => { e.preventDefault(); item.action(); }}
                     style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', padding: 8, margin: -8 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: `${T.dark}80`, backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {item.icon}
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 600, color: T.white, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{item.label}</span>
@@ -844,14 +844,14 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 <div style={{
                   position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
                   display: 'flex', flexDirection: 'column', gap: 8,
-                  background: 'rgba(0,0,0,0.6)', borderRadius: 16, padding: '10px 8px',
+                  background: `${T.dark}99`, borderRadius: 16, padding: '10px 8px',
                   backdropFilter: 'blur(12px)', zIndex: 35,
                 }}>
                   {SPEEDS.map(sp => (
                     <button key={sp} className="ep-btn" onClick={() => { setSelectedSpeed(sp); setShowSpeeds(false); }}
                       style={{
                         padding: '6px 14px', borderRadius: 12,
-                        background: selectedSpeed === sp ? T.pri : 'rgba(255,255,255,0.1)',
+                        background: selectedSpeed === sp ? T.pri : `${T.white}1A`,
                         color: T.white, fontSize: 13, fontWeight: 700,
                       }}>{sp}</button>
                   ))}
@@ -894,8 +894,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   <button className="ep-btn" 
                     onClick={() => fileInputRef.current?.click()}
                     onTouchEnd={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
-                    style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 6, backdropFilter: 'blur(8px)' }}>
-                    <div style={{ width: 52, height: 52, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    style={{ background: `${T.white}26`, borderRadius: 12, padding: 6, backdropFilter: 'blur(8px)' }}>
+                    <div style={{ width: 52, height: 52, borderRadius: 10, background: `${T.white}1A`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Upload size={22} color={T.white} />
                     </div>
                   </button>
@@ -922,14 +922,14 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                         background: camMode === 'video' ? (isRecording ? T.red : T.white) : T.white,
                         border: `4px solid rgba(255,255,255,0.5)`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: isRecording ? `0 0 0 6px ${T.red}55` : '0 4px 20px rgba(0,0,0,0.4)',
+                        boxShadow: isRecording ? `0 0 0 6px ${T.red}55` : `${T.dark}66`,
                         transition: 'all 0.2s',
                       }}>
                       {camMode === 'video'
                         ? (isRecording
                           ? <Square size={26} color={T.white} fill={T.white} />
                           : <div style={{ width: 20, height: 20, borderRadius: '50%', background: T.red }} />)
-                        : <div style={{ width: 56, height: 56, borderRadius: '50%', background: T.white, border: '3px solid #ddd' }} />
+                        : <div style={{ width: 56, height: 56, borderRadius: '50%', background: T.white, border: `3px solid ${T.border}` }} />
                       }
                     </button>
                     {/* Video icon indicator - only show in video mode */}
@@ -941,12 +941,12 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                         width: 28,
                         height: 28,
                         borderRadius: '50%',
-                        background: 'rgba(0,0,0,0.7)',
+                        background: `${T.dark}B3`,
                         backdropFilter: 'blur(8px)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        border: '2px solid rgba(255,255,255,0.3)',
+                        border: `2px solid ${T.white}4D`,
                       }}>
                         <Video size={14} color={T.white} strokeWidth={2.5} />
                       </div>
@@ -957,7 +957,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   <button className="ep-btn" 
                     onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')}
                     onTouchEnd={(e) => { e.preventDefault(); setFacingMode(f => f === 'user' ? 'environment' : 'user'); }}
-                    style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '50%', width: 52, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+                    style={{ background: `${T.white}26`, borderRadius: '50%', width: 52, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
                     <RefreshCw size={22} color={T.white} />
                   </button>
                 </div>
@@ -966,14 +966,14 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 {backgroundSound && (
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    background: 'rgba(0,0,0,0.55)', borderRadius: 24, padding: '8px 14px',
+                    background: `${T.dark}8C`, borderRadius: 24, padding: '8px 14px',
                     backdropFilter: 'blur(10px)',
                   }}>
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.pri, animation: isRecording ? 'ep-pulse 1s infinite' : 'none' }} />
                     <Music size={14} color={T.pri} />
                     <span style={{ fontSize: 13, fontWeight: 600 }}>{backgroundSound.name}</span>
                     <button className="ep-btn" onClick={() => setBackgroundSound(null)}
-                      style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      style={{ background: `${T.white}26`, borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <X size={11} color={T.white} />
                     </button>
                   </div>
@@ -990,7 +990,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
             <div style={{
               flex: 1, display: 'flex', flexDirection: 'column',
               height: '100%',
-              background: 'linear-gradient(180deg, #eef0f8 0%, #f5f6fb 100%)',
+              background: T.card,
             }}>
 
               {/* Header */}
@@ -1001,13 +1001,13 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 position: 'relative', zIndex: 1,
               }}>
                 <button className="ep-btn" onClick={onBack}
-                  style={{ background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                  style={{ background: `${T.white}B3`, border: 'none', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `${T.dark}14` }}>
                   <X size={20} color="#6b7280" />
                 </button>
-                <span style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e' }}>New Post</span>
+                <span style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>New Post</span>
                 {drafts.length > 0 ? (
                   <button className="ep-btn" onClick={() => setShowDrafts(true)}
-                    style={{ background: 'rgba(124,58,237,0.08)', borderRadius: 20, padding: '8px 14px', color: '#7c3aed', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    style={{ background: `${T.pri}14`, borderRadius: 20, padding: '8px 14px', color: T.pri, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <FileText size={14} /> Drafts ({drafts.length})
                   </button>
                 ) : <div style={{ width: 40 }} />}
@@ -1016,13 +1016,13 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               {/* Hero icon + title */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 24, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
                 <div style={{ position: 'relative', marginBottom: 14 }}>
-                  <div style={{ width: 72, height: 72, background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(124,58,237,0.35)' }}>
+                  <div style={{ width: 72, height: 72, background: T.priGradient || T.pri, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 24px ${T.pri}59` }}>
                     <svg width="30" height="30" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
-                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: '2px solid #eef0f8', boxShadow: '0 2px 6px rgba(251,191,36,0.5)' }}>✦</div>
+                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: T.gold, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: `2px solid ${T.card}`, boxShadow: `0 2px 6px ${T.gold}80` }}>✦</div>
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#1a1a2e', marginBottom: 4 }}>Create Post</div>
-                <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center' }}>Choose how you want to create content</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: T.txt, marginBottom: 4 }}>Create Post</div>
+                <div style={{ fontSize: 13, color: T.sub, textAlign: 'center' }}>Choose how you want to create content</div>
               </div>
 
               {/* Cards */}
@@ -1032,47 +1032,47 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 <button className="ep-btn" onClick={() => setCaptureMode('camera')}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 14,
-                    background: '#ffffff',
+                    background: T.card,
                     border: 'none',
                     borderRadius: 16,
                     padding: '28px 22px',
                     cursor: 'pointer',
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                    boxShadow: `${T.dark}0F`,
                     transition: 'box-shadow 0.2s, transform 0.15s',
                     textAlign: 'left',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, #a855f7, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: T.priGradient || T.pri, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1a2e', marginBottom: 2 }}>Take Photo/Video</div>
-                    <div style={{ fontSize: 12.5, color: '#9ca3af' }}>Use camera with filters</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: T.txt, marginBottom: 2 }}>Take Photo/Video</div>
+                    <div style={{ fontSize: 12.5, color: T.sub }}>Use camera with filters</div>
                   </div>
                 </button>
 
                 {/* ── Upload Image card ── */}
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: 14,
-                  background: '#ffffff',
+                  background: T.card,
                   border: 'none',
                   borderRadius: 16,
                   padding: '28px 22px',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                  boxShadow: `${T.dark}0F`,
                   transition: 'box-shadow 0.2s, transform 0.15s',
                 }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
                   <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, #818cf8, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#1a1a2e', marginBottom: 2 }}>Upload Image</div>
-                    <div style={{ fontSize: 12.5, color: '#9ca3af' }}>From gallery or files</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: T.txt, marginBottom: 2 }}>Upload Image</div>
+                    <div style={{ fontSize: 12.5, color: T.sub }}>From gallery or files</div>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*,video/*"
                     onChange={handleFileSelect} style={{ display: 'none' }} />
@@ -1094,24 +1094,24 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
             position: 'sticky', top: 0, background: T.bg, zIndex: 10,
           }}>
             <button className="ep-btn" onClick={() => { setStage('capture'); setPreview(null); setSelectedFile(null); }}
-              style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ background: `${T.white}12`, borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ArrowLeft size={20} color={T.white} />
             </button>
             <span style={{ fontSize: 18, fontWeight: 800, color: T.white }}>Post</span>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button className="ep-btn" onClick={() => setShowPreview(true)}
-                style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 20, padding: '8px 14px', color: T.white, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                style={{ background: `${T.white}1A`, borderRadius: 20, padding: '8px 14px', color: T.white, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Eye size={15} /> Preview
               </button>
               <button className="ep-btn" onClick={saveDraft}
-                style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 20, padding: '8px', color: T.white, display: 'flex', alignItems: 'center' }}>
+                style={{ background: `${T.white}1A`, borderRadius: 20, padding: '8px', color: T.white, display: 'flex', alignItems: 'center' }}>
                 <Bookmark size={17} />
               </button>
               <button className="ep-btn" onClick={handlePost} disabled={isUploading}
                 style={{
-                  background: isUploading ? 'rgba(218,155,42,0.4)' : T.pri,
+                  background: isUploading ? `${T.pri}66` : T.pri,
                   borderRadius: 24, padding: '10px 22px',
-                  fontSize: 15, fontWeight: 800, color: '#000',
+                  fontSize: 15, fontWeight: 800, color: T.txt,
                   opacity: isUploading ? 0.7 : 1,
                 }}>
                 {isUploading ? 'Posting...' : 'Post'}
