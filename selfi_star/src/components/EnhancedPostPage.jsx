@@ -1146,7 +1146,19 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               </div>
 
               {/* Cards */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 44, padding: '28px 24px', position: 'relative', zIndex: 1, alignItems: 'flex-start', justifyContent: 'center', marginLeft: '10%', marginRight: 'auto', maxWidth: '500px' }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 44, 
+                padding: '28px 20px', 
+                position: 'relative', 
+                zIndex: 1, 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                width: '100%',
+                maxWidth: '500px',
+                margin: '0 auto'
+              }}>
 
                 {/* ── Take Photo/Video card ── */}
                 <button className="ep-btn" onClick={() => setCaptureMode('camera')}
@@ -1155,7 +1167,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     background: T.card,
                     border: `2px solid ${T.pri}20`,
                     borderRadius: 16,
-                    padding: '28px 22px',
+                    padding: '20px 16px',
                     cursor: 'pointer',
                     boxShadow: `${T.dark}0F`,
                     transition: 'box-shadow 0.2s, transform 0.15s',
@@ -1164,8 +1176,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     position: 'relative',
                     overflow: 'hidden',
                     width: '100%',
-                    height: '120px',
-                    minWidth: '320px',
+                    height: '100px',
+                    minWidth: '280px',
+                    maxWidth: '400px',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -1195,7 +1208,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   background: T.card,
                   border: `2px solid ${T.pri}20`,
                   borderRadius: 16,
-                  padding: '28px 22px',
+                  padding: '20px 16px',
                   cursor: 'pointer',
                   boxShadow: `${T.dark}0F`,
                   transition: 'box-shadow 0.2s, transform 0.15s',
@@ -1204,8 +1217,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   position: 'relative',
                   overflow: 'hidden',
                   width: '100%',
-                  height: '120px',
-                  minWidth: '320px',
+                  height: '100px',
+                  minWidth: '280px',
+                  maxWidth: '400px',
                 }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
