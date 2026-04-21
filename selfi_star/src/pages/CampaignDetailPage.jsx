@@ -203,7 +203,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
 
         {/* Campaign Header */}
         <div style={{
-          background: T.card,
+          background: T.cardBg || '#fff',
           borderRadius: 16,
           overflow: 'hidden',
           border: `1px solid ${T.border}`,
@@ -288,7 +288,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                     }}
                     style={{
                       padding: '16px 32px',
-                      background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
+                      background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
                       border: 'none',
                       borderRadius: 16,
                       color: '#fff',
@@ -355,7 +355,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                     style={{
                       flex: 1,
                       padding: '10px 16px',
-                      background: T.card,
+                      background: T.cardBg || '#fff',
                       border: `1px solid ${T.border}`,
                       borderRadius: 8,
                       color: T.txt,
@@ -376,7 +376,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                     style={{
                       flex: 1,
                       padding: '10px 16px',
-                      background: T.card,
+                      background: T.cardBg || '#fff',
                       border: `1px solid ${T.border}`,
                       borderRadius: 8,
                       color: T.txt,
@@ -647,7 +647,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   {campaign.required_hashtags && (
                     <div style={{
                       padding: 16,
-                      background: T.card,
+                      background: T.cardBg || '#fff',
                       borderRadius: 10,
                       border: `1px solid ${T.border}`,
                     }}>
@@ -662,14 +662,14 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   {campaign.min_followers > 0 && (
                     <div style={{
                       padding: 16,
-                      background: T.card,
+                      background: T.cardBg || '#fff',
                       borderRadius: 10,
                       border: `1px solid ${T.border}`,
                     }}>
                       <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                         Minimum Followers
                       </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: T.blue }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: '#3B82F6' }}>
                         {campaign.min_followers}+
                       </div>
                     </div>
@@ -677,14 +677,14 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   {campaign.min_level > 0 && (
                     <div style={{
                       padding: 16,
-                      background: T.card,
+                      background: T.cardBg || '#fff',
                       borderRadius: 10,
                       border: `1px solid ${T.border}`,
                     }}>
                       <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                         Minimum Level
                       </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: T.orange }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: '#F97316' }}>
                         Level {campaign.min_level}
                       </div>
                     </div>
@@ -692,14 +692,14 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   {campaign.min_votes_per_reel > 0 && (
                     <div style={{
                       padding: 16,
-                      background: T.card,
+                      background: T.cardBg || '#fff',
                       borderRadius: 10,
                       border: `1px solid ${T.border}`,
                     }}>
                       <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                         Minimum Votes per Reel
                       </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: T.red }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: '#EF4444' }}>
                         {campaign.min_votes_per_reel}+
                       </div>
                     </div>
@@ -707,14 +707,14 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   {campaign.winner_count > 0 && (
                     <div style={{
                       padding: 16,
-                      background: T.card,
+                      background: T.cardBg || '#fff',
                       borderRadius: 10,
                       border: `1px solid ${T.border}`,
                     }}>
                       <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
                         Number of Winners
                       </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: T.green }}>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: '#10B981' }}>
                         {campaign.winner_count}
                       </div>
                     </div>
@@ -855,7 +855,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
             }}>
               <div style={{
                 padding: 12,
-                background: T.card,
+                background: T.cardBg || '#fff',
                 borderRadius: 8,
                 textAlign: 'center',
               }}>
@@ -864,21 +864,21 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
               </div>
               <div style={{
                 padding: 12,
-                background: T.card,
+                background: T.cardBg || '#fff',
                 borderRadius: 8,
                 textAlign: 'center',
               }}>
                 <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>Rank</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: T.blue }}>#{userEntry.rank || '-'}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#3B82F6' }}>#{userEntry.rank || '-'}</div>
               </div>
               <div style={{
                 padding: 12,
-                background: T.card,
+                background: T.cardBg || '#fff',
                 borderRadius: 8,
                 textAlign: 'center',
               }}>
                 <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>Status</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: T.green }}>✓ Active</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#10B981' }}>✓ Active</div>
               </div>
             </div>
           </div>
@@ -901,7 +901,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                 width: 48,
                 height: 48,
                 borderRadius: '50%',
-                background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
+                background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -929,22 +929,22 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
             {canVote() && (
               <div style={{
                 padding: '8px 16px',
-                background: `${T.green}15`,
+                background: 'rgba(16,185,129,0.15)',
                 borderRadius: 20,
-                border: `2px solid ${T.green}`,
+                border: `2px solid #10B981`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
               }}>
-                <Zap size={16} color={T.green} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: T.green }}>Voting Open</span>
+                <Zap size={16} color="#10B981" />
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#10B981' }}>Voting Open</span>
               </div>
             )}
           </div>
 
           {entries.length === 0 ? (
             <div style={{
-              background: T.card,
+              background: T.cardBg || '#fff',
               borderRadius: 16,
               padding: 60,
               textAlign: 'center',
@@ -1032,7 +1032,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
   return (
     <div 
       style={{
-        background: T.card,
+        background: T.cardBg || '#fff',
         borderRadius: 16,
         overflow: 'hidden',
         border: rankBadge ? `2px solid ${rankBadge.color}` : `1px solid ${T.border}`,
@@ -1116,7 +1116,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
               width: 42,
               height: 42,
               borderRadius: '50%',
-              background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
+              background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1154,7 +1154,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
           {entry.is_winner && (
             <div style={{
               padding: '4px 10px',
-              background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
+              background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
               borderRadius: 12,
               fontSize: 11,
               fontWeight: 700,
@@ -1191,14 +1191,14 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
             alignItems: 'center',
             gap: 8,
             padding: '8px 12px',
-            background: hasVoted ? `${T.red}15` : T.bg,
+            background: hasVoted ? 'rgba(239,68,68,0.15)' : T.bg,
             borderRadius: 20,
-            border: hasVoted ? `2px solid ${T.red}` : `1px solid ${T.border}`,
+            border: hasVoted ? `2px solid #EF4444` : `1px solid ${T.border}`,
           }}>
             <Heart 
               size={20} 
-              color={T.red} 
-              fill={hasVoted ? T.red : 'none'}
+              color="#EF4444" 
+              fill={hasVoted ? "#EF4444" : 'none'}
               style={{
                 transition: 'all 0.3s ease',
                 transform: hasVoted ? 'scale(1.2)' : 'scale(1)',
@@ -1207,7 +1207,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
             <span style={{
               fontSize: 18,
               fontWeight: 800,
-              color: hasVoted ? T.red : T.txt,
+              color: hasVoted ? "#EF4444" : T.txt,
             }}>
               {voteCount}
             </span>
@@ -1227,8 +1227,8 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
               style={{
                 padding: '10px 20px',
                 background: hasVoted 
-                  ? `${T.green}` 
-                  : `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
+                  ? `#10B981` 
+                  : `linear-gradient(135deg, ${T.pri}, #F97316)`,
                 border: 'none',
                 borderRadius: 20,
                 color: '#fff',
@@ -1488,10 +1488,10 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
         {error && (
           <div style={{
             padding: 12,
-            background: T.red + '15',
-            border: `1px solid ${T.red}`,
+            background: 'rgba(239,68,68,0.15)',
+            border: `1px solid #EF4444`,
             borderRadius: 8,
-            color: T.red,
+            color: '#EF4444',
             fontSize: 14,
             marginBottom: 20,
           }}>
@@ -1549,7 +1549,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                 style={{
                   flex: 1,
                   padding: '14px 16px',
-                  background: T.card,
+                  background: T.cardBg || '#fff',
                   border: `2px solid ${T.border}`,
                   borderRadius: 12,
                   color: T.txt,
@@ -1570,7 +1570,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                 style={{
                   flex: 1,
                   padding: '14px 16px',
-                  background: T.card,
+                  background: T.cardBg || '#fff',
                   border: `2px solid ${T.border}`,
                   borderRadius: 12,
                   color: T.txt,
@@ -1687,7 +1687,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               }}
               style={{
                 padding: '12px 24px',
-                background: `linear-gradient(135deg, ${T.pri}, ${T.orange})`,
+                background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
                 border: 'none',
                 borderRadius: 12,
                 color: '#fff',
