@@ -3,6 +3,7 @@ import { ArrowLeft, Image as ImageIcon, Video, Hash, Type, Upload, X } from "luc
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import realtimeService from "../services/RealtimeService";
 
 export function ModernPostPage({ user, onBack }) {
   const { colors: T } = useTheme();
@@ -145,6 +146,20 @@ export function ModernPostPage({ user, onBack }) {
       formData.append("hashtags", hashtags.join(','));
       
       const response = await api.createPost(formData);
+      
+      // Broadcast new post to all users for real-time updates
+      if (response && response.id) {
+        realtimeService.broadcastNewPost({
+          id: response.id,
+          user: user,
+          caption: caption,
+          media: response.media || response.image,
+          created_at: response.created_at || new Date().toISOString()
+        });
+        
+        // Also broadcast feed refresh to ensure all tabs update
+        realtimeService.broadcastFeedRefresh();
+      }
       
       alert("Post uploaded successfully!");
       

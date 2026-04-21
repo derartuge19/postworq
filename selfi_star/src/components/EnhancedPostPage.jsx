@@ -1,13 +1,14 @@
 ﻿// ─── TikTok-grade Create Page ──────────────────────────────────────────────
-import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  X, Check, Music, Type, Sliders, Play, Pause, Upload, Zap, ZapOff,
-  Square, ArrowLeft, RefreshCw, ChevronLeft, Image, Video, Scissors,
-  Bookmark, Eye, FileText, Heart, MessageCircle, Share2, Volume2, VolumeX,
-  Home, Film, User, PlusSquare
-} from "lucide-react";
-import api from "../api";
-import { useLegacyT } from "../contexts/ThemeContext";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { 
+  Home, Film, PlusSquare, MessageCircle, User, Search, Settings, X, 
+  Image as ImageIcon, Video, Hash, Type, Upload, Music, Volume2, VolumeX, 
+  Play, Pause, RotateCw, Camera, Mic, MicOff, Sparkles, Palette, 
+  ChevronDown, ChevronLeft, ChevronRight, Check, AlertCircle, Trash2
+} from 'lucide-react';
+import api from '../api';
+import { useLegacyT } from '../contexts/ThemeContext';
+import realtimeService from '../services/RealtimeService';
 
 const FILTERS = [
   { id:'none',      name:'Original', css:'none' },
@@ -753,6 +754,21 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
           setUploadProgress(Math.min(pct, 97));
         },
       });
+      
+      // Broadcast new post to all users for real-time updates
+      if (newReel && newReel.id) {
+        realtimeService.broadcastNewPost({
+          id: newReel.id,
+          user: user,
+          caption: caption,
+          media: newReel.media || newReel.image,
+          created_at: newReel.created_at || new Date().toISOString()
+        });
+        
+        // Also broadcast feed refresh to ensure all tabs update
+        realtimeService.broadcastFeedRefresh();
+      }
+      
       setUploadProgress(100);
       setShowSuccess(true);
       setTimeout(() => {

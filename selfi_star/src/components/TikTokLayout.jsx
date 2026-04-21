@@ -31,6 +31,7 @@ import { AlertModal } from './AlertModal';
 import { getRelativeTime } from '../utils/timeUtils';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import realtimeService from '../services/RealtimeService';
 import './TikTokLayout.css';
 
 // CaptionWithLessMore component for truncating long captions
@@ -109,7 +110,7 @@ export const TikTokLayout = memo(function TikTokLayout({
 
   // ── Feed cache helpers (stale-while-revalidate) ──────────────────────────
   const CACHE_KEY = (tab) => `feed_cache_${tab}`;
-  const CACHE_TTL = 30 * 60 * 1000; // 30 min
+  const CACHE_TTL = 2 * 60 * 1000; // 2 min for faster post distribution
   const readFeedCache = (tab) => {
     try {
       const raw = localStorage.getItem(CACHE_KEY(tab));
@@ -1185,6 +1186,43 @@ export const TikTokLayout = memo(function TikTokLayout({
   useEffect(() => {
     fetchVideos();
   }, []);
+
+  // Setup real-time listeners for post updates
+  useEffect(() => {
+    // Listen for new posts from other tabs
+    const handleNewPost = (postData) => {
+      console.log('New post received:', postData);
+      // Clear cache and refresh feed to show new post
+      try {
+        localStorage.removeItem(`feed_cache_${activeTab}`);
+        fetchVideos(1, false);
+      } catch (error) {
+        console.error('Error refreshing feed for new post:', error);
+      }
+    };
+
+    // Listen for feed refresh requests
+    const handleFeedRefresh = () => {
+      console.log('Feed refresh requested');
+      // Clear cache and refresh feed
+      try {
+        localStorage.removeItem(`feed_cache_${activeTab}`);
+        fetchVideos(1, false);
+      } catch (error) {
+        console.error('Error refreshing feed:', error);
+      }
+    };
+
+    // Add event listeners
+    realtimeService.addEventListener('NEW_POST', handleNewPost);
+    realtimeService.addEventListener('FEED_REFRESH', handleFeedRefresh);
+
+    // Cleanup on unmount
+    return () => {
+      realtimeService.removeEventListener('NEW_POST', handleNewPost);
+      realtimeService.removeEventListener('FEED_REFRESH', handleFeedRefresh);
+    };
+  }, [activeTab]);
 
   // Expose fetchVideos function so it can be called from parent
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../api";
 import { useLegacyT } from "../contexts/ThemeContext";
+import realtimeService from "../services/RealtimeService";
 
 export function PostPage({ user, onBack }) {
   const T = useLegacyT();
@@ -143,6 +144,20 @@ export function PostPage({ user, onBack }) {
       console.log("FormData created, calling API...");
       const response = await api.createPost(formData);
       console.log("API response:", response);
+      
+      // Broadcast new post to all users for real-time updates
+      if (response && response.id) {
+        realtimeService.broadcastNewPost({
+          id: response.id,
+          user: user,
+          caption: caption,
+          media: response.media || response.image,
+          created_at: response.created_at || new Date().toISOString()
+        });
+        
+        // Also broadcast feed refresh to ensure all tabs update
+        realtimeService.broadcastFeedRefresh();
+      }
       
       alert("Post uploaded successfully!");
       

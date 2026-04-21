@@ -3,6 +3,7 @@ import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, Ch
 import api from '../api';
 import config from '../config';
 import { useTheme } from '../contexts/ThemeContext';
+import realtimeService from '../services/RealtimeService';
 
 const BACKEND = config.API_BASE_URL.replace('/api', '');
 
@@ -24,7 +25,7 @@ function timeAgo(dateStr) {
 
 // Cache helpers for HomePage
 const CACHE_KEY = 'homepage_feed_cache';
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutes (same as TikTokLayout)
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes for faster post distribution
 
 function readHomeCache() {
   try {
@@ -1245,6 +1246,43 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Setup real-time listeners for post updates
+  useEffect(() => {
+    // Listen for new posts from other tabs
+    const handleNewPost = (postData) => {
+      console.log('HomePage: New post received:', postData);
+      // Clear cache and refresh feed to show new post
+      try {
+        localStorage.removeItem(CACHE_KEY);
+        fetchPosts(0, true);
+      } catch (error) {
+        console.error('Error refreshing HomePage for new post:', error);
+      }
+    };
+
+    // Listen for feed refresh requests
+    const handleFeedRefresh = () => {
+      console.log('HomePage: Feed refresh requested');
+      // Clear cache and refresh feed
+      try {
+        localStorage.removeItem(CACHE_KEY);
+        fetchPosts(0, true);
+      } catch (error) {
+        console.error('Error refreshing HomePage feed:', error);
+      }
+    };
+
+    // Add event listeners
+    realtimeService.addEventListener('NEW_POST', handleNewPost);
+    realtimeService.addEventListener('FEED_REFRESH', handleFeedRefresh);
+
+    // Cleanup on unmount
+    return () => {
+      realtimeService.removeEventListener('NEW_POST', handleNewPost);
+      realtimeService.removeEventListener('FEED_REFRESH', handleFeedRefresh);
+    };
   }, []);
 
   // Track whether this tab has ever loaded, to avoid redundant re-fetches
