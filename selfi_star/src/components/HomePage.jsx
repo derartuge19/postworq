@@ -437,7 +437,6 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   const [shine, setShine] = useState({ x: 50, y: 50, opacity: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [viewCount, setViewCount] = useState(post.view_count || 0);
   const [shareToast, setShareToast] = useState('');
   const [captionExpanded, setCaptionExpanded] = useState(false);
@@ -450,11 +449,6 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   const CAPTION_LIMIT = 140;
   const rafRef = useRef(null);
   const viewTracked = useRef(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), index * 60);
-    return () => clearTimeout(t);
-  }, [index]);
 
   // Check if this user has already viewed this post (persisted in localStorage)
   const hasViewedPost = () => {
@@ -681,15 +675,12 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           maxWidth: 560,
           width: '100%',
           position: 'relative',
-          transform: mounted
-            ? isPressed
-              ? 'scale(0.985)'
-              : `translateY(${isHovered ? -3 : 0}px) scale(${isHovered ? 1.015 : 1})`
-            : 'translateY(28px) scale(0.97)',
-          opacity: mounted ? 1 : 0,
+          transform: isPressed
+            ? 'scale(0.985)'
+            : `translateY(${isHovered ? -3 : 0}px) scale(${isHovered ? 1.015 : 1})`,
           transition: isPressed
             ? 'transform 0.1s ease, box-shadow 0.1s'
-            : 'transform 0.35s cubic-bezier(0.23,1,0.32,1), box-shadow 0.35s ease, opacity 0.4s ease, border-color 0.3s',
+            : 'transform 0.35s cubic-bezier(0.23,1,0.32,1), box-shadow 0.35s ease, border-color 0.3s',
           willChange: 'transform',
         }}
       >
@@ -1218,22 +1209,6 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
           </button>
         ))}
       </div>
-
-      {/* Skeleton loading state - fixed aspect ratio to prevent CLS */}
-      {loading && posts.length === 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {[1, 2, 3].map(i => (
-            <div key={i} style={{
-              background: T?.cardBg || '#fff',
-              borderRadius: 16,
-              aspectRatio: 9 / 16,
-              width: '100%',
-              animation: 'pulse 1.5s ease-in-out infinite',
-            }} />
-          ))}
-          <style>{`@keyframes pulse {0%,100%{opacity:0.6}50%{opacity:1}}`}</style>
-        </div>
-      )}
 
       {/* Feed */}
       <div style={{
