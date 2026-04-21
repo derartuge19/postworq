@@ -102,8 +102,8 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
       api.markAllNotificationsRead().catch(() => {});
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     }, 2000);
-    // Poll every 20s for new notifications
-    pollingRef.current = setInterval(() => fetchNotifications(true), 20000);
+    // Poll every 30s for new notifications (reduced from 20s)
+    pollingRef.current = setInterval(() => fetchNotifications(true), 30000);
     return () => {
       clearTimeout(markTimer);
       clearInterval(pollingRef.current);
@@ -294,32 +294,39 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
               >
                 {/* Avatar + type badge */}
                 <div style={{ position: 'relative', flexShrink: 0 }}>
-                  {notif.user?.profile_photo ? (
-                    <img src={mediaUrl(notif.user.profile_photo)} alt={notif.user.username}
-                      style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
-                  ) : notif.user ? (
+                  {notif.post?.thumbnail ? (
+                    <img
+                      src={mediaUrl(notif.post.thumbnail)}
+                      alt="Post"
+                      style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : notif.type === 'like' ? (
                     <div style={{
-                      width: 46, height: 46, borderRadius: '50%',
-                      background: T.pri + '25', display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', fontSize: 20,
-                    }}>👤</div>
-                  ) : (
-                    <div style={{
-                      width: 46, height: 46, borderRadius: '50%',
-                      background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>{getIcon(notif.type)}</div>
-                  )}
-                  {/* Type badge on avatar */}
-                  {notif.user && (
-                    <div style={{
-                      position: 'absolute', bottom: -2, right: -2,
-                      width: 20, height: 20, borderRadius: '50%',
-                      border: '2px solid #fff', overflow: 'hidden',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 48, height: 48, borderRadius: 8,
+                      background: T?.pri + '20', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {getIcon(notif.type)}
+                      <Heart size={20} fill={T?.pri} color={T?.pri} />
                     </div>
-                  )}
+                  ) : notif.type === 'comment' ? (
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 8,
+                      background: T?.pri + '20', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <MessageCircle size={20} color={T?.pri} />
+                    </div>
+                  ) : notif.type === 'follow' ? (
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 8,
+                      background: T?.pri + '20', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <UserPlus size={20} color={T?.pri} />
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Text */}
