@@ -7,6 +7,13 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import "./ModernCommentSection.css";
 
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  if (url.startsWith('/')) return `${api.config.baseURL}${url}`;
+  return `${api.config.baseURL}/${url}`;
+};
+
 export function ModernCommentSection({ reelId, user, onClose, onCommentPosted }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
@@ -60,8 +67,10 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const data = await api.getComments(reelId);
-      setComments(data);
+      // Use the extended endpoint that includes replies
+      const data = await api.request(`/comments/?reel=${reelId}&include_replies=true`);
+      const comments = Array.isArray(data) ? data : (data?.results || []);
+      setComments(comments);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
     } finally {
@@ -222,7 +231,20 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
                       fontSize: 16,
                       flexShrink: 0,
                     }}>
-                      👤
+                      {comment.user?.profile_photo ? (
+                        <img 
+                          src={mediaUrl(comment.user.profile_photo)} 
+                          alt="" 
+                          style={{ 
+                            width: 36, 
+                            height: 36, 
+                            borderRadius: "50%", 
+                            objectFit: "cover" 
+                          }} 
+                        />
+                      ) : (
+                        "??"
+                      )}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
