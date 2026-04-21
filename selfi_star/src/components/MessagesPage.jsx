@@ -1033,9 +1033,11 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
     try {
       if (!silent) setLoading(true);
       
-      // Add timeout to prevent slow loading - increased to 10 seconds
+      // 60s timeout tolerates Render free-tier cold starts (~30-60s wake).
+      // A browser-aborted fetch surfaces as a misleading "CORS error" in the
+      // console, so we'd rather wait than fail fast.
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
+        setTimeout(() => reject(new Error('Request timeout')), 60000)
       );
       
       const data = await Promise.race([
@@ -1329,9 +1331,9 @@ export function MessagesPage({ user, onShowProfile }) {
     try {
       if (!silent) setLoading(true);
       
-      // Add timeout to prevent slow loading - increased to 10 seconds
+      // 60s timeout tolerates Render free-tier cold starts (~30-60s wake).
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
+        setTimeout(() => reject(new Error('Request timeout')), 60000)
       );
       
       const data = await Promise.race([
