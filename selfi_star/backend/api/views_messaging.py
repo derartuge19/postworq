@@ -280,12 +280,12 @@ def unread_dm_count(request):
     """Total unread messages across all my conversations (for bottom-nav badge)."""
     try:
         from .models_messaging import Message, Conversation
+        from django.db.models import Q
         
         # Count all messages not sent by me in conversations I'm part of
         # This is a simplified approach to avoid N+1 queries
         unread_count = Message.objects.filter(
-            conversation__participants=request.user,
-            sender__ne=request.user
+            Q(conversation__participants=request.user) & ~Q(sender=request.user)
         ).count()
         
         return Response({'unread_count': unread_count})
