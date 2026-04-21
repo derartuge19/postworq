@@ -871,7 +871,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             (header + media + actions + caption) fits in one viewport. */}
         <div
           style={{
-            position: 'relative', width: '100%', background: '#111',
+            position: 'relative', width: '100%', background: 'transparent',
             flex: '1 1 auto',
             minHeight: 0,
             maxHeight: 'calc(100vh - 280px)',
@@ -893,7 +893,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   poster={post.image ? mediaUrl(post.image) : undefined}
                   preload={index === 0 ? 'metadata' : 'none'}
                   loading={index === 0 ? 'eager' : 'lazy'}
-                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block', background: '#111', pointerEvents: 'none' }}
+                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block', background: 'transparent', pointerEvents: 'none' }}
                   playsInline
                   loop
                   onPlay={() => setVideoPlaying(true)}

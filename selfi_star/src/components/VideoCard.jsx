@@ -116,7 +116,7 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
         style={{ 
           position: 'relative', 
           width: '100%', 
-          background: '#111',
+          background: 'transparent',
           flex: '1 1 auto',
           minHeight: 300,
           maxHeight: 400,
