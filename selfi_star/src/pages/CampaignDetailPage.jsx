@@ -244,8 +244,8 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                     display: 'inline-block',
                     padding: '6px 12px',
                     borderRadius: 8,
-                    background: T.blue + '20',
-                    color: T.blue,
+                    background: 'rgba(59,130,246,0.2)',
+                    color: '#3B82F6',
                     fontSize: 12,
                     fontWeight: 700,
                     textTransform: 'uppercase',
@@ -288,7 +288,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                     }}
                     style={{
                       padding: '16px 32px',
-                      background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
+                      background: 'linear-gradient(135deg, #DA9B2A, #F97316)',
                       border: 'none',
                       borderRadius: 16,
                       color: '#fff',
@@ -298,17 +298,17 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                       display: 'flex',
                       alignItems: 'center',
                       gap: 10,
-                      boxShadow: `0 8px 24px ${T.pri}60`,
+                      boxShadow: '0 8px 24px rgba(218,155,42,0.6)',
                       transition: 'all 0.3s ease',
                       animation: 'pulse 2s ease-in-out infinite',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = `0 12px 32px ${T.pri}80`;
+                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(218,155,42,0.8)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = `0 8px 24px ${T.pri}60`;
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(218,155,42,0.6)';
                     }}
                   >
                     <Upload size={22} strokeWidth={2.5} />
@@ -317,10 +317,10 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                 ) : userEntry ? (
                   <div style={{
                     padding: '12px 20px',
-                    background: `${T.green}15`,
-                    border: `2px solid ${T.green}`,
+                    background: 'rgba(16,185,129,0.15)',
+                    border: '2px solid #10B981',
                     borderRadius: 16,
-                    color: T.green,
+                    color: '#10B981',
                     fontSize: 14,
                     fontWeight: 700,
                     display: 'flex',
@@ -333,10 +333,10 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                 ) : (
                   <div style={{
                     padding: '12px 20px',
-                    background: `${T.red}15`,
-                    border: `2px solid ${T.red}`,
+                    background: 'rgba(239,68,68,0.15)',
+                    border: '2px solid #EF4444',
                     borderRadius: 16,
-                    color: T.red,
+                    color: '#EF4444',
                     fontSize: 14,
                     fontWeight: 700,
                     display: 'flex',
@@ -399,9 +399,9 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
             {/* Prize Section */}
             <div style={{
               padding: 24,
-              background: `linear-gradient(135deg, ${T.pri}15, ${T.orange}15)`,
+              background: 'linear-gradient(135deg, rgba(218,155,42,0.15), rgba(249,115,22,0.15))',
               borderRadius: 12,
-              border: `2px solid ${T.pri}30`,
+              border: '2px solid rgba(218,155,42,0.3)',
               marginBottom: 24,
             }}>
               <div style={{
@@ -455,9 +455,9 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
             }}>
               <div style={{
                 padding: 16,
-                background: `linear-gradient(135deg, ${T.blue}15, ${T.blue}05)`,
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.05))',
                 borderRadius: 12,
-                border: `2px solid ${T.blue}30`,
+                border: '2px solid rgba(59,130,246,0.3)',
                 position: 'relative',
                 overflow: 'hidden',
               }}>
@@ -468,7 +468,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   width: 60,
                   height: 60,
                   borderRadius: '50%',
-                  background: `${T.blue}10`,
+                  background: 'rgba(59,130,246,0.1)',
                 }} />
                 <div style={{
                   display: 'flex',
@@ -476,7 +476,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   gap: 8,
                   marginBottom: 8,
                 }}>
-                  <Users size={18} color={T.blue} />
+                  <Users size={18} color="#3B82F6" />
                   <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
                     Participants
                   </span>
@@ -492,9 +492,9 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
 
               <div style={{
                 padding: 16,
-                background: `linear-gradient(135deg, ${T.red}15, ${T.red}05)`,
+                background: 'linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))',
                 borderRadius: 12,
-                border: `2px solid ${T.red}30`,
+                border: '2px solid rgba(239,68,68,0.3)',
                 position: 'relative',
                 overflow: 'hidden',
               }}>
@@ -505,7 +505,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   width: 60,
                   height: 60,
                   borderRadius: '50%',
-                  background: `${T.red}10`,
+                  background: 'rgba(239,68,68,0.1)',
                 }} />
                 <div style={{
                   display: 'flex',
@@ -529,9 +529,9 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
 
               <div style={{
                 padding: 16,
-                background: `linear-gradient(135deg, ${T.orange}15, ${T.orange}05)`,
+                background: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(249,115,22,0.05))',
                 borderRadius: 12,
-                border: `2px solid ${T.orange}30`,
+                border: '2px solid rgba(249,115,22,0.3)',
                 position: 'relative',
                 overflow: 'hidden',
               }}>
@@ -542,7 +542,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   width: 60,
                   height: 60,
                   borderRadius: '50%',
-                  background: `${T.orange}10`,
+                  background: 'rgba(249,115,22,0.1)',
                 }} />
                 <div style={{
                   display: 'flex',
@@ -567,9 +567,9 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
               {/* Engagement Score */}
               <div style={{
                 padding: 16,
-                background: `linear-gradient(135deg, ${T.purple}15, ${T.purple}05)`,
+                background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))',
                 borderRadius: 12,
-                border: `2px solid ${T.purple}30`,
+                border: '2px solid rgba(139,92,246,0.3)',
                 position: 'relative',
                 overflow: 'hidden',
               }}>
@@ -580,7 +580,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   width: 60,
                   height: 60,
                   borderRadius: '50%',
-                  background: `${T.purple}10`,
+                  background: 'rgba(139,92,246,0.1)',
                 }} />
                 <div style={{
                   display: 'flex',
@@ -588,7 +588,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   gap: 8,
                   marginBottom: 8,
                 }}>
-                  <TrendingUp size={18} color={T.purple} />
+                  <TrendingUp size={18} color="#8B5CF6" />
                   <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
                     Engagement
                   </span>
@@ -607,9 +607,9 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
             {(campaign.min_followers > 0 || campaign.min_level > 0 || campaign.min_votes_per_reel > 0 || campaign.required_hashtags) && (
               <div style={{
                 padding: 20,
-                background: `linear-gradient(135deg, ${T.blue}10, ${T.purple}10)`,
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1))',
                 borderRadius: 12,
-                border: `2px solid ${T.blue}30`,
+                border: '2px solid rgba(59,130,246,0.3)',
                 marginBottom: 24,
               }}>
                 <div style={{
@@ -622,7 +622,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                     width: 40,
                     height: 40,
                     borderRadius: '50%',
-                    background: T.blue,
+                    background: '#3B82F6',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -777,10 +777,10 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
         {/* User's Entry with Gamification */}
         {userEntry && (
           <div style={{
-            background: `linear-gradient(135deg, ${T.green}10, ${T.pri}10)`,
+            background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(218,155,42,0.1))',
             borderRadius: 16,
             padding: 24,
-            border: `2px solid ${T.green}`,
+            border: '2px solid #10B981',
             marginBottom: 32,
             position: 'relative',
             overflow: 'hidden',
@@ -792,7 +792,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
               width: 100,
               height: 100,
               borderRadius: '50%',
-              background: `${T.green}15`,
+              background: 'rgba(218,155,42,0.1)',
             }} />
             <div style={{
               display: 'flex',
@@ -809,7 +809,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   width: 48,
                   height: 48,
                   borderRadius: '50%',
-                  background: T.green,
+                  background: '#10B981',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -901,7 +901,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                 width: 48,
                 height: 48,
                 borderRadius: '50%',
-                background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
+                background: 'linear-gradient(135deg, #DA9B2A, #F97316)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1116,7 +1116,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
               width: 42,
               height: 42,
               borderRadius: '50%',
-              background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
+              background: 'linear-gradient(135deg, #DA9B2A, #F97316)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1154,7 +1154,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
           {entry.is_winner && (
             <div style={{
               padding: '4px 10px',
-              background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
+              background: 'linear-gradient(135deg, #DA9B2A, #F97316)',
               borderRadius: 12,
               fontSize: 11,
               fontWeight: 700,
@@ -1505,9 +1505,9 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
             {campaign && (
               <div style={{
                 padding: 16,
-                background: `${T.blue}10`,
+                background: 'rgba(59,130,246,0.1)',
                 borderRadius: 12,
-                border: `2px solid ${T.blue}30`,
+                border: '2px solid rgba(59,130,246,0.3)',
                 marginBottom: 20,
               }}>
                 <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: T.txt, marginBottom: 12 }}>
@@ -1687,14 +1687,14 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               }}
               style={{
                 padding: '12px 24px',
-                background: `linear-gradient(135deg, ${T.pri}, #F97316)`,
+                background: 'linear-gradient(135deg, #DA9B2A, #F97316)',
                 border: 'none',
                 borderRadius: 12,
                 color: '#fff',
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: 'pointer',
-                boxShadow: `0 4px 12px ${T.pri}40`,
+                boxShadow: '0 4px 12px rgba(218,155,42,0.4)',
               }}
             >
               🎬 Create Reel Now
