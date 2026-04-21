@@ -468,7 +468,7 @@ export const TikTokLayout = memo(function TikTokLayout({
 
   // IntersectionObserver to control video playback AND lazy-load src
   useEffect(() => {
-    // Observer for playback (70% visible)
+    // Observer for playback (50% visible for better performance)
     const playbackObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -476,7 +476,7 @@ export const TikTokLayout = memo(function TikTokLayout({
           const videoElement = videoRefs.current[videoId];
           if (!videoElement) return;
 
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
             // Don't auto-play if user manually paused this video
             if (manuallyPaused[videoId]) {
               return;
@@ -516,7 +516,7 @@ export const TikTokLayout = memo(function TikTokLayout({
           }
         });
       },
-      { root: null, rootMargin: '0px', threshold: 0.7 },
+      { threshold: [0, 0.5, 1], rootMargin: '-10% 0px -10% 0px' }
     );
 
     // Observer for lazy-loading src (preload when 1 screen away)
@@ -1806,9 +1806,11 @@ export const TikTokLayout = memo(function TikTokLayout({
                           }
                           poster={getVideoPoster(video.imageUrl)}
                           preload={
-                            videos.indexOf(video) === 0 || visibleVideos[video.id]
+                            videos.indexOf(video) === 0
                               ? 'metadata'
-                              : 'none'
+                              : visibleVideos[video.id]
+                                ? 'metadata'
+                                : 'none'
                           }
                           muted
                           loop

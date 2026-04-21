@@ -702,7 +702,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           >
             <div style={{ width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: `2px solid ${(T?.pri || '#000')}30` }}>
               {avatarSrc
-                ? <img src={avatarSrc} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
+                ? <img src={avatarSrc} alt="" loading={index === 0 ? 'eager' : 'lazy'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
                 : '👤'}
             </div>
           </button>
@@ -739,8 +739,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   ref={videoRef}
                   src={mediaSrc}
                   poster={post.image ? mediaUrl(post.image) : undefined}
-                  preload="none"
-                  loading="lazy"
+                  preload={index === 0 ? 'metadata' : 'none'}
+                  loading={index === 0 ? 'eager' : 'lazy'}
                   style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block', background: '#111', pointerEvents: 'none' }}
                   playsInline
                   loop
@@ -763,7 +763,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               <img
                 src={mediaSrc}
                 alt={post.caption || ''}
-                loading="lazy"
+                loading={index === 0 ? 'eager' : 'lazy'}
                 style={{ width: '100%', display: 'block', cursor: 'default' }}
                 onError={() => setImgError(true)}
               />
@@ -1005,7 +1005,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     return () => clearTimeout(timer);
   }, []);
 
-  const LIMIT = 10; // Load more posts initially for better user experience
+  const LIMIT = 5; // Load fewer posts initially for faster LCP
   const PULL_THRESHOLD = 80;
 
   // Create shared IntersectionObserver for all videos
@@ -1025,7 +1025,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.3, rootMargin: '50px' }
     );
     
     videoObserverRef.current = observer;
@@ -1189,78 +1189,49 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
           <div style={{
             width: 32,
             height: 32,
-            borderRadius: '50%',
-            border: `3px solid ${T?.pri || '#000'}`,
-            borderTopColor: 'transparent',
-            animation: isRefreshing ? 'spin 0.8s linear infinite' : 'none',
-            transform: `rotate(${(pullDistance / PULL_THRESHOLD) * 360}deg)`,
-            transition: isRefreshing ? 'none' : 'transform 0.1s',
           }} />
         </div>
       )}
-      
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-      
+
       {/* Tab bar */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 50,
-        background: T?.cardBg || '#fff',
-        borderBottom: `1px solid ${T?.border || '#e0e0e0'}`,
-        display: 'flex',
-        alignItems: 'center',
-        overflowX: 'auto',
-        overflowY: 'hidden',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-        padding: '0 16px',
-        gap: 24,
-        WebkitOverflowScrolling: 'touch',
+        display: 'flex', gap: 8, marginBottom: 16,
+        position: 'sticky', top: 0, zIndex: 10,
+        background: T?.bg || '#f5f5f5', padding: '8px 0',
+        backdropFilter: 'blur(10px)',
       }}>
-        <style>{`.hp-tabbar::-webkit-scrollbar { display: none; }`}</style>
-        {ALL_TABS.map(tab => {
-          const isActive = activeTab === tab;
-          return (
-            <button
-              key={tab}
-              onClick={() => handleTabClick(tab)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: '12px 0',
-                fontSize: 15,
-                fontWeight: isActive ? 700 : 500,
-                color: isActive ? T?.txt || '#000' : T?.sub || '#666',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                position: 'relative',
-                fontFamily: 'inherit',
-              }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = T?.txt || '#000'; } }}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = T?.sub || '#666'; } }}
-            >
-              {tab}
-              {isActive && (
-                <div style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '20px',
-                  height: '2px',
-                  background: T?.pri || '#000',
-                  borderRadius: '2px',
-                }} />
-              )}
-            </button>
-          );
-        })}
+        {ALL_TABS.map(tab => (
+          <button
+            key={tab}
+            onClick={() => handleTabClick(tab)}
+            style={{
+              padding: '8px 16px', borderRadius: 20,
+              border: 'none', cursor: 'pointer',
+              background: activeTab === tab ? (T?.pri || '#000') : (T?.cardBg || '#fff'),
+              color: activeTab === tab ? '#fff' : (T?.txt || '#000'),
+              fontWeight: 600, fontSize: 14,
+              transition: 'background 0.2s, color 0.2s',
+            }}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
+
+      {/* Skeleton loading state */}
+      {loading && posts.length === 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{
+              background: T?.cardBg || '#fff',
+              borderRadius: 16,
+              height: 400,
+              animation: 'pulse 1.5s ease-in-out infinite',
+            }} />
+          ))}
+          <style>{`@keyframes pulse {0%,100%{opacity:0.6}50%{opacity:1}}`}</style>
+        </div>
+      )}
 
       {/* Feed */}
       <div style={{
