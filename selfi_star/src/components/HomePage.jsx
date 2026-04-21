@@ -1040,29 +1040,13 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             </button>
           </div>
 
-          {/* Caption + hashtags */}
-          {(post.caption || post.hashtags_list) && (
-            <div
-              onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
-              style={{
-                fontSize: 13, color: T?.txt || '#000', marginTop: 2, lineHeight: 1.35,
-                display: '-webkit-box',
-                WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: captionExpanded ? 'unset' : 1,
-                overflow: 'hidden',
-                wordBreak: 'break-word',
-                cursor: 'pointer',
-              }}
-            >
-              <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
+          {/* Caption - no username, no expand/collapse */}
+          {post.caption && (
+            <div style={{
+              fontSize: 13, color: T?.txt || '#000', marginTop: 2, lineHeight: 1.35,
+              wordBreak: 'break-word',
+            }}>
               {post.caption}
-              {/* Display hashtags like create page */}
-              {Array.isArray(post.hashtags_list) && post.hashtags_list.length > 0 && (
-                <span style={{ color: T?.pri || '#DA9B2A', fontWeight: 600 }}>
-                  {' '}
-                  {post.hashtags_list.map(tag => `#${tag}`).join(' ')}
-                </span>
-              )}
             </div>
           )}
           {inlineComments.length > 0 && (
@@ -1097,7 +1081,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             </div>
           )}
 
-          {/* Comments link — compact, no top margin when no caption. */}
+          {/* Comments link */}
           <button
             onClick={handleCommentClick}
             style={{
@@ -1106,8 +1090,21 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               display: 'block', marginTop: post.caption || inlineComments.length ? 2 : 0,
             }}
           >
-            {commentCount > 0 ? `View all ${commentCount} comments` : 'Add a comment…'}
+            {commentCount > 0 ? `View all ${commentCount} comments` : 'Add a comment...'}
           </button>
+
+          {/* Hashtags - after comments link */}
+          {Array.isArray(post.hashtags_list) && post.hashtags_list.length > 0 && (
+            <div style={{
+              fontSize: 13, marginTop: 4,
+            }}>
+              {post.hashtags_list.map(tag => (
+                <span key={tag} style={{ color: T?.pri || '#DA9B2A', fontWeight: 600, marginRight: 4 }}>
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
