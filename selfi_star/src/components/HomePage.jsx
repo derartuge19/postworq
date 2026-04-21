@@ -702,7 +702,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           >
             <div style={{ width: 42, height: 42, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: `2px solid ${(T?.pri || '#000')}30` }}>
               {avatarSrc
-                ? <img src={avatarSrc} alt="" loading={index === 0 ? 'eager' : 'lazy'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
+                ? <img src={avatarSrc} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
                 : '👤'}
             </div>
           </button>
@@ -764,6 +764,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 src={mediaSrc}
                 alt={post.caption || ''}
                 loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'default' }}
                 onError={() => setImgError(true)}
               />
