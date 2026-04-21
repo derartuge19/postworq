@@ -43,11 +43,32 @@ const RANK_STYLES = {
   3: { bg: '#CD7F3220', border: '#CD7F32', text: '#8B4513', label: '🥉 #3' },
 };
 
+// ── Per-campaign stale-while-revalidate cache ─────────────────────────────
+// Paints the last-known feed instantly (including when the backend is cold),
+// then refreshes in the background.  Lives only for the session.
+const CF_CACHE_TTL = 5 * 60 * 1000;   // 5 min fresh window
+const cfCacheKey = (id, filter) => `campaign_feed_${id}_${filter}`;
+const readCfCache = (id, filter) => {
+  try {
+    const raw = sessionStorage.getItem(cfCacheKey(id, filter));
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > CF_CACHE_TTL) return null;
+    return data;
+  } catch { return null; }
+};
+const writeCfCache = (id, filter, data) => {
+  try { sessionStorage.setItem(cfCacheKey(id, filter), JSON.stringify({ ts: Date.now(), data })); } catch {}
+};
+
 const CampaignFeed = ({ campaignId, onBack }) => {
   const { colors: T } = useTheme();
-  const [loading, setLoading] = useState(true);
-  const [campaign, setCampaign] = useState(null);
-  const [posts, setPosts] = useState([]);
+  // Seed from cache so the page paints immediately instead of waiting for a
+  // cold-start roundtrip.  If no cache, we show the skeleton loader.
+  const cached = readCfCache(campaignId, 'all');
+  const [loading, setLoading] = useState(!cached);
+  const [campaign, setCampaign] = useState(cached?.campaign || null);
+  const [posts, setPosts] = useState(cached?.posts || []);
   const [filter, setFilter] = useState('all');
   const engagementTimer = useRef(null);
 
@@ -55,13 +76,25 @@ const CampaignFeed = ({ campaignId, onBack }) => {
 
   const loadData = async (silent = false) => {
     try {
-      if (!silent) setLoading(true);
+      // If we have fresh cache for this filter combo, paint it first and
+      // only show the spinner when there's nothing to show.
+      const cached = readCfCache(campaignId, filter);
+      if (cached) {
+        setCampaign(cached.campaign);
+        setPosts(cached.posts || []);
+        setLoading(false);
+        silent = true;                // refresh in background
+      } else if (!silent) {
+        setLoading(true);
+      }
+
       const [campaignRes, feedRes] = await Promise.all([
-        api.request(`/campaigns/${campaignId}/`, { noCache: true }),
-        api.request(`/campaigns/${campaignId}/feed/?filter=${filter}`, { noCache: true })
+        api.request(`/campaigns/${campaignId}/`),
+        api.request(`/campaigns/${campaignId}/feed/?filter=${filter}`)
       ]);
       setCampaign(campaignRes);
       setPosts(feedRes.posts || []);
+      writeCfCache(campaignId, filter, { campaign: campaignRes, posts: feedRes.posts || [] });
     } catch (error) {
       console.error('Error loading feed:', error);
     } finally {

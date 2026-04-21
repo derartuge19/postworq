@@ -45,46 +45,141 @@ function writeHomeCache(data) {
   } catch {}
 }
 
+// ── Local like/save state ──────────────────────────────────────────────────
+// The feed is cached for 30 min, so when the user likes a post and then
+// comes back, the server-side `is_liked` on the cached payload is stale and
+// the heart appears un-filled again.  We fix this by mirroring like/save
+// toggles in localStorage and merging them on top of cached posts.
+const LIKES_KEY = 'liked_post_ids';
+const SAVES_KEY = 'saved_post_ids';
+function readIdSet(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch { return new Set(); }
+}
+function writeIdSet(key, set) {
+  try { localStorage.setItem(key, JSON.stringify([...set])); } catch {}
+}
+function toggleIdInSet(key, id, on) {
+  const s = readIdSet(key);
+  if (on) s.add(id); else s.delete(id);
+  writeIdSet(key, s);
+}
+function mergeLocalEngagement(posts) {
+  if (!Array.isArray(posts) || posts.length === 0) return posts;
+  const liked = readIdSet(LIKES_KEY);
+  const saved = readIdSet(SAVES_KEY);
+  if (liked.size === 0 && saved.size === 0) return posts;
+  return posts.map(p => {
+    const wasLikedLocal = liked.has(p.id);
+    const wasSavedLocal = saved.has(p.id);
+    // Only fill in if local says "liked" — we don't want to un-like a post
+    // the server knows we liked on another device.
+    return {
+      ...p,
+      is_liked: p.is_liked || wasLikedLocal,
+      is_saved: p.is_saved || wasSavedLocal,
+    };
+  });
+}
+
 /* ── Comment Sheet ── */
 const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T, onCommentAdded }) {
-  const [comments, setComments] = useState([]);
+  // Seed from the feed payload so the sheet paints instantly with whatever
+  // the backend already shipped — no loading spinner on first open.  The
+  // full list is fetched in the background and replaces the seed.
+  const [comments, setComments] = useState(() =>
+    Array.isArray(post.recent_comments) ? post.recent_comments : []
+  );
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
+    let cancelled = false;
     api.request(`/comments/?reel=${post.id}`)
-      .then(d => setComments(Array.isArray(d) ? d : (d.results || [])))
+      .then(d => {
+        if (cancelled) return;
+        const full = Array.isArray(d) ? d : (d?.results || []);
+        // Drop any temp (optimistic) entries that the server now knows about.
+        setComments(prev => {
+          const temps = prev.filter(c => String(c.id).startsWith('temp-'));
+          const seen = new Set(full.map(c => c.id));
+          const keepTemps = temps.filter(t => !seen.has(t.serverId));
+          return [...full, ...keepTemps];
+        });
+      })
       .catch(() => {});
+    return () => { cancelled = true; };
   }, [post.id]);
 
   const handleSend = async (e) => {
     e.preventDefault();
     if (!text.trim() || sending) return;
     if (!api.hasToken()) return;
+    const draft = text.trim();
+    // Optimistic insert — user sees their comment immediately.  On error
+    // we remove the temp row; on success we swap it for the server row.
+    const tempId = `temp-${Date.now()}`;
+    const temp = {
+      id: tempId,
+      text: draft,
+      user: currentUser || { username: 'you', profile_photo: null },
+      created_at: new Date().toISOString(),
+      likes: 0,
+      is_liked: false,
+      pending: true,
+    };
+    if (replyingTo) {
+      setComments(prev => prev.map(c =>
+        c.id === replyingTo.id
+          ? { ...c, replies: [...(c.replies || []), temp] }
+          : c
+      ));
+    } else {
+      setComments(prev => [...prev, temp]);
+    }
+    setText('');
+    const replyTarget = replyingTo;
+    setReplyingTo(null);
     setSending(true);
+    onCommentAdded?.();                     // bump count in parent immediately
+
     try {
-      const body = replyingTo 
-        ? { reel: post.id, text: text.trim(), parent: replyingTo.id }
-        : { reel: post.id, text: text.trim() };
-      
-      const res = await api.request('/comments/', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
-      
-      if (replyingTo) {
-        setComments(prev => prev.map(c => 
-          c.id === replyingTo.id 
-            ? { ...c, replies: [...(c.replies || []), res] }
+      const body = replyTarget
+        ? { reel: post.id, text: draft, parent: replyTarget.id }
+        : { reel: post.id, text: draft };
+      const res = await api.request('/comments/', {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      // Swap temp for real server row
+      if (replyTarget) {
+        setComments(prev => prev.map(c =>
+          c.id === replyTarget.id
+            ? { ...c, replies: (c.replies || []).map(r => r.id === tempId ? res : r) }
             : c
         ));
-        setReplyingTo(null);
       } else {
-        setComments(prev => [...prev, res]);
+        setComments(prev => prev.map(c => c.id === tempId ? res : c));
       }
-      
-      setText('');
-      onCommentAdded?.();
-    } catch {} finally { setSending(false); }
+    } catch (err) {
+      // Roll back optimistic insert + put the draft back in the box.
+      if (replyTarget) {
+        setComments(prev => prev.map(c =>
+          c.id === replyTarget.id
+            ? { ...c, replies: (c.replies || []).filter(r => r.id !== tempId) }
+            : c
+        ));
+      } else {
+        setComments(prev => prev.filter(c => c.id !== tempId));
+      }
+      setText(draft);
+      console.error('[Comment] post failed:', err);
+    } finally { setSending(false); }
   };
 
   const handleLikeComment = async (comment) => {
@@ -422,9 +517,11 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
 
 /* ── Post Card ── */
 const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onRequireAuth, onNavigateToReel, onCommentAdded, onVoteAdded, onShowVideoDetail, videoObserver }) {
-  const [liked, setLiked] = useState(post.is_liked || false);
+  // Seed from post + any persisted local state so the heart stays filled
+  // even when the cached feed's `is_liked` is stale.
+  const [liked, setLiked] = useState(() => post.is_liked || readIdSet(LIKES_KEY).has(post.id));
   const [likes, setLikes] = useState(post.votes || 0);
-  const [saved, setSaved] = useState(post.is_saved || false);
+  const [saved, setSaved] = useState(() => post.is_saved || readIdSet(SAVES_KEY).has(post.id));
   const [likeAnim, setLikeAnim] = useState(false);
   const [saveAnim, setSaveAnim] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -433,6 +530,28 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   const [showOptions, setShowOptions] = useState(false);
   const [optionsAnchor, setOptionsAnchor] = useState(null);
   const [commentCount, setCommentCount] = useState(post.comment_count || 0);
+  // Inline comments — seed from backend-provided recent_comments so we
+  // paint instantly without a per-card fetch.
+  const [inlineComments, setInlineComments] = useState(
+    Array.isArray(post.recent_comments) ? post.recent_comments.slice(0, 3) : []
+  );
+  const [showAllInline, setShowAllInline] = useState(false);
+
+  // ── Re-sync local UI with prop changes ────────────────────────────────────
+  // When the feed background-refreshes, the same card receives a new `post`
+  // object with fresh server values.  Without this effect, the local
+  // `likes` / `commentCount` numbers would stick at whatever they were when
+  // the card first mounted (the bug the user reported: "it counts the next
+  // time not count — as it wants").
+  useEffect(() => {
+    setLikes(post.votes || 0);
+    setCommentCount(post.comment_count || 0);
+    setLiked(prev => prev || !!post.is_liked || readIdSet(LIKES_KEY).has(post.id));
+    setSaved(prev => prev || !!post.is_saved || readIdSet(SAVES_KEY).has(post.id));
+    if (Array.isArray(post.recent_comments) && post.recent_comments.length) {
+      setInlineComments(post.recent_comments.slice(0, 3));
+    }
+  }, [post.id, post.votes, post.comment_count, post.is_liked, post.is_saved, post.recent_comments]);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [shine, setShine] = useState({ x: 50, y: 50, opacity: 0 });
   const [isHovered, setIsHovered] = useState(false);
@@ -557,20 +676,39 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
     e.stopPropagation();
     if (!api.hasToken()) { onRequireAuth?.(); return; }
     const newLiked = !liked;
+    // Optimistic UI + persist locally so the heart survives feed re-renders,
+    // cache reloads, and navigation roundtrips.
     setLiked(newLiked);
     setLikes(prev => newLiked ? prev + 1 : Math.max(0, prev - 1));
+    toggleIdInSet(LIKES_KEY, post.id, newLiked);
     setLikeAnim(true);
     setTimeout(() => setLikeAnim(false), 400);
-    try { await api.request(`/reels/${post.id}/vote/`, { method: 'POST' }); } catch {}
+    try {
+      await api.request(`/reels/${post.id}/vote/`, { method: 'POST' });
+    } catch (err) {
+      // Rollback on failure so the count doesn't drift from truth.
+      setLiked(!newLiked);
+      setLikes(prev => newLiked ? Math.max(0, prev - 1) : prev + 1);
+      toggleIdInSet(LIKES_KEY, post.id, !newLiked);
+      console.error('[HomePage] Vote failed:', err);
+    }
   };
 
   const handleSave = async (e) => {
     e.stopPropagation();
     if (!api.hasToken()) { onRequireAuth?.(); return; }
-    setSaved(s => !s);
+    const newSaved = !saved;
+    setSaved(newSaved);
+    toggleIdInSet(SAVES_KEY, post.id, newSaved);
     setSaveAnim(true);
     setTimeout(() => setSaveAnim(false), 300);
-    try { await api.request(`/reels/${post.id}/save/`, { method: 'POST' }); } catch {}
+    try {
+      await api.request(`/reels/${post.id}/save/`, { method: 'POST' });
+    } catch (err) {
+      setSaved(!newSaved);
+      toggleIdInSet(SAVES_KEY, post.id, !newSaved);
+      console.error('[HomePage] Save failed:', err);
+    }
   };
 
   const handleShare = async (e) => {
@@ -919,13 +1057,47 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             </div>
           )}
 
+          {/* Inline comments preview (Instagram-style) — shows the first
+              comment by default, tap "Show more" to reveal up to 3. */}
+          {inlineComments.length > 0 && (
+            <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {(showAllInline ? inlineComments : inlineComments.slice(0, 1)).map(c => (
+                <div
+                  key={c.id}
+                  onClick={(e) => { e.stopPropagation(); setShowComments(true); }}
+                  style={{
+                    fontSize: 13, color: T?.txt || '#000', lineHeight: 1.35,
+                    display: '-webkit-box', WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 2, overflow: 'hidden',
+                    wordBreak: 'break-word', cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontWeight: 700 }}>{c.user?.username} </span>
+                  {c.text}
+                </div>
+              ))}
+              {inlineComments.length > 1 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowAllInline(v => !v); }}
+                  style={{
+                    background: 'none', border: 'none', padding: 0,
+                    fontSize: 12, color: T?.sub || '#666', fontWeight: 600,
+                    cursor: 'pointer', alignSelf: 'flex-start',
+                  }}
+                >
+                  {showAllInline ? 'Show less' : `Show more`}
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Comments link — compact, no top margin when no caption. */}
           <button
             onClick={handleCommentClick}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               padding: 0, fontSize: 12, color: T?.sub || '#666',
-              display: 'block', marginTop: post.caption ? 2 : 0,
+              display: 'block', marginTop: post.caption || inlineComments.length ? 2 : 0,
             }}
           >
             {commentCount > 0 ? `View all ${commentCount} comments` : 'Add a comment…'}
@@ -976,7 +1148,9 @@ const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
   const { colors: T } = useTheme();
   const [activeTab, setActiveTab] = useState('For You');
-  const [posts, setPosts] = useState(() => readHomeCache() || []);
+  // Seed from cache + merge persisted like/save state so the heart stays
+  // filled on the very first paint.
+  const [posts, setPosts] = useState(() => mergeLocalEngagement(readHomeCache() || []));
   const [loading, setLoading] = useState(() => !readHomeCache());
   const [mounted, setMounted] = useState(false); // Prevent flash on initial load
   const [page, setPage] = useState(0);
@@ -1040,7 +1214,10 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       const limit = reset ? LIMIT * 2 : LIMIT;
       const data = await api.request(`/reels/?limit=${limit}&offset=${offset}`);
       const results = Array.isArray(data) ? data : (data.results || []);
-      const newPosts = reset ? results : [...postsRef.current, ...results];
+      // Merge persisted like/save state so the heart doesn't flip off when
+      // the server returns a stale is_liked for a just-liked post.
+      const merged = mergeLocalEngagement(results);
+      const newPosts = reset ? merged : [...postsRef.current, ...merged];
       setPosts(newPosts);
       if (reset) writeHomeCache(newPosts);
       setHasMore(Array.isArray(data) ? results.length === limit : !!data.next);
@@ -1049,7 +1226,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       console.error('[HomePage] Fetch error:', e);
       if (reset) {
         const cached = readHomeCache();
-        if (cached && cached.length > 0) setPosts(cached);
+        if (cached && cached.length > 0) setPosts(mergeLocalEngagement(cached));
       }
     } finally {
       setLoading(false);
@@ -1064,7 +1241,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     if (activeTab === 'Explore' || activeTab === 'Campaigns') return;
     const cached = readHomeCache();
     if (cached && cached.length > 0) {
-      setPosts(cached);
+      setPosts(mergeLocalEngagement(cached));
       setLoading(false);
       // Only refresh in background ONCE per session per tab, not on every
       // remount. api.js request-dedup makes repeat calls cheap, but this
@@ -1079,6 +1256,22 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       fetchPosts(0, true);
     }
   }, [activeTab, fetchPosts]);
+
+  // ── Scroll to top on mount + tab change ───────────────────────────────────
+  // Fixes the bug where Home sometimes opened scrolled to the bottom: if the
+  // browser restored a stale scroll position or an infinite-scroll fetch
+  // slipped in before paint, we'd land deep in the feed.  Force top.
+  useEffect(() => {
+    // Run in a microtask so the new posts have painted and the container
+    // actually has a scrollHeight to scroll within.
+    const snap = () => {
+      if (containerRef.current) containerRef.current.scrollTop = 0;
+      try { window.scrollTo(0, 0); } catch {}
+    };
+    snap();
+    const t = setTimeout(snap, 50);     // belt-and-braces after paint
+    return () => clearTimeout(t);
+  }, [activeTab]);
 
   // Scroll to top + refresh when user taps the already-active home tab icon
   useEffect(() => {
