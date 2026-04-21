@@ -96,6 +96,7 @@ export const TikTokLayout = memo(function TikTokLayout({
 
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
