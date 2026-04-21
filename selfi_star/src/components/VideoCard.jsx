@@ -123,7 +123,7 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '8px',
+          padding: '0',
           overflow: 'hidden'
         }}
         onMouseDown={onPressStart} 

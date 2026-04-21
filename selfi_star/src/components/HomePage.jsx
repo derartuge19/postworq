@@ -880,7 +880,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '8px',
+            padding: '0',
             overflow: 'hidden',
           }}
         >
