@@ -879,10 +879,11 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   onClick={() => { stopCamera(); setCaptureMode('upload'); }}
                   onTouchEnd={(e) => { e.preventDefault(); stopCamera(); setCaptureMode('upload'); }}
                   style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={20} color={T.txt} />
+                  <X size={20} color="#fff" />
                 </button>
 
-                {/* Mode tabs */}
+                {/* Mode tabs — force light text on dark overlay so the Photo/
+                    Video labels are readable regardless of theme. */}
                 <div style={{ display: 'flex', gap: 6, background: 'rgba(0,0,0,0.4)', borderRadius: 24, padding: '4px 6px' }}>
                   {['photo','video'].map(m => (
                     <button key={m} className="ep-btn" 
@@ -891,8 +892,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                       style={{
                         padding: '6px 14px', borderRadius: 20,
                         background: camMode === m ? T.pri : 'transparent',
-                        color: camMode === m ? T.txt : T.txt,
+                        color: '#fff',
                         fontSize: 13, fontWeight: 700,
+                        textShadow: camMode === m ? 'none' : '0 1px 2px rgba(0,0,0,0.8)',
                       }}>
                       {m.charAt(0).toUpperCase() + m.slice(1)}
                     </button>
@@ -904,7 +906,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   onClick={() => setFlashOn(f => !f)}
                   onTouchEnd={(e) => { e.preventDefault(); setFlashOn(f => !f); }}
                   style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {flashOn ? <Zap size={18} color={T.pri} fill={T.pri} /> : <ZapOff size={18} color={T.txt} />}
+                  {flashOn ? <Zap size={18} color="#FACC15" fill="#FACC15" /> : <ZapOff size={18} color="#fff" />}
                 </button>
               </div>
 
@@ -930,55 +932,58 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 </div>
               )}
 
-              {/* Right side toolbar */}
+              {/* Right side toolbar — icons + labels on the dark camera
+                  preview.  Force white + drop shadow so they're readable
+                  regardless of theme (user's dark-on-dark bug). */}
               <div style={{
                 position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
                 display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center',
                 zIndex: 30,
               }}>
                 {[
-                  { icon: <RefreshCw size={22} color={T.txt} />, label: 'Flip', action: () => {
+                  { icon: <RefreshCw size={22} color="#fff" />, label: 'Flip', action: () => {
                     const newMode = facingMode === 'user' ? 'environment' : 'user';
                     setFacingMode(newMode);
                     // Force camera restart with new facingMode
                     stopCamera();
                     setTimeout(() => startCamera(), 100);
                   } },
-                  { icon: <Type size={22} color={T.txt} />, label: 'Text', action: () => setShowTextInput(true) },
-                  { icon: <Music size={22} color={backgroundSound ? T.pri : T.txt} />, label: 'Sound', action: () => setShowSoundSheet(true) },
-                  { icon: <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>, label: 'Filter', action: () => setShowFilters(f => !f) },
-                  { icon: <span style={{ fontSize: 13, fontWeight: 800, color: T.txt }}>{selectedSpeed}</span>, label: 'Speed', action: () => setShowSpeeds(s => !s) },
+                  { icon: <Type size={22} color="#fff" />, label: 'Text', action: () => setShowTextInput(true) },
+                  { icon: <Music size={22} color={backgroundSound ? '#FACC15' : '#fff'} />, label: 'Sound', action: () => setShowSoundSheet(true) },
+                  { icon: <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2}><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>, label: 'Filter', action: () => setShowFilters(f => !f) },
+                  { icon: <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>{selectedSpeed}</span>, label: 'Speed', action: () => setShowSpeeds(s => !s) },
                 ].map((item, i) => (
                   <button key={i} className="ep-btn" onClick={item.action} onTouchEnd={(e) => { e.preventDefault(); item.action(); }}
                     style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', padding: 8, margin: -8 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: `${T.dark}80`, backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.15)' }}>
                       {item.icon}
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: T.txt }}>{item.label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{item.label}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Speed selector */}
+              {/* Speed selector — force light text on dark popover */}
               {showSpeeds && (
                 <div style={{
                   position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
                   display: 'flex', flexDirection: 'column', gap: 8,
-                  background: `${T.dark}99`, borderRadius: 16, padding: '10px 8px',
+                  background: 'rgba(0,0,0,0.7)', borderRadius: 16, padding: '10px 8px',
                   backdropFilter: 'blur(12px)', zIndex: 35,
+                  border: '1px solid rgba(255,255,255,0.15)',
                 }}>
                   {SPEEDS.map(sp => (
                     <button key={sp} className="ep-btn" onClick={() => { setSelectedSpeed(sp); setShowSpeeds(false); }}
                       style={{
                         padding: '6px 14px', borderRadius: 12,
-                        background: selectedSpeed === sp ? T.pri : `${T.pri}20`,
-                        color: T.txt, fontSize: 13, fontWeight: 700,
+                        background: selectedSpeed === sp ? T.pri : 'rgba(255,255,255,0.12)',
+                        color: '#fff', fontSize: 13, fontWeight: 700,
                       }}>{sp}</button>
                   ))}
                 </div>
               )}
 
-              {/* Filter strip */}
+              {/* Filter strip — labels above dark preview must be white. */}
               {showFilters && (
                 <div style={{
                   position: 'absolute', bottom: 130, left: 0, right: 0, zIndex: 35,
@@ -992,11 +997,16 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                         width: 58, height: 58, borderRadius: 12,
                         background: `conic-gradient(${T.pri}, #3B82F6, #10B981, ${T.pri})`,
                         filter: f.css,
-                        border: selectedFilter === f.id ? `3px solid ${T.pri}` : '3px solid transparent',
+                        border: selectedFilter === f.id ? `3px solid ${T.pri}` : '3px solid rgba(255,255,255,0.4)',
                         boxShadow: selectedFilter === f.id ? `0 0 0 2px ${T.pri}` : 'none',
                         transition: 'all 0.2s',
                       }} />
-                      <span style={{ fontSize: 11, color: selectedFilter === f.id ? T.txt : T.sub, fontWeight: 600 }}>{f.name}</span>
+                      <span style={{
+                        fontSize: 11,
+                        color: '#fff',
+                        fontWeight: selectedFilter === f.id ? 800 : 600,
+                        textShadow: '0 1px 3px rgba(0,0,0,0.9)',
+                      }}>{f.name}</span>
                     </button>
                   ))}
                 </div>
@@ -1014,9 +1024,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   <button className="ep-btn" 
                     onClick={() => fileInputRef.current?.click()}
                     onTouchEnd={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
-                    style={{ background: `${T.pri}20`, borderRadius: 12, padding: 6, backdropFilter: 'blur(8px)' }}>
-                    <div style={{ width: 52, height: 52, borderRadius: 10, background: `${T.pri}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Upload size={22} color={T.txt} />
+                    style={{ background: 'rgba(0,0,0,0.45)', borderRadius: 12, padding: 6, backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                    <div style={{ width: 52, height: 52, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Upload size={22} color="#fff" />
                     </div>
                   </button>
 
@@ -1061,14 +1071,14 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                         width: 28,
                         height: 28,
                         borderRadius: '50%',
-                        background: `${T.dark}B3`,
+                        background: 'rgba(0,0,0,0.75)',
                         backdropFilter: 'blur(8px)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        border: `2px solid ${T.border}80`,
+                        border: '2px solid rgba(255,255,255,0.35)',
                       }}>
-                        <Video size={14} color={T.txt} strokeWidth={2.5} />
+                        <Video size={14} color="#fff" strokeWidth={2.5} />
                       </div>
                     )}
                   </div>
@@ -1090,8 +1100,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                       stopCamera();
                       setTimeout(() => startCamera(), 100);
                     }}
-                    style={{ background: `${T.pri}20`, borderRadius: '50%', width: 52, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
-                    <RefreshCw size={22} color={T.txt} />
+                    style={{ background: 'rgba(0,0,0,0.45)', borderRadius: '50%', width: 52, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                    <RefreshCw size={22} color="#fff" />
                   </button>
                 </div>
 
