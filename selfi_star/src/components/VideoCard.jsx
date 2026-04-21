@@ -89,18 +89,18 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
   const handleNotInterested = () => { showToast('Got it — fewer like this'); setShowMenu(false); };
 
   return (
-    <div style={{ background: "#000", borderRadius: 16, overflow: "hidden", marginBottom: 20, position: "relative", aspectRatio: "9/16", maxHeight: 620, display: "flex", flexDirection: "column" }}>
+    <div style={{ background: "#000", borderRadius: 16, overflow: "hidden", marginBottom: 20, position: "relative", maxHeight: 620, display: "flex", flexDirection: "column" }}>
 
       {/* ── Media area (long-pressable) ── */}
       <div
-        style={{ flex: 1, background: "linear-gradient(135deg,#1a1a1a,#2a2a2a)", position: "relative", overflow: "hidden", userSelect: 'none' }}
+        style={{ flex: 1, background: "linear-gradient(135deg,#1a1a1a,#2a2a2a)", position: "relative", overflow: "hidden", userSelect: 'none', minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         onMouseDown={onPressStart} onMouseUp={onPressEnd} onMouseLeave={onPressEnd}
         onTouchStart={onPressStart} onTouchEnd={onPressEnd} onTouchCancel={onPressEnd}
       >
         {video?.media
-          ? <video src={mediaUrl(video.media)} controls playsInline autoPlay muted loop style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+          ? <video src={mediaUrl(video.media)} controls playsInline autoPlay muted loop style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
           : video?.image
-            ? <img src={mediaUrl(video.image)} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+            ? <img src={mediaUrl(video.image)} alt="" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
             : <div style={{ textAlign:"center", color:"#666", padding: 40 }}><div style={{ fontSize:60 }}>🎬</div><div>No media</div></div>
         }
 
@@ -155,7 +155,7 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
             {/* Media thumbnail header */}
             <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:18, paddingBottom:16, borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
               <div style={{ width:52, height:52, borderRadius:10, overflow:'hidden', background:'#000', flexShrink:0 }}>
-                {video?.image && <img src={mediaUrl(video.image)} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />}
+                {video?.image && <img src={mediaUrl(video.image)} alt="" style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain' }} />}
               </div>
               <div>
                 <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{video?.creator}</div>

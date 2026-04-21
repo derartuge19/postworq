@@ -1064,14 +1064,14 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
       )}
       
       {entry.reel?.media ? (
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', minHeight: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
           {entry.reel.media.endsWith('.mp4') || entry.reel.media.endsWith('.mov') ? (
             <video
               src={mediaUrl(entry.reel.media)}
               style={{
-                width: '100%',
-                height: 280,
-                objectFit: 'cover',
+                maxWidth: '100%',
+                maxHeight: 400,
+                objectFit: 'contain',
                 background: '#000',
               }}
               controls
@@ -1081,23 +1081,25 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
               src={mediaUrl(entry.reel.media)}
               alt="Entry"
               style={{
-                width: '100%',
-                height: 280,
-                objectFit: 'cover',
+                maxWidth: '100%',
+                maxHeight: 400,
+                objectFit: 'contain',
               }}
             />
           )}
         </div>
       ) : entry.reel?.image && (
-        <img
-          src={mediaUrl(entry.reel.image)}
-          alt="Entry"
-          style={{
-            width: '100%',
-            height: 280,
-            objectFit: 'cover',
-          }}
-        />
+        <div style={{ position: 'relative', minHeight: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+          <img
+            src={mediaUrl(entry.reel.image)}
+            alt="Entry"
+            style={{
+              maxWidth: '100%',
+              maxHeight: 400,
+              objectFit: 'contain',
+            }}
+          />
+        </div>
       )}
       
       <div style={{ padding: 16 }}>

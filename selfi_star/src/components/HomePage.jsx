@@ -874,10 +874,12 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             position: 'relative', width: '100%', background: '#111',
             flex: '1 1 auto',
             minHeight: 0,
-            // Intrinsic portrait ratio for small viewports that can afford it;
-            // on taller content the flex-fill above wins so the card stays bounded.
-            aspectRatio: '4 / 5',
+            // Remove fixed aspect ratio to allow media to display at natural dimensions
             cursor: isVideo ? 'pointer' : 'default',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '8px',
           }}
         >
           {mediaSrc && !imgError ? (
@@ -889,7 +891,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   poster={post.image ? mediaUrl(post.image) : undefined}
                   preload={index === 0 ? 'metadata' : 'none'}
                   loading={index === 0 ? 'eager' : 'lazy'}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#111', pointerEvents: 'none' }}
+                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block', background: '#111', pointerEvents: 'none' }}
                   playsInline
                   loop
                   onPlay={() => setVideoPlaying(true)}
@@ -913,7 +915,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 alt={post.caption || ''}
                 loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'default' }}
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block', cursor: 'default' }}
                 onError={() => setImgError(true)}
               />
             )

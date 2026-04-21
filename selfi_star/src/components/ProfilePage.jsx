@@ -838,9 +838,9 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                       src={videoUrl}
                       poster={getVideoPoster(videoUrl)}
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        objectFit: "contain",
                         background: T.bg,
                       }}
                       muted
@@ -876,9 +876,9 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   loading="lazy"
                   decoding="async"
                   style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    objectFit: "contain",
                   }}
                 />
               );
