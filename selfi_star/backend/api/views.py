@@ -1347,36 +1347,41 @@ def admin_reports_stats(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_trending_reels(request):
-    """Get trending reels with engagement-based algorithm and category filtering"""
+    """Trending reels with category filtering, cheap enough for the Explore
+    page to hit on every category/time-range change.
+
+    Performance notes:
+    - Removed two debug `.count()` calls that were issuing a full extra
+      query each (3 round-trips per Explore load just for logging).
+    - Single annotated SELECT with `select_related('user__profile')` and
+      Exists()-based is_liked / is_saved / comment_count / votes_count so
+      the serializer never falls into per-row fallbacks.
+    - Cap `limit` to 50 so a misbehaving client can't ask for thousands.
+    """
     try:
-        from django.db.models import Q, F, Count
-        from datetime import datetime, timedelta
-        
-        print(f"[TRENDING] Getting trending reels with params: {dict(request.GET)}")
-        
-        # Get query parameters
-        category = request.GET.get('category', 'all')  # all, dance, comedy, beauty, sports, etc.
-        time_range = request.GET.get('time_range', '7d')  # 24h, 7d, 30d, all
-        limit = int(request.GET.get('limit', 20))
-        
-        # Calculate time threshold
+        from django.db.models import Q, Count
+        from datetime import timedelta
+
+        category = request.GET.get('category', 'all')
+        time_range = request.GET.get('time_range', '7d')
+        try:
+            limit = int(request.GET.get('limit', 20))
+        except (TypeError, ValueError):
+            limit = 20
+        limit = max(1, min(limit, 50))
+
         now = timezone.now()
         if time_range == '24h':
             time_threshold = now - timedelta(hours=24)
-        elif time_range == '7d':
-            time_threshold = now - timedelta(days=7)
         elif time_range == '30d':
             time_threshold = now - timedelta(days=30)
+        elif time_range == '7d':
+            time_threshold = now - timedelta(days=7)
         else:
-            time_threshold = now - timedelta(days=365)  # all time
-        
-        print(f"[TRENDING] Time threshold: {time_threshold}")
-        
-        # Base queryset
+            time_threshold = now - timedelta(days=365)
+
         queryset = Reel.objects.filter(created_at__gte=time_threshold)
-        print(f"[TRENDING] Base queryset count: {queryset.count()}")
-        
-        # Category filtering (based on hashtags)
+
         if category != 'all':
             category_hashtags = {
                 'dance': ['dance', 'dancing', 'dancer', 'choreography', 'ballet', 'hiphop'],
@@ -1391,19 +1396,16 @@ def get_trending_reels(request):
                 'fashion': ['fashion', 'style', 'outfit', 'ootd', 'clothes', 'dress', 'streetwear'],
                 'education': ['education', 'learn', 'learning', 'tutorial', 'howto', 'tips', 'knowledge', 'study'],
             }
-            
-            if category in category_hashtags:
+            tags = category_hashtags.get(category)
+            if tags:
                 hashtag_filter = Q()
-                for tag in category_hashtags[category]:
-                    # Match hashtag with or without # prefix
-                    hashtag_filter |= Q(hashtags__icontains=f'#{tag}')
+                for tag in tags:
+                    # Drop the '#'-prefix variant — plain icontains covers both
+                    # '#dance' and 'dance' in the stored hashtag string.
                     hashtag_filter |= Q(hashtags__icontains=tag)
                     hashtag_filter |= Q(caption__icontains=f'#{tag}')
                 queryset = queryset.filter(hashtag_filter)
-                print(f"[TRENDING] After category filter count: {queryset.count()}")
-        
-        # Match what ReelViewSet.get_queryset does so the serializer hits
-        # annotated fields instead of per-object fallbacks (N+1 killer).
+
         queryset = queryset.select_related('user', 'user__profile').annotate(
             comment_count_db=Count('comments', distinct=True),
             votes_count_db=Count('reel_votes', distinct=True),
@@ -1415,12 +1417,8 @@ def get_trending_reels(request):
             )
         queryset = queryset.order_by('-votes', '-created_at')[:limit]
 
-        print(f"[TRENDING] Final queryset count: {len(queryset)}")
-
         from .serializers import build_feed_context
         serializer = ReelSerializer(queryset, many=True, context=build_feed_context(request))
-        print(f"[TRENDING] Successfully serialized {len(serializer.data)} reels")
-        
         return Response(serializer.data)
         
     except Exception as e:

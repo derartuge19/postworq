@@ -768,12 +768,31 @@ export default function WerqRoot() {
   };
 
   const handleShowExplorer = () => {
+    // Remember where we came from so Back restores it (was landing on a
+    // blank screen because activeTab stayed 'explore' with no matching view).
+    prevNavState.current = { activeTab, showProfile, profileUserId };
     resetAllPages();
     startTransition(() => {
       setActiveTab('explore');
       setShowExplorer(true);
       pushHistoryState({ showExplorer: true });
     });
+  };
+
+  const handleCloseExplorer = () => {
+    setShowExplorer(false);
+    const ret = prevNavState.current;
+    if (ret) {
+      setActiveTab(ret.activeTab || 'home');
+      if (ret.showProfile) {
+        setShowProfile(true);
+        setProfileUserId(ret.profileUserId || null);
+      }
+      prevNavState.current = null;
+    } else {
+      setActiveTab('home');
+    }
+    pushHistoryState({ showExplorer: false });
   };
 
   const handleProfileSaved = (updatedUser) => {
@@ -1030,7 +1049,7 @@ export default function WerqRoot() {
             <Suspense fallback={<PageSkeleton />}>
               <ExplorerPage
                 user={authUser}
-                onBack={() => setShowExplorer(false)}
+                onBack={handleCloseExplorer}
                 onShowProfile={handleShowProfile}
                 onShowVideoDetail={handleShowVideoDetail}
                 onRequireAuth={handleRequireAuth}
