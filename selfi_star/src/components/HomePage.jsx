@@ -730,7 +730,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
 
         {/* Media */}
         <div
-          style={{ position: 'relative', width: '100%', background: '#111', minHeight: 120, cursor: isVideo ? 'pointer' : 'default' }}
+          style={{ position: 'relative', width: '100%', background: '#111', aspectRatio: 9 / 16, cursor: isVideo ? 'pointer' : 'default' }}
         >
           {mediaSrc && !imgError ? (
             isVideo ? (
@@ -741,7 +741,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   poster={post.image ? mediaUrl(post.image) : undefined}
                   preload={index === 0 ? 'metadata' : 'none'}
                   loading={index === 0 ? 'eager' : 'lazy'}
-                  style={{ width: '100%', maxHeight: 'clamp(160px, 38vh, 320px)', objectFit: 'cover', display: 'block', background: '#111', pointerEvents: 'none' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: '#111', pointerEvents: 'none' }}
                   playsInline
                   loop
                   onPlay={() => setVideoPlaying(true)}
@@ -764,7 +764,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 src={mediaSrc}
                 alt={post.caption || ''}
                 loading={index === 0 ? 'eager' : 'lazy'}
-                style={{ width: '100%', display: 'block', cursor: 'default' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'default' }}
                 onError={() => setImgError(true)}
               />
             )
@@ -1218,14 +1218,15 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         ))}
       </div>
 
-      {/* Skeleton loading state */}
+      {/* Skeleton loading state - fixed aspect ratio to prevent CLS */}
       {loading && posts.length === 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {[1, 2, 3].map(i => (
             <div key={i} style={{
               background: T?.cardBg || '#fff',
               borderRadius: 16,
-              height: 400,
+              aspectRatio: 9 / 16,
+              width: '100%',
               animation: 'pulse 1.5s ease-in-out infinite',
             }} />
           ))}

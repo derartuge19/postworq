@@ -94,12 +94,13 @@ export const TikTokLayout = memo(function TikTokLayout({
     try { localStorage.setItem(CACHE_KEY(tab), JSON.stringify({ ts: Date.now(), data })); } catch {}
   };
 
-  const [videos, setVideos] = useState(() => readFeedCache('home') || readFeedCache('foryou') || []);
-  const [loading, setLoading] = useState(() => !((readFeedCache('home') || readFeedCache('foryou'))?.length > 0));
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(1);
-  const [mounted, setMounted] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState(null);
+  const LIMIT = 5; // Reduced from 10 to 5 for faster initial load
   const [showMenu, setShowMenu] = useState(null);
   const [showReportModal, setShowReportModal] = useState(null);
   const [showComments, setShowComments] = useState(null);
@@ -529,7 +530,7 @@ export const TikTokLayout = memo(function TikTokLayout({
           }
         });
       },
-      { root: null, rootMargin: '200% 0px', threshold: 0 },
+      { rootMargin: '50vh' } // Reduced from 100vh to 50vh for better performance
     );
 
     Object.keys(videoContainerRefs.current).forEach((videoId) => {
