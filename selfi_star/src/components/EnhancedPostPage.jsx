@@ -694,9 +694,17 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
       if (textOverlays.length) {
         fd.append('overlay_text', JSON.stringify(textOverlays));
       }
-      const prog = setInterval(() => setUploadProgress(p => Math.min(p + 8, 90)), 300);
-      const newReel = await api.createPost(fd);
-      clearInterval(prog);
+      // Real upload progress from XHR.  While the server is still
+      // processing (Cloudinary + DB) after the bytes are uploaded, cap at
+      // 97% so the bar doesn't appear frozen — the final 100% fires on
+      // successful response.
+      let lastReported = 0;
+      const newReel = await api.createPost(fd, {
+        onProgress: (pct) => {
+          lastReported = pct;
+          setUploadProgress(Math.min(pct, 97));
+        },
+      });
       setUploadProgress(100);
       setShowSuccess(true);
       setTimeout(() => {

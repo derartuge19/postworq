@@ -277,24 +277,44 @@ const api = {
       body: formData,
     }).then((r) => r.json()),
 
-  createPost: (formData) => {
+  // Upload a new post.  Uses XMLHttpRequest instead of fetch so we can
+  // surface REAL upload progress to the UI — a video upload over a slow
+  // connection otherwise looks frozen for 10-30s.
+  // Pass `onProgress(pct)` (0-100) to receive upload progress updates.
+  // On very slow links, the browser often reports only two progress events
+  // (start / end).  The UI should still animate defensively between them.
+  createPost: (formData, { onProgress } = {}) => {
     const currentToken = authToken || localStorage.getItem('authToken');
     if (!currentToken) {
       return Promise.reject({ error: 'Not authenticated' });
     }
-
-    return fetch(`${API_BASE_URL}/posts/create/`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Token ${currentToken}`,
-      },
-      body: formData,
-    }).then((r) => {
-      if (!r.ok) {
-        return r.json().then((err) => Promise.reject(err));
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE_URL}/posts/create/`);
+      xhr.setRequestHeader('Authorization', `Token ${currentToken}`);
+      // Generous timeout so Render cold starts don't abort large uploads.
+      xhr.timeout = 5 * 60 * 1000; // 5 minutes
+      if (onProgress && xhr.upload) {
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            onProgress(Math.round((e.loaded / e.total) * 100));
+          }
+        };
       }
-      invalidateCache('/reels');
-      return r.json();
+      xhr.onload = () => {
+        let body;
+        try { body = JSON.parse(xhr.responseText || '{}'); } catch { body = {}; }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          invalidateCache('/reels');
+          resolve(body);
+        } else {
+          reject(body && Object.keys(body).length ? body : { error: `HTTP ${xhr.status}` });
+        }
+      };
+      xhr.onerror   = () => reject({ error: 'Network error' });
+      xhr.ontimeout = () => reject({ error: 'Upload timed out' });
+      xhr.onabort   = () => reject({ error: 'Upload aborted' });
+      xhr.send(formData);
     });
   },
 

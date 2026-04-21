@@ -221,15 +221,21 @@ def create_post(request):
             cur.execute(f"UPDATE api_reel SET {column}=%s WHERE id=%s", [file_value, reel.pk])
         print(f"[CREATE_POST] wrote {column}={file_value!r} for reel {reel.pk}")
 
-        # Re-fetch with all annotations the serializer needs
-        reel = Reel.objects.select_related('user', 'user__profile').annotate(
-            comment_count_db=Count('comments', distinct=True)
-        ).get(pk=reel.pk)
+        # Refresh only the field we just mutated via raw SQL — avoids a full
+        # re-SELECT with joins and annotations.  Counts on a brand-new reel
+        # are 0/False so the serializer's fallbacks give the correct shape.
+        reel.refresh_from_db(fields=['media', 'image'])
+        # Zero out counts/flags explicitly so the serializer skips any
+        # lingering N+1 fallbacks.
+        reel.comment_count_db = 0
+        reel.votes_count_db = 0
+        reel.is_liked_db = False
+        reel.is_saved_db = False
 
         # ── Step 4: award XP ──────────────────────────────────────────────
         UserProfile.objects.filter(user=request.user).update(xp=F('xp') + 25)
 
-        serializer = ReelSerializer(reel, context={'request': request})
+        serializer = ReelSerializer(reel, context={'request': request, 'followed_user_ids': set()})
         print(f"[CREATE_POST] success reel.id={reel.pk}")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
