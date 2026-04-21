@@ -151,6 +151,20 @@ export default function WerqRoot() {
     return () => clearTimeout(timeout);
   }, []);
 
+  // In-session keep-alive — pings the cheap /health/ endpoint every 10 min
+  // while the tab is focused so the Render free-tier service doesn't sleep
+  // mid-session.  Skipped when the tab is hidden so we don't waste requests.
+  // (External uptime monitor is still recommended for between-session warmth.)
+  useEffect(() => {
+    let cancelled = false;
+    const ping = () => {
+      if (document.hidden) return;
+      api.request('/health/', { skipCache: true }).catch(() => {});
+    };
+    const id = setInterval(() => { if (!cancelled) ping(); }, 10 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
   // ── Restore auth synchronously so pages never receive user=null on first render
   (() => {
     try {
