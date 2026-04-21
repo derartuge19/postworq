@@ -1064,10 +1064,10 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
 
   useEffect(() => { fetchMessages(false); }, [fetchMessages]);
 
-  // Poll every 15 seconds for new messages while thread is open (reduced frequency)
+  // Poll every 30 seconds for new messages while thread is open (reduced frequency)
   useEffect(() => {
     if (!convId) return;
-    const id = setInterval(() => fetchMessages(true), 15000); // 15 seconds to reduce network load
+    const id = setInterval(() => fetchMessages(true), 30000); // 30 seconds to reduce network load
     return () => clearInterval(id);
   }, [convId, fetchMessages]);
 
@@ -1362,8 +1362,8 @@ export function MessagesPage({ user, onShowProfile }) {
 
   useEffect(() => { fetchConversations(false); }, [fetchConversations]);
   useEffect(() => {
-    // Reduce polling frequency to improve performance
-    const id = setInterval(() => fetchConversations(true), 60000); // 60 seconds to reduce network load
+    // Disable polling to reduce network load - refresh on tab switch instead
+    const id = setInterval(() => fetchConversations(true), 120000); // 2 minutes polling
     return () => clearInterval(id);
   }, [fetchConversations]);
   

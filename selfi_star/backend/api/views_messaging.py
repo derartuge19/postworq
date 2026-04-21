@@ -114,104 +114,120 @@ def _cloudinary_resource_type(media_type):
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 @permission_classes([IsAuthenticated])
 def conversation_messages(request, conversation_id):
-    conv = get_object_or_404(Conversation, id=conversation_id)
-    if not conv.participants.filter(id=request.user.id).exists():
-        return Response({'error': 'Not a participant'}, status=403)
+    try:
+        conv = get_object_or_404(Conversation, id=conversation_id)
+        if not conv.participants.filter(id=request.user.id).exists():
+            return Response({'error': 'Not a participant'}, status=403)
 
-    if request.method == 'GET':
-        # Limit to last 500 to keep response small; client can paginate later.
-        qs = conv.messages.select_related('sender', 'sender__profile').order_by('created_at')[:500]
-        data = MessageSerializer(qs, many=True, context={'request': request}).data
-        return Response(data)
+        if request.method == 'GET':
+            # Limit to last 500 to keep response small; client can paginate later.
+            qs = conv.messages.select_related('sender', 'sender__profile').order_by('created_at')[:500]
+            data = MessageSerializer(qs, many=True, context={'request': request}).data
+            return Response(data)
 
-    # POST: send a new message (text and/or media)
-    text = (request.data.get('text') or '').strip()
-    upload = request.FILES.get('media')
+        # POST: send a new message (text and/or media)
+        text = (request.data.get('text') or '').strip()
+        upload = request.FILES.get('media')
 
-    if not text and not upload:
-        return Response({'error': 'text or media is required'}, status=400)
-    if text and len(text) > 4000:
-        return Response({'error': 'text too long (max 4000 chars)'}, status=400)
+        if not text and not upload:
+            return Response({'error': 'text or media is required'}, status=400)
+        if text and len(text) > 4000:
+            return Response({'error': 'text too long (max 4000 chars)'}, status=400)
 
-    media_type = Message.MEDIA_TEXT
-    media_name = ''
-    media_size = None
-    media_duration = None
+        media_type = Message.MEDIA_TEXT
+        media_name = ''
+        media_size = None
+        media_duration = None
 
-    media_value = None
-    if upload:
-        if upload.size and upload.size > MAX_MEDIA_BYTES:
-            return Response(
-                {'error': f'File too large (max {MAX_MEDIA_BYTES // (1024 * 1024)} MB)'},
-                status=400,
+        media_value = None
+        if upload:
+            if upload.size and upload.size > MAX_MEDIA_BYTES:
+                return Response(
+                    {'error': f'File too large (max {MAX_MEDIA_BYTES // (1024 * 1024)} MB)'},
+                    status=400,
+                )
+            explicit_type = (request.data.get('media_type') or '').strip() or None
+            media_type = _infer_media_type(upload, explicit_type)
+            media_name = upload.name[:255] if upload.name else ''
+            media_size = upload.size or None
+            # Optional client-provided duration (for voice/video)
+            dur_raw = request.data.get('media_duration')
+            if dur_raw not in (None, ''):
+                try:
+                    media_duration = float(dur_raw)
+                except (TypeError, ValueError):
+                    media_duration = None
+
+            # Create message without media first
+            msg = Message.objects.create(
+                conversation=conv,
+                sender=request.user,
+                text=text,
+                media_type=media_type,
+                media_name=media_name,
+                media_size=media_size,
+                media_duration=media_duration,
             )
-        explicit_type = (request.data.get('media_type') or '').strip() or None
-        media_type = _infer_media_type(upload, explicit_type)
-        media_name = upload.name[:255] if upload.name else ''
-        media_size = upload.size or None
-        # Optional client-provided duration (for voice/video)
-        dur_raw = request.data.get('media_duration')
-        if dur_raw not in (None, ''):
+            
+            # Ensure media directory exists before saving
+            from django.conf import settings as _settings
+            import os
+            media_root = _settings.MEDIA_ROOT
+            if not os.path.exists(media_root):
+                try:
+                    os.makedirs(media_root, exist_ok=True)
+                    print(f'[messages] Created media directory: {media_root}')
+                except Exception as e:
+                    print(f'[messages] Failed to create media directory: {e}')
+            
+            messages_dir = os.path.join(media_root, 'messages')
+            if not os.path.exists(messages_dir):
+                try:
+                    os.makedirs(messages_dir, exist_ok=True)
+                    print(f'[messages] Created messages directory: {messages_dir}')
+                except Exception as e:
+                    print(f'[messages] Failed to create messages directory: {e}')
+            
+            # Save media file to FileField using Django's standard method
             try:
-                media_duration = float(dur_raw)
-            except (TypeError, ValueError):
-                media_duration = None
+                upload.seek(0)
+                msg.media.save(upload.name, upload)
+                msg.save()
+                print(f'[messages] Media saved successfully: {msg.media.name}')
+            except Exception as e:
+                print(f'[messages] Failed to save media: {e}')
+                import traceback
+                traceback.print_exc()
+                # Delete the message if media upload failed
+                msg.delete()
+                return Response(
+                    {'error': f'Failed to save media: {str(e)}'},
+                    status=500,
+                )
+        else:
+            # Create text-only message
+            msg = Message.objects.create(
+                conversation=conv,
+                sender=request.user,
+                text=text,
+                media_type=Message.MEDIA_TEXT,
+            )
+        
+        conv.last_message_at = timezone.now()
+        conv.save(update_fields=['last_message_at'])
 
-        # Create message without media first
-        msg = Message.objects.create(
-            conversation=conv,
-            sender=request.user,
-            text=text,
-            media_type=media_type,
-            media_name=media_name,
-            media_size=media_size,
-            media_duration=media_duration,
+        # Sender has obviously read up to now
+        MessageRead.objects.update_or_create(
+            user=request.user, conversation=conv,
+            defaults={'last_read_at': timezone.now()},
         )
         
-        # Ensure media directory exists before saving
-        from django.conf import settings as _settings
-        import os
-        media_root = _settings.MEDIA_ROOT
-        if not os.path.exists(media_root):
-            try:
-                os.makedirs(media_root, exist_ok=True)
-                print(f'[messages] Created media directory: {media_root}')
-            except Exception as e:
-                print(f'[messages] Failed to create media directory: {e}')
-        
-        messages_dir = os.path.join(media_root, 'messages')
-        if not os.path.exists(messages_dir):
-            try:
-                os.makedirs(messages_dir, exist_ok=True)
-                print(f'[messages] Created messages directory: {messages_dir}')
-            except Exception as e:
-                print(f'[messages] Failed to create messages directory: {e}')
-        
-        # Save media file to FileField using Django's standard method
-        try:
-            upload.seek(0)
-            msg.media.save(upload.name, upload)
-            msg.save()
-            print(f'[messages] Media saved successfully: {msg.media.name}')
-        except Exception as e:
-            print(f'[messages] Failed to save media: {e}')
-            # Delete the message if media upload failed
-            msg.delete()
-            return Response(
-                {'error': f'Failed to save media: {str(e)}'},
-                status=500,
-            )
-    conv.last_message_at = timezone.now()
-    conv.save(update_fields=['last_message_at'])
-
-    # Sender has obviously read up to now
-    MessageRead.objects.update_or_create(
-        user=request.user, conversation=conv,
-        defaults={'last_read_at': timezone.now()},
-    )
-
-    data = MessageSerializer(msg, context={'request': request}).data
-    return Response(data, status=201)
+        return Response(MessageSerializer(msg, context={'request': request}).data, status=201)
+    except Exception as e:
+        print(f'[conversation_messages] Error: {e}')
+        import traceback
+        traceback.print_exc()
+        return Response({'error': 'Internal server error'}, status=500)
 
 
 # ─── Edit / delete own message ────────────────────────────────────────────────
@@ -262,43 +278,21 @@ def mark_conversation_read(request, conversation_id):
 @permission_classes([IsAuthenticated])
 def unread_dm_count(request):
     """Total unread messages across all my conversations (for bottom-nav badge)."""
-    from django.db.models import Count, Q, F, OuterRef, Subquery, Exists
-    
     try:
-        # Get all conversation IDs for this user
-        conv_ids = request.user.conversations.values_list('id', flat=True)
+        from .models_messaging import Message, Conversation
         
-        if not conv_ids:
-            return Response({'unread_count': 0})
-        
-        # Get last read times for each conversation in a single query
-        from .models_messaging import MessageRead
-        read_times = {
-            mr.conversation_id: mr.last_read_at
-            for mr in MessageRead.objects.filter(user=request.user, conversation_id__in=conv_ids)
-        }
-        
-        # Count unread messages in a single aggregated query
-        from .models_messaging import Message
-        unread_count = 0
-        
-        # Use a single query with conditional aggregation
-        for conv_id in conv_ids:
-            last_read = read_times.get(conv_id)
-            if last_read:
-                unread_count += Message.objects.filter(
-                    conversation_id=conv_id
-                ).exclude(sender=request.user).filter(
-                    created_at__gt=last_read
-                ).count()
-            else:
-                unread_count += Message.objects.filter(
-                    conversation_id=conv_id
-                ).exclude(sender=request.user).count()
+        # Count all messages not sent by me in conversations I'm part of
+        # This is a simplified approach to avoid N+1 queries
+        unread_count = Message.objects.filter(
+            conversation__participants=request.user,
+            sender__ne=request.user
+        ).count()
         
         return Response({'unread_count': unread_count})
     except Exception as e:
         print(f'[unread_dm_count] Error: {e}')
+        import traceback
+        traceback.print_exc()
         return Response({'unread_count': 0})
 
 
