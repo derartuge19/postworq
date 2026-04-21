@@ -1075,8 +1075,9 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     const cached = readHomeCache();
     if (cached && cached.length > 0) {
       setPosts(cached);
-      // Refresh cache in background
-      setTimeout(() => fetchPosts(0, true), 100);
+      setLoading(false);
+      // Refresh cache in background after a delay
+      setTimeout(() => fetchPosts(0, true), 2000);
     } else {
       fetchPosts(0, true);
     }
