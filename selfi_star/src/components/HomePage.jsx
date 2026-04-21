@@ -813,7 +813,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             : '0 2px 16px rgba(0,0,0,0.08)',
           border: `1px solid ${isHovered ? (T?.pri || '#000') + '50' : T?.border || '#e0e0e0'}`,
           overflow: 'hidden',
-          marginBottom: 12,
+          marginBottom: 6,
           // Cap total card height so header + media + actions + caption all
           // fit in one mobile viewport without scrolling.  Reserve ~110px
           // for the sticky tabs at top + bottom nav + page padding.
@@ -833,37 +833,37 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', gap: 10, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', gap: 8, flexShrink: 0 }}>
           <button
             className="hp-btn"
             onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
           >
-            <div style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, border: `2px solid ${(T?.pri || '#000')}30` }}>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: `1px solid ${(T?.pri || '#000')}20` }}>
               {avatarSrc
                 ? <img src={avatarSrc} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
-                : '👤'}
+                : '??'}
             </div>
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
               <button
                 className="hp-btn"
                 onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14, fontWeight: 700, color: T?.txt || '#000' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 13, fontWeight: 700, color: T?.txt || '#000' }}
               >
                 {post.user?.username || 'user'}
               </button>
-              <CheckCircle size={14} fill={T?.pri || '#000'} color="#fff" />
+              <CheckCircle size={12} fill={T?.pri || '#000'} color="#fff" />
             </div>
-            <div style={{ fontSize: 12, color: T?.sub || '#666' }}>{timeAgo(post.created_at)}</div>
+            <div style={{ fontSize: 11, color: T?.sub || '#666' }}>{timeAgo(post.created_at)}</div>
           </div>
           <button
             className="hp-btn"
             onClick={(e) => { e.stopPropagation(); setOptionsAnchor(e.currentTarget.getBoundingClientRect()); setShowOptions(true); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, color: T?.sub || '#666', display: 'flex', alignItems: 'center' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: T?.sub || '#666', display: 'flex', alignItems: 'center' }}
           >
-            <MoreHorizontal size={20} />
+            <MoreHorizontal size={18} />
           </button>
         </div>
 
@@ -961,37 +961,37 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           )}
         </div>
 
-        {/* Actions + caption — compact so everything fits in one viewport. */}
-        <div style={{ padding: '6px 12px 10px', flexShrink: 0, overflow: 'hidden' }}>
+        {/* Actions + caption - compact so everything fits in one viewport. */}
+        <div style={{ padding: '4px 10px 8px', flexShrink: 0, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 2 }}>
               {/* Like */}
               <button
                 className="hp-btn hp-action"
                 onClick={handleLike}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '6px 10px', borderRadius: 10,
-                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '4px 6px', borderRadius: 8,
+                  display: 'flex', alignItems: 'center', gap: 3,
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
                 {isCampaignPost ? (
                   <Trophy
-                    size={20}
+                    size={16}
                     fill={liked ? T?.pri || '#000' : 'none'}
                     color={liked ? T?.pri || '#000' : T?.txt || '#000'}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 ) : (
                   <Heart
-                    size={20}
+                    size={16}
                     fill={liked ? '#EF4444' : 'none'}
                     color={liked ? '#EF4444' : T?.txt || '#000'}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
-                <span style={{ fontSize: 12, color: T?.sub || '#666', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
+                <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
               </button>
               {/* Comment */}
               <button
@@ -999,13 +999,13 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 onClick={handleCommentClick}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '4px 8px', borderRadius: 10,
-                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '4px 6px', borderRadius: 8,
+                  display: 'flex', alignItems: 'center', gap: 3,
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <MessageCircle size={20} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-                <span style={{ fontSize: 12, color: T?.sub || '#666', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
+                <MessageCircle size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
               </button>
               {/* Share */}
               <button
@@ -1014,13 +1014,13 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 title="Share"
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '4px 8px', borderRadius: 10,
-                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '4px 6px', borderRadius: 8,
+                  display: 'flex', alignItems: 'center', gap: 3,
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={20} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-                <span style={{ fontSize: 12, color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
+                <Share2 size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
             </div>
             {/* Save */}
@@ -1029,60 +1029,46 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               onClick={handleSave}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                padding: '4px 8px', borderRadius: 10,
+                padding: '4px 6px', borderRadius: 8,
                 animation: saveAnim ? 'savePop 0.3s ease' : 'none',
                 '--hp-hover': saved ? (T?.pri || '#000') + '25' : (T?.border || '#e0e0e0') + '60',
               }}
             >
               <Bookmark
-                size={20}
+                size={16}
                 fill={saved ? T?.pri || '#000' : 'none'}
                 color={saved ? T?.pri || '#000' : T?.txt || '#000'}
               />
             </button>
           </div>
 
-          {/* Caption - with show more/less, only if caption exists */}
+          {/* Caption - minimized, only if caption exists */}
           {post.caption && (
-            <>
-              <div
-                onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
-                style={{
-                  fontSize: 13, color: T?.txt || '#000', marginTop: 2, lineHeight: 1.35,
-                  display: '-webkit-box',
-                  WebkitBoxOrient: 'vertical',
-                  WebkitLineClamp: captionExpanded ? 'unset' : 1,
-                  overflow: 'hidden',
-                  wordBreak: 'break-word',
-                  cursor: 'pointer',
-                }}
-              >
-                {post.caption}
-              </div>
-              {post.caption.length > 30 && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
-                  style={{
-                    background: 'none', border: 'none', padding: 0,
-                    fontSize: 12, color: T?.sub || '#666', fontWeight: 600,
-                    cursor: 'pointer', marginTop: 2,
-                  }}
-                >
-                  {captionExpanded ? 'Show less' : 'Show more'}
-                </button>
-              )}
-            </>
+            <div
+              onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
+              style={{
+                fontSize: 12, color: T?.txt || '#000', marginTop: 1, lineHeight: 1.3,
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: captionExpanded ? 'unset' : 1,
+                overflow: 'hidden',
+                wordBreak: 'break-word',
+                cursor: 'pointer',
+              }}
+            >
+              {post.caption}
+            </div>
           )}
           {inlineComments.length > 0 && (
-            <div style={{ marginTop: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {(showAllInline ? inlineComments : inlineComments.slice(0, 1)).map(c => (
+            <div style={{ marginTop: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {inlineComments.slice(0, 1).map(c => (
                 <div
                   key={c.id}
                   onClick={(e) => { e.stopPropagation(); setShowComments(true); }}
                   style={{
-                    fontSize: 13, color: T?.txt || '#000', lineHeight: 1.35,
+                    fontSize: 12, color: T?.txt || '#000', lineHeight: 1.3,
                     display: '-webkit-box', WebkitBoxOrient: 'vertical',
-                    WebkitLineClamp: 2, overflow: 'hidden',
+                    WebkitLineClamp: 1, overflow: 'hidden',
                     wordBreak: 'break-word', cursor: 'pointer',
                   }}
                 >
