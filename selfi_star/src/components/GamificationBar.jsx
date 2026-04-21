@@ -454,23 +454,40 @@ const IconCard = memo(function IconCard({ emoji, icon, value, label, color, badg
 });
 
 /* ─── MAIN BAR ───────────────────────────────── */
+// Stale-while-revalidate cache: skip the network call if the cached
+// payload is younger than CACHE_TTL (shows instantly, refreshes in bg).
+const CACHE_TTL_MS = 60 * 1000; // 1 min
+
 export function GamificationBar({ userId, theme }) {
-  const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(null); // 'coins' | 'streak' | 'spin' | 'gift'
-  const [spinResult, setSpinResult] = useState(null);
+  const [status, setStatus] = useState(() => {
+    // Seed synchronously from cache so the bar paints with real data on
+    // the very first render — no skeleton flash when returning to Profile.
+    try {
+      const raw = sessionStorage.getItem('gamification_status');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed?.data || parsed; // support legacy cache shape
+    } catch { return null; }
+  });
+  const [loading, setLoading] = useState(() => {
+    try { return !sessionStorage.getItem('gamification_status'); } catch { return true; }
+  });
+  const [modal, setModal] = useState(null); // 'coins' | 'streak' | 'gift'
   const pri = theme?.pri || '#DA9B2A';
 
-  // Load immediately and cache result
   useEffect(() => {
-    // Check for cached data first for instant display
-    const cached = sessionStorage.getItem('gamification_status');
-    if (cached) {
-      try {
-        setStatus(JSON.parse(cached));
-        setLoading(false);
-      } catch {}
-    }
+    // Skip the network fetch entirely if we have a fresh cache.
+    try {
+      const raw = sessionStorage.getItem('gamification_status');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const ts = parsed?.ts || 0;
+        if (Date.now() - ts < CACHE_TTL_MS) {
+          setLoading(false);
+          return; // fresh enough, don't hit the network
+        }
+      }
+    } catch {}
     load();
   }, []);
 
@@ -479,20 +496,10 @@ export function GamificationBar({ userId, theme }) {
     try {
       const res = await api.request('/gamification/status/');
       setStatus(res);
-      // Cache for instant load next time
-      sessionStorage.setItem('gamification_status', JSON.stringify(res));
+      // Cache with a timestamp for TTL-based freshness checks.
+      sessionStorage.setItem('gamification_status', JSON.stringify({ ts: Date.now(), data: res }));
     } catch { /* silently fail */ }
     setLoading(false);
-  };
-
-  const handleSpin = async () => {
-    const res = await api.request('/gamification/spin/', { method:'POST' });
-    setStatus(prev => prev ? {
-      ...prev,
-      coins:{ ...prev.coins, balance: res.new_balance },
-      spin:{ ...prev.spin, can_spin: false, spins_total: res.spins_total }
-    } : prev);
-    return res;
   };
 
   const handleLoginBonus = async () => {
@@ -520,16 +527,18 @@ export function GamificationBar({ userId, theme }) {
     }
   };
 
-  const { coins={}, spin={}, login_streak={}, gifts={} } = status || {};
+  // Spin was removed — only Coins / Streak / Gifts shown.  Keep destructure
+  // so an old cache shape doesn't throw on missing keys.
+  const { coins={}, login_streak={}, gifts={} } = status || {};
 
   if (loading && !status) return (
     <div style={{display:'flex',justifyContent:'space-around',padding:'12px 0',
       background:'linear-gradient(135deg,#FFF8F0 0%,#FFFFFF 100%)',
       borderTop:`1px solid ${pri}20`,borderBottom:`1px solid ${pri}20`}}>
-      {['🪙','🔥','spin','🎁'].map((e,i)=>(
+      {['🪙','🔥','🎁'].map((e,i)=>(
         <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'8px 16px'}}>
           <div style={{width:52,height:52,borderRadius:'50%',background:'#F5F5F4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,animation:'pulse 1.2s infinite'}}>
-            {e === 'spin' ? <SpinWheelIcon size={26} color="#A8A29E"/> : e}
+            {e}
           </div>
           <div style={{width:24,height:8,background:'#F5F5F4',borderRadius:4,marginTop:2}}/>
           <div style={{width:32,height:6,background:'#F5F5F4',borderRadius:4}}/>
@@ -539,11 +548,11 @@ export function GamificationBar({ userId, theme }) {
     </div>
   );
   const hasBonus = login_streak?.bonus_available;
-  const canSpin  = spin?.can_spin;
 
   return (
     <>
-      {/* Bar */}
+      {/* Bar — three equal-width cards (Coins · Streak · Gifts).  The
+          IconCards use flex:1 so they space evenly regardless of count. */}
       <div style={{
         display:'flex',
         background:'linear-gradient(135deg,#FFF8F0 0%,#FFFFFF 100%)',
@@ -563,22 +572,14 @@ export function GamificationBar({ userId, theme }) {
         />
         <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
         <IconCard
-          icon={<SpinWheelIcon size={28} color={canSpin ? pri : '#A8A29E'}/>}
-          value={canSpin ? 'SPIN' : 'Done'} label="Daily" color={canSpin ? pri : '#A8A29E'}
-          badge={canSpin}
-          onClick={()=>{ setSpinResult(null); setModal('spin'); }}
-        />
-        <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
-        <IconCard
           emoji="🎁" value={gifts?.received_today ?? 0} label="Gifts" color="#8B5CF6"
           onClick={()=>setModal('gift')}
         />
       </div>
 
-      {/* Modals */}
+      {/* Modals — spin modal intentionally removed. */}
       {modal === 'coins'  && <CoinsModal  coins={coins}  onClose={()=>setModal(null)}/>}
       {modal === 'streak' && <StreakModal streak={login_streak} onClaim={handleLoginBonus} onClose={()=>setModal(null)}/>}
-      {modal === 'spin'   && <SpinModal  spin={spin} onSpin={handleSpin} onClose={()=>setModal(null)}/>}
       {modal === 'gift'   && <GiftModal  coins={coins} onClose={()=>setModal(null)} onRefresh={load}/>}
     </>
   );

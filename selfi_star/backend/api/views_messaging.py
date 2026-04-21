@@ -212,42 +212,67 @@ def conversation_messages(request, conversation_id):
                 media_size=media_size,
                 media_duration=media_duration,
             )
-            
-            # Ensure media directory exists before saving
-            from django.conf import settings as _settings
-            import os
-            media_root = _settings.MEDIA_ROOT
-            if not os.path.exists(media_root):
-                try:
-                    os.makedirs(media_root, exist_ok=True)
-                    print(f'[messages] Created media directory: {media_root}')
-                except Exception as e:
-                    print(f'[messages] Failed to create media directory: {e}')
-            
-            messages_dir = os.path.join(media_root, 'messages')
-            if not os.path.exists(messages_dir):
-                try:
-                    os.makedirs(messages_dir, exist_ok=True)
-                    print(f'[messages] Created messages directory: {messages_dir}')
-                except Exception as e:
-                    print(f'[messages] Failed to create messages directory: {e}')
-            
-            # Save media file to FileField using Django's standard method
+
+            # ── Upload media ────────────────────────────────────────────────
+            # Cloudinary first (works in prod — Render's filesystem is
+            # ephemeral and sometimes read-only, which caused 500s on media
+            # sends).  Falls back to local FileSystemStorage for dev.
+            cloudinary_url = None
             try:
-                upload.seek(0)
-                msg.media.save(upload.name, upload)
-                msg.save()
-                print(f'[messages] Media saved successfully: {msg.media.name}')
-            except Exception as e:
-                print(f'[messages] Failed to save media: {e}')
-                import traceback
-                traceback.print_exc()
-                # Delete the message if media upload failed
-                msg.delete()
-                return Response(
-                    {'error': f'Failed to save media: {str(e)}'},
-                    status=500,
-                )
+                import cloudinary.uploader as _cu
+                import cloudinary as _cl
+                cfg = _cl.config()
+                if cfg.cloud_name and cfg.api_key and cfg.api_secret:
+                    upload.seek(0)
+                    resource_type = _cloudinary_resource_type(media_type)
+                    result = _cu.upload(
+                        upload,
+                        resource_type=resource_type,
+                        folder='messages',
+                        use_filename=True,
+                        unique_filename=True,
+                    )
+                    cloudinary_url = result.get('secure_url')
+                    print(f'[messages] Cloudinary OK ({resource_type}): {cloudinary_url}')
+            except Exception as cloud_err:
+                import traceback as _tb2
+                print(f'[messages] Cloudinary upload failed: {cloud_err}\n{_tb2.format_exc()}')
+
+            if cloudinary_url:
+                # Write the full https URL straight into the DB column via raw
+                # SQL so Django's storage backend doesn't re-upload or mangle it.
+                from django.db import connection
+                with connection.cursor() as cur:
+                    cur.execute(
+                        "UPDATE api_message SET media=%s WHERE id=%s",
+                        [cloudinary_url, msg.pk],
+                    )
+                msg.refresh_from_db(fields=['media'])
+            else:
+                # Local dev fallback — save via FileSystemStorage.
+                from django.conf import settings as _settings
+                import os
+                media_root = _settings.MEDIA_ROOT
+                messages_dir = os.path.join(media_root, 'messages')
+                for d in (media_root, messages_dir):
+                    if not os.path.exists(d):
+                        try:
+                            os.makedirs(d, exist_ok=True)
+                        except Exception as e:
+                            print(f'[messages] mkdir {d} failed: {e}')
+                try:
+                    upload.seek(0)
+                    msg.media.save(upload.name, upload)
+                    msg.save(update_fields=['media'])
+                    print(f'[messages] local FS saved: {msg.media.name}')
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    msg.delete()
+                    return Response(
+                        {'error': f'Failed to save media: {str(e)}'},
+                        status=500,
+                    )
         else:
             # Create text-only message
             msg = Message.objects.create(

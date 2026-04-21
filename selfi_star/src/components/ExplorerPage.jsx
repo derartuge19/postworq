@@ -92,17 +92,23 @@ function GridSkeleton({ T }) {
 }
 
 // ── Single video thumbnail card ───────────────────────────────────────────────
-function VideoThumb({ reel, rank, hero = false, onOpen, T }) {
+// `index` is the position in the grid; thumbs above the fold (first few) are
+// eager-loaded so the user sees content immediately, the rest are lazy with
+// async decoding so scrolling isn't stalled by image decodes on the main thread.
+const EAGER_LOAD_COUNT = 6;
+function VideoThumb({ reel, rank, index = 0, hero = false, onOpen, T }) {
   const [hovered, setHovered] = useState(false);
   const videoUrl = reel.file_url || reel.media;
   const isVid = !!(videoUrl || '').match(/\.(mp4|webm|ogg|mov)/i) || (videoUrl && videoUrl.includes('/video/'));
-  
+
   // Priority: 1) explicit thumbnail_url, 2) Cloudinary video poster, 3) video/image URL
   const thumb = reel.thumbnail_url
     ? mediaUrl(reel.thumbnail_url)
     : isVid && videoUrl
       ? getVideoPoster(mediaUrl(videoUrl)) || mediaUrl(videoUrl)
       : videoUrl ? mediaUrl(videoUrl) : null;
+
+  const isEager = hero || index < EAGER_LOAD_COUNT;
 
   return (
     <div
@@ -120,10 +126,15 @@ function VideoThumb({ reel, rank, hero = false, onOpen, T }) {
         transform: hovered ? 'scale(1.015)' : 'scale(1)',
         transition: 'transform 0.15s',
         zIndex: hovered ? 1 : 0,
+        // Ask the browser to skip painting offscreen thumbs.
+        contentVisibility: isEager ? 'visible' : 'auto',
+        containIntrinsicSize: '0 260px',
       }}
     >
       {thumb
-        ? <img src={thumb} alt="" loading="lazy"
+        ? <img src={thumb} alt="" loading={isEager ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={isEager ? 'high' : 'low'}
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         : <div style={{ width: '100%', height: '100%',
             background: `linear-gradient(135deg,${T.pri}30,#00000080)`,
@@ -220,16 +231,65 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
   const inputRef    = useRef(null);
   const inSearchMode = debouncedQ.trim().length > 0;
 
-  // ── Fetch trending grid ────────────────────────────────────────────────────
+  // ── Fetch trending grid — initial page is small so the grid paints fast.
+  //    Subsequent pages are loaded on scroll (infinite scroll, below).
+  const INITIAL_LIMIT = 12;      // enough to fill 1.5 screens of 3-column grid
+  const PAGE_LIMIT    = 12;
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore]         = useState(true);
+  const loadMoreRef = useRef(null);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    api.request(`/explorer/trending/?category=${activeCategory}&time_range=${timeRange}&limit=30`)
-      .then(d => { if (!cancelled) setVideos(Array.isArray(d) ? d : (d?.results || [])); })
+    setHasMore(true);
+    api.request(`/explorer/trending/?category=${activeCategory}&time_range=${timeRange}&limit=${INITIAL_LIMIT}`)
+      .then(d => {
+        if (cancelled) return;
+        const list = Array.isArray(d) ? d : (d?.results || []);
+        setVideos(list);
+        // If the backend returned fewer than we asked for, there's no more.
+        setHasMore(list.length >= INITIAL_LIMIT);
+      })
       .catch(() => { if (!cancelled) setVideos([]); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [activeCategory, timeRange]);
+
+  // ── Infinite scroll ────────────────────────────────────────────────────────
+  // An IntersectionObserver on a sentinel below the grid fires the next page
+  // only when the user nears the bottom — no work or requests until needed.
+  useEffect(() => {
+    if (inSearchMode) return;      // search has its own flow
+    const node = loadMoreRef.current;
+    if (!node || !hasMore || loading) return;
+
+    const observer = new IntersectionObserver(async (entries) => {
+      if (!entries[0]?.isIntersecting || loadingMore || !hasMore) return;
+      setLoadingMore(true);
+      try {
+        const offset = videos.length;
+        const d = await api.request(
+          `/explorer/trending/?category=${activeCategory}&time_range=${timeRange}&limit=${PAGE_LIMIT}&offset=${offset}`
+        );
+        const page = Array.isArray(d) ? d : (d?.results || []);
+        if (page.length === 0) {
+          setHasMore(false);
+        } else {
+          // Dedup by id in case the backend re-sent overlapping items.
+          setVideos(prev => {
+            const seen = new Set(prev.map(v => v.id));
+            return [...prev, ...page.filter(v => !seen.has(v.id))];
+          });
+          if (page.length < PAGE_LIMIT) setHasMore(false);
+        }
+      } catch { /* keep what we have */ }
+      finally { setLoadingMore(false); }
+    }, { rootMargin: '400px 0px' });
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [activeCategory, timeRange, videos.length, hasMore, loading, loadingMore, inSearchMode]);
 
   // ── Fetch trending hashtags ────────────────────────────────────────────────
   useEffect(() => {
@@ -628,18 +688,36 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
                 )}
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
-                {videos.map((reel, idx) => (
-                  <VideoThumb
-                    key={reel.id}
-                    reel={reel}
-                    rank={idx}
-                    hero={idx === 0}
-                    onOpen={openReel}
-                    T={T}
-                  />
-                ))}
-              </div>
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+                  {videos.map((reel, idx) => (
+                    <VideoThumb
+                      key={reel.id}
+                      reel={reel}
+                      rank={idx}
+                      index={idx}
+                      hero={idx === 0}
+                      onOpen={openReel}
+                      T={T}
+                    />
+                  ))}
+                </div>
+                {/* Infinite-scroll sentinel + loader — only present when
+                    there's more to fetch; disappears at the end so the
+                    observer doesn't keep firing. */}
+                {hasMore && !hashtagView && (
+                  <div ref={loadMoreRef} style={{ padding: '16px 0', textAlign: 'center' }}>
+                    {loadingMore && (
+                      <span style={{ fontSize: 13, color: T.sub }}>Loading more…</span>
+                    )}
+                  </div>
+                )}
+                {!hasMore && videos.length > INITIAL_LIMIT && (
+                  <div style={{ textAlign: 'center', padding: '18px 0', fontSize: 12, color: T.sub }}>
+                    You're all caught up
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
