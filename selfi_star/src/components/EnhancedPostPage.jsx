@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { 
   Home, Film, PlusSquare, MessageCircle, User, Search, Settings, X, 
   Image as ImageIcon, Video, Hash, Type, Upload, Music, Volume2, VolumeX, 
-  Play, Pause, RotateCw, Camera, Mic, MicOff, Sparkles, Palette, 
+  Play, Pause, RotateCw, RefreshCw, Camera, Mic, MicOff, Sparkles, Palette, 
   ChevronDown, ChevronLeft, ChevronRight, Check, AlertCircle, Trash2,
   Zap, ZapOff, Square, FileText, ArrowLeft, Eye, Bookmark
 } from 'lucide-react';
