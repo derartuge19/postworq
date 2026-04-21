@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from "lucide-react";
 import config from "../config";
 import { useLegacyT } from "../contexts/ThemeContext";
 
@@ -89,59 +90,140 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
   const handleNotInterested = () => { showToast('Got it — fewer like this'); setShowMenu(false); };
 
   return (
-    <div style={{ background: "#000", borderRadius: 16, overflow: "hidden", marginBottom: 20, position: "relative", maxHeight: 620, display: "flex", flexDirection: "column" }}>
+    <div style={{ background: T?.cardBg || '#fff', borderRadius: 16, overflow: "hidden", marginBottom: 20, position: "relative", display: "flex", flexDirection: "column", maxWidth: 560 }}>
 
-      {/* ── Media area (long-pressable) ── */}
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', gap: 8, flexShrink: 0 }}>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: `1px solid ${(T?.pri || '#000')}20`, flexShrink: 0 }}>
+          ?
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T?.txt || '#000' }}>
+            {video?.creator || "Creator"}
+          </div>
+          <div style={{ fontSize: 11, color: T?.sub || '#666' }}>@{video?.handle || "handle"}</div>
+        </div>
+        <button
+          onClick={() => setShowMenu(true)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: T?.sub || '#666', display: 'flex', alignItems: 'center' }}
+        >
+          <MoreHorizontal size={18} />
+        </button>
+      </div>
+
+      {/* Media area */}
       <div
-        style={{ flex: 1, background: "linear-gradient(135deg,#1a1a1a,#2a2a2a)", position: "relative", overflow: "hidden", userSelect: 'none', minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        onMouseDown={onPressStart} onMouseUp={onPressEnd} onMouseLeave={onPressEnd}
-        onTouchStart={onPressStart} onTouchEnd={onPressEnd} onTouchCancel={onPressEnd}
+        style={{ 
+          position: 'relative', 
+          width: '100%', 
+          background: '#111',
+          flex: '1 1 auto',
+          minHeight: 300,
+          maxHeight: 400,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '8px',
+          overflow: 'hidden'
+        }}
+        onMouseDown={onPressStart} 
+        onMouseUp={onPressEnd} 
+        onMouseLeave={onPressEnd}
+        onTouchStart={onPressStart} 
+        onTouchEnd={onPressEnd} 
+        onTouchCancel={onPressEnd}
       >
         {video?.media
           ? <video src={mediaUrl(video.media)} controls playsInline autoPlay muted loop style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
           : video?.image
             ? <img src={mediaUrl(video.image)} alt="" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
-            : <div style={{ textAlign:"center", color:"#666", padding: 40 }}><div style={{ fontSize:60 }}>🎬</div><div>No media</div></div>
+            : <div style={{ textAlign:"center", color:"#666", padding: 40 }}><div style={{ fontSize:60 }}>?</div><div>No media</div></div>
         }
 
-        {/* ── Text overlays rendered from stored JSON ── */}
+        {/* Text overlays rendered from stored JSON */}
         {overlays.map((ov, i) => (
           <div key={i} style={{ position:'absolute', left:`${ov.x}%`, top:`${ov.y}%`, transform:'translate(-50%,-50%)', pointerEvents:'none', zIndex:5 }}>
             <span style={overlayCSS(ov)}>{ov.text}</span>
           </div>
         ))}
-
-        {/* ── Bottom gradient + creator info ── */}
-        <div style={{ position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(to top,rgba(0,0,0,0.82),transparent)", padding:"20px 16px", pointerEvents:'none', zIndex:6 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-            <div style={{ width:36, height:36, borderRadius:"50%", background:T.pri, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>👤</div>
-            <div>
-              <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{video?.creator || "Creator"}</div>
-              <div style={{ fontSize:12, color:"rgba(255,255,255,0.7)" }}>@{video?.handle || "handle"}</div>
-            </div>
-            <div style={{ marginLeft:'auto', background:T.pri, borderRadius:20, color:'#fff', padding:'6px 16px', fontSize:12, fontWeight:700 }}>Follow</div>
-          </div>
-          <div style={{ fontSize:13, color:"#fff", lineHeight:1.4 }}>{video?.caption || ""}</div>
-        </div>
       </div>
 
-      {/* ── Actions Sidebar ── */}
-      <div style={{ position:"absolute", right:12, bottom:80, display:"flex", flexDirection:"column", gap:16, zIndex:10 }}>
-        <button onClick={handleLike} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:4, color: liked ? T.red : "#fff" }}>
-          <div style={{ fontSize:32 }}>{liked ? "❤️" : "🤍"}</div>
-          <div style={{ fontSize:12, fontWeight:600 }}>{video?.likes || 0}</div>
-        </button>
-        <button onClick={() => setShowComments(!showComments)} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:4, color:"#fff" }}>
-          <div style={{ fontSize:32 }}>💬</div>
-          <div style={{ fontSize:12, fontWeight:600 }}>{video?.comments || 0}</div>
-        </button>
-        <button onClick={handleShare} style={{ background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:4, color:"#fff" }}>
-          <div style={{ fontSize:32 }}>📤</div>
-          <div style={{ fontSize:12, fontWeight:600 }}>{video?.shares || 0}</div>
-        </button>
-        <button style={{ background:"none", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:4, color:"#fff" }}>
-          <div style={{ fontSize:32 }}>🔖</div>
-        </button>
+      {/* Actions + caption */}
+      <div style={{ padding: '4px 10px 8px', flexShrink: 0, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: 2 }}>
+            {/* Like */}
+            <button
+              onClick={handleLike}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '4px 6px', borderRadius: 8,
+                display: 'flex', alignItems: 'center', gap: 3,
+              }}
+            >
+              <Heart
+                size={16}
+                fill={liked ? '#EF4444' : 'none'}
+                color={liked ? '#EF4444' : T?.txt || '#000'}
+              />
+              <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{video?.likes || 0}</span>
+            </button>
+            {/* Comment */}
+            <button
+              onClick={() => setShowComments(!showComments)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '4px 6px', borderRadius: 8,
+                display: 'flex', alignItems: 'center', gap: 3,
+              }}
+            >
+              <MessageCircle size={16} color={T?.txt || '#000'} />
+              <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{video?.comments || 0}</span>
+            </button>
+            {/* Share */}
+            <button
+              onClick={handleShare}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '4px 6px', borderRadius: 8,
+                display: 'flex', alignItems: 'center', gap: 3,
+              }}
+            >
+              <Share2 size={16} color={T?.txt || '#000'} />
+              <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{video?.shares || 0}</span>
+            </button>
+          </div>
+          {/* Save */}
+          <button
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '4px 6px', borderRadius: 8,
+            }}
+          >
+            <Bookmark
+              size={16}
+              fill={false}
+              color={T?.txt || '#000'}
+            />
+          </button>
+        </div>
+
+        {/* Caption */}
+        {video?.caption && (
+          <div
+            style={{
+              fontSize: 12, color: T?.txt || '#000', marginTop: 4, lineHeight: 1.3,
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
+              overflow: 'hidden',
+              wordBreak: 'break-word',
+            }}
+          >
+            <span style={{ fontWeight: 700 }}>{video?.creator} </span>
+            {video?.caption}
+          </div>
+        )}
       </div>
 
       {/* ── Long-press context menu ── */}

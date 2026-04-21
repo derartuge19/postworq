@@ -874,12 +874,14 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             position: 'relative', width: '100%', background: '#111',
             flex: '1 1 auto',
             minHeight: 0,
+            maxHeight: 'calc(100vh - 280px)',
             // Remove fixed aspect ratio to allow media to display at natural dimensions
             cursor: isVideo ? 'pointer' : 'default',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             padding: '8px',
+            overflow: 'hidden',
           }}
         >
           {mediaSrc && !imgError ? (
@@ -950,14 +952,16 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           {/* View count badge */}
           {mediaSrc && !imgError && (
             <div style={{
-              position: 'absolute', bottom: 10, right: 10,
+              position: 'absolute', bottom: 8, right: 8,
               background: 'rgba(0,0,0,0.55)', color: '#fff',
-              borderRadius: 20, padding: '4px 10px', fontSize: 12, fontWeight: 600,
-              display: 'flex', alignItems: 'center', gap: 4,
+              borderRadius: 20, padding: '3px 8px', fontSize: 11, fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 3,
               backdropFilter: 'blur(6px)',
               pointerEvents: 'none',
+              zIndex: 5,
+              maxWidth: 'calc(100% - 16px)',
             }}>
-              <Eye size={13} />
+              <Eye size={12} />
               {viewCount.toLocaleString()}
             </div>
           )}
