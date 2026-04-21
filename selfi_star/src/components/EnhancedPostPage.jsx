@@ -7,7 +7,7 @@ import {
   ChevronDown, ChevronLeft, ChevronRight, Check, AlertCircle, Trash2
 } from 'lucide-react';
 import api from '../api';
-import { useLegacyT } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/ThemeContext';
 import realtimeService from '../services/RealtimeService';
 
 const FILTERS = [
@@ -57,7 +57,7 @@ function ProgressRing({ radius, stroke, progress, color }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNavReels, onNavMessages, onNavProfile, unreadDmCount = 0 }) {
-  const T = useLegacyT();
+  const { colors: T } = useTheme();
   // Stage
   const [stage, setStage] = useState('capture'); // 'capture' | 'details'
   const [captureMode, setCaptureMode] = useState('upload'); // 'upload' | 'camera'
@@ -849,7 +849,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10 }}>
                 <Icon size={22} strokeWidth={1.8} color={T.sub || '#9ca3af'} />
                 {badge > 0 && (
-                  <div style={{ position: 'absolute', top: 2, right: 2, minWidth: 14, height: 14, borderRadius: 7, background: T.red, color: '#fff', fontSize: 8, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px', boxSizing: 'border-box', border: '1.5px solid #fff', lineHeight: 1 }}>
+                  <div style={{ position: 'absolute', top: 2, right: 2, minWidth: 14, height: 14, borderRadius: 7, background: '#EF4444', color: '#fff', fontSize: 8, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px', boxSizing: 'border-box', border: '1.5px solid #fff', lineHeight: 1 }}>
                     {badge > 99 ? '99+' : badge}
                   </div>
                 )}
@@ -1113,17 +1113,17 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                       }}
                       style={{
                         width: 80, height: 80, borderRadius: '50%',
-                        background: camMode === 'video' ? (isRecording ? T.red : T.white) : T.white,
+                        background: camMode === 'video' ? (isRecording ? '#EF4444' : '#FFFFFF') : '#FFFFFF',
                         border: `4px solid rgba(255,255,255,0.5)`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: isRecording ? `0 0 0 6px ${T.red}55` : `${T.dark}66`,
+                        boxShadow: isRecording ? `0 0 0 6px #EF444455` : 'rgba(0,0,0,0.4)',
                         transition: 'all 0.2s',
                       }}>
                       {camMode === 'video'
                         ? (isRecording
                           ? <Square size={26} color={T.txt} fill={T.txt} />
-                          : <div style={{ width: 20, height: 20, borderRadius: '50%', background: T.red }} />)
-                        : <div style={{ width: 56, height: 56, borderRadius: '50%', background: T.card, border: `3px solid ${T.border}` }} />
+                          : <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#EF4444' }} />)
+                        : <div style={{ width: 56, height: 56, borderRadius: '50%', background: T.cardBg || '#fff', border: `3px solid ${T.border}` }} />
                       }
                     </button>
                     {/* Video icon indicator - only show in video mode */}
@@ -1208,7 +1208,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 position: 'relative', zIndex: 1,
               }}>
                 <button className="ep-btn" onClick={onBack}
-                  style={{ background: `${T.white}B3`, border: 'none', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `${T.dark}14` }}>
+                  style={{ background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'rgba(0,0,0,0.08)' }}>
                   <X size={20} color="#6b7280" />
                 </button>
                 <span style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>New Post</span>
@@ -1226,7 +1226,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   <div style={{ width: 72, height: 72, background: T.priGradient || T.pri, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 24px ${T.pri}59` }}>
                     <svg width="30" height="30" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
-                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: T.gold, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: `2px solid ${T.card}`, boxShadow: `0 2px 6px ${T.gold}80` }}>✦</div>
+                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: '#DA9B2A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: `2px solid ${T.cardBg || '#fff'}`, boxShadow: `0 2px 6px rgba(218,155,42,0.5)` }}>??</div>
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: T.txt, marginBottom: 4 }}>Create Post</div>
                 <div style={{ fontSize: 13, color: T.sub, textAlign: 'center' }}>Choose how you want to create content</div>
@@ -1348,22 +1348,22 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
             position: 'sticky', top: 0, background: T.bg, zIndex: 10,
           }}>
             <button className="ep-btn" onClick={() => { setStage('capture'); setPreview(null); setSelectedFile(null); }}
-              style={{ background: `${T.white}12`, borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ArrowLeft size={20} color={T.txt} />
             </button>
             <span style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>Post</span>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button className="ep-btn" onClick={() => setShowPreview(true)}
-                style={{ background: `${T.pri}20`, borderRadius: 20, padding: '8px 14px', color: T.txt, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                style={{ background: 'rgba(218,155,42,0.2)', borderRadius: 20, padding: '8px 14px', color: T.txt, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Eye size={15} /> Preview
               </button>
               <button className="ep-btn" onClick={saveDraft}
-                style={{ background: `${T.pri}20`, borderRadius: 20, padding: '8px', color: T.txt, display: 'flex', alignItems: 'center' }}>
+                style={{ background: 'rgba(218,155,42,0.2)', borderRadius: 20, padding: '8px', color: T.txt, display: 'flex', alignItems: 'center' }}>
                 <Bookmark size={17} />
               </button>
               <button className="ep-btn" onClick={handlePost} disabled={isUploading}
                 style={{
-                  background: isUploading ? `${T.pri}66` : T.pri,
+                  background: isUploading ? 'rgba(218,155,42,0.4)' : T.pri,
                   borderRadius: 24, padding: '10px 22px',
                   fontSize: 15, fontWeight: 800, color: '#fff',
                   opacity: isUploading ? 0.7 : 1,
@@ -1386,7 +1386,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               {/* Media preview */}
               <div style={{
                 width: 100, height: 138, borderRadius: 14, overflow: 'hidden',
-                background: T.card, flexShrink: 0, position: 'relative',
+                background: T.cardBg || '#fff', flexShrink: 0, position: 'relative',
                 border: `1px solid ${T.border}`,
               }}>
                 {preview && (
@@ -1414,7 +1414,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
                     padding: 6,
                   }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: T.white, background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: 8 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#ffffff', background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: 8 }}>
                       {activeFilter?.name}
                     </span>
                   </div>
@@ -1439,7 +1439,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
 
             {/* Hashtags */}
             <div style={{
-              background: T.card, borderRadius: 16, padding: '14px 16px',
+              background: T.cardBg || '#fff', borderRadius: 16, padding: '14px 16px',
               display: 'flex', alignItems: 'center', gap: 10,
               border: `1px solid ${T.border}`,
             }}>
