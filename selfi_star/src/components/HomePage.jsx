@@ -267,7 +267,9 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ fontWeight: 700, fontSize: 12, color: T?.txt || '#000' }}>{r.user?.username}</span>
-                          <span style={{ fontSize: 12, color: T?.txt || '#000' }}>{r.text}</span>
+                          <span style={{ fontSize: 12, color: T?.txt || '#000' }}>
+                            <span style={{ color: T?.pri || '#DA9B2A', fontWeight: 600 }}>@{c.user?.username}</span> {r.text}
+                          </span>
                         </div>
                         <span style={{ fontSize: 10, color: T?.sub || '#666', marginTop: 2 }}>{timeAgo(r.created_at)}</span>
                       </div>
@@ -1001,7 +1003,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 }}
               >
                 <MessageCircle size={20} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-                <span style={{ fontSize: 12, color: T?.sub || '#666', fontWeight: 600 }}>{post.comment_count > 0 ? post.comment_count : ''}</span>
+                <span style={{ fontSize: 12, color: T?.sub || '#666', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
               </button>
               {/* Share */}
               <button
@@ -1038,8 +1040,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             </button>
           </div>
 
-          {/* Caption — single-line by default, tap the comments link to expand. */}
-          {post.caption && (
+          {/* Caption + hashtags */}
+          {(post.caption || post.hashtags_list) && (
             <div
               onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
               style={{
@@ -1054,11 +1056,15 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             >
               <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
               {post.caption}
+              {/* Display hashtags like create page */}
+              {Array.isArray(post.hashtags_list) && post.hashtags_list.length > 0 && (
+                <span style={{ color: T?.pri || '#DA9B2A', fontWeight: 600 }}>
+                  {' '}
+                  {post.hashtags_list.map(tag => `#${tag}`).join(' ')}
+                </span>
+              )}
             </div>
           )}
-
-          {/* Inline comments preview (Instagram-style) — shows the first
-              comment by default, tap "Show more" to reveal up to 3. */}
           {inlineComments.length > 0 && (
             <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {(showAllInline ? inlineComments : inlineComments.slice(0, 1)).map(c => (
