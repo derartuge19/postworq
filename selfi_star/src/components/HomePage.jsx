@@ -99,7 +99,8 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
 
   useEffect(() => {
     let cancelled = false;
-    api.request(`/comments/?reel=${post.id}`)
+    // Use the extended endpoint that includes replies
+    api.request(`/comments/?reel=${post.id}&include_replies=true`)
       .then(d => {
         if (cancelled) return;
         const full = Array.isArray(d) ? d : (d?.results || []);

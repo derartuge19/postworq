@@ -379,6 +379,29 @@ export const TikTokLayout = memo(function TikTokLayout({
     const scroller = document.querySelector('.feed-container');
     if (scroller) scroller.scrollTop = 0;
     else window.scrollTo(0, 0);
+    
+    // Auto-play the target video immediately since IntersectionObserver might not trigger
+    setTimeout(() => {
+      const targetVideo = videoRefs.current[initialVideoId];
+      if (targetVideo && targetVideo.paused) {
+        activeVideoIdRef.current = initialVideoId;
+        targetVideo.muted = !audioEnabled;
+        targetVideo.play()
+          .then(() => {
+            setPlayingVideos((prev) => ({ ...prev, [initialVideoId]: true }));
+            setShowPauseIcon((prev) => ({ ...prev, [initialVideoId]: false }));
+          })
+          .catch((err) => {
+            if (err.name !== 'AbortError') console.log('Auto-play prevented:', err);
+            // Try muted if unmuted failed
+            targetVideo.muted = true;
+            targetVideo.play()
+              .then(() => setPlayingVideos((prev) => ({ ...prev, [initialVideoId]: true })))
+              .catch((e) => console.log('Muted play also prevented:', e));
+          });
+      }
+    }, 100); // Small delay to ensure DOM is updated
+    
     initialReorderDoneRef.current = true;
   }, [initialVideoId, videos, hasMore, loadingMore, page, fetchVideos]);
 
