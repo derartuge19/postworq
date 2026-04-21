@@ -531,7 +531,7 @@ export const TikTokLayout = memo(function TikTokLayout({
           }
         });
       },
-      { rootMargin: '50vh' } // Reduced from 100vh to 50vh for better performance
+      { rootMargin: '50%' } // Reduced from 100% to 50% for better performance
     );
 
     Object.keys(videoContainerRefs.current).forEach((videoId) => {
