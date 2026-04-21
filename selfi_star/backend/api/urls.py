@@ -21,26 +21,37 @@ from .views_messaging import (
     mark_conversation_read, unread_dm_count, search_users_for_dm,
 )
 
-@api_view(['GET'])
+@api_view(['GET', 'HEAD'])
 @permission_classes([AllowAny])
 def health_check(request):
-    """Diagnostic health check endpoint"""
+    """Ultra-cheap liveness probe — does NOT touch the DB.
+
+    Safe to call every 5-10 minutes from an external uptime monitor (e.g.
+    cron-job.org, UptimeRobot) to keep Render's free-tier service warm.
+    For full diagnostics including DB counts, hit /health/deep/ instead.
+    """
+    return Response({'status': 'ok'})
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check_deep(request):
+    """Full diagnostic health check — DOES touch the DB. Don't use for keep-alive."""
     from django.contrib.auth.models import User
     from django.conf import settings
     from .models import Reel
     from .models_campaign import Campaign
-    
+
     db_engine = settings.DATABASES['default']['ENGINE']
     db_name = settings.DATABASES['default'].get('NAME', 'unknown')
     db_host = settings.DATABASES['default'].get('HOST', 'localhost')
-    
+
     user_count = User.objects.count()
     reel_count = Reel.objects.count()
     campaign_count = Campaign.objects.count()
-    
-    # Get first 3 usernames for debugging
+
     usernames = list(User.objects.values_list('username', flat=True)[:3])
-    
+
     return Response({
         'status': 'ok',
         'database': {
@@ -184,6 +195,7 @@ from .setup_admin_view import setup_admin
 
 urlpatterns = [
     path('health/', health_check, name='health-check'),
+    path('health/deep/', health_check_deep, name='health-check-deep'),
     path('cleanup-reels/', cleanup_broken_reels, name='cleanup-reels'),
     path('auth/register/', register, name='auth-register'),
     path('auth/login/', login, name='auth-login'),

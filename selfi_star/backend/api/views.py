@@ -421,6 +421,18 @@ class ReelViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['request'] = self.request
+        # Pre-compute the set of user IDs the current user follows — turns
+        # N per-reel "am I following this author?" queries into one.
+        if self.request.user.is_authenticated:
+            try:
+                context['followed_user_ids'] = set(
+                    Follow.objects.filter(follower=self.request.user)
+                    .values_list('following_id', flat=True)
+                )
+            except Exception:
+                context['followed_user_ids'] = set()
+        else:
+            context['followed_user_ids'] = set()
         return context
     
     def retrieve(self, request, *args, **kwargs):
@@ -1012,9 +1024,11 @@ def search(request):
             if query.lower() in tag.lower():
                 hashtags.add(tag)
     
+    from .serializers import build_feed_context
+    feed_ctx = build_feed_context(request)
     return Response({
         'users': UserSerializer(users, many=True, context={'request': request}).data,
-        'posts': ReelSerializer(posts, many=True).data,
+        'posts': ReelSerializer(posts, many=True, context=feed_ctx).data,
         'hashtags': list(hashtags)[:10]
     })
 
@@ -1382,16 +1396,23 @@ def get_trending_reels(request):
                 queryset = queryset.filter(hashtag_filter)
                 print(f"[TRENDING] After category filter count: {queryset.count()}")
         
-        # Simplified trending algorithm - just order by votes and creation time
-        # This avoids complex database expressions that might cause 500 errors
-        queryset = queryset.annotate(
-            comment_count=Count('comments')
-        ).select_related('user', 'user__profile').order_by('-votes', '-created_at')[:limit]
-        
+        # Match what ReelViewSet.get_queryset does so the serializer hits
+        # annotated fields instead of per-object fallbacks (N+1 killer).
+        queryset = queryset.select_related('user', 'user__profile').annotate(
+            comment_count_db=Count('comments', distinct=True),
+            votes_count_db=Count('reel_votes', distinct=True),
+        )
+        if request.user.is_authenticated:
+            queryset = queryset.annotate(
+                is_liked_db=Exists(Vote.objects.filter(user=request.user, reel=OuterRef('pk'))),
+                is_saved_db=Exists(SavedPost.objects.filter(user=request.user, reel=OuterRef('pk'))),
+            )
+        queryset = queryset.order_by('-votes', '-created_at')[:limit]
+
         print(f"[TRENDING] Final queryset count: {len(queryset)}")
-        
-        # Serialize
-        serializer = ReelSerializer(queryset, many=True, context={'request': request})
+
+        from .serializers import build_feed_context
+        serializer = ReelSerializer(queryset, many=True, context=build_feed_context(request))
         print(f"[TRENDING] Successfully serialized {len(serializer.data)} reels")
         
         return Response(serializer.data)
@@ -1463,16 +1484,25 @@ def get_reels_by_hashtag(request):
     
     limit = min(int(request.GET.get('limit', 30)), 50)
     
-    # Search in both hashtags field and caption
+    # Search in both hashtags field and caption — annotate the same way
+    # ReelViewSet does so the serializer never falls into N+1 fallbacks.
     queryset = Reel.objects.filter(
         Q(hashtags__icontains=f'#{hashtag}') |
         Q(hashtags__icontains=hashtag) |
         Q(caption__icontains=f'#{hashtag}')
-    ).annotate(
-        comment_count=Count('comments')
-    ).select_related('user', 'user__profile').order_by('-votes', '-created_at')[:limit]
-    
-    serializer = ReelSerializer(queryset, many=True, context={'request': request})
+    ).select_related('user', 'user__profile').annotate(
+        comment_count_db=Count('comments', distinct=True),
+        votes_count_db=Count('reel_votes', distinct=True),
+    )
+    if request.user.is_authenticated:
+        queryset = queryset.annotate(
+            is_liked_db=Exists(Vote.objects.filter(user=request.user, reel=OuterRef('pk'))),
+            is_saved_db=Exists(SavedPost.objects.filter(user=request.user, reel=OuterRef('pk'))),
+        )
+    queryset = queryset.order_by('-votes', '-created_at')[:limit]
+
+    from .serializers import build_feed_context
+    serializer = ReelSerializer(queryset, many=True, context=build_feed_context(request))
     return Response({
         'hashtag': hashtag,
         'count': len(serializer.data),

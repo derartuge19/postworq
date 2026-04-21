@@ -12,7 +12,8 @@ Endpoints:
 - GET    /messages/users/search/?q=...            search users to start a new chat
 """
 from django.contrib.auth.models import User
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Count, OuterRef, Subquery, IntegerField, F
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
@@ -34,9 +35,52 @@ from .serializers_messaging import (
 @permission_classes([IsAuthenticated])
 def list_or_create_conversations(request):
     if request.method == 'GET':
+        # IMPORTANT: do NOT prefetch all messages — a chatty conversation could
+        # load thousands of rows just to render the inbox.  Instead we annotate
+        # exactly the fields the serializer needs so the whole inbox resolves
+        # in O(1) queries instead of O(N) per-conversation lookups.
+        last_msg = Message.objects.filter(conversation=OuterRef('pk')).order_by('-created_at')
+        read_marker = MessageRead.objects.filter(
+            conversation=OuterRef('pk'), user=request.user,
+        ).values('last_read_at')[:1]
+
+        # Unread count — count messages in this conversation not sent by me,
+        # newer than my last_read_at (or all of them if I have no marker yet).
+        # Uses nested OuterRef so Django resolves it as a single correlated
+        # subquery against the outer conversation row.
+        unread_count_sq = (
+            Message.objects
+            .filter(conversation=OuterRef('pk'))
+            .exclude(sender=request.user)
+            .annotate(_my_read_at=Subquery(
+                MessageRead.objects.filter(
+                    conversation=OuterRef(OuterRef('pk')),
+                    user=request.user,
+                ).values('last_read_at')[:1]
+            ))
+            .filter(Q(_my_read_at__isnull=True) | Q(created_at__gt=F('_my_read_at')))
+            .values('conversation')
+            .annotate(c=Count('id'))
+            .values('c')
+        )
+
         qs = (
             request.user.conversations
-            .prefetch_related('participants', 'participants__profile', 'messages')
+            .prefetch_related('participants', 'participants__profile')
+            .annotate(
+                _last_msg_id=Subquery(last_msg.values('id')[:1]),
+                _last_msg_text=Subquery(last_msg.values('text')[:1]),
+                _last_msg_sender_id=Subquery(last_msg.values('sender_id')[:1]),
+                _last_msg_media_type=Subquery(last_msg.values('media_type')[:1]),
+                _last_msg_is_deleted=Subquery(last_msg.values('is_deleted')[:1]),
+                _last_msg_created_at=Subquery(last_msg.values('created_at')[:1]),
+                _last_read_at=Subquery(read_marker),
+                _unread_total=Coalesce(Subquery(
+                    unread_count_sq.values('conversation')
+                    .annotate(c=Count('id')).values('c')[:1],
+                    output_field=IntegerField(),
+                ), 0),
+            )
             .order_by('-last_message_at')
         )
         data = ConversationSerializer(qs, many=True, context={'request': request}).data
@@ -277,17 +321,26 @@ def mark_conversation_read(request, conversation_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def unread_dm_count(request):
-    """Total unread messages across all my conversations (for bottom-nav badge)."""
+    """Total unread messages across all my conversations (for bottom-nav badge).
+
+    Properly honours each conversation's MessageRead marker: a message is
+    unread iff it was sent by someone else AND is newer than my last_read_at
+    for that conversation (or I have no marker yet).  One SQL query.
+    """
     try:
-        from .models_messaging import Message, Conversation
-        from django.db.models import Q
-        
-        # Count all messages not sent by me in conversations I'm part of
-        # This is a simplified approach to avoid N+1 queries
-        unread_count = Message.objects.filter(
-            Q(conversation__participants=request.user) & ~Q(sender=request.user)
-        ).count()
-        
+        my_read_at = MessageRead.objects.filter(
+            conversation=OuterRef('conversation'),
+            user=request.user,
+        ).values('last_read_at')[:1]
+
+        unread_count = (
+            Message.objects
+            .filter(conversation__participants=request.user)
+            .exclude(sender=request.user)
+            .annotate(_my_read_at=Subquery(my_read_at))
+            .filter(Q(_my_read_at__isnull=True) | Q(created_at__gt=F('_my_read_at')))
+            .count()
+        )
         return Response({'unread_count': unread_count})
     except Exception as e:
         print(f'[unread_dm_count] Error: {e}')

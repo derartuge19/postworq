@@ -2,6 +2,25 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile, Reel, Comment, CommentLike, CommentReply, SavedPost, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, Report, Notification
 
+
+def build_feed_context(request):
+    """Return a serializer context pre-populated with lookups shared across
+    all feed entries.  Call this anywhere ReelSerializer is used in a list
+    context to turn per-reel N+1 queries into O(1) lookups.
+    """
+    ctx = {'request': request}
+    if request and getattr(request, 'user', None) and request.user.is_authenticated:
+        try:
+            ctx['followed_user_ids'] = set(
+                Follow.objects.filter(follower=request.user)
+                .values_list('following_id', flat=True)
+            )
+        except Exception:
+            ctx['followed_user_ids'] = set()
+    else:
+        ctx['followed_user_ids'] = set()
+    return ctx
+
 class UserSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
@@ -41,9 +60,55 @@ class UserSerializer(serializers.ModelSerializer):
     
     def get_is_following(self, obj):
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return Follow.objects.filter(follower=request.user, following=obj).exists()
-        return False
+        if not (request and request.user.is_authenticated):
+            return False
+        # Fast path: the view pre-computed the set of followed IDs in one
+        # query and stashed it in context — avoids N+1 in any list endpoint.
+        followed = self.context.get('followed_user_ids')
+        if followed is not None:
+            return obj.id in followed
+        return Follow.objects.filter(follower=request.user, following=obj).exists()
+
+
+class FeedUserSerializer(serializers.ModelSerializer):
+    """Lightweight user shape for embedding in feeds.
+
+    Skips follower/following counts (not used per-post in the UI) to avoid
+    two extra DB queries per reel.  `is_following` still resolves in O(1)
+    from `context['followed_user_ids']` set by the view.
+    """
+    profile_photo = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'full_name', 'profile_photo', 'is_following']
+
+    def get_full_name(self, obj):
+        # Avoid calling obj.get_full_name() which accesses fields individually
+        fn = (obj.first_name or '').strip()
+        ln = (obj.last_name or '').strip()
+        return (fn + ' ' + ln).strip() or obj.username
+
+    def get_profile_photo(self, obj):
+        # obj.profile is prefetched via select_related('user__profile')
+        try:
+            pf = obj.profile.profile_photo
+            if pf and pf.name:
+                return pf.name if pf.name.startswith('http') else pf.url
+        except Exception:
+            pass
+        return None
+
+    def get_is_following(self, obj):
+        request = self.context.get('request')
+        if not (request and request.user.is_authenticated):
+            return False
+        followed = self.context.get('followed_user_ids')
+        if followed is not None:
+            return obj.id in followed
+        return Follow.objects.filter(follower=request.user, following=obj).exists()
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -54,7 +119,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'username', 'profile_photo', 'bio', 'xp', 'level', 'streak', 'last_checkin']
 
 class ReelSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    # FeedUserSerializer is intentionally used here — it skips the per-user
+    # follower/following counts (not shown per-post) so a 10-reel feed no
+    # longer fires 30+ count() queries.
+    user = FeedUserSerializer(read_only=True)
     comment_count = serializers.SerializerMethodField()
     hashtags_list = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()

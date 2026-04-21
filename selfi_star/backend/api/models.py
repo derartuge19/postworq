@@ -100,6 +100,10 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            # Speeds up the per-reel recent-comments prefetch used by the feed
+            models.Index(fields=['reel', '-created_at']),
+        ]
 
     def __str__(self):
         return f"Comment by {self.user.username} on {self.reel.id}"

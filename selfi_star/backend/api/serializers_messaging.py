@@ -76,6 +76,13 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 class ConversationSerializer(serializers.ModelSerializer):
+    """Inbox serializer.
+
+    Reads its data from annotations set by the view so the whole inbox
+    resolves in O(1) queries instead of O(N) per-conversation lookups.
+    Falls back to per-object queries if annotations are missing (e.g. when a
+    single conversation is serialized right after a POST).
+    """
     other_user = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
     unread_count = serializers.SerializerMethodField()
@@ -88,12 +95,36 @@ class ConversationSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not (request and request.user.is_authenticated):
             return None
-        other = obj.other_participant(request.user)
+        # Use the prefetched participants list when available to avoid a
+        # per-conversation query.
+        me_id = request.user.id
+        participants = getattr(obj, '_prefetched_objects_cache', {}).get('participants')
+        other = None
+        if participants is not None:
+            for p in participants:
+                if p.id != me_id:
+                    other = p
+                    break
+        else:
+            other = obj.participants.exclude(id=me_id).first()
         if not other:
             return None
         return BriefUserSerializer(other).data
 
     def get_last_message(self, obj):
+        # Prefer annotated fields (set by the list view)
+        if hasattr(obj, '_last_msg_id') and obj._last_msg_id is not None:
+            is_deleted = bool(getattr(obj, '_last_msg_is_deleted', False))
+            created_at = getattr(obj, '_last_msg_created_at', None)
+            return {
+                'id': obj._last_msg_id,
+                'text': '' if is_deleted else (getattr(obj, '_last_msg_text', '') or ''),
+                'is_deleted': is_deleted,
+                'sender_id': getattr(obj, '_last_msg_sender_id', None),
+                'media_type': getattr(obj, '_last_msg_media_type', 'text'),
+                'created_at': created_at.isoformat() if created_at else None,
+            }
+        # Fallback (single-object serialization after POST)
         last = obj.messages.order_by('-created_at').first()
         if not last:
             return None
@@ -110,6 +141,10 @@ class ConversationSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not (request and request.user.is_authenticated):
             return 0
+        # Prefer annotated value from the list view's Subquery
+        if hasattr(obj, '_unread_total'):
+            return int(obj._unread_total or 0)
+        # Fallback: legacy per-object query
         read = obj.reads.filter(user=request.user).first()
         qs = obj.messages.exclude(sender=request.user)
         if read:
