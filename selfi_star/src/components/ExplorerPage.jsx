@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search, X, TrendingUp, Flame, Music, Laugh, Dumbbell, Utensils,
   Plane, Palette, Play, Heart, Eye, Hash, User, Clock, ChevronRight,
-  Gamepad2, Sparkles, BookOpen, Baby, Shirt, ArrowLeft,
+  Gamepad2, Sparkles, BookOpen, Baby, Shirt, ArrowLeft, PlusSquare,
 } from 'lucide-react';
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
@@ -227,7 +227,7 @@ function VideoThumb({ reel, rank, index = 0, hero = false, onOpen, T }) {
 }
 
 // ── Main ExplorerPage ─────────────────────────────────────────────────────────
-export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail }) {
+export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, onShowPostPage, onRequireAuth, onShowSettings, onShowNotifications }) {
   const { colors: T } = useTheme();
 
   // ── Explore state ──────────────────────────────────────────────────────────
@@ -437,6 +437,24 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
           >
             <ArrowLeft size={22} strokeWidth={2.5} />
           </button>
+          
+          {/* Create post button */}
+          {user && (
+            <button
+              onClick={() => onShowPostPage?.()}
+              style={{
+                background: T.pri, border: 'none', cursor: 'pointer',
+                padding: '8px 12px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 6,
+                color: '#fff', fontSize: 14, fontWeight: 600, flexShrink: 0,
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <PlusSquare size={18} />
+              Create
+            </button>
+          )}
           {inSearchMode || searchFocused ? null : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <Flame size={22} color={T.pri} />

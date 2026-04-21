@@ -294,39 +294,38 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
               >
                 {/* Avatar + type badge */}
                 <div style={{ position: 'relative', flexShrink: 0 }}>
-                  {notif.post?.thumbnail ? (
+                  {notif.user?.profile_photo ? (
                     <img
-                      src={mediaUrl(notif.post.thumbnail)}
-                      alt="Post"
-                      style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }}
+                      src={mediaUrl(notif.user.profile_photo)}
+                      alt={notif.user.username}
+                      style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }}
                       loading="lazy"
                       decoding="async"
                     />
-                  ) : notif.type === 'like' ? (
+                  ) : (
                     <div style={{
-                      width: 48, height: 48, borderRadius: 8,
-                      background: T?.pri + '20', display: 'flex',
+                      width: 48, height: 48, borderRadius: '50%',
+                      background: T?.pri + '30', display: 'flex',
                       alignItems: 'center', justifyContent: 'center',
+                      fontSize: 18, color: T?.pri,
                     }}>
-                      <Heart size={20} fill={T?.pri} color={T?.pri} />
+                      {notif.user?.username?.[0]?.toUpperCase() || '??'}
                     </div>
-                  ) : notif.type === 'comment' ? (
-                    <div style={{
-                      width: 48, height: 48, borderRadius: 8,
-                      background: T?.pri + '20', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <MessageCircle size={20} color={T?.pri} />
-                    </div>
-                  ) : notif.type === 'follow' ? (
-                    <div style={{
-                      width: 48, height: 48, borderRadius: 8,
-                      background: T?.pri + '20', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <UserPlus size={20} color={T?.pri} />
-                    </div>
-                  ) : null}
+                  )}
+                  {/* Type badge overlay */}
+                  <div style={{
+                    position: 'absolute', bottom: -2, right: -2,
+                    width: 20, height: 20, borderRadius: '50%',
+                    background: T?.pri, display: 'flex',
+                    alignItems: 'center', justifyContent: 'center',
+                    border: '2px solid ' + T.bg,
+                  }}>
+                    {notif.type === 'like' && <Heart size={10} fill="#fff" color="#fff" />}
+                    {notif.type === 'comment' && <MessageCircle size={10} fill="#fff" color="#fff" />}
+                    {notif.type === 'follow' && <UserPlus size={10} fill="#fff" color="#fff" />}
+                    {notif.type === 'campaign' && <Trophy size={10} fill="#fff" color="#fff" />}
+                    {!['like', 'comment', 'follow', 'campaign'].includes(notif.type) && <Bell size={10} fill="#fff" color="#fff" />}
+                  </div>
                 </div>
 
                 {/* Text */}
