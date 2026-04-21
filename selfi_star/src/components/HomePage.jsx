@@ -1030,58 +1030,56 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     setActiveTab(tab);
   };
 
+  // Use ref to avoid stale closure on `posts` inside fetchPosts without
+  // re-creating the callback (which would trash memoization in child effects).
+  const postsRef = useRef(posts);
+  useEffect(() => { postsRef.current = posts; }, [posts]);
+
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {
     try {
       setLoading(true);
-      console.log('[HomePage] Fetching posts with offset:', offset, 'reset:', reset);
-      
-      // Increased timeout to 30 seconds for slow API
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout after 30s')), 30000)
-      );
-      
-      const data = await Promise.race([
-        api.request(`/reels/?limit=${reset ? LIMIT * 2 : LIMIT}&offset=${offset}`),
-        timeoutPromise
-      ]);
-      
-      console.log('[HomePage] Received data:', data);
+      const limit = reset ? LIMIT * 2 : LIMIT;
+      const data = await api.request(`/reels/?limit=${limit}&offset=${offset}`);
       const results = Array.isArray(data) ? data : (data.results || []);
-      const newPosts = reset ? results : [...posts, ...results];
+      const newPosts = reset ? results : [...postsRef.current, ...results];
       setPosts(newPosts);
-      if (reset) writeHomeCache(newPosts); // Save to cache on initial fetch
-      setHasMore(Array.isArray(data) ? results.length === (reset ? LIMIT * 2 : LIMIT) : !!data.next);
+      if (reset) writeHomeCache(newPosts);
+      setHasMore(Array.isArray(data) ? results.length === limit : !!data.next);
       setPage(offset);
     } catch (e) {
       console.error('[HomePage] Fetch error:', e);
-      // On timeout, show cached data if available
-      if (e.message === 'Request timeout after 30s') {
-        console.log('[HomePage] Timeout - trying cached data');
+      if (reset) {
         const cached = readHomeCache();
-        if (cached && cached.length > 0) {
-          setPosts(cached);
-        } else {
-          console.error('[HomePage] No cached data available');
-        }
+        if (cached && cached.length > 0) setPosts(cached);
       }
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // Track whether this tab has ever loaded, to avoid redundant re-fetches
+  // when the user navigates back to Home from another page.
+  const loadedTabsRef = useRef(new Set());
+
   useEffect(() => {
     if (activeTab === 'Explore' || activeTab === 'Campaigns') return;
-    // Always try cached data first for instant load
     const cached = readHomeCache();
     if (cached && cached.length > 0) {
       setPosts(cached);
       setLoading(false);
-      // Refresh cache in background after a delay
-      setTimeout(() => fetchPosts(0, true), 2000);
+      // Only refresh in background ONCE per session per tab, not on every
+      // remount. api.js request-dedup makes repeat calls cheap, but this
+      // avoids kicking off a background fetch when the user just briefly
+      // left and came back.
+      if (!loadedTabsRef.current.has(activeTab)) {
+        loadedTabsRef.current.add(activeTab);
+        setTimeout(() => fetchPosts(0, true), 2000);
+      }
     } else {
+      loadedTabsRef.current.add(activeTab);
       fetchPosts(0, true);
     }
-  }, [activeTab, fetchPosts, readHomeCache]);
+  }, [activeTab, fetchPosts]);
 
   // Scroll to top + refresh when user taps the already-active home tab icon
   useEffect(() => {

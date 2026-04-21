@@ -116,78 +116,97 @@ const api = {
       }
     }
 
-    const headers = {
-      ...options.headers,
+    // Deduplicate in-flight identical GET requests (huge perf win).
+    // If the same GET is already in flight, reuse that promise instead of
+    // firing a duplicate request. This collapses React-StrictMode double
+    // mounts, rapid tab switches, and parallel component fetches into a
+    // single network call.
+    const inflightKey = isGet ? `GET:${endpoint}` : null;
+    if (inflightKey && _inflight.has(inflightKey)) {
+      return _inflight.get(inflightKey);
+    }
+
+    const doRequest = async () => {
+      const headers = { ...options.headers };
+      if (!options.isFormData) {
+        headers['Content-Type'] = 'application/json';
+      }
+
+      // Only add token if it exists AND it's not an auth or public endpoint
+      const currentToken = authToken || localStorage.getItem('authToken');
+      const isPublicEndpoint = endpoint.includes('/auth/') || endpoint.includes('/settings/public');
+      if (currentToken && !isPublicEndpoint) {
+        headers['Authorization'] = `Token ${currentToken}`;
+      }
+
+      const response = await retryWithBackoff(async () => {
+        return await fetch(`${API_BASE_URL}${endpoint}`, {
+          ...options,
+          headers,
+        });
+      });
+
+      let data;
+      // 204 No Content has no body (common for DELETE responses)
+      if (response.status === 204) {
+        data = { success: true };
+      } else {
+        try {
+          data = await response.json();
+        } catch (e) {
+          data = response.ok ? { success: true } : { error: 'Failed to parse response' };
+        }
+      }
+
+      if (!response.ok) {
+        // If 401 error on a GET request with token, retry without auth (for public endpoints like /reels/)
+        // DON'T clear token for POST/PUT/DELETE requests - those require auth
+        if (response.status === 401 && headers['Authorization'] && isGet) {
+          console.warn('⚠️ 401 on GET with token — retrying without auth (public endpoint)');
+          const retryHeaders = { ...headers };
+          delete retryHeaders['Authorization'];
+          const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers: retryHeaders,
+          });
+          let retryData;
+          try { retryData = await retryResponse.json(); } catch (e) { retryData = {}; }
+          if (retryResponse.ok) {
+            if (cacheable && cacheKey) setCache(cacheKey, retryData);
+            return retryData;
+          }
+          console.warn('⚠️ Retry also failed — clearing credentials');
+          authToken = null;
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          console.error('API Error after retry:', retryResponse.status, retryData);
+          throw new Error(JSON.stringify(retryData) || `API Error: ${retryResponse.status}`);
+        }
+        if (response.status === 401) {
+          console.error('🔒 401 Unauthorized - authentication required');
+        }
+        console.error('API Error:', response.status, data);
+        throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
+      }
+
+      // Cache successful GET responses
+      if (cacheable && cacheKey) setCache(cacheKey, data);
+      return data;
     };
 
-    if (!options.isFormData) {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    // Only add token if it exists AND it's not an auth or public endpoint
-    const currentToken = authToken || localStorage.getItem('authToken');
-    const isPublicEndpoint = endpoint.includes('/auth/') || endpoint.includes('/settings/public');
-    if (currentToken && !isPublicEndpoint) {
-      headers['Authorization'] = `Token ${currentToken}`;
-    }
-    // Debug logging removed for production performance
-
-    const response = await retryWithBackoff(async () => {
-      return await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers,
-      });
-    });
-
-    let data;
-    // 204 No Content has no body (common for DELETE responses)
-    if (response.status === 204) {
-      data = { success: true };
-    } else {
-      try {
-        data = await response.json();
-      } catch (e) {
-        data = response.ok ? { success: true } : { error: 'Failed to parse response' };
-      }
-    }
-
-    if (!response.ok) {
-      // If 401 error on a GET request with token, retry without auth (for public endpoints like /reels/)
-      // DON'T clear token for POST/PUT/DELETE requests - those require auth
-      if (response.status === 401 && headers['Authorization'] && isGet) {
-        console.warn('⚠️ 401 on GET with token — retrying without auth (public endpoint)');
-        // Retry the same request without the Authorization header
-        const retryHeaders = { ...headers };
-        delete retryHeaders['Authorization'];
-        const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
-          ...options,
-          headers: retryHeaders,
-        });
-        let retryData;
-        try { retryData = await retryResponse.json(); } catch (e) { retryData = {}; }
-        if (retryResponse.ok) {
-          if (cacheable && cacheKey) setCache(cacheKey, retryData);
-          return retryData;
+    // Wrap in a promise we can store in _inflight so parallel callers reuse
+    // the same parsed result (important: a Response body can only be read once).
+    const resultPromise = doRequest();
+    if (inflightKey) {
+      _inflight.set(inflightKey, resultPromise);
+      // Always clean up the inflight entry once settled (success OR error)
+      resultPromise.finally(() => {
+        if (_inflight.get(inflightKey) === resultPromise) {
+          _inflight.delete(inflightKey);
         }
-        // If still failing after retry, NOW clear the token as it's likely invalid
-        console.warn('⚠️ Retry also failed — clearing credentials');
-        authToken = null;
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-        console.error('API Error after retry:', retryResponse.status, retryData);
-        throw new Error(JSON.stringify(retryData) || `API Error: ${retryResponse.status}`);
-      }
-      // For non-GET 401 errors, don't auto-clear - let the user know they need to login
-      if (response.status === 401) {
-        console.error('🔒 401 Unauthorized - authentication required');
-      }
-      console.error('API Error:', response.status, data);
-      throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
+      });
     }
-
-    // Cache successful GET responses
-    if (cacheable && cacheKey) setCache(cacheKey, data);
-    return data;
+    return resultPromise;
   },
 
   // Invalidate cache for specific patterns (call after mutations)

@@ -386,20 +386,11 @@ export default function WerqRoot() {
       }
     };
     
-    // Defer loading to avoid blocking initial render
+    // Defer loading to avoid blocking initial render. Dedup in api.js means
+    // this call is also shared with any other component that reads
+    // /settings/public/, so it won't double-fire.
     const timer = setTimeout(loadTypographySettings, 3000);
     return () => clearTimeout(timer);
-
-    // Re-pull settings when tab regains focus/visibility so theme changes
-    // from the admin propagate to other devices without a hard reload.
-    const refresh = () => { loadTypographySettings(); };
-    const onVisible = () => { if (!document.hidden) refresh(); };
-    window.addEventListener('focus', refresh);
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      window.removeEventListener('focus', refresh);
-      document.removeEventListener('visibilitychange', onVisible);
-    };
   }, []);
 
   // Browser history support
