@@ -245,19 +245,19 @@ export default function WerqRoot() {
     return () => clearInterval(interval);
   }, [authUser]);
 
-  // Poll unread DM count every 30s (reduced for performance)
-  useEffect(() => {
-    if (!authUser) { setUnreadDmCount(0); return; }
-    const fetchDm = async () => {
-      try {
-        const data = await api.request('/messages/unread-count/');
-        setUnreadDmCount(data?.unread_count || 0);
-      } catch (_) {}
-    };
-    fetchDm();
-    const interval = setInterval(fetchDm, 30000); // 30s instead of 15s
-    return () => clearInterval(interval);
-  }, [authUser]);
+  // Poll unread DM count - disabled due to 502 errors
+  // useEffect(() => {
+  //   if (!authUser) { setUnreadDmCount(0); return; }
+  //   const fetchDm = async () => {
+  //     try {
+  //       const data = await api.request('/messages/unread-count/');
+  //       setUnreadDmCount(data?.unread_count || 0);
+  //     } catch (_) {}
+  //   };
+  //   fetchDm();
+  //   const interval = setInterval(fetchDm, 30000);
+  //   return () => clearInterval(interval);
+  // }, [authUser]);
 
   // Load and apply platform typography settings
   const [typographyLoaded, setTypographyLoaded] = useState(false);
@@ -386,7 +386,9 @@ export default function WerqRoot() {
       }
     };
     
-    loadTypographySettings();
+    // Defer loading to avoid blocking initial render
+    const timer = setTimeout(loadTypographySettings, 3000);
+    return () => clearTimeout(timer);
 
     // Re-pull settings when tab regains focus/visibility so theme changes
     // from the admin propagate to other devices without a hard reload.
@@ -542,8 +544,8 @@ export default function WerqRoot() {
       }
     };
     
-    // Small delay to not block initial render
-    const timer = setTimeout(refreshUserProfile, 1000);
+    // Defer to after home page loads to reduce initial fetch time
+    const timer = setTimeout(refreshUserProfile, 4000);
     return () => clearTimeout(timer);
   }, []); // Run once on mount
 
