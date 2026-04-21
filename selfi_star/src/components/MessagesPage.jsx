@@ -1188,7 +1188,27 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
         WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain',
       }}>
         {loading ? (
-          <div style={{ padding: 24, textAlign: 'center', color: T.sub }}>Loading...</div>
+          <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{
+                display: 'flex',
+                flexDirection: i % 2 === 0 ? 'row' : 'row-reverse',
+                gap: 8,
+              }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  background: T.border,
+                  flexShrink: 0,
+                }} />
+                <div style={{
+                  maxWidth: '70%',
+                  height: 40,
+                  background: T.border,
+                  borderRadius: 18,
+                }} />
+              </div>
+            ))}
+          </div>
         ) : messages.length === 0 ? (
           <div style={{ padding: 24, textAlign: 'center', color: T.sub }}>
             No messages yet. Start the conversation!
@@ -1199,8 +1219,7 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
               key={msg.id}
               msg={{
                 ...msg,
-                is_own: msg.sender === user?.id,
-                is_editable: msg.sender === user?.id && !msg.is_deleted,
+                is_own: msg.is_own || msg.sender_id === user?.id || msg.sender?.id === user?.id,
               }}
               T={T}
               onEdit={setEditing}
