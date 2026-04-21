@@ -522,11 +522,59 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
     setSelectedFile(file);
-    setPreview(url);
     setIsVideoFile(file.type.startsWith('video/'));
+
+    // Handle different file types
+    if (file.type.startsWith('video/')) {
+      // For videos, create a thumbnail
+      createVideoThumbnail(file);
+    } else {
+      // For images, use object URL as before
+      const url = URL.createObjectURL(file);
+      setPreview(url);
+    }
     setStage('details');
+  };
+
+  const createVideoThumbnail = (file) => {
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+
+    video.onloadedmetadata = () => {
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Seek to 1 second (or first frame if video is shorter)
+      const seekTime = Math.min(1, video.duration);
+      video.currentTime = seekTime;
+    };
+
+    video.onseeked = () => {
+      // Draw the video frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert canvas to blob and then to data URL
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        setPreview(url);
+      }, 'image/jpeg', 0.8);
+
+      // Clean up the video object URL
+      URL.revokeObjectURL(video.src);
+    };
+
+    video.onerror = () => {
+      console.error('Error loading video for thumbnail generation');
+      // Fallback: use the original video URL
+      const url = URL.createObjectURL(file);
+      setPreview(url);
+    };
   };
 
   // ── Overlay drag helpers ─────────────────────────────────────────────────

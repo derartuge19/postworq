@@ -33,6 +33,35 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import './TikTokLayout.css';
 
+// CaptionWithLessMore component for truncating long captions
+const CaptionWithLessMore = ({ caption, maxLength = 100 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  if (!caption || caption.length <= maxLength) {
+    return <span>{caption}</span>;
+  }
+  
+  return (
+    <span>
+      {isExpanded ? caption : caption.slice(0, maxLength) + '...'}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: '#3498db',
+          cursor: 'pointer',
+          fontSize: 'inherit',
+          padding: 0,
+          marginLeft: 4,
+        }}
+      >
+        {isExpanded ? 'less' : 'more'}
+      </button>
+    </span>
+  );
+};
+
 export const TikTokLayout = memo(function TikTokLayout({
   user,
   activeTab: propActiveTab,
@@ -2322,7 +2351,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                         marginBottom: 8,
                       }}
                     >
-                      {video.caption}
+                      <CaptionWithLessMore caption={video.caption} />
                     </div>
                     <div
                       style={{

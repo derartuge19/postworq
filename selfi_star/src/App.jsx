@@ -568,11 +568,19 @@ export default function WerqRoot() {
     };
     window.addEventListener('navigateToCreatePost', handleNavigateToCreatePost);
 
+    // Set up global navigation function for post upload
+    window.navigateToReels = () => {
+      resetAllPages();
+      setActiveTab('reels');
+      setShowPostPage(false);
+    };
+
     return () => {
       window.removeEventListener(
         'navigateToCreatePost',
         handleNavigateToCreatePost,
       );
+      delete window.navigateToReels;
     };
   }, []);
 

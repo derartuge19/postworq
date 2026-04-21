@@ -32,12 +32,66 @@ export function PostPage({ user, onBack }) {
       }
       
       setSelectedFile(file);
+      
+      // Handle different file types
+      if (file.type.startsWith('video/')) {
+        // For videos, create a thumbnail
+        createVideoThumbnail(file);
+      } else {
+        // For images, use FileReader as before
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
+  const createVideoThumbnail = (file) => {
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+    
+    video.onloadedmetadata = () => {
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      // Seek to 1 second (or first frame if video is shorter)
+      const seekTime = Math.min(1, video.duration);
+      video.currentTime = seekTime;
+    };
+    
+    video.onseeked = () => {
+      // Draw the video frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert canvas to blob and then to data URL
+      canvas.toBlob((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result);
+        };
+        reader.readAsDataURL(blob);
+      }, 'image/jpeg', 0.8);
+      
+      // Clean up the object URL
+      URL.revokeObjectURL(video.src);
+    };
+    
+    video.onerror = () => {
+      console.error('Error loading video for thumbnail generation');
+      // Fallback: use a generic video icon or first frame approach
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
       };
       reader.readAsDataURL(file);
-    }
+    };
   };
 
   const handleTestPost = async () => {
@@ -104,7 +158,13 @@ export function PostPage({ user, onBack }) {
         await window.refreshFeed();
       }
       
-      onBack();
+      // Redirect to reels page after successful upload
+      if (window.navigateToReels) {
+        console.log("Navigating to reels...");
+        window.navigateToReels();
+      } else {
+        onBack();
+      }
     } catch (error) {
       console.error("Upload error:", error);
       console.error("Error details:", JSON.stringify(error, null, 2));
