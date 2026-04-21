@@ -41,20 +41,32 @@ const mediaUrl = (url) => {
 
 // Generate Cloudinary poster thumbnail from video URL
 const getVideoPoster = (url) => {
-  if (!url || !url.includes('res.cloudinary.com')) return null;
-  if (!url.includes('/video/upload/')) return null;
-  try {
-    const marker = '/video/upload/';
-    const idx = url.indexOf(marker);
-    if (idx === -1) return null;
-    const base = url.slice(0, idx + marker.length);
-    const rest = url.slice(idx + marker.length);
-    // Generate thumbnail at first frame with good quality
-    const thumb = base + 'so_0,w_480,h_854,c_fill,q_70,f_jpg/' + rest;
-    return thumb.replace(/\.(mp4|webm|ogg|mov)(\?.*)?$/i, '.jpg');
-  } catch {
+  if (!url) return null;
+  
+  // Handle Cloudinary URLs
+  if (url.includes('res.cloudinary.com') && url.includes('/video/upload/')) {
+    try {
+      const marker = '/video/upload/';
+      const idx = url.indexOf(marker);
+      if (idx === -1) return null;
+      const base = url.slice(0, idx + marker.length);
+      const rest = url.slice(idx + marker.length);
+      // Generate thumbnail at first frame with good quality and better dimensions
+      const thumb = base + 'so_0,w_480,h_854,c_fill,q_80,f_jpg/' + rest;
+      return thumb.replace(/\.(mp4|webm|ogg|mov)(\?.*)?$/i, '.jpg');
+    } catch {
+      return null;
+    }
+  }
+  
+  // Handle other video URLs - try to extract thumbnail
+  if (url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i)) {
+    // For non-Cloudinary videos, we can't generate thumbnails client-side
+    // Return null to let the component handle fallback
     return null;
   }
+  
+  return null;
 };
 
 const fmt = (n) => {
@@ -99,14 +111,21 @@ const EAGER_LOAD_COUNT = 6;
 function VideoThumb({ reel, rank, index = 0, hero = false, onOpen, T }) {
   const [hovered, setHovered] = useState(false);
   const videoUrl = reel.file_url || reel.media;
+  const imageUrl = reel.image || reel.media;
   const isVid = !!(videoUrl || '').match(/\.(mp4|webm|ogg|mov)/i) || (videoUrl && videoUrl.includes('/video/'));
 
-  // Priority: 1) explicit thumbnail_url, 2) Cloudinary video poster, 3) video/image URL
+  // Priority: 1) explicit thumbnail_url, 2) Cloudinary video poster, 3) image URL, 4) video URL
   const thumb = reel.thumbnail_url
     ? mediaUrl(reel.thumbnail_url)
     : isVid && videoUrl
-      ? getVideoPoster(mediaUrl(videoUrl)) || mediaUrl(videoUrl)
+      ? getVideoPoster(mediaUrl(videoUrl))
+      : imageUrl ? mediaUrl(imageUrl)
       : videoUrl ? mediaUrl(videoUrl) : null;
+
+  // Fallback: if no thumbnail found, try different URL patterns
+  const finalThumb = thumb || (reel.image ? mediaUrl(reel.image) : null) || 
+                     (reel.media && !isVid ? mediaUrl(reel.media) : null) ||
+                     (reel.file_url && !isVid ? mediaUrl(reel.file_url) : null);
 
   const isEager = hero || index < EAGER_LOAD_COUNT;
 
@@ -131,8 +150,8 @@ function VideoThumb({ reel, rank, index = 0, hero = false, onOpen, T }) {
         containIntrinsicSize: '0 260px',
       }}
     >
-      {thumb
-        ? <img src={thumb} alt="" loading={isEager ? 'eager' : 'lazy'}
+      {finalThumb
+        ? <img src={finalThumb} alt="" loading={isEager ? 'eager' : 'lazy'}
             decoding="async"
             fetchPriority={isEager ? 'high' : 'low'}
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -497,26 +516,31 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail })
           )}
         </div>
 
-        {/* Row 2 – category pills (explore mode only) */}
+        {/* Row 2 - category navigation (explore mode only) */}
         {!inSearchMode && (
-          <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px 12px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {CATEGORIES.map(cat => {
-              const isActive = activeCategory === cat.id;
-              return (
-                <button key={cat.id} onClick={() => { setActiveCategory(cat.id); setHashtagView(null); }} style={{
-                  padding: '7px 14px', borderRadius: 20, flexShrink: 0,
-                  border: `1.5px solid ${isActive ? T.pri : T.border}`,
-                  background: isActive ? T.pri : T.bg,
-                  color: isActive ? '#fff' : T.txt,
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  whiteSpace: 'nowrap', transition: 'all .18s',
-                }}>
-                  <span>{cat.emoji}</span>
-                  {cat.label}
-                </button>
-              );
-            })}
+          <div style={{ padding: '0 16px 12px' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.sub, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <TrendingUp size={14} /> CATEGORIES
+            </div>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {CATEGORIES.map(cat => {
+                const isActive = activeCategory === cat.id;
+                return (
+                  <div key={cat.id} onClick={() => { setActiveCategory(cat.id); setHashtagView(null); }} style={{
+                    padding: '8px 16px', borderRadius: 12, flexShrink: 0,
+                    background: isActive ? T.pri + '15' : T.bg,
+                    border: `1px solid ${isActive ? T.pri + '30' : T.border}`,
+                    color: isActive ? T.pri : T.txt,
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    whiteSpace: 'nowrap', transition: 'all .18s',
+                  }}>
+                    <span style={{ fontSize: 16 }}>{cat.emoji}</span>
+                    {cat.label}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
