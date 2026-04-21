@@ -1040,17 +1040,39 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             </button>
           </div>
 
-          {/* Caption - no username, no expand/collapse */}
+          {/* Caption - with show more/less, only if caption exists */}
           {post.caption && (
-            <div style={{
-              fontSize: 13, color: T?.txt || '#000', marginTop: 2, lineHeight: 1.35,
-              wordBreak: 'break-word',
-            }}>
-              {post.caption}
-            </div>
+            <>
+              <div
+                onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
+                style={{
+                  fontSize: 13, color: T?.txt || '#000', marginTop: 2, lineHeight: 1.35,
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: captionExpanded ? 'unset' : 1,
+                  overflow: 'hidden',
+                  wordBreak: 'break-word',
+                  cursor: 'pointer',
+                }}
+              >
+                {post.caption}
+              </div>
+              {post.caption.length > 30 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
+                  style={{
+                    background: 'none', border: 'none', padding: 0,
+                    fontSize: 12, color: T?.sub || '#666', fontWeight: 600,
+                    cursor: 'pointer', marginTop: 2,
+                  }}
+                >
+                  {captionExpanded ? 'Show less' : 'Show more'}
+                </button>
+              )}
+            </>
           )}
           {inlineComments.length > 0 && (
-            <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ marginTop: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {(showAllInline ? inlineComments : inlineComments.slice(0, 1)).map(c => (
                 <div
                   key={c.id}
@@ -1066,18 +1088,6 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   {c.text}
                 </div>
               ))}
-              {inlineComments.length > 1 && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowAllInline(v => !v); }}
-                  style={{
-                    background: 'none', border: 'none', padding: 0,
-                    fontSize: 12, color: T?.sub || '#666', fontWeight: 600,
-                    cursor: 'pointer', alignSelf: 'flex-start',
-                  }}
-                >
-                  {showAllInline ? 'Show less' : `Show more`}
-                </button>
-              )}
             </div>
           )}
 
