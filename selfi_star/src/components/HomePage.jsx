@@ -842,7 +842,9 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             <div style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: `1px solid ${(T?.pri || '#000')}20` }}>
               {avatarSrc
                 ? <img src={avatarSrc} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
-                : <User size={16} color={T?.sub || '#666'} />}
+                : <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 600 }}>
+                    {post.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>}
             </div>
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -1056,13 +1058,25 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 fontSize: 12, color: T?.txt || '#000', marginTop: 1, lineHeight: 1.3,
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: captionExpanded ? 'unset' : 1,
+                WebkitLineClamp: captionExpanded ? 'unset' : 2,
                 overflow: 'hidden',
                 wordBreak: 'break-word',
                 cursor: 'pointer',
               }}
             >
+              <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
               {post.caption}
+              {post.caption.length > 100 && (
+                <span
+                  style={{
+                    color: T?.sub || '#666',
+                    fontWeight: 600,
+                    marginLeft: 4,
+                  }}
+                >
+                  {captionExpanded ? ' less' : ' more'}
+                </span>
+              )}
             </div>
           )}
           {inlineComments.length > 0 && (
