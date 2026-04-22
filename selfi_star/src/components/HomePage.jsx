@@ -5,6 +5,7 @@ import config from '../config';
 import { useTheme } from '../contexts/ThemeContext';
 import realtimeService from '../services/RealtimeService';
 import GiftPage from './GiftPage';
+import { HorizontalUserSuggestions } from './HorizontalUserSuggestions';
 
 const BACKEND = config.API_BASE_URL.replace('/api', '');
 
@@ -1277,6 +1278,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   // Pull to refresh state
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showMobileSuggestions, setShowMobileSuggestions] = useState(true);
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
 
@@ -1673,19 +1675,29 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
             <div style={{ fontSize: 14, marginTop: 8 }}>Be the first to share something!</div>
           </div>
         ) : (
-          posts.map((post, i) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              index={i}
-              currentUser={user}
-              onShowProfile={onShowProfile}
-              onRequireAuth={onRequireAuth}
-              onShowVideoDetail={onShowVideoDetail}
-              onCommentAdded={() => {}}
-              onVoteAdded={() => {}}
-              videoObserver={videoObserverRef.current}
-            />
+          posts.map((post, index) => (
+            <div key={post.id || index} style={{ width: '100%' }}>
+              <PostCard
+                post={post}
+                index={index}
+                currentUser={user}
+                T={T}
+                onShowProfile={onShowProfile}
+                onRequireAuth={onRequireAuth}
+                onNavigateToReel={onShowVideoDetail}
+                onCommentAdded={() => {}}
+                onVoteAdded={() => {}}
+                onShowVideoDetail={onShowVideoDetail}
+                videoObserver={videoObserverRef.current}
+              />
+              {/* Inject horizontal suggestions after the 3rd post on mobile */}
+              {window.innerWidth <= 1024 && index === 2 && showMobileSuggestions && (
+                <HorizontalUserSuggestions 
+                  onUserClick={onShowProfile}
+                  onDismiss={() => setShowMobileSuggestions(false)}
+                />
+              )}
+            </div>
           ))
         )}
 
