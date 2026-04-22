@@ -20,6 +20,8 @@ import api from '../api';
 import GamificationBar from '../components/GamificationBar';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
 
@@ -61,6 +63,7 @@ export default function HomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [giftPost, setGiftPost] = useState(null); // Post being gifted
   const [showPostMenu, setShowPostMenu] = useState(null);
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   
   const [visibleItems, setVisibleItems] = useState([]);
@@ -362,7 +365,8 @@ export default function HomeScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar translucent backgroundColor="transparent" style="dark" />
       <FlatList
         data={posts}
         renderItem={renderPost}

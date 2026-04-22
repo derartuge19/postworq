@@ -49,7 +49,17 @@ async function retryWithBackoff(fn, retries = MAX_RETRIES) {
     try {
       return await fn();
     } catch (error) {
-      if (error.name === 'TypeError' || error.message.includes('fetch') || error.message.includes('network')) {
+      if (
+        error.name === 'TypeError' || 
+        error.message.includes('fetch') || 
+        error.message.includes('network') ||
+        error.message.includes('502') ||
+        error.message.includes('503') ||
+        error.message.includes('504') ||
+        error.message.includes('HTTP 502') ||
+        error.message.includes('HTTP 503') ||
+        error.message.includes('HTTP 504')
+      ) {
         if (i < retries - 1) {
           await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
           continue;
@@ -142,7 +152,9 @@ const api = {
         try {
           data = await response.json();
         } catch (e) {
-          data = response.ok ? { success: true } : { error: 'Failed to parse response' };
+          // Include status in error message for retry logic
+          const statusPrefix = !response.ok ? `[HTTP ${response.status}] ` : '';
+          data = response.ok ? { success: true } : { error: `${statusPrefix}Failed to parse response` };
         }
       }
 
@@ -166,10 +178,11 @@ const api = {
           throw new Error(JSON.stringify(retryData) || `API Error: ${retryResponse.status}`);
         }
         if (response.status === 401) {
-          console.error('401 Unauthorized - authentication required');
+          console.error('🔒 401 Unauthorized - authentication required');
         }
         console.error('API Error:', response.status, data);
-        throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
+        const errorMsg = typeof data === 'string' ? data : (data.error || JSON.stringify(data));
+        throw new Error(`[HTTP ${response.status}] ${errorMsg}`);
       }
 
       if (cacheable && cacheKey) setCache(cacheKey, data);

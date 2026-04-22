@@ -30,7 +30,7 @@ const BRAND_GOLD = '#DA9B2A';
 // ─────────────────────────────────────────────────────────────
 // Single Reel Item Component
 // ─────────────────────────────────────────────────────────────
-function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, onSave, onLongPress, onGift }) {
+const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, onShare, onSave, onLongPress, onGift }) => {
   const videoRef = useRef(null);
   const insets = useSafeAreaInsets();
   
@@ -264,7 +264,7 @@ function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, on
 
     </View>
   );
-}
+});
 
 export default function ReelsScreen({ route, navigation }) {
   const isFocused      = useIsFocused();
@@ -395,10 +395,11 @@ export default function ReelsScreen({ route, navigation }) {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         showsVerticalScrollIndicator={false}
-        removeClippedSubviews
+        removeClippedSubviews={Platform.OS === 'android'}
         initialNumToRender={1}
         maxToRenderPerBatch={2}
         windowSize={3}
+        updateCellsBatchingPeriod={50}
         getItemLayout={(_, index) => ({
           length: SCREEN_HEIGHT,
           offset: SCREEN_HEIGHT * index,
