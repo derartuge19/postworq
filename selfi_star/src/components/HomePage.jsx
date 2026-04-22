@@ -102,15 +102,18 @@ function buildCommentTree(flatList) {
   // Second pass: Link children to parents
   flatList.forEach(c => {
     const node = map[c.id];
-    // Handle parent as ID or object
-    const parentId = c.parent_id || (typeof c.parent === 'object' ? c.parent?.id : c.parent);
-    if (parentId) {
+    // Handle parent as ID or object with string-safe comparison
+    const parentVal = c.parent_id || c.parent;
+    const parentId = (parentVal && typeof parentVal === 'object') ? parentVal.id : parentVal;
+    
+    if (parentId && String(parentId) !== '0') {
       const parent = map[parentId];
       if (parent) {
-        if (!parent.replies.some(r => r.id === node.id)) {
+        if (!parent.replies.some(r => String(r.id) === String(node.id))) {
           parent.replies.push(node);
         }
       } else {
+        // Orphaned child? Push to roots so it's at least visible
         roots.push(node);
       }
     } else {
@@ -243,7 +246,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
     };
 
     const updateDeep = (list) => list.map(c => {
-      if (replyingTo && c.id === replyingTo.id) {
+      if (replyingTo && String(c.id) === String(replyingTo.id)) {
         return { ...c, replies: [...(c.replies || []), temp] };
       }
       if (c.replies && c.replies.length) {
@@ -279,7 +282,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
 
       // Swap temp for real server row
       const swapDeep = (list) => list.map(c => {
-        if (c.id === tempId) return res;
+        if (String(c.id) === String(tempId)) return res;
         if (c.replies && c.replies.length) {
           return { ...c, replies: swapDeep(c.replies) };
         }
@@ -302,7 +305,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
     if (!api.hasToken()) return;
     // Optimistic like
     const updateLikesDeep = (list) => list.map(c => {
-      if (c.id === comment.id) {
+      if (String(c.id) === String(comment.id)) {
         const newIsLiked = !c.is_liked;
         const newLikes = (c.likes_count || c.likes || 0) + (newIsLiked ? 1 : -1);
         return { ...c, is_liked: newIsLiked, likes_count: newLikes, likes: newLikes };
