@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Settings, Save, Key, Database, Bell, Shield, Zap, Globe, Type, Palette, Moon, Sun, Check } from 'lucide-react';
 import api from '../../api';
 import { AlertModal } from '../components/AlertModal';
+import { GlassDemo } from '../components/GlassDemo';
 import { PRESET_THEMES } from '../../contexts/ThemeContext';
 
 // Available Google Fonts
@@ -38,6 +39,13 @@ export function SettingsPage({ theme }) {
   useEffect(() => {
     loadSettings();
   }, []);
+
+  // Store settings globally for glass effect access
+  useEffect(() => {
+    if (settings) {
+      window.currentAdminSettings = settings;
+    }
+  }, [settings]);
 
   // Load Google Fonts dynamically when settings change
   useEffect(() => {
@@ -90,6 +98,7 @@ export function SettingsPage({ theme }) {
           preset: settings.theme_preset || 'flipstar',
           darkMode: settings.dark_mode_default || false,
           customPrimary: settings.primary_color_override || null,
+          glassEnabled: settings.glass_effect_enabled || false,
         };
         localStorage.setItem('_platform_theme', JSON.stringify(themeData));
         window.dispatchEvent(new StorageEvent('storage', { key: '_platform_theme', newValue: JSON.stringify(themeData) }));
@@ -119,6 +128,7 @@ export function SettingsPage({ theme }) {
     { id: 'general', label: 'General', icon: Settings },
     { id: 'typography', label: 'Typography', icon: Type },
     { id: 'theme', label: 'Theme', icon: Palette },
+    { id: 'glass', label: 'Crystal UI', icon: Palette },
     { id: 'content', label: 'Content', icon: Globe },
     { id: 'moderation', label: 'Moderation', icon: Shield },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -658,6 +668,10 @@ export function SettingsPage({ theme }) {
           <ThemeTab settings={settings} handleChange={handleChange} setSettings={setSettings} theme={theme} />
         )}
 
+        {activeTab === 'glass' && (
+          <GlassDemo theme={theme} />
+        )}
+
         {activeTab === 'content' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <SettingField
@@ -844,11 +858,47 @@ function applyThemeCSSLive(presetKey, dark, customPrimary) {
   r.style.setProperty('--color-sub', c.sub);
   r.style.setProperty('--color-border', c.border);
   r.style.setProperty('--color-card', c.cardBg);
+  
+  // Apply glass effects if enabled (check from current settings)
+  const currentSettings = window.currentAdminSettings || {};
+  const glassEnabled = currentSettings.glass_effect_enabled ?? false;
+  
+  if (glassEnabled) {
+    r.style.setProperty('--glass-opacity', '0.15');
+    r.style.setProperty('--glass-blur', '16px');
+    r.style.setProperty('--glass-border', 'rgba(255,255,255,0.2)');
+    r.style.setProperty('--glass-shadow', '0 8px 32px rgba(0,0,0,0.1)');
+    r.style.setProperty('--glass-glow', `0 0 20px ${c.pri}20`);
+    r.style.setProperty('--glass-bg', hexToRgba(c.bg, 0.1));
+    r.style.setProperty('--glass-card', hexToRgba(c.cardBg, 0.1));
+    r.style.setProperty('--glass-primary', hexToRgba(c.pri, 0.2));
+  } else {
+    r.style.setProperty('--glass-opacity', '0');
+    r.style.setProperty('--glass-blur', '0px');
+    r.style.setProperty('--glass-border', 'transparent');
+    r.style.setProperty('--glass-shadow', 'none');
+    r.style.setProperty('--glass-glow', 'none');
+    r.style.setProperty('--glass-bg', c.bg);
+    r.style.setProperty('--glass-card', c.cardBg);
+    r.style.setProperty('--glass-primary', c.pri);
+  }
+}
+
+// Helper function to convert hex to rgba
+function hexToRgba(hex, alpha) {
+  if (hex && hex.startsWith('#')) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return hex || 'rgba(0,0,0,0.1)';
 }
 
 function ThemeTab({ settings, handleChange, setSettings, theme }) {
   const selectedPreset = settings.theme_preset || 'flipstar';
   const isDark = settings.dark_mode_default ?? false;
+  const glassEnabled = settings.glass_effect_enabled ?? false;
 
   const previewColors = (() => {
     const p = PRESET_THEMES[selectedPreset] || PRESET_THEMES.flipstar;
@@ -860,18 +910,32 @@ function ThemeTab({ settings, handleChange, setSettings, theme }) {
   const presetKeys = Object.keys(PRESET_THEMES);
 
   const selectPreset = (key) => {
-    setSettings(prev => ({ ...prev, theme_preset: key, primary_color_override: null }));
+    const newSettings = { ...settings, theme_preset: key, primary_color_override: null };
+    setSettings(newSettings);
+    window.currentAdminSettings = newSettings;
     applyThemeCSSLive(key, isDark, null);
   };
 
   const toggleDarkMode = () => {
     const nd = !isDark;
-    setSettings(prev => ({ ...prev, dark_mode_default: nd }));
+    const newSettings = { ...settings, dark_mode_default: nd };
+    setSettings(newSettings);
+    window.currentAdminSettings = newSettings;
     applyThemeCSSLive(selectedPreset, nd, settings.primary_color_override || null);
+  };
+
+  const toggleGlassEffect = () => {
+    const ng = !glassEnabled;
+    const newSettings = { ...settings, glass_effect_enabled: ng };
+    setSettings(newSettings);
+    window.currentAdminSettings = newSettings;
+    applyThemeCSSLive(selectedPreset, isDark, settings.primary_color_override || null);
   };
 
   const updateCustomColor = (color) => {
     handleChange('primary_color_override', color || null);
+    const newSettings = { ...settings, primary_color_override: color || null };
+    window.currentAdminSettings = newSettings;
     applyThemeCSSLive(selectedPreset, isDark, color || null);
   };
 
@@ -880,7 +944,7 @@ function ThemeTab({ settings, handleChange, setSettings, theme }) {
       {/* ── Left: Controls ── */}
       <div>
         {/* Dark mode toggle */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: theme.bg, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: theme.bg, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {isDark ? <Moon size={18} color={theme.pri} /> : <Sun size={18} color={theme.pri} />}
             <div>
@@ -891,6 +955,23 @@ function ThemeTab({ settings, handleChange, setSettings, theme }) {
           <button onClick={toggleDarkMode}
             style={{ width: 48, height: 28, borderRadius: 14, background: isDark ? theme.pri : theme.border, border: 'none', cursor: 'pointer', position: 'relative', transition: 'all 0.2s', flexShrink: 0 }}>
             <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, left: isDark ? 22 : 2, transition: 'all 0.2s' }} />
+          </button>
+        </div>
+
+        {/* Glass effect toggle */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: theme.bg, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 9, background: `linear-gradient(135deg, ${theme.pri}, ${theme.pri}80)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Palette size={18} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: theme.txt }}>Glass Effect (Crystal UI)</div>
+              <div style={{ fontSize: 12, color: theme.sub }}>{glassEnabled ? 'Glassmorphism effects enabled' : 'Standard theme colors only'}</div>
+            </div>
+          </div>
+          <button onClick={toggleGlassEffect}
+            style={{ width: 48, height: 28, borderRadius: 14, background: glassEnabled ? theme.pri : theme.border, border: 'none', cursor: 'pointer', position: 'relative', transition: 'all 0.2s', flexShrink: 0 }}>
+            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, left: glassEnabled ? 22 : 2, transition: 'all 0.2s' }} />
           </button>
         </div>
 

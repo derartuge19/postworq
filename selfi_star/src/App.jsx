@@ -3,6 +3,7 @@ import { AppShell } from './components/AppShell';
 import { TikTokLayout } from './components/TikTokLayout';
 import { useTheme } from './contexts/ThemeContext';
 import api from './api';
+import './styles/glassmorphism.css';
 
 // Lazy load ALL non-critical components for smaller initial bundle
 const ModernLoginScreen = lazy(() => import('./components/ModernLoginScreen').then(m => ({ default: m.ModernLoginScreen })));

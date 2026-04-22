@@ -114,20 +114,21 @@ export function AdminDashboard({ theme }) {
           return (
             <div
               key={index}
+              className="glass-card glass-hover"
               style={{
-                background: theme.card,
+                background: 'var(--glass-card)',
                 borderRadius: 12,
                 padding: 24,
-                border: `1px solid ${theme.border}`,
-                transition: 'all 0.2s',
+                border: '1px solid var(--glass-border)',
+                transition: 'all 0.3s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)';
+                e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)';
+                e.currentTarget.style.boxShadow = 'var(--glass-glow)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = 'var(--glass-shadow)';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -180,11 +181,11 @@ export function AdminDashboard({ theme }) {
         gap: 24,
       }}>
         {/* Top Creators */}
-        <div style={{
-          background: theme.card,
+        <div className="glass-card" style={{
+          background: 'var(--glass-card)',
           borderRadius: 12,
           padding: 24,
-          border: `1px solid ${theme.border}`,
+          border: '1px solid var(--glass-border)',
         }}>
           <h2 style={{
             margin: 0,
@@ -251,11 +252,11 @@ export function AdminDashboard({ theme }) {
         </div>
 
         {/* Trending Reels */}
-        <div style={{
-          background: theme.card,
+        <div className="glass-card" style={{
+          background: 'var(--glass-card)',
           borderRadius: 12,
           padding: 24,
-          border: `1px solid ${theme.border}`,
+          border: '1px solid var(--glass-border)',
         }}>
           <h2 style={{
             margin: 0,

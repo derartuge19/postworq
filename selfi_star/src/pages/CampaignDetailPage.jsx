@@ -1332,6 +1332,52 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
     setShowCamera(false);
   };
 
+  const startRecording = async () => {
+    if (!stream) return;
+    
+    try {
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm'
+      });
+      
+      const chunks = [];
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const file = new File([blob], `camera_recording_${Date.now()}.webm`, { type: 'video/webm' });
+        setNewReelFile(file);
+        stopCamera();
+      };
+      
+      mediaRecorder.start();
+      
+      // Stop recording after 30 seconds or when user clicks stop
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
+      }, 30000);
+      
+      // Store mediaRecorder instance for stopping
+      window.currentMediaRecorder = mediaRecorder;
+      
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      setError('Failed to start recording. Please try again.');
+    }
+  };
+  
+  const stopRecording = () => {
+    if (window.currentMediaRecorder && window.currentMediaRecorder.state === 'recording') {
+      window.currentMediaRecorder.stop();
+    }
+  };
+
   const handleCreateAndSubmit = async () => {
     if (!api.hasToken()) {
       setError('Please log in to submit a campaign entry.');
@@ -1590,6 +1636,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               </button>
             </div>
             
+            {/* Camera or File Upload Area */}
             <div style={{
               marginBottom: 20,
               padding: 24,
@@ -1597,9 +1644,44 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               borderRadius: 12,
               textAlign: 'center',
               background: newReelFile ? `${T.green}10` : T.bg,
+              position: 'relative',
+              minHeight: 200,
             }}
             >
-              {newReelFile ? (
+              {showCamera && stream ? (
+                <div style={{ position: 'relative', width: '100%', height: '300px' }}>
+                  <video
+                    ref={(videoEl) => {
+                      if (videoEl && stream) {
+                        videoEl.srcObject = stream;
+                      }
+                    }}
+                    autoPlay
+                    playsInline
+                    muted
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      background: '#000',
+                      borderRadius: 8,
+                    }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 10,
+                    right: 10,
+                    background: 'rgba(0,0,0,0.7)',
+                    color: '#fff',
+                    padding: '8px 12px',
+                    borderRadius: 20,
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}>
+                    Recording...
+                  </div>
+                </div>
+              ) : newReelFile ? (
                 <div>
                   <Check size={48} color={T.green} style={{ marginBottom: 12 }} />
                   <p style={{ margin: 0, color: T.txt, fontWeight: 600 }}>

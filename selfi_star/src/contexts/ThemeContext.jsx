@@ -127,7 +127,7 @@ function normalizeColors(raw) {
   };
 }
 
-function applyCSS(c) {
+function applyCSS(c, glassEnabled = false) {
   const r = document.documentElement;
   r.style.setProperty('--color-primary', c.pri);
   r.style.setProperty('--color-primary-gradient', c.priGradient || c.pri);
@@ -137,6 +137,38 @@ function applyCSS(c) {
   r.style.setProperty('--color-sub', c.sub);
   r.style.setProperty('--color-border', c.border);
   r.style.setProperty('--color-card', c.cardBg);
+  
+  // Glassmorphism variables
+  if (glassEnabled) {
+    r.style.setProperty('--glass-opacity', '0.15');
+    r.style.setProperty('--glass-blur', '16px');
+    r.style.setProperty('--glass-border', 'rgba(255,255,255,0.2)');
+    r.style.setProperty('--glass-shadow', '0 8px 32px rgba(0,0,0,0.1)');
+    r.style.setProperty('--glass-glow', `0 0 20px ${c.pri}20`);
+    r.style.setProperty('--glass-bg', hexToRgba(c.bg, 0.1));
+    r.style.setProperty('--glass-card', hexToRgba(c.cardBg, 0.1));
+    r.style.setProperty('--glass-primary', hexToRgba(c.pri, 0.2));
+  } else {
+    r.style.setProperty('--glass-opacity', '0');
+    r.style.setProperty('--glass-blur', '0px');
+    r.style.setProperty('--glass-border', 'transparent');
+    r.style.setProperty('--glass-shadow', 'none');
+    r.style.setProperty('--glass-glow', 'none');
+    r.style.setProperty('--glass-bg', c.bg);
+    r.style.setProperty('--glass-card', c.cardBg);
+    r.style.setProperty('--glass-primary', c.pri);
+  }
+}
+
+// Helper function to convert hex to rgba
+function hexToRgba(hex, alpha) {
+  if (hex.startsWith('#')) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return hex; // Return as-is if not hex format
 }
 
 // ─── Context ───────────────────────────────────────────────────────────────────
@@ -180,6 +212,7 @@ export const ThemeProvider = ({ children }) => {
   const [preset, setPreset] = useState(stored.preset || 'flipstar');
   const [darkMode, setDarkMode] = useState(stored.darkMode ?? false);
   const [customPrimary, setCustomPrimary] = useState(stored.customPrimary || null);
+  const [glassEnabled, setGlassEnabled] = useState(stored.glassEnabled ?? false);
 
   const resolveColors = useCallback((p = preset, dm = darkMode, cp = customPrimary) => {
     const base = PRESET_THEMES[p] || PRESET_THEMES.flipstar;
@@ -193,13 +226,13 @@ export const ThemeProvider = ({ children }) => {
 
   const colors = resolveColors();
 
-  const persist = (p, dm, cp) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ preset: p, darkMode: dm, customPrimary: cp }));
+  const persist = (p, dm, cp, ge) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ preset: p, darkMode: dm, customPrimary: cp, glassEnabled: ge }));
   };
 
   useEffect(() => {
-    applyCSS(resolveColors());
-  }, [preset, darkMode, customPrimary]);
+    applyCSS(resolveColors(), glassEnabled);
+  }, [preset, darkMode, customPrimary, glassEnabled]);
 
   // Listen for storage events from admin panel saves (same-tab via dispatchEvent + cross-tab native)
   useEffect(() => {
@@ -210,6 +243,7 @@ export const ThemeProvider = ({ children }) => {
         if (d.preset !== undefined) setPreset(d.preset || 'flipstar');
         setDarkMode(d.darkMode ?? false);
         setCustomPrimary(d.customPrimary || null);
+        setGlassEnabled(d.glassEnabled ?? false);
       } catch {}
     };
     window.addEventListener('storage', onStorage);
@@ -219,39 +253,49 @@ export const ThemeProvider = ({ children }) => {
   const setThemePreset = useCallback((newPreset) => {
     setPreset(newPreset);
     setCustomPrimary(null);
-    persist(newPreset, darkMode, null);
-  }, [darkMode]);
+    persist(newPreset, darkMode, null, glassEnabled);
+  }, [darkMode, glassEnabled]);
 
   const toggleDarkMode = useCallback(() => {
     const nd = !darkMode;
     setDarkMode(nd);
-    persist(preset, nd, customPrimary);
-  }, [darkMode, preset, customPrimary]);
+    persist(preset, nd, customPrimary, glassEnabled);
+  }, [darkMode, preset, customPrimary, glassEnabled]);
 
   const setCustomColor = useCallback((color) => {
     setCustomPrimary(color || null);
-    persist(preset, darkMode, color || null);
-  }, [preset, darkMode]);
+    persist(preset, darkMode, color || null, glassEnabled);
+  }, [preset, darkMode, glassEnabled]);
+
+  const toggleGlassEffect = useCallback(() => {
+    const ng = !glassEnabled;
+    setGlassEnabled(ng);
+    persist(preset, darkMode, customPrimary, ng);
+  }, [glassEnabled, preset, darkMode, customPrimary]);
 
   const applyFromSettings = useCallback((settings) => {
     if (!settings) return;
     const p = settings.theme_preset || preset;
     const dm = settings.dark_mode_default ?? darkMode;
     const cp = settings.primary_color_override || null;
+    const ge = settings.glass_effect_enabled ?? glassEnabled;
     setPreset(p);
     setDarkMode(dm);
     setCustomPrimary(cp);
-    persist(p, dm, cp);
-  }, [preset, darkMode]);
+    setGlassEnabled(ge);
+    persist(p, dm, cp, ge);
+  }, [preset, darkMode, glassEnabled]);
 
   return (
     <ThemeContext.Provider value={{
       colors,
       darkMode,
       preset,
+      glassEnabled,
       toggleDarkMode,
       setThemePreset,
       setCustomColor,
+      toggleGlassEffect,
       applyFromSettings,
       resolveColors,
     }}>
