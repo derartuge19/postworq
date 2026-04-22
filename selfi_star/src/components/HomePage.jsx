@@ -828,11 +828,10 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             : '0 2px 16px rgba(0,0,0,0.08)',
           border: `1px solid ${isHovered ? (T?.pri || '#000') + '50' : T?.border || '#e0e0e0'}`,
           overflow: 'hidden',
-          marginBottom: 6,
-          // Cap total card height so header + media + actions + caption all
-          // fit in one mobile viewport without scrolling.  Reserve ~110px
-          // for the sticky tabs at top + bottom nav + page padding.
-          maxHeight: 'calc(100vh - 140px)',
+          marginBottom: window.innerWidth > 768 ? 24 : 16,
+          // Removed strict maxHeight to prevent "deformation" on reload.
+          // Cards will now occupy their natural height based on content.
+          minHeight: 400,
           maxWidth: 560,
           width: '100%',
           position: 'relative',
@@ -1594,7 +1593,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
             <div key={i} style={{
               width: '100%', maxWidth: 560, background: T?.cardBg || '#fff',
               borderRadius: 16, border: `1px solid ${T?.border || '#e0e0e0'}`,
-              overflow: 'hidden', marginBottom: 20,
+              overflow: 'hidden', marginBottom: window.innerWidth > 768 ? 24 : 16,
             }}>
               <div style={{ padding: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
                 <div style={{ width: 42, height: 42, borderRadius: '50%', background: T?.border || '#e0e0e0' }} />
