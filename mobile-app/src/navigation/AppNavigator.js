@@ -16,6 +16,7 @@ import DiscoverScreen from '../screens/DiscoverScreen';
 import CreateScreen from '../screens/CreateScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 import ReelsScreen from '../screens/ReelsScreen';
 import VideoDetailScreen from '../screens/VideoDetailScreen';
 import ProfileDetailScreen from '../screens/ProfileDetailScreen';
@@ -148,6 +149,7 @@ function MainStack() {
       <Stack.Screen name="Reels"          component={ReelsScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="VideoDetail"    component={VideoDetailScreen}    options={{ title: 'Video' }} />
       <Stack.Screen name="ProfileDetail"  component={ProfileDetailScreen}  options={{ title: 'Profile' }} />
+      <Stack.Screen name="EditProfile"    component={EditProfileScreen}     options={{ headerShown: false }} />
       <Stack.Screen name="Comments"       component={CommentsScreen}       options={{ title: 'Comments' }} />
       <Stack.Screen name="Campaigns"      component={CampaignsScreen}      options={{ title: 'Campaigns' }} />
       <Stack.Screen name="CampaignDetail" component={CampaignDetailScreen} options={{ title: 'Campaign' }} />

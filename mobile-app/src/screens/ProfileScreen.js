@@ -1,281 +1,266 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
-  FlatList,
-  TouchableOpacity,
   StyleSheet,
+  TouchableOpacity,
   Image,
-  ActivityIndicator,
   ScrollView,
+  Dimensions,
+  ActivityIndicator,
+  StatusBar,
+  FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import config from '../config';
+
+const { width } = Dimensions.get('window');
+const BRAND_GOLD = '#DA9B2A';
+
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${config.API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 export default function ProfileScreen({ navigation }) {
-  const [userReels, setUserReels] = useState([]);
+  const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
+  const { user, logout } = useAuth();
+  
   const [loading, setLoading] = useState(true);
-  const { user, logout, loadUser } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [followers, setFollowers] = useState(0);
+  const [following, setFollowing] = useState(0);
+  const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'reels' | 'saved'
 
-  useEffect(() => {
-    if (user) {
-      loadUserReels();
-    }
-  }, [user]);
-
-  const loadUserReels = async () => {
+  const fetchProfileData = useCallback(async () => {
+    if (!user) return;
     try {
       setLoading(true);
-      const data = await api.getUserPosts(user?.id);
-      setUserReels(data.results || data);
+      const [profileData, postsRaw, followersRaw, followingRaw] = await Promise.all([
+        api.getProfile(),
+        api.getUserPosts(user.id),
+        api.getFollowers(user.id),
+        api.getFollowing(user.id),
+      ]);
+
+      setProfile(profileData);
+      setPosts(Array.isArray(postsRaw) ? postsRaw : (postsRaw.results || []));
+      setFollowers(Array.isArray(followersRaw) ? followersRaw.length : (followersRaw.results?.length || 0));
+      setFollowing(Array.isArray(followingRaw) ? followingRaw.length : (followingRaw.results?.length || 0));
     } catch (error) {
-      console.error('Error loading user reels:', error);
+      console.error('Profile fetch error:', error);
     } finally {
       setLoading(false);
     }
+  }, [user]);
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchProfileData();
+    }
+  }, [isFocused, fetchProfileData]);
+
+  const renderPostItem = ({ item }) => {
+    const isVideo = item.media?.includes('.mp4') || item.media?.includes('/video/');
+    
+    return (
+      <TouchableOpacity 
+        style={styles.postThumb}
+        onPress={() => navigation.navigate('Reels', { reelId: item.id })}
+      >
+        <Image source={{ uri: mediaUrl(item.image || item.media) }} style={styles.thumbImage} />
+        {isVideo && (
+          <View style={styles.videoBadge}>
+            <Ionicons name="play" size={12} color="#fff" />
+          </View>
+        )}
+      </TouchableOpacity>
+    );
   };
 
-  const handleLogout = async () => {
-    await logout();
-  };
-
-  const handleEditProfile = () => {
-    // Navigate to edit profile screen
-    // For now, just log
-    console.log('Edit profile');
-  };
-
-  const renderReel = ({ item }) => (
-    <TouchableOpacity style={styles.reelItem}>
-      {item.image ? (
-        <Image source={{ uri: item.image }} style={styles.reelThumbnail} />
-      ) : (
-        <View style={[styles.reelThumbnail, styles.thumbnailPlaceholder]} />
-      )}
-      <View style={styles.reelStats}>
-        <Ionicons name="heart" size={14} color="#fff" />
-        <Text style={styles.reelStatsText}>{item.votes || 0}</Text>
+  if (loading && !profile) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={BRAND_GOLD} />
       </View>
-    </TouchableOpacity>
-  );
-
-  if (!user) {
-    return null;
+    );
   }
 
+  const filteredPosts = activeTab === 'reels' 
+    ? posts.filter(p => p.media?.includes('.mp4') || p.media?.includes('/video/'))
+    : posts;
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
+    <View style={styles.root}>
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerUsername}>{user?.username}</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <Ionicons name="settings-outline" size={24} color="#000" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Profile Info */}
         <View style={styles.profileInfo}>
-          {user.profile_photo ? (
-            <Image source={{ uri: user.profile_photo }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Text style={styles.avatarText}>
-                {user.username?.[0]?.toUpperCase() || 'U'}
-              </Text>
+          <View style={styles.mainInfoRow}>
+            <View style={styles.avatarWrap}>
+              {profile?.profile_photo ? (
+                <Image source={{ uri: mediaUrl(profile.profile_photo) }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarFallback]}>
+                  <Text style={styles.avatarInitial}>{user?.username?.[0]?.toUpperCase()}</Text>
+                </View>
+              )}
             </View>
-          )}
-          <View style={styles.stats}>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>{user.reels_count || 0}</Text>
-              <Text style={styles.statLabel}>Reels</Text>
+            
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statCount}>{posts.length}</Text>
+                <Text style={styles.statLabel}>Posts</Text>
+              </View>
+              <TouchableOpacity style={styles.statItem} onPress={() => {}}>
+                <Text style={styles.statCount}>{followers}</Text>
+                <Text style={styles.statLabel}>Followers</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.statItem} onPress={() => {}}>
+                <Text style={styles.statCount}>{following}</Text>
+                <Text style={styles.statLabel}>Following</Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>{user.followers_count || 0}</Text>
-              <Text style={styles.statLabel}>Followers</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>{user.following_count || 0}</Text>
-              <Text style={styles.statLabel}>Following</Text>
-            </View>
+          </View>
+
+          <View style={styles.bioSection}>
+            <Text style={styles.fullName}>{profile?.first_name} {profile?.last_name}</Text>
+            {profile?.bio && <Text style={styles.bioText}>{profile.bio}</Text>}
+          </View>
+
+          <View style={styles.actionButtons}>
+            <TouchableOpacity 
+              style={styles.editBtn}
+              onPress={() => navigation.navigate('EditProfile')}
+            >
+              <Text style={styles.editBtnText}>Edit Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.shareBtn}
+              onPress={() => {}}
+            >
+              <Text style={styles.shareBtnText}>Share Profile</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        <Text style={styles.username}>@{user.username}</Text>
-        <Text style={styles.fullName}>
-          {user.first_name} {user.last_name}
-        </Text>
-        {user.bio && <Text style={styles.bio}>{user.bio}</Text>}
-
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-            <Text style={styles.editButtonText}>Edit Profile</Text>
+        {/* Tabs */}
+        <View style={styles.tabs}>
+          <TouchableOpacity 
+            style={[styles.tabItem, activeTab === 'posts' && styles.activeTab]}
+            onPress={() => setActiveTab('posts')}
+          >
+            <Ionicons name="grid-outline" size={22} color={activeTab === 'posts' ? BRAND_GOLD : '#666'} />
+            <Text style={[styles.tabLabel, activeTab === 'posts' && styles.activeTabLabel]}>Posts</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#000" />
+          <TouchableOpacity 
+            style={[styles.tabItem, activeTab === 'reels' && styles.activeTab]}
+            onPress={() => setActiveTab('reels')}
+          >
+            <Ionicons name="film-outline" size={22} color={activeTab === 'reels' ? BRAND_GOLD : '#666'} />
+            <Text style={[styles.tabLabel, activeTab === 'reels' && styles.activeTabLabel]}>Reels</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tabItem, activeTab === 'saved' && styles.activeTab]}
+            onPress={() => setActiveTab('saved')}
+          >
+            <Ionicons name="bookmark-outline" size={22} color={activeTab === 'saved' ? BRAND_GOLD : '#666'} />
+            <Text style={[styles.tabLabel, activeTab === 'saved' && styles.activeTabLabel]}>Saved</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.tabs}>
-        <TouchableOpacity style={styles.tab}>
-          <Ionicons name="grid" size={24} color="#000" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tab}>
-          <Ionicons name="heart-outline" size={24} color="#999" />
-        </TouchableOpacity>
-      </View>
-
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#000" />
-        </View>
-      ) : (
+        {/* Grid */}
         <FlatList
-          data={userReels}
-          renderItem={renderReel}
-          keyExtractor={(item) => item.id.toString()}
+          data={filteredPosts}
+          renderItem={renderPostItem}
+          keyExtractor={item => item.id.toString()}
           numColumns={3}
-          contentContainerStyle={styles.reelsGrid}
           scrollEnabled={false}
+          contentContainerStyle={styles.grid}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No reels yet</Text>
+            <View style={styles.empty}>
+              <Ionicons name="apps-outline" size={40} color="#ccc" />
+              <Text style={styles.emptyText}>No posts yet</Text>
             </View>
           }
         />
-      )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  root: { flex: 1, backgroundColor: '#fff' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
-    padding: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-  },
-  profileInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#eee',
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 24,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#999',
-  },
-  stats: {
-    flexDirection: 'row',
-    flex: 1,
-    justifyContent: 'space-around',
-  },
-  stat: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-  },
-  username: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 4,
-  },
-  fullName: {
-    fontSize: 16,
-    color: '#000',
-    marginBottom: 4,
-  },
-  bio: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 16,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  editButton: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-  },
-  editButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
-  },
-  logoutButton: {
-    width: 48,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  headerUsername: { fontSize: 18, fontWeight: '800', color: '#000' },
+  profileInfo: { padding: 16 },
+  mainInfoRow: { flexDirection: 'row', alignItems: 'center' },
+  avatarWrap: { position: 'relative' },
+  avatar: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, borderColor: '#fff' },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND_GOLD + '20' },
+  avatarInitial: { fontSize: 32, fontWeight: 'bold', color: BRAND_GOLD },
+  statsRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginLeft: 20 },
+  statItem: { alignItems: 'center' },
+  statCount: { fontSize: 18, fontWeight: '800', color: '#000' },
+  statLabel: { fontSize: 12, color: '#666', marginTop: 2 },
+  bioSection: { marginTop: 15 },
+  fullName: { fontSize: 15, fontWeight: '700', color: '#000' },
+  bioText: { fontSize: 14, color: '#333', marginTop: 4, lineHeight: 20 },
+  actionButtons: { flexDirection: 'row', gap: 8, marginTop: 20 },
+  editBtn: { flex: 1, height: 36, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  editBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
+  shareBtn: { flex: 1, height: 36, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  shareBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
   tabs: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#eee',
+    marginTop: 10,
   },
-  tab: {
+  tabItem: {
     flex: 1,
-    padding: 16,
+    paddingVertical: 12,
     alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+    gap: 4,
   },
-  reelsGrid: {
-    padding: 2,
-  },
-  reelItem: {
-    flex: 1,
-    aspectRatio: 1,
-    margin: 1,
-    position: 'relative',
-  },
-  reelThumbnail: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  thumbnailPlaceholder: {
-    backgroundColor: '#e5e5e5',
-  },
-  reelStats: {
-    position: 'absolute',
-    bottom: 4,
-    left: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  reelStatsText: {
-    fontSize: 12,
-    color: '#fff',
-    fontWeight: '600',
-  },
-  loadingContainer: {
-    paddingVertical: 32,
-  },
-  emptyContainer: {
-    paddingVertical: 64,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-  },
+  activeTab: { borderBottomColor: BRAND_GOLD },
+  tabLabel: { fontSize: 10, fontWeight: '500', color: '#666' },
+  activeTabLabel: { color: BRAND_GOLD, fontWeight: '700' },
+  grid: { padding: 1 },
+  postThumb: { width: width / 3 - 2, height: width / 3 - 2, margin: 1, backgroundColor: '#f0f0f0' },
+  thumbImage: { width: '100%', height: '100%', objectFit: 'cover' },
+  videoBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(0,0,0,0.5)', padding: 2, borderRadius: 4 },
+  empty: { height: 200, alignItems: 'center', justifyContent: 'center' },
+  emptyText: { color: '#999', marginTop: 10 },
 });
