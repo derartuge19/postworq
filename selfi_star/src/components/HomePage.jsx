@@ -326,7 +326,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
               onChange={e => setText(e.target.value)}
               placeholder={replyingTo ? `Reply to @${replyingTo.user?.username}...` : (api.hasToken() ? 'Add a comment…' : 'Log in to comment')}
               disabled={!api.hasToken()}
-              style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${T?.border || '#e0e0e0'}`, background: T?.cardBg || '#fff', color: T?.txt || '#000', fontSize: 14, outline: 'none' }}
+              style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${T?.border || '#e0e0e0'}`, background: T?.cardBg || '#fff', color: T?.txt || '#000', fontSize: 16, outline: 'none' }}
             />
             <button
               type="submit"

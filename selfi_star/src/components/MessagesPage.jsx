@@ -236,7 +236,7 @@ function NewChatModal({ onClose, onSelectUser, T }) {
               placeholder="Search users..."
               style={{
                 flex: 1, border: 'none', outline: 'none',
-                background: 'transparent', color: T.txt, fontSize: 15,
+                background: 'transparent', color: T.txt, fontSize: 16,
               }}
             />
           </div>
@@ -947,7 +947,7 @@ const Composer = memo(function Composer({
               border: `1px solid ${T.border}`,
               background: T.bg,
               color: T.txt,
-              fontSize: 14,
+              fontSize: 16,
               outline: 'none',
               minWidth: 0,
             }}

@@ -441,7 +441,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
               padding: "10px 14px",
               border: `1px solid ${T.border}`,
               borderRadius: 22,
-              fontSize: 14,
+              fontSize: 16,
               outline: "none",
               boxSizing: "border-box",
               minWidth: 0,
