@@ -1042,7 +1042,9 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                <svg width={baseFontSize} height={baseFontSize} viewBox="0 0 24 24" fill={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }}>
+                  <path d="M21 12L10 2V8.5C3.5 8.5 1.5 14.5 1 20C3.5 15.5 6.5 15.5 10 15.5V22L21 12Z" />
+                </svg>
                 <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift */}

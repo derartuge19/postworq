@@ -189,7 +189,9 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
                 display: 'flex', alignItems: 'center', gap: 3,
               }}
             >
-              <Share2 size={16} color={T?.txt || '#000'} />
+              <svg width={16} height={16} viewBox="0 0 24 24" fill={T?.txt || '#000'}>
+                <path d="M21 12L10 2V8.5C3.5 8.5 1.5 14.5 1 20C3.5 15.5 6.5 15.5 10 15.5V22L21 12Z" />
+              </svg>
               <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{video?.shares || 0}</span>
             </button>
           </div>
