@@ -1426,6 +1426,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         position: 'sticky', top: 0, zIndex: 10,
         background: T?.bg || '#f5f5f5', padding: '8px 0',
         backdropFilter: 'blur(10px)',
+        justifyContent: 'center',
       }}>
         {ALL_TABS.map(tab => (
           <button
