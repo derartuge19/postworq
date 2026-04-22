@@ -33,6 +33,18 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import realtimeService from '../services/RealtimeService';
 import './TikTokLayout.css';
+const ShareIconFilled = ({ size = 26, color = '#fff', style = {} }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={color}
+    style={style}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M21 12L10 2V8.5C3.5 8.5 1.5 14.5 1 20C3.5 15.5 6.5 15.5 10 15.5V22L21 12Z" />
+  </svg>
+);
 
 // CaptionWithLessMore component for truncating long captions
 const CaptionWithLessMore = ({ caption, maxLength = 100 }) => {
@@ -1676,7 +1688,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                                   color: T.txt,
                                 }}
                               >
-                                <Share2 size={18} style={{ color: T.pri }} /> Share
+                                <ShareIconFilled size={18} color={T.pri} /> Share
                               </button>
                               <button
                                 onClick={() => handleNotInterested(video.id)}
@@ -1757,7 +1769,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                             { icon: Link, label: 'Copy Link', color: T.pri, action: () => { setLongPressMenu(null); handleShare(video.id); } },
                             { icon: Bookmark, label: 'Save', color: '#F59E0B', action: () => handleSaveToFavorites(video.id) },
                             { icon: Download, label: 'Download', color: '#10B981', action: () => handleDownload(video) },
-                            { icon: Share2, label: 'Share', color: '#8B5CF6', action: () => { setLongPressMenu(null); handleShare(video.id); } },
+                            { icon: ShareIconFilled, label: 'Share', color: '#8B5CF6', action: () => { setLongPressMenu(null); handleShare(video.id); } },
                           ].map((item, idx) => (
                             <button
                               key={idx}
@@ -2554,7 +2566,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                           padding: 0,
                         }}
                       >
-                        <Share2 size={32} color="#fff" />
+                        <ShareIconFilled size={32} color="#fff" />
                       </button>
                       <div
                         className="feed-action-label"
