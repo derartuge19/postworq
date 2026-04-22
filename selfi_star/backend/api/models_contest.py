@@ -283,6 +283,7 @@ class GiftToCreator(models.Model):
     
     coins = models.PositiveIntegerField()
     bonus_points = models.PositiveIntegerField(default=5)
+    message = models.TextField(blank=True, default='')
     
     created_at = models.DateTimeField(auto_now_add=True)
 

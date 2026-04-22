@@ -462,7 +462,7 @@ class ReelViewSet(viewsets.ModelViewSet):
             return Response({'count': 0, 'next': None, 'previous': None, 'results': []}, status=status.HTTP_200_OK)
     
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy', 'vote', 'comments']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'vote', 'comments', 'share']:
             self.permission_classes = [IsAuthenticated]  # Require auth for modifying operations
         return super().get_permissions()
     
@@ -583,6 +583,14 @@ class ReelViewSet(viewsets.ModelViewSet):
         else:
             saved_post.delete()
             return Response({'saved': False, 'message': 'Post unsaved'})
+    
+    @action(detail=True, methods=['post'])
+    def share(self, request, pk=None):
+        """Increment share count for a reel"""
+        reel = self.get_object()
+        reel.shares += 1
+        reel.save()
+        return Response({'shares': reel.shares})
     
     @action(detail=True, methods=['get', 'post'])
     def comments(self, request, pk=None):
