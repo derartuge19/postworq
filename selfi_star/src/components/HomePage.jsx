@@ -27,7 +27,7 @@ function timeAgo(dateStr) {
 
 // Cache helpers for HomePage
 const CACHE_KEY = 'homepage_feed_cache';
-const CACHE_TTL = 2 * 60 * 1000; // 2 minutes for faster post distribution
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes cache for better persistence
 
 function readHomeCache() {
   try {
@@ -1290,11 +1290,14 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   // filled on the very first paint.
   const [posts, setPosts] = useState(() => mergeLocalEngagement(readHomeCache() || []));
   const [loading, setLoading] = useState(() => !readHomeCache());
-  const [mounted, setMounted] = useState(false); // Prevent flash on initial load
+  const [mounted, setMounted] = useState(() => !!readHomeCache()); // Start mounted if we have cache
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const videoObserverRef = useRef(null);
   const loaderRef = useRef(null);
+  
+  // Persistence key for scroll position
+  const SCROLL_POS_KEY = 'homepage_scroll_pos';
   
   // Pull to refresh state
   const [pullDistance, setPullDistance] = useState(0);
@@ -1303,10 +1306,37 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
 
-  // Prevent flash on initial load
+  // Prevent flash on initial load, but skip if we already have cached data
   useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 50);
-    return () => clearTimeout(timer);
+    if (!mounted) {
+      const timer = setTimeout(() => setMounted(true), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted]);
+
+  // Restore scroll position after mount
+  useEffect(() => {
+    if (mounted && posts.length > 0) {
+      const savedPos = sessionStorage.getItem(SCROLL_POS_KEY);
+      if (savedPos) {
+        // Use a small delay to ensure content is painted
+        setTimeout(() => {
+          window.scrollTo({ top: parseInt(savedPos, 10), behavior: 'instant' });
+        }, 100);
+      }
+    }
+  }, [mounted, posts.length]);
+
+  // Save scroll position before unmount or periodically
+  useEffect(() => {
+    const handleScroll = () => {
+      // Don't save if we are at the very top (might be a reset)
+      if (window.scrollY > 100) {
+        sessionStorage.setItem(SCROLL_POS_KEY, window.scrollY.toString());
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const LIMIT = 5; // Load fewer posts initially for faster LCP
