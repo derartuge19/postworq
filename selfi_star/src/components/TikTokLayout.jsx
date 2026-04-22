@@ -46,6 +46,16 @@ const ShareIconFilled = ({ size = 26, color = '#fff', style = {} }) => (
   </svg>
 );
 
+// Helper to shuffle array for randomized feed
+const shuffleArray = (array) => {
+  const newArr = [...array];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+};
+
 // CaptionWithLessMore component for truncating long captions
 const CaptionWithLessMore = ({ caption, maxLength = 100 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -318,14 +328,17 @@ export const TikTokLayout = memo(function TikTokLayout({
                    url.includes('/video/upload/');
           })
         : formattedVideos;
+      
+      // Shuffle the batch to ensure a randomized/random-feeling order for each user
+      const shuffledVideos = shuffleArray(filteredVideos);
 
       if (append) {
-        setVideos(prev => [...prev, ...filteredVideos]);
+        setVideos(prev => [...prev, ...shuffledVideos]);
       } else {
-        setVideos(filteredVideos);
+        setVideos(shuffledVideos);
         // Persist fresh data so next load is instant (stale-while-revalidate)
-        if (filteredVideos.length > 0) {
-          writeFeedCache(activeTab, filteredVideos);
+        if (shuffledVideos.length > 0) {
+          writeFeedCache(activeTab, shuffledVideos);
         }
       }
     } catch (error) {
