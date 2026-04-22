@@ -1,0 +1,369 @@
+import config from './config';
+import * as SecureStore from 'expo-secure-store';
+
+const API_BASE_URL = config.API_BASE_URL;
+
+let authToken = null;
+
+// Token management
+const TOKEN_KEY = 'authToken';
+
+// Initialize auth token from secure storage
+const initAuthToken = async () => {
+  try {
+    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+    if (token) {
+      authToken = token;
+    }
+  } catch (error) {
+    console.error('Error loading auth token:', error);
+  }
+};
+
+// Cache configuration
+const _cache = new Map();
+const _inflight = new Map();
+const CACHE_TTL = 60_000; // 60s default TTL
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000;
+
+function getCached(key) {
+  const entry = _cache.get(key);
+  if (entry && Date.now() - entry.ts < entry.ttl) return entry.data;
+  _cache.delete(key);
+  return null;
+}
+
+function setCache(key, data, ttl = CACHE_TTL) {
+  _cache.set(key, { data, ts: Date.now(), ttl });
+}
+
+function invalidateCache(pattern) {
+  for (const key of _cache.keys()) {
+    if (key.includes(pattern)) _cache.delete(key);
+  }
+}
+
+async function retryWithBackoff(fn, retries = MAX_RETRIES) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error.name === 'TypeError' || error.message.includes('fetch') || error.message.includes('network')) {
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+  return fn();
+}
+
+const api = {
+  setAuthToken: async (token) => {
+    authToken = token;
+    if (token) {
+      await SecureStore.setItemAsync(TOKEN_KEY, token);
+    } else {
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+    }
+    _cache.clear();
+  },
+
+  getAuthToken: async () => {
+    if (!authToken) {
+      await initAuthToken();
+    }
+    return authToken;
+  },
+
+  hasToken: async () => {
+    if (!authToken) {
+      await initAuthToken();
+    }
+    return !!authToken;
+  },
+
+  clearAuth: async () => {
+    console.log('Clearing all auth data');
+    authToken = null;
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    _cache.clear();
+  },
+
+  async request(endpoint, options = {}) {
+    // Cache logic
+    const isGet = !options.method || options.method.toUpperCase() === 'GET';
+    const isRealtime = (
+      endpoint.startsWith('/messages/') ||
+      endpoint.includes('/notifications/unread') ||
+      endpoint.includes('unread-count')
+    );
+    const cacheable = isGet && !options.skipCache && !isRealtime;
+    const cacheKey = cacheable ? endpoint : null;
+
+    if (cacheable && cacheKey) {
+      const cached = getCached(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+
+    const inflightKey = isGet ? `GET:${endpoint}` : null;
+    if (inflightKey && _inflight.has(inflightKey)) {
+      return _inflight.get(inflightKey);
+    }
+
+    const doRequest = async () => {
+      const headers = { ...options.headers };
+      if (!options.isFormData) {
+        headers['Content-Type'] = 'application/json';
+      }
+
+      const currentToken = await this.getAuthToken();
+      const isPublicEndpoint = endpoint.includes('/auth/') || endpoint.includes('/settings/public');
+      if (currentToken && !isPublicEndpoint) {
+        headers['Authorization'] = `Token ${currentToken}`;
+      }
+
+      const response = await retryWithBackoff(async () => {
+        return await fetch(`${API_BASE_URL}${endpoint}`, {
+          ...options,
+          headers,
+        });
+      });
+
+      let data;
+      if (response.status === 204) {
+        data = { success: true };
+      } else {
+        try {
+          data = await response.json();
+        } catch (e) {
+          data = response.ok ? { success: true } : { error: 'Failed to parse response' };
+        }
+      }
+
+      if (!response.ok) {
+        if (response.status === 401 && headers['Authorization'] && isGet) {
+          console.warn('401 on GET with token - retrying without auth');
+          const retryHeaders = { ...headers };
+          delete retryHeaders['Authorization'];
+          const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers: retryHeaders,
+          });
+          let retryData;
+          try { retryData = await retryResponse.json(); } catch (e) { retryData = {}; }
+          if (retryResponse.ok) {
+            if (cacheable && cacheKey) setCache(cacheKey, retryData);
+            return retryData;
+          }
+          console.warn('Retry also failed - clearing credentials');
+          await this.clearAuth();
+          throw new Error(JSON.stringify(retryData) || `API Error: ${retryResponse.status}`);
+        }
+        if (response.status === 401) {
+          console.error('401 Unauthorized - authentication required');
+        }
+        console.error('API Error:', response.status, data);
+        throw new Error(JSON.stringify(data) || `API Error: ${response.status}`);
+      }
+
+      if (cacheable && cacheKey) setCache(cacheKey, data);
+      return data;
+    };
+
+    const resultPromise = doRequest();
+    if (inflightKey) {
+      _inflight.set(inflightKey, resultPromise);
+      resultPromise.finally(() => {
+        if (_inflight.get(inflightKey) === resultPromise) {
+          _inflight.delete(inflightKey);
+        }
+      });
+    }
+    return resultPromise;
+  },
+
+  invalidateCache,
+
+  // Auth
+  register: (username, email, password, firstName = '', lastName = '') =>
+    api.request('/auth/register/', {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      }),
+    }),
+
+  login: async (username, password) => {
+    const data = await api.request('/auth/login/', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    if (data.token) {
+      await api.setAuthToken(data.token);
+    }
+    return data;
+  },
+
+  // Profile
+  getProfile: () => api.request('/profile/me/'),
+
+  updateProfile: (data) =>
+    api.request('/profile/1/', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  // Reels
+  getReels: () => api.request('/reels/'),
+
+  getReelsFollowing: () => api.request('/reels/following/'),
+
+  getReelsSaved: () => api.request('/reels/saved/'),
+
+  getReelsTrending: () => api.request('/reels/trending/'),
+
+  createPost: (formData) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE_URL}/posts/create/`);
+      
+      api.getAuthToken().then(token => {
+        xhr.setRequestHeader('Authorization', `Token ${token}`);
+        xhr.timeout = 5 * 60 * 1000; // 5 minutes
+        
+        xhr.onload = () => {
+          let body;
+          try { body = JSON.parse(xhr.responseText || '{}'); } catch { body = {}; }
+          if (xhr.status >= 200 && xhr.status < 300) {
+            invalidateCache('/reels');
+            resolve(body);
+          } else {
+            reject(body && Object.keys(body).length ? body : { error: `HTTP ${xhr.status}` });
+          }
+        };
+        
+        xhr.onerror = () => reject({ error: 'Network error' });
+        xhr.ontimeout = () => reject({ error: 'Upload timed out' });
+        xhr.onabort = () => reject({ error: 'Upload aborted' });
+        
+        xhr.send(formData);
+      });
+    });
+  },
+
+  voteReel: (reelId) =>
+    api.request(`/reels/${reelId}/vote/`, {
+      method: 'POST',
+    }).then(r => { invalidateCache('/reels'); return r; }),
+
+  postComment: (reelId, text) =>
+    api.request(`/reels/${reelId}/comments/`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    }).then(r => { invalidateCache(`/reels/${reelId}/comments`); return r; }),
+
+  getComments: (reelId) => api.request(`/reels/${reelId}/comments/`),
+
+  toggleFollow: (userId) =>
+    api.request('/follows/toggle/', {
+      method: 'POST',
+      body: JSON.stringify({ following_id: userId }),
+    }).then(r => { invalidateCache('/follows'); return r; }),
+
+  getFollowers: (userId) => api.request(`/follows/?following=${userId}`),
+
+  getFollowing: (userId) => api.request(`/follows/?follower=${userId}`),
+
+  deletePost: (reelId) =>
+    api.request(`/reels/${reelId}/`, {
+      method: 'DELETE',
+    }).then(r => { invalidateCache('/reels'); return r; }),
+
+  // Notifications
+  getUserNotifications: () => api.request('/notifications/'),
+
+  getUnreadNotificationCount: () => api.request('/notifications/unread-count/'),
+
+  markNotificationRead: (notificationId) =>
+    api.request(`/notifications/${notificationId}/read/`, { method: 'POST' }),
+
+  markAllNotificationsRead: () =>
+    api.request('/notifications/read/', { method: 'POST', body: JSON.stringify({}) }),
+
+  // Search
+  search: (query) => api.request(`/search/?q=${encodeURIComponent(query)}`),
+
+  getUser: (userId) => api.request(`/profile/${userId}/`),
+
+  getUserPosts: (userId) => api.request(`/reels/?user=${userId}`),
+
+  // Saved posts
+  getSavedPosts: () => api.request('/reels/?saved=true'),
+
+  toggleSavePost: (reelId) =>
+    api.request('/saved/toggle/', {
+      method: 'POST',
+      body: JSON.stringify({ reel_id: reelId }),
+    }),
+
+  // Profile photo
+  uploadProfilePhoto: (photoFile) => {
+    const formData = new FormData();
+    formData.append('photo', {
+      uri: photoFile.uri,
+      type: photoFile.type || 'image/jpeg',
+      name: photoFile.name || 'photo.jpg',
+    });
+
+    return api.request('/profile-photo/upload/', {
+      method: 'POST',
+      body: formData,
+      isFormData: true,
+    });
+  },
+
+  updateUserProfile: (data) => {
+    const formData = new FormData();
+    if (data.first_name) formData.append('first_name', data.first_name);
+    if (data.last_name) formData.append('last_name', data.last_name);
+    if (data.bio) formData.append('bio', data.bio);
+    if (data.profile_photo) {
+      formData.append('profile_photo', {
+        uri: data.profile_photo.uri,
+        type: data.profile_photo.type || 'image/jpeg',
+        name: data.profile_photo.name || 'photo.jpg',
+      });
+    }
+
+    return api.request('/profile/update_profile/', {
+      method: 'PATCH',
+      body: formData,
+      isFormData: true,
+    });
+  },
+
+  // Campaigns
+  getCampaigns: () => api.request('/campaigns/'),
+
+  getCampaignDetail: (campaignId) => api.request(`/campaigns/${campaignId}/`),
+
+  // Health check
+  healthCheck: () => api.request('/health/'),
+};
+
+// Initialize on load
+initAuthToken().catch(err => {
+  console.error('API: Failed to initialize auth token:', err);
+});
+
+export default api;

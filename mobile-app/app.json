@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "SelfiStar",
+    "slug": "selfistar",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.selfistar.app"
+    },
+    "android": {
+      "package": "com.selfistar.app"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-av",
+      "expo-asset"
+    ]
+  }
+}
