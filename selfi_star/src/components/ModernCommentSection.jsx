@@ -14,6 +14,32 @@ const mediaUrl = (url) => {
   return `${api.config.baseURL}/${url}`;
 };
 
+function buildCommentTree(flatList) {
+  if (!Array.isArray(flatList)) return [];
+  const map = {};
+  const roots = [];
+  flatList.forEach(c => {
+    map[c.id] = { ...c };
+    if (!map[c.id].replies) map[c.id].replies = [];
+  });
+  flatList.forEach(c => {
+    const node = map[c.id];
+    if (c.parent) {
+      const parent = map[c.parent];
+      if (parent) {
+        if (!parent.replies.some(r => r.id === node.id)) {
+          parent.replies.push(node);
+        }
+      } else {
+        roots.push(node);
+      }
+    } else {
+      roots.push(node);
+    }
+  });
+  return roots;
+}
+
 const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, replyText, onReplyTextChange, onPostReply, posting, depth = 0 }) => {
   const isReply = depth > 0;
   const avatarSize = isReply ? 28 : 36;
@@ -206,10 +232,10 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
   const fetchComments = async () => {
     try {
       setLoading(true);
-      // Use the extended endpoint that includes replies
-      const data = await api.request(`/comments/?reel=${reelId}&include_replies=true`);
-      const comments = Array.isArray(data) ? data : (data?.results || []);
-      setComments(comments);
+      // Use the direct reels endpoint which is often faster and better indexed
+      const data = await api.request(`/reels/${reelId}/comments/?include_replies=true&depth=5`);
+      const raw = Array.isArray(data) ? data : (data?.results || []);
+      setComments(buildCommentTree(raw));
     } catch (error) {
       console.error("Failed to fetch comments:", error);
     } finally {

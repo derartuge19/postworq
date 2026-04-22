@@ -87,6 +87,36 @@ function mergeLocalEngagement(posts) {
   });
 }
 
+function buildCommentTree(flatList) {
+  if (!Array.isArray(flatList)) return [];
+  const map = {};
+  const roots = [];
+  
+  // First pass: Create map and ensure replies array
+  flatList.forEach(c => {
+    map[c.id] = { ...c };
+    if (!map[c.id].replies) map[c.id].replies = [];
+  });
+  
+  // Second pass: Link children to parents
+  flatList.forEach(c => {
+    const node = map[c.id];
+    if (c.parent) {
+      const parent = map[c.parent];
+      if (parent) {
+        if (!parent.replies.some(r => r.id === node.id)) {
+          parent.replies.push(node);
+        }
+      } else {
+        roots.push(node);
+      }
+    } else {
+      roots.push(node);
+    }
+  });
+  return roots;
+}
+
 /* ── Comment Sheet ── */
 const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, api, onLike, onReply }) {
   const isReply = depth > 0;
@@ -157,31 +187,22 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
 });
 
 const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, onCommentAdded, T }) {
-  // Seed from the feed payload so the sheet paints instantly with whatever
-  // the backend already shipped — no loading spinner on first open.  The
-  // full list is fetched in the background and replaces the seed.
-  const [comments, setComments] = useState(() =>
-    Array.isArray(post.recent_comments) ? post.recent_comments : []
+  const [comments, setComments] = useState(() => 
+    buildCommentTree(post.recent_comments)
   );
   const [text, setText] = useState('');
-  const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [sending, setSending] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
-    // Use the extended endpoint that includes replies
-    api.request(`/comments/?reel=${post.id}&include_replies=true`)
+    // Fetch comments directly from the reel's endpoint for better speed/consistency
+    api.request(`/reels/${post.id}/comments/?include_replies=true&depth=3`)
       .then(d => {
         if (cancelled) return;
         const full = Array.isArray(d) ? d : (d?.results || []);
-        // Drop any temp (optimistic) entries that the server now knows about.
-        setComments(prev => {
-          const temps = prev.filter(c => String(c.id).startsWith('temp-'));
-          const seen = new Set(full.map(c => c.id));
-          const keepTemps = temps.filter(t => !seen.has(t.serverId));
-          return [...full, ...keepTemps];
-        });
+        setComments(buildCommentTree(full));
       })
       .catch(() => {});
     return () => { cancelled = true; };
