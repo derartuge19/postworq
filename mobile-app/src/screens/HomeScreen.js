@@ -213,7 +213,7 @@ export default function HomeScreen({ navigation }) {
                   style={styles.media}
                   shouldPlay={isVisible}
                   isLooping
-                  resizeMode={Video.RESIZE_MODE_COVER}
+                  resizeMode={ResizeMode.COVER}
                   useNativeControls={false}
                   isMuted={true}
                 />
