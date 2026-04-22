@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { Heart, Trophy, MessageCircle, Share, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2, User } from 'lucide-react';
+import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2, User, Gift } from 'lucide-react';
 import api from '../api';
 import config from '../config';
 import { useTheme } from '../contexts/ThemeContext';
 import realtimeService from '../services/RealtimeService';
+import GiftPage from './GiftPage';
 
 const BACKEND = config.API_BASE_URL.replace('/api', '');
 
@@ -563,6 +564,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   const [viewCount, setViewCount] = useState(post.view_count || 0);
   const [shareToast, setShareToast] = useState('');
   const [captionExpanded, setCaptionExpanded] = useState(false);
+  const [showGiftModal, setShowGiftModal] = useState(false);
   const cardRef = useRef(null);
   const videoRef = useRef(null);
 
@@ -1027,8 +1029,22 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                <Share2 size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
                 <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
+              </button>
+              {/* Gift */}
+              <button
+                className="hp-btn hp-action"
+                onClick={(e) => { e.stopPropagation(); setShowGiftModal(true); }}
+                title="Send Gift"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '4px 6px', borderRadius: 8,
+                  display: 'flex', alignItems: 'center', gap: 3,
+                  '--hp-hover': (T?.border || '#e0e0e0') + '60',
+                }}
+              >
+                <Gift size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
               </button>
             </div>
             {/* Save */}
@@ -1159,6 +1175,14 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
         }}>
           {shareToast}
         </div>
+      )}
+
+      {/* Gift Modal */}
+      {showGiftModal && (
+        <GiftPage
+          username={post.user?.username}
+          onClose={() => setShowGiftModal(false)}
+        />
       )}
     </>
   );
