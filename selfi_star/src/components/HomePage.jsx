@@ -16,7 +16,9 @@ function mediaUrl(url) {
 }
 
 function timeAgo(dateStr) {
+  if (!dateStr) return '';
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
   const now = new Date();
   const diff = Math.floor((now - d) / 1000);
   if (diff < 60) return 'just now';
@@ -210,7 +212,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
     }
     
     // Fetch comments directly from the reel's endpoint
-    api.request(`/reels/${post.id}/comments/?include_replies=true&depth=3`)
+    api.request(`/reels/${post.id}/comments/?include_replies=true&depth=2`)
       .then(d => {
         if (cancelled) return;
         const full = Array.isArray(d) ? d : (d?.results || []);
