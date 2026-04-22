@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2 } from 'lucide-react';
+import { Heart, Trophy, MessageCircle, Share, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2, User } from 'lucide-react';
 import api from '../api';
 import config from '../config';
 import { useTheme } from '../contexts/ThemeContext';
@@ -842,7 +842,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             <div style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: `1px solid ${(T?.pri || '#000')}20` }}>
               {avatarSrc
                 ? <img src={avatarSrc} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
-                : '??'}
+                : <User size={16} color={T?.sub || '#666'} />}
             </div>
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -1025,7 +1025,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                <Share size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
                 <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
             </div>
