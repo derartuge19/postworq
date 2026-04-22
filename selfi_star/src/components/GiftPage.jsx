@@ -24,12 +24,12 @@ export default function GiftPage({ username, onClose }) {
 
     setLoading(true);
     try {
-      await api.request('/gifts/', {
+      await api.request('/gamification/gift/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipient_username: username,
-          amount: amount,
+          amount: Math.round(amount),
           message: message,
         }),
       });
