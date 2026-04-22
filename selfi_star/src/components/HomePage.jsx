@@ -291,6 +291,16 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
         return c;
       });
       setComments(prev => swapDeep(prev));
+      
+      // Secondary safety fetch: get latest tree from server to ensure perfect sync
+      setTimeout(() => {
+        api.request(`/reels/${post.id}/comments/?include_replies=true&depth=2`)
+          .then(d => {
+            const latest = Array.isArray(d) ? d : (d?.results || []);
+            setComments(buildCommentTree(latest));
+          })
+          .catch(() => {});
+      }, 800);
     } catch (err) {
       // Roll back
       const removeDeep = (list) => list.filter(c => c.id !== tempId).map(c => ({
