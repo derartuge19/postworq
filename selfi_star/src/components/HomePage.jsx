@@ -87,7 +87,75 @@ function mergeLocalEngagement(posts) {
 }
 
 /* ── Comment Sheet ── */
-const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T, onCommentAdded }) {
+const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, api, onLike, onReply }) {
+  const isReply = depth > 0;
+  const avatarSize = isReply ? 28 : 34;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ 
+          width: avatarSize, height: avatarSize, borderRadius: '50%', 
+          background: (T?.pri || '#000') + '30', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          overflow: 'hidden'
+        }}>
+          {comment.user?.profile_photo ? (
+            <img src={mediaUrl(comment.user.profile_photo)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : '👤'}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 700, fontSize: isReply ? 12 : 13, color: T?.txt || '#000' }}>{comment.user?.username}</span>
+            <span style={{ fontSize: isReply ? 12 : 13, color: T?.txt || '#000', wordBreak: 'break-word', lineHeight: 1.4 }}>
+              {comment.text}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+            <span style={{ fontSize: 10, color: T?.sub || '#666' }}>{timeAgo(comment.created_at)}</span>
+            {api.hasToken() && (
+              <>
+                <button
+                  onClick={() => onLike(comment)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
+                >
+                  <Heart size={14} fill={comment.is_liked ? (T?.pri || '#000') : 'none'} color={comment.is_liked ? (T?.pri || '#000') : T?.sub || '#666'} />
+                  {comment.likes > 0 && <span style={{ fontSize: 10, color: T?.sub || '#666' }}>{comment.likes}</span>}
+                </button>
+                <button
+                  onClick={() => onReply(comment)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: T?.sub || '#666', fontSize: 11, fontWeight: 600 }}
+                >
+                  Reply
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recursive Replies */}
+      {comment.replies && comment.replies.length > 0 && (
+        <div style={{ marginLeft: depth === 0 ? 44 : 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {comment.replies.map(r => (
+            <CommentItem 
+              key={r.id} 
+              comment={r} 
+              T={T} 
+              depth={depth + 1} 
+              timeAgo={timeAgo} 
+              api={api} 
+              onLike={onLike} 
+              onReply={onReply} 
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, onCommentAdded, T }) {
   // Seed from the feed payload so the sheet paints instantly with whatever
   // the backend already shipped — no loading spinner on first open.  The
   // full list is fetched in the background and replaces the seed.
@@ -136,11 +204,16 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
       pending: true,
     };
     if (replyingTo) {
-      setComments(prev => prev.map(c =>
-        c.id === replyingTo.id
-          ? { ...c, replies: [...(c.replies || []), temp] }
-          : c
-      ));
+      const updateDeep = (list) => list.map(c => {
+        if (c.id === replyingTo.id) {
+          return { ...c, replies: [...(c.replies || []), temp] };
+        }
+        if (c.replies && c.replies.length) {
+          return { ...c, replies: updateDeep(c.replies) };
+        }
+        return c;
+      });
+      setComments(prev => updateDeep(prev));
     } else {
       setComments(prev => [...prev, temp]);
     }
@@ -161,11 +234,16 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
       });
       // Swap temp for real server row
       if (replyTarget) {
-        setComments(prev => prev.map(c =>
-          c.id === replyTarget.id
-            ? { ...c, replies: (c.replies || []).map(r => r.id === tempId ? res : r) }
-            : c
-        ));
+        const swapDeep = (list) => list.map(c => {
+          if (c.id === replyTarget.id) {
+            return { ...c, replies: (c.replies || []).map(r => r.id === tempId ? res : r) };
+          }
+          if (c.replies && c.replies.length) {
+            return { ...c, replies: swapDeep(c.replies) };
+          }
+          return c;
+        });
+        setComments(prev => swapDeep(prev));
       } else {
         setComments(prev => prev.map(c => c.id === tempId ? res : c));
       }
@@ -235,63 +313,21 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
           {comments.length === 0 ? (
             <div style={{ textAlign: 'center', color: T?.sub || '#666', padding: 30, fontSize: 14 }}>No comments yet. Be first!</div>
-          ) : comments.map(c => (
-            <div key={c.id} style={{ marginBottom: 20 }}>
-              {/* Main comment */}
-              <div style={{ display: 'flex', gap: 10 }}>
-                <div style={{ width: 34, height: 34, borderRadius: '50%', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
-                  {c.user?.profile_photo ? <img src={mediaUrl(c.user.profile_photo)} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} /> : '👤'}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: T?.txt || '#000' }}>{c.user?.username}</span>
-                    <span style={{ fontSize: 13, color: T?.txt || '#000' }}>{c.text}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
-                    <span style={{ fontSize: 11, color: T?.sub || '#666' }}>{timeAgo(c.created_at)}</span>
-                    {api.hasToken() && (
-                      <>
-                        <button
-                          onClick={() => handleLikeComment(c)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
-                        >
-                          <Heart size={14} fill={c.is_liked ? (T?.pri || '#000') : 'none'} color={c.is_liked ? (T?.pri || '#000') : T?.sub || '#666'} />
-                          {c.likes > 0 && <span style={{ fontSize: 11, color: T?.sub || '#666' }}>{c.likes}</span>}
-                        </button>
-                        <button
-                          onClick={() => handleReply(c)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
-                        >
-                          <MessageCircle size={14} color={T?.sub || '#666'} />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {/* Replies */}
-              {c.replies && c.replies.length > 0 && (
-                <div style={{ marginLeft: 44, marginTop: 12 }}>
-                  {c.replies.map(r => (
-                    <div key={r.id} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: (T?.pri || '#000') + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>
-                        {r.user?.profile_photo ? <img src={mediaUrl(r.user.profile_photo)} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} /> : '👤'}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontWeight: 700, fontSize: 12, color: T?.txt || '#000' }}>{r.user?.username}</span>
-                          <span style={{ fontSize: 12, color: T?.txt || '#000' }}>
-                            <span style={{ color: T?.pri || '#DA9B2A', fontWeight: 600 }}>@{c.user?.username}</span> {r.text}
-                          </span>
-                        </div>
-                        <span style={{ fontSize: 10, color: T?.sub || '#666', marginTop: 2 }}>{timeAgo(r.created_at)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {comments.map(c => (
+                <CommentItem 
+                  key={c.id} 
+                  comment={c} 
+                  T={T} 
+                  timeAgo={timeAgo} 
+                  api={api} 
+                  onLike={handleLikeComment} 
+                  onReply={handleReply} 
+                />
+              ))}
             </div>
-          ))}
+          )}
         </div>
         {/* Input */}
         <form 

@@ -14,6 +14,145 @@ const mediaUrl = (url) => {
   return `${api.config.baseURL}/${url}`;
 };
 
+const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, replyText, onReplyTextChange, onPostReply, posting, depth = 0 }) => {
+  const isReply = depth > 0;
+  const avatarSize = isReply ? 28 : 36;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: "flex", gap: 12 }}>
+        <div style={{
+          width: avatarSize,
+          height: avatarSize,
+          borderRadius: "50%",
+          background: T.pri + "30",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: isReply ? 12 : 16,
+          flexShrink: 0,
+          overflow: "hidden"
+        }}>
+          {comment.user?.profile_photo ? (
+            <img 
+              src={mediaUrl(comment.user.profile_photo)} 
+              alt="" 
+              style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+            />
+          ) : "👤"}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+            <span style={{ fontSize: isReply ? 13 : 14, fontWeight: 700, color: T.txt }}>
+              {comment.user?.username || "User"}
+            </span>
+            <span style={{ fontSize: 11, color: T.sub }}>
+              {getRelativeTime(comment.created_at)}
+            </span>
+          </div>
+          <div style={{ fontSize: isReply ? 13 : 14, color: T.txt, marginBottom: 8, lineHeight: 1.5, wordBreak: "break-word" }}>
+            {comment.text}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <button
+              onClick={() => onLike(comment.id)}
+              style={{
+                background: "none", border: "none", cursor: "pointer", padding: 0,
+                display: "flex", alignItems: "center", gap: 4,
+                color: comment.is_liked ? "#EF4444" : T.sub,
+                fontSize: 12, fontWeight: 600,
+              }}
+            >
+              <Heart size={16} fill={comment.is_liked ? "#EF4444" : "none"} />
+              {comment.likes_count || 0}
+            </button>
+            <button
+              onClick={() => onReply(comment)}
+              style={{
+                background: "none", border: "none", cursor: "pointer", padding: 0,
+                display: "flex", alignItems: "center", gap: 4,
+                color: T.sub, fontSize: 12, fontWeight: 600,
+              }}
+            >
+              <MessageCircle size={16} />
+              Reply
+            </button>
+            {user && comment.user?.id !== user?.id && (
+              <button
+                onClick={() => onReport(comment.id)}
+                style={{
+                  background: "none", border: "none", cursor: "pointer", padding: 0,
+                  display: "flex", alignItems: "center", gap: 4,
+                  color: T.sub, fontSize: 12, fontWeight: 600, marginLeft: "auto", opacity: 0.6,
+                }}
+              >
+                <Flag size={13} />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Reply Input */}
+      {replyTo === comment.id && (
+        <div style={{ marginLeft: depth === 0 ? 44 : 20, display: "flex", gap: 8 }}>
+          <input
+            type="text"
+            value={replyText}
+            onChange={(e) => onReplyTextChange(e.target.value)}
+            placeholder="Write a reply..."
+            style={{
+              flex: 1, padding: "8px 12px", border: `1px solid ${T.border}`,
+              borderRadius: 20, fontSize: 16, outline: "none",
+            }}
+            onKeyPress={(e) => {
+              if (e.key === "Enter" && !posting) {
+                onPostReply(comment.id);
+              }
+            }}
+          />
+          <button
+            onClick={() => onPostReply(comment.id)}
+            disabled={posting || !replyText.trim()}
+            style={{
+              background: posting || !replyText.trim() ? T.sub : T.pri,
+              border: "none", borderRadius: "50%", width: 32, height: 32,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: posting || !replyText.trim() ? "not-allowed" : "pointer",
+              color: "#fff", flexShrink: 0
+            }}
+          >
+            <Send size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Recursive Replies */}
+      {comment.replies && comment.replies.length > 0 && (
+        <div style={{ marginLeft: depth === 0 ? 48 : 20, display: "flex", flexDirection: "column", gap: 16 }}>
+          {comment.replies.map(reply => (
+            <CommentItem
+              key={reply.id}
+              comment={reply}
+              T={T}
+              user={user}
+              onLike={onLike}
+              onReply={onReply}
+              onReport={onReport}
+              replyTo={replyTo}
+              replyText={replyText}
+              onReplyTextChange={onReplyTextChange}
+              onPostReply={onPostReply}
+              posting={posting}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export function ModernCommentSection({ reelId, user, onClose, onCommentPosted }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
@@ -119,11 +258,16 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
     try {
       setPosting(true);
       const reply = await api.replyToComment(commentId, replyText);
-      setComments(comments.map(c => 
-        c.id === commentId 
-          ? { ...c, replies: [...(c.replies || []), reply], replies_count: c.replies_count + 1 }
-          : c
-      ));
+      const updateDeep = (list) => list.map(c => {
+        if (c.id === commentId) {
+          return { ...c, replies: [...(c.replies || []), reply], replies_count: (c.replies_count || 0) + 1 };
+        }
+        if (c.replies && c.replies.length) {
+          return { ...c, replies: updateDeep(c.replies) };
+        }
+        return c;
+      });
+      setComments(updateDeep(comments));
       setReplyText("");
       setReplyTo(null);
     } catch (error) {
@@ -217,189 +361,20 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {comments.map(comment => (
-                <div key={comment.id} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {/* Comment */}
-                  <div style={{ display: "flex", gap: 12 }}>
-                    <div style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "50%",
-                      background: T.pri + "30",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 16,
-                      flexShrink: 0,
-                    }}>
-                      {comment.user?.profile_photo ? (
-                        <img 
-                          src={mediaUrl(comment.user.profile_photo)} 
-                          alt="" 
-                          style={{ 
-                            width: 36, 
-                            height: 36, 
-                            borderRadius: "50%", 
-                            objectFit: "cover" 
-                          }} 
-                        />
-                      ) : (
-                        "??"
-                      )}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: T.txt }}>
-                          {comment.user?.username || "User"}
-                        </span>
-                        <span style={{ fontSize: 11, color: T.sub }}>
-                          {getRelativeTime(comment.created_at)}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: 14, color: T.txt, marginBottom: 8, lineHeight: 1.5 }}>
-                        {comment.text}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                        <button
-                          onClick={() => handleLikeComment(comment.id)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            padding: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 4,
-                            color: comment.is_liked ? "#EF4444" : T.sub,
-                            fontSize: 12,
-                            fontWeight: 600,
-                          }}
-                        >
-                          <Heart size={16} fill={comment.is_liked ? "#EF4444" : "none"} />
-                          {comment.likes_count || 0}
-                        </button>
-                        <button
-                          onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            padding: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 4,
-                            color: T.sub,
-                            fontSize: 12,
-                            fontWeight: 600,
-                          }}
-                        >
-                          <MessageCircle size={16} />
-                          Reply {comment.replies_count > 0 && `(${comment.replies_count})`}
-                        </button>
-                        {user && comment.user?.id !== user?.id && (
-                          <button
-                            onClick={() => setReportingComment(comment.id)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: 0,
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 4,
-                              color: T.sub,
-                              fontSize: 12,
-                              fontWeight: 600,
-                              marginLeft: "auto",
-                              opacity: 0.6,
-                            }}
-                            title="Report comment"
-                          >
-                            <Flag size={13} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Replies */}
-                  {comment.replies && comment.replies.length > 0 && (
-                    <div style={{ marginLeft: 48, display: "flex", flexDirection: "column", gap: 12 }}>
-                      {comment.replies.map(reply => (
-                        <div key={reply.id} style={{ display: "flex", gap: 12 }}>
-                          <div style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: "50%",
-                            background: T.pri + "20",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 12,
-                            flexShrink: 0,
-                          }}>
-                            👤
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                              <span style={{ fontSize: 13, fontWeight: 700, color: T.txt }}>
-                                {reply.user?.username || "User"}
-                              </span>
-                              <span style={{ fontSize: 10, color: T.sub }}>
-                                {getRelativeTime(reply.created_at)}
-                              </span>
-                            </div>
-                            <div style={{ fontSize: 13, color: T.txt, lineHeight: 1.4 }}>
-                              {reply.text}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Reply Input */}
-                  {replyTo === comment.id && (
-                    <div style={{ marginLeft: 48, display: "flex", gap: 8 }}>
-                      <input
-                        type="text"
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder="Write a reply..."
-                        style={{
-                          flex: 1,
-                          padding: "8px 12px",
-                          border: `1px solid ${T.border}`,
-                          borderRadius: 20,
-                          fontSize: 13,
-                          outline: "none",
-                        }}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter" && !posting) {
-                            handlePostReply(comment.id);
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={() => handlePostReply(comment.id)}
-                        disabled={posting || !replyText.trim()}
-                        style={{
-                          background: posting || !replyText.trim() ? T.sub : T.pri,
-                          border: "none",
-                          borderRadius: "50%",
-                          width: 32,
-                          height: 32,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: posting || !replyText.trim() ? "not-allowed" : "pointer",
-                          color: "#fff",
-                        }}
-                      >
-                        <Send size={16} />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  T={T}
+                  user={user}
+                  onLike={handleLikeComment}
+                  onReply={(c) => setReplyTo(replyTo === c.id ? null : c.id)}
+                  onReport={setReportingComment}
+                  replyTo={replyTo}
+                  replyText={replyText}
+                  onReplyTextChange={setReplyText}
+                  onPostReply={handlePostReply}
+                  posting={posting}
+                />
               ))}
             </div>
           )}
