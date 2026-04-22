@@ -229,7 +229,7 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
 
       {/* ── Long-press context menu ── */}
       {showMenu && (
-        <div style={{ position:'fixed', inset:0, zIndex:9800, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'flex-end' }}
+        <div style={{ position:'fixed', top:0, left: window.innerWidth <= 1024 ? 0 : 260, right: 0, bottom: 0, zIndex:9800, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'flex-end' }}
           onClick={() => setShowMenu(false)}>
           <div style={{ width:'100%', background:'#1a1a1a', borderRadius:'24px 24px 0 0', padding:'20px 16px 36px', fontFamily:'system-ui,sans-serif' }}
             onClick={e => e.stopPropagation()}>

@@ -313,7 +313,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
       style={{ 
         position: 'fixed', 
         top: 0, 
-        left: 0, 
+        left: window.innerWidth <= 1024 ? 0 : 260, 
         right: 0, 
         bottom: window.innerWidth <= 1024 ? 68 : 0, 
         background: 'rgba(0,0,0,0.5)', 
@@ -408,7 +408,7 @@ const PostInfoSheet = memo(function PostInfoSheet({ post, onClose, T }) {
   const isVideo = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(raw) || raw.includes('/video/upload/');
   const avatarSrc = post.user?.profile_photo ? mediaUrl(post.user.profile_photo) : null;
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9300, display: 'flex', alignItems: 'flex-end' }}>
+    <div onClick={onClose} style={{ position: 'fixed', top: 0, left: window.innerWidth <= 1024 ? 0 : 260, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9300, display: 'flex', alignItems: 'flex-end' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: T?.cardBg || '#fff', borderRadius: '20px 20px 0 0', padding: '20px 20px 32px', boxSizing: 'border-box' }}>
         <div style={{ width: 36, height: 4, borderRadius: 2, background: T?.border || '#e0e0e0', margin: '0 auto 16px' }} />
         <div style={{ fontSize: 16, fontWeight: 700, color: T?.txt || '#000', marginBottom: 16 }}>Post Info</div>
@@ -1259,7 +1259,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
       {/* Share toast */}
       {shareToast && (
         <div style={{
-          position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
+          position: 'fixed', bottom: 80, left: window.innerWidth <= 1024 ? '50%' : `calc(50% + 130px)`, transform: 'translateX(-50%)',
           background: 'rgba(0,0,0,0.88)', color: '#fff', padding: '10px 18px',
           borderRadius: 20, fontSize: 14, fontWeight: 600, zIndex: 10000,
           boxShadow: '0 4px 20px rgba(0,0,0,0.25)', animation: 'toastIn 0.2s ease-out',
