@@ -210,7 +210,17 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
   return (
     <div
       onClick={onClose}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9000, display: 'flex', alignItems: 'flex-end' }}
+      style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: window.innerWidth <= 1024 ? 68 : 0, 
+        background: 'rgba(0,0,0,0.5)', 
+        zIndex: 9500, 
+        display: 'flex', 
+        alignItems: 'flex-end' 
+      }}
     >
       <div
         onClick={e => e.stopPropagation()}
@@ -284,7 +294,18 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, T,
           ))}
         </div>
         {/* Input */}
-        <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 16px', borderTop: `1px solid ${T?.border || '#e0e0e0'}` }}>
+        <form 
+          onSubmit={handleSend} 
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 8, 
+            padding: '10px 16px', 
+            paddingBottom: window.innerWidth <= 1024 ? 12 : 'max(10px, env(safe-area-inset-bottom))',
+            borderTop: `1px solid ${T?.border || '#e0e0e0'}`,
+            background: T?.cardBg || '#fff'
+          }}
+        >
           {replyingTo && (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: (T?.pri || '#000') + '10', borderRadius: 8 }}>
               <span style={{ fontSize: 12, color: T?.txt || '#000' }}>
