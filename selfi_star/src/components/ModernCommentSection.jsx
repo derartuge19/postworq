@@ -148,7 +148,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
           top: 0,
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: window.innerWidth <= 1024 ? 68 : 0,
           background: "rgba(0,0,0,0.7)",
           display: "flex",
           alignItems: "flex-end",
