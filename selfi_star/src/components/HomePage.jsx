@@ -565,8 +565,21 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   const [shareToast, setShareToast] = useState('');
   const [captionExpanded, setCaptionExpanded] = useState(false);
   const [showGiftModal, setShowGiftModal] = useState(false);
+  const [baseFontSize, setBaseFontSize] = useState(16);
   const cardRef = useRef(null);
   const videoRef = useRef(null);
+
+  // Get base font size from CSS variable
+  useEffect(() => {
+    const updateBaseFontSize = () => {
+      const computedStyle = getComputedStyle(document.documentElement);
+      const fontSize = computedStyle.getPropertyValue('--font-size-base');
+      setBaseFontSize(parseFloat(fontSize) || 16);
+    };
+    updateBaseFontSize();
+    window.addEventListener('storage', updateBaseFontSize);
+    return () => window.removeEventListener('storage', updateBaseFontSize);
+  }, []);
 
   // Campaign detection — a post is a campaign entry if the backend flagged it
   // (is_campaign_post) or it is linked to a campaign (campaign_id/campaign).
@@ -841,10 +854,10 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
           >
-            <div style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: `1px solid ${(T?.pri || '#000')}20` }}>
+            <div style={{ width: 'calc(var(--font-size-base) * 1.75)', height: 'calc(var(--font-size-base) * 1.75)', borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'calc(var(--font-size-base) * 0.875)', border: `1px solid ${(T?.pri || '#000')}20` }}>
               {avatarSrc
                 ? <img src={avatarSrc} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
-                : <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 600 }}>
+                : <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 'calc(var(--font-size-base) * 0.75)', fontWeight: 600 }}>
                     {post.user?.username?.charAt(0)?.toUpperCase() || 'U'}
                   </div>}
             </div>
@@ -854,20 +867,20 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               <button
                 className="hp-btn"
                 onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 13, fontWeight: 700, color: T?.txt || '#000' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'calc(var(--font-size-base) * 0.8125)', fontWeight: 700, color: T?.txt || '#000' }}
               >
                 {post.user?.username || 'user'}
               </button>
-              <CheckCircle size={12} fill={T?.pri || '#000'} color="#fff" />
+              <CheckCircle size={baseFontSize * 0.75} fill={T?.pri || '#000'} color="#fff" />
             </div>
-            <div style={{ fontSize: 11, color: T?.sub || '#666' }}>{timeAgo(post.created_at)}</div>
+            <div style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666' }}>{timeAgo(post.created_at)}</div>
           </div>
           <button
             className="hp-btn"
             onClick={(e) => { e.stopPropagation(); setOptionsAnchor(e.currentTarget.getBoundingClientRect()); setShowOptions(true); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: T?.sub || '#666', display: 'flex', alignItems: 'center' }}
           >
-            <MoreHorizontal size={18} />
+            <MoreHorizontal size={baseFontSize * 1.125} />
           </button>
         </div>
 
@@ -948,7 +961,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
                 pointerEvents: 'none',
               }}>
-                <Play size={26} fill="#1C1917" color="#1C1917" style={{ marginLeft: 3 }} />
+                <Play size={baseFontSize * 1.625} fill="#1C1917" color="#1C1917" style={{ marginLeft: 3 }} />
               </div>
             </div>
           )}
@@ -958,14 +971,14 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             <div style={{
               position: 'absolute', bottom: 8, right: 8,
               background: 'rgba(0,0,0,0.55)', color: '#fff',
-              borderRadius: 20, padding: '3px 8px', fontSize: 11, fontWeight: 600,
+              borderRadius: 20, padding: '3px 8px', fontSize: 'calc(var(--font-size-base) * 0.6875)', fontWeight: 600,
               display: 'flex', alignItems: 'center', gap: 3,
               backdropFilter: 'blur(6px)',
               pointerEvents: 'none',
               zIndex: 5,
               maxWidth: 'calc(100% - 16px)',
             }}>
-              <Eye size={12} />
+              <Eye size={baseFontSize * 0.75} />
               {viewCount.toLocaleString()}
             </div>
           )}
@@ -988,20 +1001,20 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               >
                 {isCampaignPost ? (
                   <Trophy
-                    size={16}
+                    size={baseFontSize}
                     fill={liked ? T?.pri || '#000' : 'none'}
                     color={liked ? T?.pri || '#000' : T?.txt || '#000'}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 ) : (
                   <Heart
-                    size={16}
+                    size={baseFontSize}
                     fill={liked ? '#EF4444' : 'none'}
                     color={liked ? '#EF4444' : T?.txt || '#000'}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
-                <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
               </button>
               {/* Comment */}
               <button
@@ -1014,8 +1027,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <MessageCircle size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-                <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
+                <MessageCircle size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
               </button>
               {/* Share */}
               <button
@@ -1029,8 +1042,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-                <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
+                <Share2 size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift */}
               <button
@@ -1044,7 +1057,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Gift size={16} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                <Gift size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
               </button>
             </div>
             {/* Save */}
@@ -1059,7 +1072,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               }}
             >
               <Bookmark
-                size={16}
+                size={baseFontSize}
                 fill={saved ? T?.pri || '#000' : 'none'}
                 color={saved ? T?.pri || '#000' : T?.txt || '#000'}
               />
@@ -1071,7 +1084,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             <div
               onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
               style={{
-                fontSize: 12, color: T?.txt || '#000', marginTop: 1, lineHeight: 1.3,
+                fontSize: 'calc(var(--font-size-base) * 0.75)', color: T?.txt || '#000', marginTop: 1, lineHeight: 1.3,
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical',
                 WebkitLineClamp: captionExpanded ? 'unset' : 2,
