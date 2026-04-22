@@ -371,6 +371,18 @@ const api = {
 
   // Public Settings (Admin controlled)
   getPublicSettings: () => api.request('/settings/public/'),
+
+  // ─── Gamification ─────────────────────────────────────────────────────────
+  getGamificationStatus: () => api.request('/gamification/status/'),
+  claimLoginBonus: () => api.request('/gamification/login-bonus/', { method: 'POST' }),
+  sendGift: (recipientUsername, amount, message) => 
+    api.request('/gamification/gift/', {
+      method: 'POST',
+      body: JSON.stringify({ recipient_username: recipientUsername, amount, message })
+    }),
+  getDailySpin: () => api.request('/gamification/daily-spin/'),
+  performSpin: () => api.request('/gamification/perform-spin/', { method: 'POST' }),
+
 };
 
 // Initialize on load

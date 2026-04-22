@@ -13,6 +13,7 @@ import {
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api';
+import GamificationBar from '../components/GamificationBar';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -52,6 +53,8 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('For You');
   const [refreshing, setRefreshing] = useState(false);
+  const [giftPost, setGiftPost] = useState(null); // Post being gifted
+  const [showPostMenu, setShowPostMenu] = useState(null);
   const { user } = useAuth();
   
   const [visibleItems, setVisibleItems] = useState([]);
@@ -199,7 +202,7 @@ export default function HomeScreen({ navigation }) {
             </View>
             <Text style={styles.time}>{timeAgo(item.created_at)}</Text>
           </View>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowPostMenu(item)}>
             <Ionicons name="ellipsis-horizontal" size={20} color={T.sub} />
           </TouchableOpacity>
         </View>
@@ -266,7 +269,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.actionText}>{(item.shares || 0) > 0 ? item.shares : ''}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionBtn}>
+            <TouchableOpacity style={styles.actionBtn} onPress={() => setGiftPost(item)}>
               <Ionicons name="gift-outline" size={20} color={T.txt} />
             </TouchableOpacity>
           </View>
@@ -326,6 +329,65 @@ export default function HomeScreen({ navigation }) {
           )
         }
       />
+
+      {/* ── Post Menu Modal ── */}
+      <Modal visible={!!showPostMenu} transparent animationType="fade">
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowPostMenu(null)}>
+          <View style={styles.bottomSheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Post Options</Text>
+            
+            <TouchableOpacity style={styles.sheetItem} onPress={() => { setShowPostMenu(null); handleShare(showPostMenu.id); }}>
+              <Ionicons name="link-outline" size={20} color={T.txt} />
+              <Text style={styles.sheetItemText}>Copy Link</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.sheetItem} onPress={() => { setShowPostMenu(null); alert('Post info: ' + showPostMenu.caption); }}>
+              <Ionicons name="information-circle-outline" size={20} color={T.txt} />
+              <Text style={styles.sheetItemText}>Post Info</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.sheetItem} onPress={() => { setShowPostMenu(null); alert('Reported'); }}>
+              <Ionicons name="flag-outline" size={20} color="#EF4444" />
+              <Text style={[styles.sheetItemText, { color: '#EF4444' }]}>Report Post</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.sheetClose} onPress={() => setShowPostMenu(null)}>
+              <Text style={styles.sheetCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ── Gift Modal ── */}
+      <Modal visible={!!giftPost} transparent animationType="slide">
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setGiftPost(null)}>
+          <View style={styles.bottomSheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>🎁 Send Gift to @{giftPost?.user?.username}</Text>
+            
+            <View style={styles.giftPicker}>
+              {[10, 25, 50, 100].map(amt => (
+                <TouchableOpacity 
+                  key={amt} 
+                  style={styles.giftChip} 
+                  onPress={() => {
+                    api.sendGift(giftPost?.user?.username, amt, 'Gift from mobile!')
+                      .then(() => { alert(`Sent ${amt} coins!`); setGiftPost(null); })
+                      .catch(e => alert(e.message));
+                  }}
+                >
+                  <Text style={styles.giftChipText}>🪙 {amt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity style={styles.sheetClose} onPress={() => setGiftPost(null)}>
+              <Text style={styles.sheetCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -535,4 +597,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: T.sub,
   },
+  sheetCloseText: { fontSize: 16, fontWeight: '700', color: T.sub },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  bottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 40 },
+  sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+  sheetTitle: { fontSize: 18, fontWeight: '800', color: '#1C1917', marginBottom: 20, textAlign: 'center' },
+  sheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
+  sheetItemText: { fontSize: 16, fontWeight: '600', marginLeft: 12, color: T.txt },
+  sheetClose: { marginTop: 10, paddingVertical: 15, alignItems: 'center' },
+  giftPicker: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 20 },
+  giftChip: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, borderWeight: 1.5, borderColor: '#DA9B2A', borderWidth: 1.5, backgroundColor: '#FFF8F0' },
+  giftChipText: { fontSize: 16, fontWeight: '800', color: '#DA9B2A' },
 });

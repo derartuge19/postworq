@@ -262,18 +262,24 @@ export default function ReelsScreen({ route, navigation }) {
     try {
       const data    = await api.request(`/reels/?limit=15&offset=${offset}`);
       const raw     = Array.isArray(data) ? data : (data.results || []);
+      const isVideo = (url) => {
+        if (!url) return false;
+        return url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('/video/upload/');
+      };
+      
+      let items = raw.filter(r => isVideo(r.media || r.image));
       
       if (offset === 0 && initialId) {
-        const idx = raw.findIndex(r => r.id === initialId);
+        const idx = items.findIndex(r => r.id === initialId);
         if (idx > 0) {
-          const [t] = raw.splice(idx, 1);
-          raw.unshift(t);
+          const [t] = items.splice(idx, 1);
+          items.unshift(t);
         }
-        setReels(raw);
+        setReels(items);
       } else if (offset === 0) {
-        setReels(raw);
+        setReels(items);
       } else {
-        setReels(prev => [...prev, ...raw]);
+        setReels(prev => [...prev, ...items]);
       }
       setHasMore(!!data?.next);
     } catch (e) {

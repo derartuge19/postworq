@@ -17,6 +17,7 @@ import { useIsFocused } from '@react-navigation/native';
 import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import config from '../config';
+import GamificationBar from '../components/GamificationBar';
 
 const { width } = Dimensions.get('window');
 const BRAND_GOLD = '#DA9B2A';
@@ -114,6 +115,9 @@ export default function ProfileScreen({ navigation }) {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Gamification Section */}
+        <GamificationBar userId={user?.id} />
+
         {/* Profile Info */}
         <View style={styles.profileInfo}>
           <View style={styles.mainInfoRow}>
