@@ -416,8 +416,6 @@ export default function HomeScreen({ navigation }) {
 
       {/* ── Gift Modal ── */}
       <Modal visible={!!giftPost} transparent animationType="slide">
-        <TouchableOpacity style={styles.modalOverlay} onPress={() => setGiftPost(null)}>
-          <View style={styles.bottomSheet}>
         <TouchableOpacity 
           style={styles.modalOverlay} 
           activeOpacity={1} 
