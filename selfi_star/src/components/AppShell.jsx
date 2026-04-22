@@ -40,10 +40,10 @@ export function AppShell({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Sidebar-only items (Explore moved to top nav bar, Campaigns kept in sidebar)
+  // All nav items (sidebar uses full list; mobile bottom uses subset)
   const menuItems = [
-    { id: 'home', icon: Home, label: 'Home' },
-    { id: 'reels', icon: Film, label: 'Reels' },
+    { id: 'home',          icon: Home,         label: 'Home' },
+    { id: 'reels',         icon: Film,         label: 'Discover' },
     {
       id: 'campaigns',
       icon: Trophy,
@@ -56,14 +56,14 @@ export function AppShell({
       label: t('notifications'),
       action: onShowNotifications,
     },
-    { id: 'messages', icon: MessageCircle, label: t('messages') },
+    { id: 'messages',      icon: MessageCircle, label: t('messages') },
     {
       id: 'create',
       icon: PlusSquare,
       label: t('create'),
       action: onShowPostPage,
     },
-    { id: 'profile', icon: User, label: t('profile'), action: onShowProfile },
+    { id: 'profile',  icon: User,    label: t('profile'), action: onShowProfile },
     {
       id: 'settings',
       icon: Settings,
@@ -72,6 +72,15 @@ export function AppShell({
     },
   ];
 
+  // Mobile bottom-bar: Home | Discover | [+] | Notifications | Profile
+  // Matches the React Native AppNavigator tab order exactly.
+  const MOBILE_BOTTOM_TABS = [
+    { item: menuItems[0], label: 'Home',          iconName: 'home' },
+    { item: menuItems[1], label: 'Discover',       iconName: 'discover' },
+    { item: menuItems[5], label: '',               isCreate: true },
+    { item: menuItems[3], label: 'Alerts',         iconName: 'bell',    badge: unreadNotifCount },
+    { item: menuItems[6], label: 'Profile',        iconName: 'profile' },
+  ];
 
   const handleItemClick = (item) => {
     // If tapping the already-active feed tab (no special action), scroll to top + refresh
@@ -87,8 +96,7 @@ export function AppShell({
   };
 
   // ─── Mobile: swipe left/right to switch bottom-nav tabs (TikTok-style) ──────
-  // Tab order follows the mobile bottom bar, skipping the center "create" action.
-  const MOBILE_TAB_ORDER = ['home', 'reels', 'messages', 'profile'];
+  const MOBILE_TAB_ORDER = ['home', 'reels', 'notifications', 'profile'];
   const swipeStart = useRef({ x: 0, y: 0, t: 0, active: false });
   const handleMainTouchStart = (e) => {
     if (!isMobile) return;
@@ -347,68 +355,73 @@ export function AppShell({
         {children}
       </main>
 
-      {/* 4. Mobile Bottom Navigation */}
+      {/* 4. Mobile Bottom Navigation — matches React Native AppNavigator exactly */}
       {isMobile && (
         <nav
           style={{
             position: 'fixed',
             bottom: 0, left: 0, right: 0,
-            height: 68,
-            background: T.cardBg === '#fff' || !T.cardBg ? 'rgba(255,255,255,0.95)' : T.cardBg,
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
+            height: 60,
+            background: T.cardBg === '#fff' || !T.cardBg
+              ? 'rgba(255,255,255,0.97)'
+              : T.cardBg + 'f7',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             borderTop: `1px solid ${T.border}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-around',
             zIndex: 1000,
-            paddingBottom: 4,
-            boxShadow: '0 -4px 24px rgba(0,0,0,0.08)',
+            paddingBottom: 'env(safe-area-inset-bottom, 4px)',
+            boxSizing: 'border-box',
+            boxShadow: '0 -2px 16px rgba(0,0,0,0.07)',
           }}
         >
           <style>{`
-            .mob-nav-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); }
-            .mob-nav-btn:active { transform: scale(0.82) !important; }
+            .mob-nav-btn {
+              transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1),opacity 0.1s;
+              -webkit-tap-highlight-color: transparent;
+            }
+            .mob-nav-btn:active { transform: scale(0.80) !important; opacity: 0.75; }
           `}</style>
-          {[
-            { item: menuItems[0], label: 'Home'    },
-            { item: menuItems[1], label: 'Reels'   },
-            { item: menuItems[5], label: 'New',  isCreate: true },
-            { item: menuItems[4], label: 'Messages'},
-            { item: menuItems[6], label: 'Profile' },
-          ].map(({ item, label, isCreate }) => {
+
+          {MOBILE_BOTTOM_TABS.map(({ item, label, isCreate, badge }) => {
             const Icon = item.icon;
             let isActive = activeTab === item.id;
-            if (item.id === 'home' && (activeTab === 'foryou' || activeTab === 'feed' || activeTab === 'home')) isActive = true;
+            if (item.id === 'home' && ['foryou','feed','home'].includes(activeTab)) isActive = true;
             if (item.id === 'reels' && activeTab === 'reels') isActive = true;
-            const isBell = item.id === 'notifications';
-            const isMsg = item.id === 'messages';
-            const badgeCount = isBell ? unreadNotifCount : (isMsg ? unreadDmCount : 0);
+            if (item.id === 'notifications' && activeTab === 'notifications') isActive = true;
 
+            /* ── Center CREATE button ── */
             if (isCreate) return (
               <button
-                key={item.id}
+                key="create"
+                id="mob-nav-create"
                 className="mob-nav-btn"
                 onClick={() => handleItemClick(item)}
                 style={{
-                  background: T.priGradient || T.pri,
+                  background: T.priGradient
+                    ? `linear-gradient(135deg, ${T.pri}, ${T.pri}cc)`
+                    : T.pri,
                   border: 'none',
-                  borderRadius: '50%',
-                  width: 52, height: 52,
+                  borderRadius: 16,
+                  width: 48, height: 32,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: `0 4px 20px ${T.pri}60`,
+                  boxShadow: `0 4px 16px ${T.pri}55`,
                   cursor: 'pointer',
                   flexShrink: 0,
-                  marginBottom: 8,
                 }}
               >
-                <Icon size={26} strokeWidth={2.2} color="#fff" />
+                <PlusSquare size={22} strokeWidth={2.4} color="#fff" />
               </button>
             );
 
+            /* ── Regular tab button ── */
+            const badgeCount = badge ?? (item.id === 'messages' ? unreadDmCount : 0);
             return (
               <button
                 key={item.id}
+                id={`mob-nav-${item.id}`}
                 className="mob-nav-btn"
                 onClick={() => handleItemClick(item)}
                 style={{
@@ -419,47 +432,31 @@ export function AppShell({
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 3,
-                  padding: '4px 10px',
+                  gap: 2,
+                  padding: '6px 12px',
                   position: 'relative',
-                  minWidth: 52,
+                  minWidth: 44,
+                  flex: 1,
                 }}
               >
-                {/* Active top indicator */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0, left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: isActive ? 20 : 0,
-                  height: 3,
-                  borderRadius: 2,
-                  background: T.priGradient || T.pri,
-                  transition: 'width 0.25s cubic-bezier(0.34,1.56,0.64,1)',
-                }} />
-
-                {/* Icon with glow bg when active */}
+                {/* Icon */}
                 <div style={{
                   position: 'relative',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 36, height: 36,
-                  borderRadius: 12,
-                  background: isActive ? T.pri + '18' : 'transparent',
-                  transition: 'background 0.2s',
                 }}>
                   <Icon
-                    size={22}
+                    size={24}
                     strokeWidth={isActive ? 2.5 : 1.8}
-                    color={isActive ? T.pri : T.sub}
-                    fill={isActive && (item.id === 'home') ? T.pri + '40' : 'none'}
+                    color={isActive ? (T.pri || '#DA9B2A') : (T.sub || '#999')}
                   />
-                  {(isBell || isMsg) && badgeCount > 0 && (
+                  {badgeCount > 0 && (
                     <div style={{
-                      position: 'absolute', top: 2, right: 2,
-                      minWidth: 14, height: 14, borderRadius: 7,
+                      position: 'absolute', top: -4, right: -6,
+                      minWidth: 15, height: 15, borderRadius: 8,
                       background: '#EF4444', color: '#fff',
                       fontSize: 8, fontWeight: 800,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      padding: '0 2px', boxSizing: 'border-box',
+                      padding: '0 3px', boxSizing: 'border-box',
                       border: '1.5px solid #fff', lineHeight: 1,
                     }}>
                       {badgeCount > 99 ? '99+' : badgeCount}
@@ -468,13 +465,14 @@ export function AppShell({
                 </div>
 
                 {/* Label */}
-                <span style={{
-                  fontSize: 10,
-                  fontWeight: isActive ? 700 : 500,
-                  color: isActive ? T.pri : T.sub,
-                  transition: 'color 0.2s',
-                  lineHeight: 1,
-                }}>{label}</span>
+                {label ? (
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: isActive ? 700 : 400,
+                    color: isActive ? (T.pri || '#DA9B2A') : (T.sub || '#999'),
+                    lineHeight: 1,
+                  }}>{label}</span>
+                ) : null}
               </button>
             );
           })}

@@ -359,6 +359,9 @@ const api = {
 
   // Health check
   healthCheck: () => api.request('/health/'),
+
+  // Public Settings (Admin controlled)
+  getPublicSettings: () => api.request('/settings/public/'),
 };
 
 // Initialize on load

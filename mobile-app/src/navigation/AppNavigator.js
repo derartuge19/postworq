@@ -1,9 +1,12 @@
-import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet, Platform, ActivityIndicator, Alert, Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import api from '../api';
+import Constants from 'expo-constants';
 
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -19,123 +22,214 @@ import CommentsScreen from '../screens/CommentsScreen';
 import CampaignsScreen from '../screens/CampaignsScreen';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
 
-const Tab = createBottomTabNavigator();
+// ── Brand theme — keep in sync with web selfi_star theme ──────────────────────
+const BRAND = {
+  pri:      '#DA9B2A',   // gold accent — matches web T.pri
+  bg:       '#ffffff',
+  cardBg:   '#ffffff',
+  border:   '#e5e5e5',
+  txt:      '#000000',
+  sub:      '#999999',
+  inactive: '#999999',
+};
+
+const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// Main tab navigator for authenticated users
+// ── Custom Tab Bar ─────────────────────────────────────────────────────────────
+// Matches the web AppShell mobile bottom nav: Home | Discover | [+] | Alerts | Profile
+function CustomTabBar({ state, descriptors, navigation }) {
+  const insets = useSafeAreaInsets();
+
+  const TAB_ORDER = ['Home', 'Discover', 'Create', 'Notifications', 'Profile'];
+
+  return (
+    <View style={[styles.tabBar, { paddingBottom: insets.bottom || 8 }]}>
+      {TAB_ORDER.map((routeName, index) => {
+        const route = state.routes.find(r => r.name === routeName);
+        if (!route) return null;
+
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === state.routes.indexOf(route);
+        const isCreate  = routeName === 'Create';
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        // ── Icon map ──
+        const iconMap = {
+          Home:          isFocused ? 'home'              : 'home-outline',
+          Discover:      isFocused ? 'compass'           : 'compass-outline',
+          Create:        'add',
+          Notifications: isFocused ? 'notifications'     : 'notifications-outline',
+          Profile:       isFocused ? 'person'            : 'person-outline',
+        };
+        const iconName = iconMap[routeName];
+        const label    = routeName === 'Notifications' ? 'Alerts' : routeName;
+
+        // ── Center Create pill button ──
+        if (isCreate) {
+          return (
+            <TouchableOpacity
+              key={routeName}
+              accessibilityRole="button"
+              accessibilityLabel="Create new post"
+              onPress={onPress}
+              activeOpacity={0.8}
+              style={styles.createBtn}
+            >
+              <Ionicons name="add" size={22} color="#fff" strokeWidth={2.5} />
+            </TouchableOpacity>
+          );
+        }
+
+        // ── Normal tab ──
+        return (
+          <TouchableOpacity
+            key={routeName}
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            onPress={onPress}
+            activeOpacity={0.7}
+            style={styles.tabItem}
+          >
+            <Ionicons
+              name={iconName}
+              size={24}
+              color={isFocused ? BRAND.pri : BRAND.inactive}
+            />
+            <Text style={[styles.tabLabel, { color: isFocused ? BRAND.pri : BRAND.inactive, fontWeight: isFocused ? '700' : '400' }]}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+// ── Main Tab Navigator ─────────────────────────────────────────────────────────
 function MainTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Discover') {
-            iconName = focused ? 'compass' : 'compass-outline';
-          } else if (route.name === 'Create') {
-            iconName = focused ? 'add-circle' : 'add-circle-outline';
-          } else if (route.name === 'Notifications') {
-            iconName = focused ? 'notifications' : 'notifications-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#000',
-        tabBarInactiveTintColor: '#999',
-        tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopWidth: 1,
-          borderTopColor: '#e5e5e5',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        headerShown: false,
-      })}
+      tabBar={props => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Discover" component={DiscoverScreen} />
-      <Tab.Screen name="Create" component={CreateScreen} />
+      <Tab.Screen name="Home"          component={HomeScreen} />
+      <Tab.Screen name="Discover"      component={DiscoverScreen} />
+      <Tab.Screen name="Create"        component={CreateScreen} />
       <Tab.Screen name="Notifications" component={NotificationsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile"       component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
 
-// Stack navigator for nested screens
+// ── Main Stack (wraps tabs + push screens) ─────────────────────────────────────
 function MainStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#fff',
-        },
-        headerTintColor: '#000',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+        headerStyle: { backgroundColor: BRAND.bg, elevation: 0, shadowOpacity: 0 },
+        headerTintColor: BRAND.txt,
+        headerTitleStyle: { fontWeight: '700', fontSize: 16 },
+        headerBackTitleVisible: false,
       }}
     >
-      <Stack.Screen 
-        name="MainTabs" 
-        component={MainTabs} 
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen 
-        name="VideoDetail" 
-        component={VideoDetailScreen}
-        options={{ title: 'Video' }}
-      />
-      <Stack.Screen 
-        name="ProfileDetail" 
-        component={ProfileDetailScreen}
-        options={{ title: 'Profile' }}
-      />
-      <Stack.Screen 
-        name="Comments" 
-        component={CommentsScreen}
-        options={{ title: 'Comments' }}
-      />
-      <Stack.Screen 
-        name="Campaigns" 
-        component={CampaignsScreen}
-        options={{ title: 'Campaigns' }}
-      />
-      <Stack.Screen 
-        name="CampaignDetail" 
-        component={CampaignDetailScreen}
-        options={{ title: 'Campaign' }}
-      />
+      <Stack.Screen name="MainTabs"       component={MainTabs}             options={{ headerShown: false }} />
+      <Stack.Screen name="VideoDetail"    component={VideoDetailScreen}    options={{ title: 'Video' }} />
+      <Stack.Screen name="ProfileDetail"  component={ProfileDetailScreen}  options={{ title: 'Profile' }} />
+      <Stack.Screen name="Comments"       component={CommentsScreen}       options={{ title: 'Comments' }} />
+      <Stack.Screen name="Campaigns"      component={CampaignsScreen}      options={{ title: 'Campaigns' }} />
+      <Stack.Screen name="CampaignDetail" component={CampaignDetailScreen} options={{ title: 'Campaign' }} />
     </Stack.Navigator>
   );
 }
 
-// Auth stack for login/register
+// ── Auth Stack ─────────────────────────────────────────────────────────────────
 function AuthStack() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login"    component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 }
 
-// Root navigator that handles auth state
+// ── Root Navigator ─────────────────────────────────────────────────────────────
 function RootNavigator() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const [appLoading, setAppLoading] = useState(true);
+  const [forceUpdate, setForceUpdate] = useState(null);
 
-  if (loading) {
+  useEffect(() => {
+    checkMobileConfig();
+  }, []);
+
+  const checkMobileConfig = async () => {
+    try {
+      const config = await api.getPublicSettings();
+      
+      // Check for force update from admin side
+      if (config?.force_update?.enabled) {
+        const minVersion = config.force_update.min_version;
+        const currentVersion = Constants.expoConfig?.version || '1.0.0';
+        
+        if (isVersionLower(currentVersion, minVersion)) {
+          setForceUpdate(config.force_update);
+          return;
+        }
+      }
+      
+      // Feature flags could be stored in a context here if needed
+    } catch (e) {
+      console.warn('[RootNavigator] Config fetch failed:', e);
+    } finally {
+      setAppLoading(false);
+    }
+  };
+
+  const isVersionLower = (current, min) => {
+    const c = current.split('.').map(Number);
+    const m = min.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+      if ((c[i] || 0) < (m[i] || 0)) return true;
+      if ((c[i] || 0) > (m[i] || 0)) return false;
+    }
+    return false;
+  };
+
+  if (authLoading || appLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#000" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={BRAND.pri} />
+      </View>
+    );
+  }
+
+  if (forceUpdate) {
+    return (
+      <View style={styles.updateContainer}>
+        <View style={styles.updateCard}>
+          <Ionicons name="cloud-download" size={64} color={BRAND.pri} />
+          <Text style={styles.updateTitle}>Update Required</Text>
+          <Text style={styles.updateMessage}>
+            {forceUpdate.message || 'A new version of FlipStar is available. Please update to continue.'}
+          </Text>
+          <TouchableOpacity 
+            style={styles.updateBtn}
+            onPress={() => Linking.openURL(Platform.OS === 'ios' ? 'https://apps.apple.com' : 'https://play.google.com')}
+          >
+            <Text style={styles.updateBtnText}>Update Now</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -143,6 +237,7 @@ function RootNavigator() {
   return user ? <MainStack /> : <AuthStack />;
 }
 
+// ── App entry ──────────────────────────────────────────────────────────────────
 export default function AppNavigator() {
   return (
     <AuthProvider>
@@ -152,3 +247,113 @@ export default function AppNavigator() {
     </AuthProvider>
   );
 }
+
+// ── Styles ─────────────────────────────────────────────────────────────────────
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: BRAND.bg,
+  },
+
+  // Bottom tab bar — height 60 + safe-area, matching web AppShell height:60
+  tabBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: BRAND.cardBg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: BRAND.border,
+    height: 60 + (Platform.OS === 'ios' ? 0 : 0), // safe-area added via paddingBottom
+    paddingTop: 6,
+    // subtle shadow on iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+
+  tabLabel: {
+    fontSize: 10,
+    lineHeight: 14,
+    marginTop: 2,
+  },
+
+  // Center [+] pill — matches web rounded-pill create button
+  createBtn: {
+    width: 48,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: BRAND.pri,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: BRAND.pri,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+    marginBottom: 4,
+  },
+
+  // Update Screen
+  updateContainer: {
+    flex: 1,
+    backgroundColor: BRAND.bg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  updateCard: {
+    width: '100%',
+    backgroundColor: BRAND.cardBg,
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  updateTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: BRAND.txt,
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  updateMessage: {
+    fontSize: 15,
+    color: BRAND.sub,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  updateBtn: {
+    width: '100%',
+    height: 52,
+    backgroundColor: BRAND.pri,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: BRAND.pri,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  updateBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+});

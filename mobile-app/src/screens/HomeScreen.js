@@ -27,7 +27,7 @@ const T = {
   pri: '#DA9B2A',
 };
 
-const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
+const ALL_TABS = ['For You', 'Discover', 'Campaigns', 'Categories'];
 
 const timeAgo = (dateStr) => {
   if (!dateStr) return '';
@@ -143,12 +143,17 @@ export default function HomeScreen({ navigation }) {
         data={ALL_TABS}
         keyExtractor={item => item}
         showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 8 }}
         renderItem={({ item }) => {
           const isActive = activeTab === item;
           return (
             <TouchableOpacity
               onPress={() => setActiveTab(item)}
-              style={[styles.tabButton, isActive && styles.tabButtonActive]}
+              activeOpacity={0.75}
+              style={[
+                styles.tabButton,
+                isActive && styles.tabButtonActive,
+              ]}
             >
               <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
                 {item}
@@ -335,11 +340,12 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   tabsContainer: {
-    paddingVertical: 12,
-    marginBottom: 8,
+    paddingVertical: 10,
+    marginBottom: 4,
   },
   tabButton: {
-    paddingHorizontal: 14,
+    // Matches web: px-18 py-8 rounded-20 chip
+    paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: T.cardBg,
@@ -351,7 +357,12 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   tabButtonActive: {
+    // Active = brand-gold solid fill, matching web
     backgroundColor: T.pri,
+    shadowColor: T.pri,
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
   },
   tabText: {
     fontSize: 13,
@@ -360,6 +371,7 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: '#fff',
+    fontWeight: '700',
   },
   postCard: {
     backgroundColor: T.cardBg,

@@ -25,6 +25,7 @@ import { AdminLogin } from './pages/AdminLogin';
 import { ReportsPage } from './pages/ReportsPage';
 import { SecurityPage } from './pages/SecurityPage';
 import { LegalDocumentsPage } from './pages/LegalDocumentsPage';
+import { MobileAppPage } from './pages/MobileAppPage';
 import api from '../api';
 import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Trophy, Target, Zap, Award, Flag } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -150,6 +151,8 @@ export function AdminApp() {
     switch (currentPage) {
       case 'dashboard':
         return <AdminDashboard theme={T} />;
+      case 'mobile-app':
+        return <MobileAppPage theme={T} />;
       case 'users':
         return <UserManagement theme={T} />;
       case 'content':

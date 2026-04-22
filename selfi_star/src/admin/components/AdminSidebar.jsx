@@ -1,8 +1,9 @@
-import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Lock, Trophy, Target, Zap, Award, Flag, Scale } from 'lucide-react';
+import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Lock, Trophy, Target, Zap, Award, Flag, Scale, Smartphone } from 'lucide-react';
 
 export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLogout }) {
   const menuItems = [
-    { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { id: 'dashboard',   icon: LayoutDashboard, label: 'Dashboard' },
+    { id: 'mobile-app',  icon: Smartphone,      label: '📱 Mobile App' },
     { id: 'contest', icon: Award, label: '90-Day Contest' },
     { id: 'judging', icon: Target, label: 'Judging Portal' },
     { id: 'anti-cheat', icon: Zap, label: 'Anti-Cheat' },
