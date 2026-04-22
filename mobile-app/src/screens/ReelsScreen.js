@@ -15,6 +15,8 @@ import {
   Modal,
   Alert,
   Share,
+  ScrollView,
+  TextInput,
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
