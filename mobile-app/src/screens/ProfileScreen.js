@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   StatusBar,
   FlatList,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,6 +58,9 @@ export default function ProfileScreen({ navigation }) {
       setFollowing(Array.isArray(followingRaw) ? followingRaw.length : (followingRaw.results?.length || 0));
     } catch (error) {
       console.error('Profile fetch error:', error);
+      if (error.message.includes('404')) {
+        Alert.alert('Profile Not Found', 'Your profile could not be found. Please contact support or try logging out and in again.');
+      }
     } finally {
       setLoading(false);
     }

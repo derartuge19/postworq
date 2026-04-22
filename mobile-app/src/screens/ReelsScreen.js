@@ -119,8 +119,8 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
   // ── Swipe to restart gesture ──
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 20,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 30 && Math.abs(gesture.dy) < 10,
       onPanResponderRelease: (_, gesture) => {
         if (gesture.dx > 100) { // Swipe right to restart
           videoRef.current?.setPositionAsync(0);
