@@ -343,12 +343,16 @@ const api = {
 
   updateUserProfile: (data) => {
     const formData = new FormData();
-    if (data.first_name) formData.append('first_name', data.first_name);
-    if (data.last_name) formData.append('last_name', data.last_name);
-    if (data.bio) formData.append('bio', data.bio);
+    // Always append these fields to ensure they are updated correctly
+    formData.append('username', data.username || '');
+    formData.append('email', data.email || '');
+    formData.append('first_name', data.first_name || '');
+    formData.append('last_name', data.last_name || '');
+    formData.append('bio', data.bio || '');
+
     if (data.profile_photo) {
       formData.append('profile_photo', {
-        uri: data.profile_photo.uri,
+        uri: Platform.OS === 'ios' ? data.profile_photo.uri.replace('file://', '') : data.profile_photo.uri,
         type: data.profile_photo.type || 'image/jpeg',
         name: data.profile_photo.name || 'photo.jpg',
       });

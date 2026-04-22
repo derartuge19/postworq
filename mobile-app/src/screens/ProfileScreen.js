@@ -105,7 +105,7 @@ export default function ProfileScreen({ navigation }) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerUsername}>{user?.username}</Text>
+          <Text style={styles.headerUsername}>@{profile?.username || user?.username || 'user'}</Text>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
@@ -148,8 +148,11 @@ export default function ProfileScreen({ navigation }) {
           </View>
 
           <View style={styles.bioSection}>
-            <Text style={styles.fullName}>{profile?.first_name} {profile?.last_name}</Text>
-            {profile?.bio && <Text style={styles.bioText}>{profile.bio}</Text>}
+            <Text style={styles.fullName}>
+              {profile?.first_name || user?.first_name || ''} {profile?.last_name || user?.last_name || ''}
+              {!(profile?.first_name || user?.first_name) && (profile?.username || user?.username)}
+            </Text>
+            {(profile?.bio || user?.bio) && <Text style={styles.bioText}>{profile?.bio || user?.bio}</Text>}
           </View>
 
           <View style={styles.actionButtons}>

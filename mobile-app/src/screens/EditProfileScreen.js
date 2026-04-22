@@ -72,25 +72,19 @@ export default function EditProfileScreen({ navigation }) {
   const handleSave = async () => {
     try {
       setLoading(true);
-      const data = new FormData();
-      data.append('username', formData.username);
-      data.append('email', formData.email);
-      data.append('first_name', formData.firstName);
-      data.append('last_name', formData.lastName);
-      data.append('bio', formData.bio);
+      const updateData = {
+        username: formData.username,
+        email: formData.email,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        bio: formData.bio,
+      };
       
       if (photoFile) {
-        data.append('profile_photo', {
-          uri: Platform.OS === 'ios' ? photoFile.uri.replace('file://', '') : photoFile.uri,
-          name: photoFile.name,
-          type: photoFile.type,
-        });
+        updateData.profile_photo = photoFile;
       }
 
-      const response = await api.request('/profile/update_profile/', {
-        method: 'PATCH',
-        body: data,
-      });
+      const response = await api.updateUserProfile(updateData);
 
       // Update local auth context
       setUser({ ...user, ...response });
