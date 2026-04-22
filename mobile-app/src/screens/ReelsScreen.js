@@ -14,6 +14,7 @@ import {
 import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -34,13 +35,15 @@ const ReelItem = ({ item, isVisible, navigation }) => {
   const videoRef = useRef(null);
   const insets = useSafeAreaInsets();
 
+  const isFocused = useIsFocused();
+
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && isFocused) {
       videoRef.current?.playAsync();
     } else {
       videoRef.current?.pauseAsync();
     }
-  }, [isVisible]);
+  }, [isVisible, isFocused]);
 
   const handleLike = async () => {
     try {
@@ -217,9 +220,17 @@ export default function ReelsScreen({ route, navigation }) {
         onEndReached={() => hasMore && loadReels(reels.length)}
         onEndReachedThreshold={0.5}
         removeClippedSubviews={true}
-        initialNumToRender={2}
+        initialNumToRender={1}
         maxToRenderPerBatch={2}
-        windowSize={5}
+        windowSize={3}
+        getItemLayout={(data, index) => ({
+          length: height,
+          offset: height * index,
+          index,
+        })}
+        snapToInterval={height}
+        snapToAlignment="start"
+        decelerationRate="fast"
       />
 
       {/* Top Header Overlays (matching web mobile) */}
@@ -253,9 +264,11 @@ const styles = StyleSheet.create({
     width: width,
     height: height,
     backgroundColor: '#000',
+    overflow: 'hidden',
   },
   fullScreenVideo: {
-    ...StyleSheet.absoluteFillObject,
+    width: width,
+    height: height,
   },
   header: {
     position: 'absolute',
@@ -298,7 +311,8 @@ const styles = StyleSheet.create({
   bottomOverlay: {
     position: 'absolute',
     left: 16,
-    right: 70,
+    right: 80, // More space for sidebar
+    zIndex: 5,
   },
   userInfo: {
     flexDirection: 'row',
@@ -357,7 +371,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 12,
     alignItems: 'center',
-    gap: 20,
+    gap: 22,
+    zIndex: 10,
   },
   actionBtn: {
     alignItems: 'center',
