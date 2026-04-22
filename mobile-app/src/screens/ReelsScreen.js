@@ -278,12 +278,10 @@ export default function ReelsScreen({ route, navigation }) {
   const initialId = route?.params?.reelId;
 
   const [visibleItems, setVisibleItems] = useState([]);
-  const [longPressItem, setLongPressItem] = useState(null);
   const [giftPost, setGiftPost] = useState(null);
   const [giftAmount, setGiftAmount] = useState(50);
   const [customGift, setCustomGift] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => { fetchReels(0); }, []);
