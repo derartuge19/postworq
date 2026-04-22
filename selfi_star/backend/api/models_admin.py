@@ -83,6 +83,7 @@ class PlatformSettings(models.Model):
     theme_preset = models.CharField(max_length=50, default='flipstar', help_text='Theme preset name (flipstar, ocean, forest, etc.)')
     dark_mode_default = models.BooleanField(default=False, help_text='Default dark mode for all users')
     primary_color_override = models.CharField(max_length=200, blank=True, null=True, help_text='Custom primary color or gradient override')
+    glass_effect_enabled = models.BooleanField(default=False, help_text='Enable glass/crystal UI effect across the platform')
     
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

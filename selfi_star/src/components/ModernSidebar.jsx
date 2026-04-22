@@ -4,7 +4,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import config from "../config";
 
 export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, onLogout, onShowProfile, onShowSettings, onShowCampaigns, onShowNotifications }) {
-  const { colors: T } = useTheme();
+  const { colors: T, glassEnabled } = useTheme();
   const { t } = useLanguage();
   const menuItems = [
     { id: "home", icon: Home, label: t('home') },
@@ -36,8 +36,8 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
   return (
     <>
       {/* Desktop Sidebar */}
-      <div 
-        className="modern-desktop-sidebar"
+      <div
+        className={`modern-desktop-sidebar ${glassEnabled ? 'glass-sidebar' : ''}`}
         style={{
           width: 240,
           height: "100vh",

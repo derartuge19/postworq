@@ -1,5 +1,27 @@
 /* Glassmorphism Crystal UI Effects */
 
+/* Global glass effects when enabled via body class */
+body.glass-enabled [style*="background"],
+body.glass-enabled .modern-desktop-sidebar,
+body.glass-enabled [style*="cardBg"] {
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+body.glass-enabled button[style*="background"],
+body.glass-enabled button[style*="pri"] {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-glow) !important;
+  transition: all 0.3s ease !important;
+}
+
+body.glass-enabled button[style*="background"]:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 24px var(--color-primary) !important;
+}
+
 /* Base glass effect classes */
 .glass-effect {
   background: var(--glass-bg);

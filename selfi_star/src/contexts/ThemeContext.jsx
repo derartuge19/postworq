@@ -137,7 +137,14 @@ function applyCSS(c, glassEnabled = false) {
   r.style.setProperty('--color-sub', c.sub);
   r.style.setProperty('--color-border', c.border);
   r.style.setProperty('--color-card', c.cardBg);
-  
+
+  // Add/remove glass-enabled class on body
+  if (glassEnabled) {
+    document.body.classList.add('glass-enabled');
+  } else {
+    document.body.classList.remove('glass-enabled');
+  }
+
   // Glassmorphism variables
   if (glassEnabled) {
     r.style.setProperty('--glass-opacity', '0.15');
