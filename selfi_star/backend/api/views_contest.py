@@ -199,6 +199,8 @@ def purchase_coins(request):
 @permission_classes([IsAuthenticated])
 def send_gift(request):
     """Send gift to a user by username (simple gift endpoint)"""
+    from .models import Notification, UserCoinBalance
+    
     sender = request.user
     recipient_username = request.data.get('recipient_username')
     amount = request.data.get('amount')
@@ -214,6 +216,22 @@ def send_gift(request):
         recipient = User.objects.get(username=recipient_username)
     except User.DoesNotExist:
         return Response({'error': 'Recipient not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Deduct coins from sender
+    try:
+        sender_balance = sender.coin_balance
+        sender_balance.spend_coins(
+            amount,
+            'gift',
+            recipient=recipient,
+            description=f'Gift to {recipient.username}'
+        )
+    except (UserCoinBalance.DoesNotExist, ValueError) as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Add coins to recipient
+    recipient_balance, _ = UserCoinBalance.objects.get_or_create(user=recipient)
+    recipient_balance.add_coins(amount, 'gift', sender=sender, description=f'Gift from {sender.username}')
     
     # Create gift record
     GiftToCreator.objects.create(
@@ -236,9 +254,23 @@ def send_gift(request):
     sender_profile.gifts_sent_today += 1
     sender_profile.save()
     
+    # Create notification for recipient
+    notification_message = f"{sender.username} sent you {amount} coins"
+    if message:
+        notification_message += f": {message}"
+    
+    Notification.objects.create(
+        recipient=recipient,
+        sender=sender,
+        notification_type='gift',
+        message=notification_message
+    )
+    
     return Response({
         'message': f'Gift of {amount} coins sent to {recipient_username}',
         'bonus_points_added': 5,
+        'coins_deducted': amount,
+        'coins_added_to_recipient': amount,
     })
 
 
