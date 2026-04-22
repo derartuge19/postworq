@@ -1580,8 +1580,10 @@ export function MessagesPage({ user, onShowProfile }) {
           {activeConv && (
             <div style={{
               position: 'fixed',
-              inset: 0,
-              height: '100dvh',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 68, // Account for AppShell bottom nav height (68px)
               width: '100vw',
               background: T.bg,
               zIndex: 1500, // above AppShell bottom nav (1000)
