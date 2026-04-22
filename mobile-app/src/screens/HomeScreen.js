@@ -146,7 +146,7 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       console.error('Error saving:', error);
     }
-  }
+  };
 
   const handleShare = async (postId) => {
     try {
