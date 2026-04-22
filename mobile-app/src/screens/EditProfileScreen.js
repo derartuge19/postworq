@@ -30,7 +30,7 @@ const mediaUrl = (url) => {
 
 export default function EditProfileScreen({ navigation }) {
   const insets = useSafeAreaInsets();
-  const { user, setUser } = useAuth();
+  const { user, updateUser } = useAuth();
   
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -87,7 +87,7 @@ export default function EditProfileScreen({ navigation }) {
       const response = await api.updateUserProfile(updateData);
 
       // Update local auth context
-      setUser({ ...user, ...response });
+      updateUser({ ...user, ...response });
       
       Alert.alert('Success', 'Profile updated successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() }

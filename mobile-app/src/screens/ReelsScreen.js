@@ -12,6 +12,9 @@ import {
   Platform,
   Animated,
   PanResponder,
+  Modal,
+  Alert,
+  Share,
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,7 +29,7 @@ const BRAND_GOLD = '#DA9B2A';
 // ─────────────────────────────────────────────────────────────
 // Single Reel Item Component
 // ─────────────────────────────────────────────────────────────
-function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, onSave }) {
+function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, onSave, onLongPress }) {
   const videoRef = useRef(null);
   const insets = useSafeAreaInsets();
   
@@ -36,6 +39,7 @@ function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, on
   const [muted, setMuted]           = useState(false);
   const [paused, setPaused]         = useState(false);
   const [saved, setSaved]           = useState(item.is_saved || false);
+  const [expanded, setExpanded]     = useState(false);
 
   // Heart animation state
   const heartScale = useRef(new Animated.Value(0)).current;
@@ -135,6 +139,8 @@ function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, on
       <TouchableOpacity
         activeOpacity={1}
         onPress={handleDoubleTap}
+        onLongPress={() => onLongPress(item)}
+        delayLongPress={500}
         style={StyleSheet.absoluteFill}
       >
         <Video
@@ -237,7 +243,14 @@ function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, on
             <Text style={styles.username}>@{username}</Text>
           </TouchableOpacity>
           {!!item.caption && (
-            <Text style={styles.caption} numberOfLines={2}>{item.caption}</Text>
+            <TouchableOpacity activeOpacity={0.9} onPress={() => setExpanded(!expanded)}>
+              <Text style={styles.caption} numberOfLines={expanded ? undefined : 2}>
+                {item.caption}
+                {!expanded && item.caption.length > 50 && (
+                  <Text style={styles.moreLabel}> ...more</Text>
+                )}
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -253,10 +266,21 @@ export default function ReelsScreen({ route, navigation }) {
   const [loading, setLoading]       = useState(true);
   const [visibleIdx, setVisibleIdx] = useState(0);
   const [hasMore, setHasMore]       = useState(true);
+  const [longPressItem, setLongPressItem] = useState(null);
 
   const initialId = route?.params?.reelId;
 
   useEffect(() => { fetchReels(0); }, []);
+
+  const handleShare = async (reel) => {
+    try {
+      await Share.share({
+        message: `Check out this reel on FlipStar! ${config.API_BASE_URL.replace('/api', '')}/reel/${reel.id}`,
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
 
   const fetchReels = async (offset = 0) => {
     try {
@@ -316,9 +340,10 @@ export default function ReelsScreen({ route, navigation }) {
             isActive={index === visibleIdx}
             isFocused={isFocused}
             onComment={() => navigation.navigate('Comments', { reelId: item.id })}
-            onProfile={uid => uid && navigation.navigate('ProfileDetail', { userId: uid })}
-            onShare={() => {}} // TODO: Implement native share
+            onProfile={(uid) => navigation.navigate('ProfileDetail', { userId: uid })}
+            onShare={() => handleShare(item)}
             onSave={() => {}}
+            onLongPress={(item) => setLongPressItem(item)}
           />
         )}
         pagingEnabled
@@ -326,7 +351,7 @@ export default function ReelsScreen({ route, navigation }) {
         snapToAlignment="start"
         decelerationRate="fast"
         onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
+        viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews
         initialNumToRender={1}
@@ -340,6 +365,48 @@ export default function ReelsScreen({ route, navigation }) {
         onEndReached={() => hasMore && !loading && fetchReels(reels.length)}
         onEndReachedThreshold={0.5}
       />
+
+      {/* ── Long Press Modal ── */}
+      <Modal visible={!!longPressItem} transparent animationType="fade">
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setLongPressItem(null)}
+        >
+          <View style={styles.menuCard}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              handleShare(longPressItem);
+              setLongPressItem(null);
+            }}>
+              <Ionicons name="share-outline" size={24} color="#000" />
+              <Text style={styles.menuItemText}>Share to...</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              Alert.alert('Report', 'Post has been reported for review.');
+              setLongPressItem(null);
+            }}>
+              <Ionicons name="flag-outline" size={24} color="#FF3B30" />
+              <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>Report</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              Alert.alert('Not Interested', 'We will show you fewer posts like this.');
+              setLongPressItem(null);
+            }}>
+              <Ionicons name="eye-off-outline" size={24} color="#000" />
+              <Text style={styles.menuItemText}>Not Interested</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.menuItem, { borderBottomWidth: 0 }]} 
+              onPress={() => setLongPressItem(null)}
+            >
+              <Text style={[styles.menuItemText, { marginLeft: 0, width: '100%', textAlign: 'center', fontWeight: '700' }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Floating Header */}
       <View style={[styles.header, { top: (Platform.OS === 'android' ? StatusBar.currentHeight : insets.top) + 8 }]}>
@@ -381,14 +448,19 @@ const styles = StyleSheet.create({
   avatarWrap: { position: 'relative', marginRight: 10 },
   avatar: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: '#fff' },
   avatarFallback: { backgroundColor: BRAND_GOLD, alignItems: 'center', justifyContent: 'center' },
-  avatarInitial: { color: '#fff', fontSize: 20, fontWeight: '800' },
+  avatarInitial: { color: BRAND_GOLD, fontWeight: '700', fontSize: 16 },
   followDot: { 
     position: 'absolute', bottom: -2, right: -2, backgroundColor: BRAND_GOLD, 
     width: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#fff' 
   },
-  textBlock: { flex: 1 },
-  username: { color: '#fff', fontSize: 16, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
-  caption: { color: '#fff', fontSize: 14, marginTop: 4, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  textBlock: { marginLeft: 12, flex: 1 },
+  username: { color: '#fff', fontWeight: '700', fontSize: 15, marginBottom: 4 },
+  caption: { color: '#fff', fontSize: 14, lineHeight: 18 },
+  moreLabel: { color: 'rgba(255,255,255,0.7)', fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
+  menuCard: { width: SCREEN_WIDTH * 0.7, backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
+  menuItemText: { marginLeft: 12, fontSize: 16, fontWeight: '600', color: '#000' },
   header: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 30 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },

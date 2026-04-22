@@ -23,6 +23,7 @@ import ProfileDetailScreen from '../screens/ProfileDetailScreen';
 import CommentsScreen from '../screens/CommentsScreen';
 import CampaignsScreen from '../screens/CampaignsScreen';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 // ── Brand theme — keep in sync with web selfi_star theme ──────────────────────
 const BRAND = {
@@ -153,6 +154,7 @@ function MainStack() {
       <Stack.Screen name="Comments"       component={CommentsScreen}       options={{ title: 'Comments' }} />
       <Stack.Screen name="Campaigns"      component={CampaignsScreen}      options={{ title: 'Campaigns' }} />
       <Stack.Screen name="CampaignDetail" component={CampaignDetailScreen} options={{ title: 'Campaign' }} />
+      <Stack.Screen name="Settings"       component={SettingsScreen}       options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
