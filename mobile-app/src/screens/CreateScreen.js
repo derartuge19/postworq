@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Video, ResizeMode } from 'expo-av';
 import * as SecureStore from 'expo-secure-store';
 import config from '../config';
+import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
 const { width, height } = Dimensions.get('window');
@@ -27,41 +28,7 @@ const FILTERS = [
 
 const TEXT_COLORS = ['#FFFFFF','#000000','#FF3B57','#DA9B2A','#3B82F6','#10B981','#EC4899'];
 
-// ─── Upload helper using fetch (more reliable than XHR in RN) ───────────────
-async function uploadPost({ uri, type, caption, hashtags, overlays }) {
-  const token = await SecureStore.getItemAsync('authToken');
-  if (!token) throw new Error('Not logged in');
 
-  const isVideo = type === 'video';
-  const filename = isVideo ? 'upload.mp4' : 'upload.jpg';
-  const mimeType = isVideo ? 'video/mp4' : 'image/jpeg';
-
-  const form = new FormData();
-  form.append('file', { uri, type: mimeType, name: filename });
-  form.append('caption', caption || '');
-  if (hashtags) form.append('hashtags', hashtags);
-  if (overlays?.length) form.append('overlay_text', JSON.stringify(overlays));
-
-  const res = await fetch(`${config.API_BASE_URL}/reels/create/`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Token ${token}`,
-      'Accept': 'application/json',
-      // Do NOT set Content-Type manually — fetch sets multipart boundary
-    },
-    body: form,
-  });
-
-  const text = await res.text();
-  let json;
-  try { json = JSON.parse(text); } catch { json = { detail: text }; }
-
-  if (!res.ok) {
-    const msg = json?.detail || json?.error || JSON.stringify(json) || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-  return json;
-}
 
 // ─── Drafts ──────────────────────────────────────────────────────────────────
 async function loadDrafts() {
@@ -161,22 +128,29 @@ export default function CreateScreen({ navigation }) {
     if (!user) { Alert.alert('Login Required', 'Please login to post.'); return; }
 
     setStage('uploading');
-    // Fake progress for UX (fetch doesn't support real progress natively)
-    let fakeProgress = 0;
-    const ticker = setInterval(() => {
-      fakeProgress = Math.min(fakeProgress + 8, 90);
-      setUploadProgress(fakeProgress);
-    }, 400);
+    setUploadProgress(0);
 
     try {
-      await uploadPost({
-        uri: media.uri,
-        type: media.type,
-        caption,
-        hashtags,
-        overlays,
+      const isVideo = media.type === 'video';
+      const filename = isVideo ? 'upload.mp4' : 'upload.jpg';
+      const mimeType = isVideo ? 'video/mp4' : 'image/jpeg';
+
+      const fd = new FormData();
+      fd.append('file', {
+        uri: Platform.OS === 'ios' ? media.uri.replace('file://', '') : media.uri,
+        type: mimeType,
+        name: filename
       });
-      clearInterval(ticker);
+      fd.append('caption', caption || '');
+      if (hashtags) fd.append('hashtags', hashtags);
+      if (overlays?.length) fd.append('overlay_text', JSON.stringify(overlays));
+
+      await api.createPost(fd, {
+        onProgress: (pct) => {
+          setUploadProgress(Math.min(pct, 99)); // Keep at 99 until finish
+        }
+      });
+
       setUploadProgress(100);
       setTimeout(() => {
         setMedia(null); setCaption(''); setHashtags('');
@@ -185,8 +159,15 @@ export default function CreateScreen({ navigation }) {
         navigation.navigate('Home');
       }, 800);
     } catch (err) {
-      clearInterval(ticker);
-      Alert.alert('Upload Failed', err.message || 'Something went wrong. Please try again.');
+      console.error('Upload Error:', err);
+      let errorMsg = 'Something went wrong. Please try again.';
+      if (typeof err === 'object') {
+        errorMsg = err.detail || err.error || err.message || JSON.stringify(err);
+      } else if (typeof err === 'string') {
+        errorMsg = err;
+      }
+      
+      Alert.alert('Upload Failed', errorMsg);
       setStage('details');
     }
   };

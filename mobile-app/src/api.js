@@ -235,7 +235,7 @@ const api = {
   createPost: (formData, options = {}) => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${API_BASE_URL}/reels/create/`); // Changed from /posts/create/ to /reels/create/ to match web logic
+      xhr.open('POST', `${API_BASE_URL}/posts/create/`);
       
       api.getAuthToken().then(token => {
         xhr.setRequestHeader('Authorization', `Token ${token}`);
