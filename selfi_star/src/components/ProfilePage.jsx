@@ -501,8 +501,11 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 style={{
                   width: 80,
                   height: 80,
+                  minWidth: 80,
+                  minHeight: 80,
                   borderRadius: "50%",
                   objectFit: "cover",
+                  background: T.pri + "10"
                 }}
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -512,6 +515,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               <div style={{
                 width: 80,
                 height: 80,
+                minWidth: 80,
+                minHeight: 80,
                 borderRadius: "50%",
                 background: T.pri + "30",
                 display: "flex",
@@ -733,7 +738,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             key={post.id}
             style={{
               aspectRatio: "1",
-              background: T.bg,
+              background: (T.border || "#e0e0e0") + "20",
               position: "relative",
               cursor: "pointer",
               overflow: "hidden",

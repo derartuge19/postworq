@@ -124,6 +124,8 @@ export function HorizontalUserSuggestions({ onUserClick, onDismiss }) {
               <div style={{
                 width: 70,
                 height: 70,
+                minWidth: 70,
+                minHeight: 70,
                 borderRadius: '50%',
                 background: T.pri + '20',
                 marginBottom: 10,

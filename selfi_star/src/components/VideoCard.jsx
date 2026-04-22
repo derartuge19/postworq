@@ -94,8 +94,8 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', gap: 8, flexShrink: 0 }}>
-        <div style={{ width: 28, height: 28, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: `1px solid ${(T?.pri || '#000')}20`, flexShrink: 0 }}>
-          ?
+        <div style={{ width: 28, height: 28, minWidth: 28, minHeight: 28, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: `1px solid ${(T?.pri || '#000')}20`, flexShrink: 0 }}>
+          {video?.avatar ? <img src={mediaUrl(video.avatar)} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : '👤'}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: T?.txt || '#000' }}>
@@ -116,10 +116,11 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
         style={{ 
           position: 'relative', 
           width: '100%', 
-          background: 'transparent',
+          background: (T?.border || '#e5e5e5') + '20',
           flex: '1 1 auto',
-          minHeight: 300,
-          maxHeight: 400,
+          minHeight: 320,
+          maxHeight: 450,
+          aspectRatio: '4 / 5',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -189,9 +190,7 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
                 display: 'flex', alignItems: 'center', gap: 3,
               }}
             >
-              <svg width={16} height={16} viewBox="0 0 24 24" fill={T?.txt || '#000'}>
-                <path d="M21 12L10 2V8.5C3.5 8.5 1.5 14.5 1 20C3.5 15.5 6.5 15.5 10 15.5V22L21 12Z" />
-              </svg>
+              <Share2 size={16} color={T?.txt || '#000'} />
               <span style={{ fontSize: 11, color: T?.sub || '#666', fontWeight: 600 }}>{video?.shares || 0}</span>
             </button>
           </div>

@@ -444,7 +444,8 @@ export default function WerqRoot() {
     // Defer loading to avoid blocking initial render. Dedup in api.js means
     // this call is also shared with any other component that reads
     // /settings/public/, so it won't double-fire.
-    const timer = setTimeout(loadTypographySettings, 3000);
+    // Load typography settings promptly to minimize layout shift
+    const timer = setTimeout(loadTypographySettings, 100);
     return () => clearTimeout(timer);
   }, []);
 
@@ -591,7 +592,8 @@ export default function WerqRoot() {
     };
     
     // Defer to after home page loads to reduce initial fetch time
-    const timer = setTimeout(refreshUserProfile, 4000);
+    // Sync profile after a short delay to avoid blocking LCP
+    const timer = setTimeout(refreshUserProfile, 1500);
     return () => clearTimeout(timer);
   }, []); // Run once on mount
 

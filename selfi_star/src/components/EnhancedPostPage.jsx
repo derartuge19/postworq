@@ -5,7 +5,7 @@ import {
   Image as ImageIcon, Video, Hash, Type, Upload, Music, Volume2, VolumeX, 
   Play, Pause, RotateCw, RefreshCw, Camera, Mic, MicOff, Sparkles, Palette, 
   ChevronDown, ChevronLeft, ChevronRight, Check, AlertCircle, Trash2,
-  Zap, ZapOff, Square, FileText, ArrowLeft, Eye, Bookmark
+  Zap, ZapOff, Square, FileText, ArrowLeft, Eye, Bookmark, Share2
 } from 'lucide-react';
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
@@ -1841,9 +1841,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               {/* Share */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.38)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.9))' }}>
-                  <svg width={26} height={26} viewBox="0 0 24 24" fill="#fff">
-                    <path d="M21 12L10 2V8.5C3.5 8.5 1.5 14.5 1 20C3.5 15.5 6.5 15.5 10 15.5V22L21 12Z" />
-                  </svg>
+                  <Share2 size={26} color="#fff" />
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>0</span>
               </div>

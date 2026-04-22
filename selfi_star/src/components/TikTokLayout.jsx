@@ -34,16 +34,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import realtimeService from '../services/RealtimeService';
 import './TikTokLayout.css';
 const ShareIconFilled = ({ size = 26, color = '#fff', style = {} }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill={color}
-    style={style}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M21 12L10 2V8.5C3.5 8.5 1.5 14.5 1 20C3.5 15.5 6.5 15.5 10 15.5V22L21 12Z" />
-  </svg>
+  <Share2 size={size} color={color} style={style} />
 );
 
 // Helper to shuffle array for randomized feed

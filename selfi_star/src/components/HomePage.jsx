@@ -932,10 +932,10 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
           >
-            <div style={{ width: 'calc(var(--font-size-base) * 1.75)', height: 'calc(var(--font-size-base) * 1.75)', borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'calc(var(--font-size-base) * 0.875)', border: `1px solid ${(T?.pri || '#000')}20` }}>
+            <div style={{ width: 'calc(var(--font-size-base, 16px) * 1.75)', height: 'calc(var(--font-size-base, 16px) * 1.75)', minWidth: 28, minHeight: 28, borderRadius: '50%', overflow: 'hidden', background: (T?.pri || '#000') + '30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'calc(var(--font-size-base, 16px) * 0.875)', border: `1px solid ${(T?.pri || '#000')}20` }}>
               {avatarSrc
                 ? <img src={avatarSrc} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
-                : <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 'calc(var(--font-size-base) * 0.75)', fontWeight: 600 }}>
+                : <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 'calc(var(--font-size-base, 16px) * 0.75)', fontWeight: 600 }}>
                     {post.user?.username?.charAt(0)?.toUpperCase() || 'U'}
                   </div>}
             </div>
@@ -945,13 +945,13 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               <button
                 className="hp-btn"
                 onClick={(e) => { e.stopPropagation(); onShowProfile?.(post.user?.id); }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'calc(var(--font-size-base) * 0.8125)', fontWeight: 700, color: T?.txt || '#000' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'calc(var(--font-size-base, 16px) * 0.8125)', fontWeight: 700, color: T?.txt || '#000' }}
               >
                 {post.user?.username || 'user'}
               </button>
               <CheckCircle size={baseFontSize * 0.75} fill={T?.pri || '#000'} color="#fff" />
             </div>
-            <div style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666' }}>{timeAgo(post.created_at)}</div>
+            <div style={{ fontSize: 'calc(var(--font-size-base, 16px) * 0.6875)', color: T?.sub || '#666' }}>{timeAgo(post.created_at)}</div>
           </div>
           <button
             className="hp-btn"
@@ -966,11 +966,11 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             (header + media + actions + caption) fits in one viewport. */}
         <div
           style={{
-            position: 'relative', width: '100%', background: 'transparent',
+            position: 'relative', width: '100%', background: (T?.border || '#e0e0e0') + '15',
             flex: '1 1 auto',
-            minHeight: 0,
+            minHeight: 320,
             maxHeight: 'calc(100vh - 280px)',
-            // Remove fixed aspect ratio to allow media to display at natural dimensions
+            aspectRatio: '4 / 5',
             cursor: isVideo ? 'pointer' : 'default',
             display: 'flex',
             alignItems: 'center',
@@ -1120,9 +1120,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <svg width={baseFontSize} height={baseFontSize} viewBox="0 0 24 24" fill={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }}>
-                  <path d="M21 12L10 2V8.5C3.5 8.5 1.5 14.5 1 20C3.5 15.5 6.5 15.5 10 15.5V22L21 12Z" />
-                </svg>
+                <Share2 size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
                 <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift */}
@@ -1712,7 +1710,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                   <div style={{ width: 60, height: 10, background: T?.border || '#e0e0e0', borderRadius: 5 }} />
                 </div>
               </div>
-              <div style={{ width: '100%', height: 300, background: T?.border || '#e0e0e0' }} />
+              <div style={{ width: '100%', height: 400, aspectRatio: '4/5', background: T?.border || '#e0e0e0' }} />
               <div style={{ padding: 16 }}>
                 <div style={{ width: 80, height: 12, background: T?.border || '#e0e0e0', borderRadius: 6, marginBottom: 8 }} />
                 <div style={{ width: '70%', height: 10, background: T?.border || '#e0e0e0', borderRadius: 5 }} />
