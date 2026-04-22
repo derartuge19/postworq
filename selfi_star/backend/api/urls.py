@@ -164,7 +164,7 @@ from .views_gamification import (
 from .views_reels import reels_following, reels_saved, reels_trending
 from .views_contest import (
     get_user_subscription, upgrade_subscription, get_coin_packages, get_coin_balance,
-    purchase_coins, gift_creator, boost_post, purchase_extra_entry, get_post_score,
+    purchase_coins, gift_creator, send_gift, boost_post, purchase_extra_entry, get_post_score,
     judge_post, get_leaderboard, admin_contest_dashboard, toggle_flash_challenge,
     admin_judging_portal, verify_phone, verify_age, anti_cheat_flags, review_flag,
     get_grand_finale, vote_grand_finale, check_upload_eligibility
@@ -336,6 +336,7 @@ urlpatterns = [
     path('coins/balance/', get_coin_balance, name='coin-balance'),
     path('coins/purchase/', purchase_coins, name='coin-purchase'),
     path('coins/gift/', gift_creator, name='gift-creator'),
+    path('gifts/', send_gift, name='send-gift'),
     path('coins/boost/', boost_post, name='boost-post'),
     path('coins/extra-entry/', purchase_extra_entry, name='extra-entry'),
     path('scores/<int:reel_id>/', get_post_score, name='post-score'),

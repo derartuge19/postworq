@@ -197,6 +197,53 @@ def purchase_coins(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def send_gift(request):
+    """Send gift to a user by username (simple gift endpoint)"""
+    sender = request.user
+    recipient_username = request.data.get('recipient_username')
+    amount = request.data.get('amount')
+    message = request.data.get('message', '')
+    
+    if not recipient_username:
+        return Response({'error': 'recipient_username is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not amount or amount <= 0:
+        return Response({'error': 'amount must be greater than 0'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        recipient = User.objects.get(username=recipient_username)
+    except User.DoesNotExist:
+        return Response({'error': 'Recipient not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Create gift record
+    GiftToCreator.objects.create(
+        sender=sender,
+        recipient=recipient,
+        coins=amount,
+        bonus_points=5,
+        message=message
+    )
+    
+    # Update recipient's gift counters
+    recipient_profile = recipient.profile
+    recipient_profile.gifts_received_total += 1
+    recipient_profile.gifts_received_today += 1
+    recipient_profile.save()
+    
+    # Update sender's gift counters
+    sender_profile = sender.profile
+    sender_profile.gifts_sent_total += 1
+    sender_profile.gifts_sent_today += 1
+    sender_profile.save()
+    
+    return Response({
+        'message': f'Gift of {amount} coins sent to {recipient_username}',
+        'bonus_points_added': 5,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def gift_creator(request):
     """Gift coins to a creator (+5 bonus points to recipient)"""
     sender = request.user
