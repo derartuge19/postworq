@@ -9,6 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Share,
+  Modal,
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +28,8 @@ const T = {
   sub: '#666666',
   pri: '#DA9B2A',
 };
+
+const BRAND_GOLD = '#DA9B2A';
 
 const ALL_TABS = ['For You', 'Discover', 'Campaigns', 'Categories'];
 
