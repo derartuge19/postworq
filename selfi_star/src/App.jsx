@@ -316,6 +316,7 @@ export default function WerqRoot() {
         const fontSecondary = `"${settings.font_family_secondary || 'Inter'}", sans-serif`;
         const fontUsername = `"${settings.font_family_username || 'Inter'}", sans-serif`;
         const fontCaption = `"${settings.font_family_caption || 'Inter'}", sans-serif`;
+        const baseFontSize = settings.font_size_base || 16;
         
         // Apply CSS variables
         const root = document.documentElement;
@@ -323,7 +324,7 @@ export default function WerqRoot() {
         root.style.setProperty('--font-secondary', fontSecondary);
         root.style.setProperty('--font-username', fontUsername);
         root.style.setProperty('--font-caption', fontCaption);
-        root.style.setProperty('--font-size-base', `${settings.font_size_base || 16}px`);
+        root.style.setProperty('--font-size-base', `${baseFontSize}px`);
         root.style.setProperty('--font-weight-headings', settings.font_weight_headings || '700');
         root.style.setProperty('--font-weight-body', settings.font_weight_body || '400');
         root.style.setProperty('--letter-spacing', settings.letter_spacing || 'normal');
@@ -333,7 +334,7 @@ export default function WerqRoot() {
         
         // Apply to body
         document.body.style.fontFamily = fontSecondary;
-        document.body.style.fontSize = `${settings.font_size_base || 16}px`;
+        document.body.style.fontSize = `${baseFontSize}px`;
         document.body.style.lineHeight = settings.line_height || '1.5';
         document.body.style.letterSpacing = settings.letter_spacing || 'normal';
         
@@ -353,6 +354,7 @@ export default function WerqRoot() {
             --font-caption: ${fontCaption};
             --color-primary: ${settings.primary_color || '#8B5CF6'};
             --color-secondary: ${settings.secondary_color || '#F97316'};
+            --font-size-base: ${baseFontSize}px;
           }
           
           /* Force font on ALL elements */
@@ -360,30 +362,68 @@ export default function WerqRoot() {
             font-family: ${fontSecondary} !important;
           }
           
-          /* Headings use primary font */
-          h1, h2, h3, h4, h5, h6,
-          h1 *, h2 *, h3 *, h4 *, h5 *, h6 * {
+          /* Headings use primary font with proportional scaling */
+          h1, h1 * {
             font-family: ${fontPrimary} !important;
             font-weight: ${settings.font_weight_headings || '700'} !important;
+            font-size: calc(var(--font-size-base) * 2) !important;
+          }
+          h2, h2 * {
+            font-family: ${fontPrimary} !important;
+            font-weight: ${settings.font_weight_headings || '700'} !important;
+            font-size: calc(var(--font-size-base) * 1.5) !important;
+          }
+          h3, h3 * {
+            font-family: ${fontPrimary} !important;
+            font-weight: ${settings.font_weight_headings || '700'} !important;
+            font-size: calc(var(--font-size-base) * 1.125) !important;
+          }
+          h4, h4 * {
+            font-family: ${fontPrimary} !important;
+            font-weight: ${settings.font_weight_headings || '700'} !important;
+            font-size: calc(var(--font-size-base) * 1) !important;
+          }
+          h5, h5 * {
+            font-family: ${fontPrimary} !important;
+            font-weight: ${settings.font_weight_headings || '700'} !important;
+            font-size: calc(var(--font-size-base) * 0.875) !important;
+          }
+          h6, h6 * {
+            font-family: ${fontPrimary} !important;
+            font-weight: ${settings.font_weight_headings || '700'} !important;
+            font-size: calc(var(--font-size-base) * 0.75) !important;
           }
           
-          /* Specific overrides for username */
+          /* Specific overrides for username with proportional scaling */
           .username, .username *,
           [class*="username"], [class*="username"] *,
           .user-name, .user-name *,
           .handle, .handle * {
             font-family: ${fontUsername} !important;
+            font-size: calc(var(--font-size-base) * 0.9375) !important;
           }
           
           /* Buttons and inputs */
           button, input, textarea, select {
             font-family: ${fontSecondary} !important;
+            font-size: calc(var(--font-size-base) * 0.875) !important;
           }
           
-          /* Captions */
+          /* Captions with proportional scaling */
           .caption, .caption *,
           .description, .description * {
             font-family: ${fontCaption} !important;
+            font-size: calc(var(--font-size-base) * 0.875) !important;
+          }
+          
+          /* Small text (descriptions, secondary content) */
+          small, .small, .small * {
+            font-size: calc(var(--font-size-base) * 0.875) !important;
+          }
+          
+          /* Extra small text */
+          .text-xs, .text-xs * {
+            font-size: calc(var(--font-size-base) * 0.75) !important;
           }
         `;
         

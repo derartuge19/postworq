@@ -428,7 +428,7 @@ export function SettingsPage({ theme }) {
                     <h1 style={{
                       fontFamily: `"${settings.font_family_primary || 'Inter'}", sans-serif`,
                       fontWeight: settings.font_weight_headings || '700',
-                      fontSize: 32,
+                      fontSize: (settings.font_size_base || 16) * 2,
                       color: theme.txt,
                       margin: '0 0 8px 0',
                       lineHeight: 1.2,
@@ -438,7 +438,7 @@ export function SettingsPage({ theme }) {
                     <h2 style={{
                       fontFamily: `"${settings.font_family_primary || 'Inter'}", sans-serif`,
                       fontWeight: settings.font_weight_headings || '700',
-                      fontSize: 24,
+                      fontSize: (settings.font_size_base || 16) * 1.5,
                       color: theme.txt,
                       margin: '0 0 8px 0',
                       lineHeight: 1.3,
@@ -448,7 +448,7 @@ export function SettingsPage({ theme }) {
                     <h3 style={{
                       fontFamily: `"${settings.font_family_primary || 'Inter'}", sans-serif`,
                       fontWeight: settings.font_weight_headings || '700',
-                      fontSize: 18,
+                      fontSize: (settings.font_size_base || 16) * 1.125,
                       color: theme.txt,
                       margin: 0,
                       lineHeight: 1.4,
@@ -464,7 +464,7 @@ export function SettingsPage({ theme }) {
                     borderBottom: `1px solid ${theme.border}`,
                   }}>
                     <div style={{
-                      fontSize: 11,
+                      fontSize: (settings.font_size_base || 16) * 0.6875,
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                       color: theme.sub,
@@ -504,7 +504,7 @@ export function SettingsPage({ theme }) {
                     borderBottom: `1px solid ${theme.border}`,
                   }}>
                     <div style={{
-                      fontSize: 11,
+                      fontSize: (settings.font_size_base || 16) * 0.6875,
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                       color: theme.sub,
@@ -515,8 +515,8 @@ export function SettingsPage({ theme }) {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                       <div style={{
-                        width: 40,
-                        height: 40,
+                        width: (settings.font_size_base || 16) * 2.5,
+                        height: (settings.font_size_base || 16) * 2.5,
                         borderRadius: '50%',
                         background: theme.pri,
                         display: 'flex',
@@ -524,7 +524,7 @@ export function SettingsPage({ theme }) {
                         justifyContent: 'center',
                         color: '#fff',
                         fontWeight: 700,
-                        fontSize: 16,
+                        fontSize: (settings.font_size_base || 16),
                       }}>
                         JD
                       </div>
@@ -532,7 +532,7 @@ export function SettingsPage({ theme }) {
                         <div style={{
                           fontFamily: `"${settings.font_family_username || 'Inter'}", sans-serif`,
                           fontWeight: 600,
-                          fontSize: 15,
+                          fontSize: (settings.font_size_base || 16) * 0.9375,
                           color: theme.txt,
                           marginBottom: 2,
                         }}>
@@ -540,7 +540,7 @@ export function SettingsPage({ theme }) {
                         </div>
                         <div style={{
                           fontFamily: `"${settings.font_family_secondary || 'Inter'}", sans-serif`,
-                          fontSize: 13,
+                          fontSize: (settings.font_size_base || 16) * 0.8125,
                           color: theme.sub,
                         }}>
                           John Doe
@@ -552,7 +552,7 @@ export function SettingsPage({ theme }) {
                   {/* Caption Preview */}
                   <div>
                     <div style={{
-                      fontSize: 11,
+                      fontSize: (settings.font_size_base || 16) * 0.6875,
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                       color: theme.sub,
@@ -563,7 +563,7 @@ export function SettingsPage({ theme }) {
                     </div>
                     <div style={{
                       fontFamily: `"${settings.font_family_caption || 'Inter'}", sans-serif`,
-                      fontSize: 14,
+                      fontSize: (settings.font_size_base || 16) * 0.875,
                       lineHeight: 1.6,
                       color: theme.txt,
                     }}>
@@ -575,12 +575,12 @@ export function SettingsPage({ theme }) {
                   <div style={{ marginTop: 24, paddingTop: 24, borderTop: `1px solid ${theme.border}` }}>
                     <button style={{
                       fontFamily: `"${settings.font_family_secondary || 'Inter'}", sans-serif`,
-                      padding: '12px 24px',
+                      padding: `${(settings.font_size_base || 16) * 0.75}px ${(settings.font_size_base || 16) * 1.5}px`,
                       background: theme.pri,
                       border: 'none',
                       borderRadius: 8,
                       color: '#fff',
-                      fontSize: 14,
+                      fontSize: (settings.font_size_base || 16) * 0.875,
                       fontWeight: 600,
                       cursor: 'pointer',
                       width: '100%',
