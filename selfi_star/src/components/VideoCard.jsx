@@ -116,7 +116,7 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
         style={{ 
           position: 'relative', 
           width: '100%', 
-          background: (T?.border || '#e5e5e5') + '20',
+          background: 'transparent',
           flex: '1 1 auto',
           minHeight: 320,
           maxHeight: 450,
@@ -135,9 +135,9 @@ export function VideoCard({ video, onLike, onComment, onShare }) {
         onTouchCancel={onPressEnd}
       >
         {video?.media
-          ? <video src={mediaUrl(video.media)} controls playsInline autoPlay muted loop style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+          ? <video src={mediaUrl(video.media)} controls playsInline autoPlay muted loop style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : video?.image
-            ? <img src={mediaUrl(video.image)} alt="" style={{ maxWidth:"100%", maxHeight:"100%", objectFit:"contain" }} />
+            ? <img src={mediaUrl(video.image)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <div style={{ textAlign:"center", color:"#666", padding: 40 }}><div style={{ fontSize:60 }}>?</div><div>No media</div></div>
         }
 
