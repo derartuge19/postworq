@@ -1422,48 +1422,71 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
 
       {/* Tab bar */}
       <div style={{
-        display: 'flex', gap: 16, marginBottom: 20,
+        display: 'flex', gap: window.innerWidth <= 768 ? 8 : 16, marginBottom: window.innerWidth <= 768 ? 12 : 20,
         position: 'sticky', top: 0, zIndex: 10,
-        background: T?.bg || '#f5f5f5', padding: '12px 0',
+        background: T?.bg || '#f5f5f5', padding: window.innerWidth <= 768 ? '8px 4px' : '12px 0',
         backdropFilter: 'blur(10px)',
         justifyContent: 'center',
+        flexWrap: window.innerWidth <= 480 ? 'wrap' : 'nowrap',
       }}>
         {ALL_TABS.map(tab => (
           <button
             key={tab}
             onClick={() => handleTabClick(tab)}
             style={{
-              padding: '12px 24px', borderRadius: 25,
+              padding: window.innerWidth <= 768 
+                ? (window.innerWidth <= 480 ? '8px 12px' : '10px 16px')
+                : '12px 24px', 
+              borderRadius: window.innerWidth <= 768 ? 20 : 25,
               border: 'none', cursor: 'pointer',
               background: activeTab === tab 
                 ? `linear-gradient(135deg, ${T?.pri || '#000'}, ${T?.pri || '#000'}dd)` 
                 : (T?.cardBg || '#fff'),
               color: activeTab === tab ? '#fff' : (T?.txt || '#000'),
-              fontWeight: 700, fontSize: 15,
+              fontWeight: window.innerWidth <= 768 ? 600 : 700, 
+              fontSize: window.innerWidth <= 768 
+                ? (window.innerWidth <= 480 ? 12 : 13)
+                : 15,
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               boxShadow: activeTab === tab 
-                ? '0 8px 25px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)' 
-                : '0 2px 8px rgba(0,0,0,0.08)',
-              transform: activeTab === tab ? 'scale(1.05)' : 'scale(1)',
+                ? (window.innerWidth <= 768 
+                  ? '0 4px 15px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)'
+                  : '0 8px 25px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)')
+                : (window.innerWidth <= 768
+                  ? '0 1px 4px rgba(0,0,0,0.06)'
+                  : '0 2px 8px rgba(0,0,0,0.08)'),
+              transform: activeTab === tab 
+                ? (window.innerWidth <= 768 ? 'scale(1.02)' : 'scale(1.05)')
+                : 'scale(1)',
               position: 'relative',
               overflow: 'hidden',
+              flex: window.innerWidth <= 480 ? '1 1 auto' : 'none',
+              minWidth: window.innerWidth <= 480 ? '0' : 'auto',
             }}
             onMouseEnter={(e) => {
               if (activeTab !== tab) {
-                e.target.style.transform = 'scale(1.08) translateY(-2px)';
-                e.target.style.boxShadow = '0 12px 30px rgba(0,0,0,0.12), 0 6px 15px rgba(0,0,0,0.08)';
+                const scale = window.innerWidth <= 768 ? 'scale(1.04)' : 'scale(1.08)';
+                const translateY = window.innerWidth <= 768 ? 'translateY(-1px)' : 'translateY(-2px)';
+                const shadow = window.innerWidth <= 768
+                  ? '0 6px 20px rgba(0,0,0,0.10), 0 3px 10px rgba(0,0,0,0.06)'
+                  : '0 12px 30px rgba(0,0,0,0.12), 0 6px 15px rgba(0,0,0,0.08)';
+                e.target.style.transform = `${scale} ${translateY}`;
+                e.target.style.boxShadow = shadow;
               }
             }}
             onMouseLeave={(e) => {
               if (activeTab !== tab) {
                 e.target.style.transform = 'scale(1)';
-                e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                e.target.style.boxShadow = window.innerWidth <= 768
+                  ? '0 1px 4px rgba(0,0,0,0.06)'
+                  : '0 2px 8px rgba(0,0,0,0.08)';
               }
             }}
           >
             <span style={{
               position: 'relative',
               zIndex: 1,
+              fontSize: 'inherit',
             }}>
               {tab}
             </span>
@@ -1486,6 +1509,21 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
+        }
+        
+        @media (max-width: 768px) {
+          .nav-tab {
+            font-size: 13px !important;
+            padding: 10px 16px !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .nav-tab {
+            font-size: 12px !important;
+            padding: 8px 12px !important;
+            flex: 1 1 auto !important;
+          }
         }
       `}</style>
 
