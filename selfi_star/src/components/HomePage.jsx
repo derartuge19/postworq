@@ -1422,9 +1422,9 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
 
       {/* Tab bar */}
       <div style={{
-        display: 'flex', gap: 8, marginBottom: 16,
+        display: 'flex', gap: 16, marginBottom: 20,
         position: 'sticky', top: 0, zIndex: 10,
-        background: T?.bg || '#f5f5f5', padding: '8px 0',
+        background: T?.bg || '#f5f5f5', padding: '12px 0',
         backdropFilter: 'blur(10px)',
         justifyContent: 'center',
       }}>
@@ -1433,18 +1433,61 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
             key={tab}
             onClick={() => handleTabClick(tab)}
             style={{
-              padding: '8px 16px', borderRadius: 20,
+              padding: '12px 24px', borderRadius: 25,
               border: 'none', cursor: 'pointer',
-              background: activeTab === tab ? (T?.pri || '#000') : (T?.cardBg || '#fff'),
+              background: activeTab === tab 
+                ? `linear-gradient(135deg, ${T?.pri || '#000'}, ${T?.pri || '#000'}dd)` 
+                : (T?.cardBg || '#fff'),
               color: activeTab === tab ? '#fff' : (T?.txt || '#000'),
-              fontWeight: 600, fontSize: 14,
-              transition: 'background 0.2s, color 0.2s',
+              fontWeight: 700, fontSize: 15,
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: activeTab === tab 
+                ? '0 8px 25px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)' 
+                : '0 2px 8px rgba(0,0,0,0.08)',
+              transform: activeTab === tab ? 'scale(1.05)' : 'scale(1)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== tab) {
+                e.target.style.transform = 'scale(1.08) translateY(-2px)';
+                e.target.style.boxShadow = '0 12px 30px rgba(0,0,0,0.12), 0 6px 15px rgba(0,0,0,0.08)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== tab) {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+              }
             }}
           >
-            {tab}
+            <span style={{
+              position: 'relative',
+              zIndex: 1,
+            }}>
+              {tab}
+            </span>
+            {activeTab === tab && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent)',
+                transform: 'translateX(-100%)',
+                animation: 'shimmer 2s infinite',
+              }} />
+            )}
           </button>
         ))}
       </div>
+      <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
 
       {/* Feed — tight padding so each post fits fully in the viewport. */}
       <div style={{
