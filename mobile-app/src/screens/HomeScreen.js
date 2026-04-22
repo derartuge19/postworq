@@ -125,7 +125,7 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleVideoPress = (reelId) => {
-     navigation.navigate('VideoDetail', { reelId });
+     navigation.navigate('Reels', { reelId });
   };
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {

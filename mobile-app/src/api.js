@@ -232,15 +232,24 @@ const api = {
 
   getReelsTrending: () => api.request('/reels/trending/'),
 
-  createPost: (formData) => {
+  createPost: (formData, options = {}) => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${API_BASE_URL}/posts/create/`);
+      xhr.open('POST', `${API_BASE_URL}/reels/create/`); // Changed from /posts/create/ to /reels/create/ to match web logic
       
       api.getAuthToken().then(token => {
         xhr.setRequestHeader('Authorization', `Token ${token}`);
         xhr.timeout = 5 * 60 * 1000; // 5 minutes
         
+        if (options.onProgress) {
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              const pct = Math.round((e.loaded / e.total) * 100);
+              options.onProgress(pct);
+            }
+          };
+        }
+
         xhr.onload = () => {
           let body;
           try { body = JSON.parse(xhr.responseText || '{}'); } catch { body = {}; }

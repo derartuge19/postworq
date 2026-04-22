@@ -16,6 +16,7 @@ import DiscoverScreen from '../screens/DiscoverScreen';
 import CreateScreen from '../screens/CreateScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ReelsScreen from '../screens/ReelsScreen';
 import VideoDetailScreen from '../screens/VideoDetailScreen';
 import ProfileDetailScreen from '../screens/ProfileDetailScreen';
 import CommentsScreen from '../screens/CommentsScreen';
@@ -41,7 +42,7 @@ const Stack = createStackNavigator();
 function CustomTabBar({ state, descriptors, navigation }) {
   const insets = useSafeAreaInsets();
 
-  const TAB_ORDER = ['Home', 'Discover', 'Create', 'Notifications', 'Profile'];
+  const TAB_ORDER = ['Home', 'Reels', 'Create', 'Notifications', 'Profile'];
 
   return (
     <View style={[styles.tabBar, { paddingBottom: insets.bottom || 8 }]}>
@@ -67,7 +68,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
         // ── Icon map ──
         const iconMap = {
           Home:          isFocused ? 'home'              : 'home-outline',
-          Discover:      isFocused ? 'compass'           : 'compass-outline',
+          Reels:         isFocused ? 'film'              : 'film-outline',
           Create:        'add',
           Notifications: isFocused ? 'notifications'     : 'notifications-outline',
           Profile:       isFocused ? 'person'            : 'person-outline',
@@ -124,7 +125,7 @@ function MainTabs() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Home"          component={HomeScreen} />
-      <Tab.Screen name="Discover"      component={DiscoverScreen} />
+      <Tab.Screen name="Reels"         component={ReelsScreen} />
       <Tab.Screen name="Create"        component={CreateScreen} />
       <Tab.Screen name="Notifications" component={NotificationsScreen} />
       <Tab.Screen name="Profile"       component={ProfileScreen} />
@@ -144,6 +145,7 @@ function MainStack() {
       }}
     >
       <Stack.Screen name="MainTabs"       component={MainTabs}             options={{ headerShown: false }} />
+      <Stack.Screen name="Reels"          component={ReelsScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="VideoDetail"    component={VideoDetailScreen}    options={{ title: 'Video' }} />
       <Stack.Screen name="ProfileDetail"  component={ProfileDetailScreen}  options={{ title: 'Profile' }} />
       <Stack.Screen name="Comments"       component={CommentsScreen}       options={{ title: 'Comments' }} />
