@@ -30,7 +30,7 @@ const BRAND_GOLD = '#DA9B2A';
 // ─────────────────────────────────────────────────────────────
 // Single Reel Item Component
 // ─────────────────────────────────────────────────────────────
-function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, onSave, onLongPress }) {
+function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, onSave, onLongPress, onGift }) {
   const videoRef = useRef(null);
   const insets = useSafeAreaInsets();
   
@@ -218,6 +218,12 @@ function ReelItem({ item, isActive, isFocused, onComment, onProfile, onShare, on
           <Text style={styles.sideBtnLabel}>Save</Text>
         </TouchableOpacity>
 
+        {/* 6. Gift (Gamification) */}
+        <TouchableOpacity style={styles.sideBtn} onPress={() => onGift(item)}>
+          <Ionicons name="gift-outline" size={32} color={BRAND_GOLD} />
+          <Text style={[styles.sideBtnLabel, { color: BRAND_GOLD }]}>Gift</Text>
+        </TouchableOpacity>
+
       </View>
 
       {/* ────────────────────────────────────────────
@@ -271,7 +277,43 @@ export default function ReelsScreen({ route, navigation }) {
 
   const initialId = route?.params?.reelId;
 
+  const [visibleItems, setVisibleItems] = useState([]);
+  const [longPressItem, setLongPressItem] = useState(null);
+  const [giftPost, setGiftPost] = useState(null);
+  const [giftAmount, setGiftAmount] = useState(50);
+  const [customGift, setCustomGift] = useState('');
+  const [giftMessage, setGiftMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+
   useEffect(() => { fetchReels(0); }, []);
+
+  const handleSendGift = async () => {
+    if (!giftPost) return;
+    if (giftPost.user?.id === user?.id) {
+      Alert.alert('Error', 'Cannot gift yourself');
+      return;
+    }
+
+    const amount = customGift ? parseInt(customGift) : giftAmount;
+    if (!amount || amount <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await api.sendGift(giftPost.user?.username, amount, giftMessage || 'Gift from Reels!');
+      Alert.alert('Success', `Gift of ${amount} coins sent to @${giftPost.user?.username}!`);
+      setGiftPost(null);
+      setCustomGift('');
+      setGiftMessage('');
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to send gift');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleShare = async (reel) => {
     try {
@@ -345,6 +387,7 @@ export default function ReelsScreen({ route, navigation }) {
             onShare={() => handleShare(item)}
             onSave={() => {}}
             onLongPress={(item) => setLongPressItem(item)}
+            onGift={(item) => setGiftPost(item)}
           />
         )}
         pagingEnabled
@@ -419,6 +462,67 @@ export default function ReelsScreen({ route, navigation }) {
           <Ionicons name="camera-outline" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
+
+      {/* ── Gift Modal ── */}
+      <Modal visible={!!giftPost} transparent animationType="slide">
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setGiftPost(null)}
+        >
+          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHeader}>
+              <View style={styles.sheetHandle} />
+              <View style={styles.sheetTitleRow}>
+                <Ionicons name="gift" size={24} color={BRAND_GOLD} />
+                <Text style={styles.sheetTitle}>Send Gift to @{giftPost?.user?.username}</Text>
+              </View>
+            </View>
+
+            <ScrollView style={styles.giftScroll} showsVerticalScrollIndicator={false}>
+              <Text style={styles.giftLabel}>Choose an amount</Text>
+              <View style={styles.giftGrid}>
+                {[10, 25, 50, 100, 250, 500].map(amt => (
+                  <TouchableOpacity 
+                    key={amt} 
+                    style={[styles.giftChip, giftAmount === amt && styles.giftChipActive]}
+                    onPress={() => { setGiftAmount(amt); setCustomGift(''); }}
+                  >
+                    <Ionicons name="flash" size={14} color={giftAmount === amt ? '#fff' : BRAND_GOLD} />
+                    <Text style={[styles.giftChipText, giftAmount === amt && styles.giftChipTextActive]}>{amt}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.giftLabel}>Or custom amount</Text>
+              <TextInput
+                style={styles.giftInput}
+                placeholder="Enter coins..."
+                keyboardType="numeric"
+                value={customGift}
+                onChangeText={setCustomGift}
+              />
+
+              <Text style={styles.giftLabel}>Message (optional)</Text>
+              <TextInput
+                style={[styles.giftInput, { height: 80, textAlignVertical: 'top' }]}
+                placeholder="Say something nice..."
+                multiline
+                value={giftMessage}
+                onChangeText={setGiftMessage}
+              />
+
+              <TouchableOpacity 
+                style={[styles.sendGiftBtn, loading && { opacity: 0.7 }]} 
+                onPress={handleSendGift}
+                disabled={loading}
+              >
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.sendGiftBtnText}>Send Gift</Text>}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -465,4 +569,21 @@ const styles = StyleSheet.create({
   header: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 30 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
+  
+  // Gifting Styles
+  bottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '80%' },
+  sheetHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
+  sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15 },
+  sheetTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  sheetTitle: { fontSize: 17, fontWeight: '800', color: '#1C1917' },
+  giftScroll: { padding: 20 },
+  giftLabel: { fontSize: 13, fontWeight: '700', color: '#78716C', marginBottom: 12, textTransform: 'uppercase' },
+  giftGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
+  giftChip: { flexBasis: '30%', paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#F5F5F4', backgroundColor: '#FAFAF9', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 4 },
+  giftChipActive: { borderColor: BRAND_GOLD, backgroundColor: '#FFF8F0' },
+  giftChipText: { fontSize: 14, fontWeight: '700', color: '#444' },
+  giftChipTextActive: { color: BRAND_GOLD },
+  giftInput: { backgroundColor: '#FAFAF9', borderWidth: 1.5, borderColor: '#F5F5F4', borderRadius: 12, padding: 14, fontSize: 16, color: '#1C1917', marginBottom: 20 },
+  sendGiftBtn: { backgroundColor: BRAND_GOLD, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 10 },
+  sendGiftBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });

@@ -365,6 +365,34 @@ const api = {
     });
   },
 
+  updateNotificationSettings: (settings) =>
+    api.request('/notifications/me/', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }),
+
+  updatePrivacySettings: (settings) =>
+    api.request('/profile/update_privacy/', {
+      method: 'POST',
+      body: JSON.stringify(settings),
+    }),
+
+  changePassword: (data) =>
+    api.request('/auth/password/change/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  deleteAccount: () =>
+    api.request('/profile/delete/', {
+      method: 'DELETE',
+    }),
+
+  downloadData: () =>
+    api.request('/profile/download-data/', {
+      method: 'POST',
+    }),
+
   // Campaigns
   getCampaigns: () => api.request('/campaigns/'),
 
