@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,269 +7,439 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
-  Platform,
   StatusBar,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
-import { Video } from 'expo-av';
+import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import api from '../api';
-import { useAuth } from '../contexts/AuthContext';
 
-const { width, height } = Dimensions.get('window');
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const BRAND_GOLD = '#DA9B2A';
 
-// ── BRAND THEME ──────────────────────────────────────────────────────────────
-const BRAND = {
-  pri: '#DA9B2A',
-  bg: '#000000',
-  txt: '#ffffff',
-  sub: '#cccccc',
-};
-
-const ReelItem = ({ item, isVisible, navigation }) => {
-  const [liked, setLiked] = useState(item.is_liked);
-  const [likesCount, setLikesCount] = useState(item.votes || 0);
-  const [following, setFollowing] = useState(item.user?.is_following);
+// ─────────────────────────────────────────────────────────────
+// Single Reel Item Component
+// ─────────────────────────────────────────────────────────────
+function ReelItem({ item, isActive, isFocused, onComment, onProfile }) {
   const videoRef = useRef(null);
   const insets = useSafeAreaInsets();
 
-  const isFocused = useIsFocused();
+  const [liked, setLiked]           = useState(item.is_liked || false);
+  const [likeCount, setLikeCount]   = useState(item.votes || 0);
+  const [following, setFollowing]   = useState(item.user?.is_following || false);
+  const [muted, setMuted]           = useState(false);
+  const [paused, setPaused]         = useState(false);
 
+  // Play / pause based on visibility AND screen focus
   useEffect(() => {
-    if (isVisible && isFocused) {
-      videoRef.current?.playAsync();
+    if (!videoRef.current) return;
+    if (isActive && isFocused && !paused) {
+      videoRef.current.playAsync().catch(() => {});
     } else {
-      videoRef.current?.pauseAsync();
+      videoRef.current.pauseAsync().catch(() => {});
     }
-  }, [isVisible, isFocused]);
+  }, [isActive, isFocused, paused]);
 
   const handleLike = async () => {
+    const next = !liked;
+    setLiked(next);
+    setLikeCount(c => next ? c + 1 : c - 1);
     try {
-      const newLiked = !liked;
-      setLiked(newLiked);
-      setLikesCount(prev => newLiked ? prev + 1 : prev - 1);
       await api.voteReel(item.id);
-    } catch (error) {
-      setLiked(!liked);
-      setLikesCount(prev => liked ? prev + 1 : prev - 1);
+    } catch {
+      setLiked(!next);
+      setLikeCount(c => next ? c - 1 : c + 1);
     }
   };
 
   const handleFollow = async () => {
+    if (following) return;
+    setFollowing(true);
     try {
-      setFollowing(true);
-      await api.toggleFollow(item.user.id);
-    } catch (error) {
+      await api.toggleFollow(item.user?.id);
+    } catch {
       setFollowing(false);
     }
   };
 
+  const toggleMute  = () => setMuted(m => !m);
+  const togglePause = () => setPaused(p => !p);
+
+  const mediaUri = item.media || item.image || '';
+  const username = item.user?.username || 'unknown';
+  const avatarUri = item.user?.profile_photo;
+  const initial = username[0]?.toUpperCase() || '?';
+
+  // bottom offset: 60 (tab bar) + safe area bottom
+  const bottomBase = 60 + insets.bottom;
+
   return (
-    <View style={styles.reelContainer}>
-      <Video
-        ref={videoRef}
-        source={{ uri: item.media || item.image }}
-        style={styles.fullScreenVideo}
-        resizeMode={Video.RESIZE_MODE_COVER}
-        isLooping
-        shouldPlay={isVisible}
-        isMuted={false}
-      />
+    <View style={styles.slide}>
 
-      {/* Overlay: Bottom Left (User Info) */}
-      <View style={[styles.bottomOverlay, { bottom: 80 + insets.bottom }]}>
-        <View style={styles.userInfo}>
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('ProfileDetail', { userId: item.user.id })}
-            style={styles.avatarContainer}
-          >
-            {item.user?.profile_photo ? (
-              <Image source={{ uri: item.user.profile_photo }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                <Text style={styles.avatarText}>{item.user?.username?.[0]?.toUpperCase()}</Text>
-              </View>
-            )}
-            {!following && (
-              <TouchableOpacity 
-                activeOpacity={0.8}
-                onPress={handleFollow}
-                style={styles.followBadge}
-              >
-                <Ionicons name="add" size={12} color="#fff" />
-              </TouchableOpacity>
-            )}
-          </TouchableOpacity>
-          <View style={styles.textContainer}>
-            <Text style={styles.username}>@{item.user?.username}</Text>
-            <Text style={styles.caption} numberOfLines={2}>{item.caption}</Text>
-          </View>
+      {/* ── Full-screen Video ── */}
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={togglePause}
+        style={StyleSheet.absoluteFill}
+      >
+        <Video
+          ref={videoRef}
+          source={{ uri: mediaUri }}
+          style={StyleSheet.absoluteFill}
+          resizeMode={ResizeMode.COVER}
+          isLooping
+          isMuted={muted}
+          shouldPlay={isActive && isFocused && !paused}
+          useNativeControls={false}
+        />
+      </TouchableOpacity>
+
+      {/* ── Gradient scrim at bottom ── */}
+      <View style={styles.scrim} pointerEvents="none" />
+
+      {/* ── Pause icon (center) ── */}
+      {paused && (
+        <View style={styles.pauseCenter} pointerEvents="none">
+          <Ionicons name="pause" size={56} color="rgba(255,255,255,0.8)" />
         </View>
-      </View>
+      )}
 
-      {/* Overlay: Right Sidebar (Actions) */}
-      <View style={[styles.rightSidebar, { bottom: 100 + insets.bottom }]}>
-        <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
-          <Ionicons name={liked ? "heart" : "heart-outline"} size={36} color={liked ? "#ff4d4d" : "#fff"} />
-          <Text style={styles.actionText}>{likesCount}</Text>
+      {/* ────────────────────────────────────────────
+          RIGHT SIDEBAR  (like, comment, share, save, mute)
+      ──────────────────────────────────────────── */}
+      <View style={[styles.sidebar, { bottom: bottomBase + 20 }]}>
+
+        <TouchableOpacity style={styles.sideBtn} onPress={handleLike}>
+          <Ionicons
+            name={liked ? 'heart' : 'heart-outline'}
+            size={34}
+            color={liked ? '#ff4040' : '#fff'}
+          />
+          <Text style={styles.sideBtnLabel}>{likeCount}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.actionBtn} 
-          onPress={() => navigation.navigate('Comments', { reelId: item.id })}
-        >
+        <TouchableOpacity style={styles.sideBtn} onPress={onComment}>
           <Ionicons name="chatbubble-ellipses" size={32} color="#fff" />
-          <Text style={styles.actionText}>{item.comment_count || 0}</Text>
+          <Text style={styles.sideBtnLabel}>{item.comment_count || 0}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn}>
-          <Ionicons name="share-social" size={32} color="#fff" />
-          <Text style={styles.actionText}>Share</Text>
+        <TouchableOpacity style={styles.sideBtn}>
+          <Ionicons name="share-social" size={30} color="#fff" />
+          <Text style={styles.sideBtnLabel}>Share</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.sideBtn}>
           <Ionicons name="bookmark-outline" size={30} color="#fff" />
-          <Text style={styles.actionText}>Save</Text>
+          <Text style={styles.sideBtnLabel}>Save</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.sideBtn} onPress={toggleMute}>
+          <Ionicons
+            name={muted ? 'volume-mute' : 'volume-high'}
+            size={26}
+            color="#fff"
+          />
+        </TouchableOpacity>
+
       </View>
+
+      {/* ────────────────────────────────────────────
+          BOTTOM LEFT  (avatar, username, caption)
+      ──────────────────────────────────────────── */}
+      <View style={[styles.bottomInfo, { bottom: bottomBase + 12 }]}>
+
+        {/* Avatar + follow badge */}
+        <TouchableOpacity onPress={() => onProfile(item.user?.id)} style={styles.avatarWrap}>
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, styles.avatarFallback]}>
+              <Text style={styles.avatarInitial}>{initial}</Text>
+            </View>
+          )}
+          {!following && (
+            <TouchableOpacity style={styles.followDot} onPress={handleFollow}>
+              <Ionicons name="add" size={10} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </TouchableOpacity>
+
+        {/* Username + caption */}
+        <View style={styles.textBlock}>
+          <Text style={styles.username}>@{username}</Text>
+          {!!item.caption && (
+            <Text style={styles.caption} numberOfLines={2}>{item.caption}</Text>
+          )}
+        </View>
+
+      </View>
+
     </View>
   );
-};
+}
 
+// ─────────────────────────────────────────────────────────────
+// Main Reels Screen
+// ─────────────────────────────────────────────────────────────
 export default function ReelsScreen({ route, navigation }) {
-  const [reels, setReels] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [visibleIndex, setVisibleIndex] = useState(0);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const initialReelId = route?.params?.reelId;
+  const isFocused      = useIsFocused();
+  const insets         = useSafeAreaInsets();
+  const [reels, setReels]           = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [visibleIdx, setVisibleIdx] = useState(0);
+  const [hasMore, setHasMore]       = useState(true);
 
-  useEffect(() => {
-    loadReels();
-  }, [initialReelId]);
+  const initialId = route?.params?.reelId;
 
-  const loadReels = async (offset = 0) => {
+  useEffect(() => { fetchReels(0); }, []);
+
+  const fetchReels = async (offset = 0) => {
     try {
-      const data = await api.request(`/reels/?limit=10&offset=${offset}`);
-      const results = Array.isArray(data) ? data : (data.results || []);
-      
-      // Filter for videos only
-      let videoReels = results.filter(r => 
-        r.media && (r.media.includes('.mp4') || r.media.includes('/video/upload/') || r.media.includes('.mov'))
-      );
+      const data    = await api.request(`/reels/?limit=15&offset=${offset}`);
+      const raw     = Array.isArray(data) ? data : (data.results || []);
+      // Accept videos AND images (show everything like web)
+      let items = raw;
 
-      // Deep-link logic: if we have an initialReelId, find it and move it to top
-      if (offset === 0 && initialReelId) {
-        const targetIdx = videoReels.findIndex(r => r.id === initialReelId);
-        if (targetIdx > 0) {
-          const [target] = videoReels.splice(targetIdx, 1);
-          videoReels.unshift(target);
-        } else if (targetIdx === -1) {
-          // If not in first 10, try to fetch it specifically or just ignore
-          // For now we assume it's in the recent feed
+      if (offset === 0 && initialId) {
+        const idx = items.findIndex(r => r.id === initialId);
+        if (idx > 0) {
+          const [t] = items.splice(idx, 1);
+          items.unshift(t);
         }
+        setReels(items);
+      } else if (offset === 0) {
+        setReels(items);
+      } else {
+        setReels(prev => [...prev, ...items]);
       }
 
-      if (offset === 0) {
-        setReels(videoReels);
-      } else {
-        setReels(prev => [...prev, ...videoReels]);
-      }
-      
-      setHasMore(!!data.next);
-    } catch (error) {
-      console.error('Failed to load reels:', error);
+      setHasMore(!!data?.next);
+    } catch (e) {
+      console.error('Reels fetch error', e);
     } finally {
       setLoading(false);
     }
   };
 
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;
+
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
-      setVisibleIndex(viewableItems[0].index);
+      setVisibleIdx(viewableItems[0].index ?? 0);
     }
   }).current;
 
-  if (loading && reels.length === 0) {
+  if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={BRAND.pri} />
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color={BRAND_GOLD} />
+      </View>
+    );
+  }
+
+  if (!reels.length) {
+    return (
+      <View style={styles.loader}>
+        <Ionicons name="film-outline" size={60} color="#444" />
+        <Text style={{ color: '#666', marginTop: 16 }}>No reels yet</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    <View style={styles.root}>
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
+
       <FlatList
         data={reels}
+        keyExtractor={item => String(item.id)}
         renderItem={({ item, index }) => (
-          <ReelItem 
-            item={item} 
-            isVisible={index === visibleIndex} 
-            navigation={navigation}
+          <ReelItem
+            item={item}
+            isActive={index === visibleIdx}
+            isFocused={isFocused}
+            onComment={() => navigation.navigate('Comments', { reelId: item.id })}
+            onProfile={uid => uid && navigation.navigate('ProfileDetail', { userId: uid })}
           />
         )}
-        keyExtractor={item => item.id.toString()}
+        // Paging
         pagingEnabled
-        showsVerticalScrollIndicator={false}
+        snapToInterval={SCREEN_HEIGHT}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        // Viewability
         onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-        onEndReached={() => hasMore && loadReels(reels.length)}
-        onEndReachedThreshold={0.5}
-        removeClippedSubviews={true}
+        viewabilityConfig={viewabilityConfig}
+        // Performance
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
         initialNumToRender={1}
         maxToRenderPerBatch={2}
         windowSize={3}
-        getItemLayout={(data, index) => ({
-          length: height,
-          offset: height * index,
+        getItemLayout={(_, index) => ({
+          length: SCREEN_HEIGHT,
+          offset: SCREEN_HEIGHT * index,
           index,
         })}
-        snapToInterval={height}
-        snapToAlignment="start"
-        decelerationRate="fast"
+        // Infinite scroll
+        onEndReached={() => hasMore && !loading && fetchReels(reels.length)}
+        onEndReachedThreshold={0.3}
       />
 
-      {/* Top Header Overlays (matching web mobile) */}
-      <View style={[styles.header, { top: StatusBar.currentHeight || 40 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={28} color="#fff" />
+      {/* ── Floating Header ── */}
+      <View style={[styles.header, { top: (Platform.OS === 'android' ? StatusBar.currentHeight : insets.top) + 8 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconCircle}>
+          <Ionicons name="chevron-back" size={26} color="#fff" />
         </TouchableOpacity>
-        <View style={styles.tabContainer}>
-          <Text style={[styles.tabText, { fontWeight: '800' }]}>Reels</Text>
-        </View>
-        <TouchableOpacity style={styles.cameraBtn}>
-          <Ionicons name="camera-outline" size={28} color="#fff" />
+
+        <Text style={styles.headerTitle}>Reels</Text>
+
+        <TouchableOpacity
+          style={styles.iconCircle}
+          onPress={() => navigation.navigate('Create')}
+        >
+          <Ionicons name="camera-outline" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
+
     </View>
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
     backgroundColor: '#000',
   },
-  centerContainer: {
+  loader: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#000',
     alignItems: 'center',
-    backgroundColor: '#000',
+    justifyContent: 'center',
   },
-  reelContainer: {
-    width: width,
-    height: height,
+
+  // ── Each reel slide ──
+  slide: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
     backgroundColor: '#000',
     overflow: 'hidden',
   },
-  fullScreenVideo: {
-    width: width,
-    height: height,
+
+  // ── Gradient scrim ──
+  scrim: {
+    ...StyleSheet.absoluteFillObject,
+    // dark gradient at bottom for readability
+    backgroundColor: 'transparent',
+    // We fake a gradient with a semi-transparent bottom band
+    justifyContent: 'flex-end',
   },
+
+  // ── Pause overlay ──
+  pauseCenter: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+
+  // ── Right sidebar ──
+  sidebar: {
+    position: 'absolute',
+    right: 12,
+    alignItems: 'center',
+    gap: 0, // gap not supported on all RN versions, use marginBottom instead
+  },
+  sideBtn: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sideBtnLabel: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 3,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+
+  // ── Bottom-left info ──
+  bottomInfo: {
+    position: 'absolute',
+    left: 12,
+    right: 75, // leaves space for sidebar
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  avatarWrap: {
+    position: 'relative',
+    marginRight: 10,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  avatarFallback: {
+    backgroundColor: BRAND_GOLD,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  followDot: {
+    position: 'absolute',
+    bottom: -4,
+    alignSelf: 'center',
+    left: 14,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: BRAND_GOLD,
+    borderWidth: 1.5,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textBlock: {
+    flex: 1,
+  },
+  username: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 15,
+    marginBottom: 4,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  caption: {
+    color: '#eee',
+    fontSize: 13,
+    lineHeight: 18,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+
+  // ── Floating header ──
   header: {
     position: 'absolute',
     left: 0,
@@ -278,110 +448,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    zIndex: 10,
+    zIndex: 20,
   },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cameraBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  tabText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  bottomOverlay: {
-    position: 'absolute',
-    left: 16,
-    right: 80, // More space for sidebar
-    zIndex: 5,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  avatarContainer: {
-    position: 'relative',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  avatarPlaceholder: {
-    backgroundColor: BRAND.pri,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
+  headerTitle: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '800',
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
-  followBadge: {
-    position: 'absolute',
-    bottom: -4,
-    left: '50%',
-    marginLeft: -8,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: BRAND.pri,
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#fff',
-  },
-  textContainer: {
-    flex: 1,
-  },
-  username: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  caption: {
-    color: '#eee',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  rightSidebar: {
-    position: 'absolute',
-    right: 12,
-    alignItems: 'center',
-    gap: 22,
-    zIndex: 10,
-  },
-  actionBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
   },
 });
