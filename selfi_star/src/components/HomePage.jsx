@@ -1050,19 +1050,41 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
 
           {/* Caption - minimized, only if caption exists */}
           {post.caption && (
-            <div
-              onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
-              style={{
-                fontSize: 12, color: T?.txt || '#000', marginTop: 1, lineHeight: 1.3,
-                display: '-webkit-box',
-                WebkitBoxOrient: 'vertical',
-                WebkitLineClamp: captionExpanded ? 'unset' : 1,
-                overflow: 'hidden',
-                wordBreak: 'break-word',
-                cursor: 'pointer',
-              }}
-            >
-              {post.caption}
+            <div style={{ marginTop: 1 }}>
+              <div
+                onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
+                style={{
+                  fontSize: 12, color: T?.txt || '#000', lineHeight: 1.3,
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: captionExpanded ? 'unset' : 2,
+                  overflow: 'hidden',
+                  wordBreak: 'break-word',
+                  cursor: 'pointer',
+                }}
+              >
+                <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
+                {post.caption}
+              </div>
+              {/* Show more/less text for long captions */}
+              {post.caption.length > 100 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: T?.sub || '#666',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: 0,
+                    marginTop: 2,
+                    display: 'inline-block',
+                  }}
+                >
+                  {captionExpanded ? ' less' : ' more'}
+                </button>
+              )}
             </div>
           )}
           {inlineComments.length > 0 && (
