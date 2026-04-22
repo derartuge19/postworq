@@ -99,10 +99,13 @@ function buildCommentTree(flatList) {
   });
   
   // Second pass: Link children to parents
+  // Second pass: Link children to parents
   flatList.forEach(c => {
     const node = map[c.id];
-    if (c.parent) {
-      const parent = map[c.parent];
+    // Handle parent as ID or object
+    const parentId = c.parent_id || (typeof c.parent === 'object' ? c.parent?.id : c.parent);
+    if (parentId) {
+      const parent = map[parentId];
       if (parent) {
         if (!parent.replies.some(r => r.id === node.id)) {
           parent.replies.push(node);
@@ -188,33 +191,44 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
 
 const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, onCommentAdded, T }) {
   const [comments, setComments] = useState(() => 
-    buildCommentTree(post.recent_comments)
+    buildCommentTree(post.recent_comments || [])
   );
   const [text, setText] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
   const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
-    // Fetch comments directly from the reel's endpoint for better speed/consistency
+    // If we have no recent comments, show loading immediately
+    if (!post.recent_comments || post.recent_comments.length === 0) {
+      setLoading(true);
+    }
+    
+    // Fetch comments directly from the reel's endpoint
     api.request(`/reels/${post.id}/comments/?include_replies=true&depth=3`)
       .then(d => {
         if (cancelled) return;
         const full = Array.isArray(d) ? d : (d?.results || []);
         setComments(buildCommentTree(full));
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('[CommentSheet] fetch failed:', err);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => { cancelled = true; };
-  }, [post.id]);
+  }, [post.id, post.recent_comments]);
 
   const handleSend = async (e) => {
     e.preventDefault();
     if (!text.trim() || sending) return;
     if (!api.hasToken()) return;
     const draft = text.trim();
-    // Optimistic insert — user sees their comment immediately.  On error
-    // we remove the temp row; on success we swap it for the server row.
+    
+    // Optimistic insert
     const tempId = `temp-${Date.now()}`;
     const temp = {
       id: tempId,
@@ -222,64 +236,63 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
       user: currentUser || { username: 'you', profile_photo: null },
       created_at: new Date().toISOString(),
       likes: 0,
+      likes_count: 0,
       is_liked: false,
+      replies: [],
       pending: true,
     };
+
+    const updateDeep = (list) => list.map(c => {
+      if (replyingTo && c.id === replyingTo.id) {
+        return { ...c, replies: [...(c.replies || []), temp] };
+      }
+      if (c.replies && c.replies.length) {
+        return { ...c, replies: updateDeep(c.replies) };
+      }
+      return c;
+    });
+
     if (replyingTo) {
-      const updateDeep = (list) => list.map(c => {
-        if (c.id === replyingTo.id) {
-          return { ...c, replies: [...(c.replies || []), temp] };
-        }
-        if (c.replies && c.replies.length) {
-          return { ...c, replies: updateDeep(c.replies) };
-        }
-        return c;
-      });
       setComments(prev => updateDeep(prev));
     } else {
-      setComments(prev => [...prev, temp]);
+      setComments(prev => [temp, ...prev]); // New top-level comments at top
     }
+    
     setText('');
     const replyTarget = replyingTo;
     setReplyingTo(null);
     setSending(true);
-    onCommentAdded?.();                     // bump count in parent immediately
+    onCommentAdded?.();
 
     try {
-      const body = replyTarget
-        ? { reel: post.id, text: draft, parent: replyTarget.id }
-        : { reel: post.id, text: draft };
-      const res = await api.request('/comments/', {
-        method: 'POST',
-        body: JSON.stringify(body),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      let res;
+      if (replyTarget) {
+        // Use dedicated reply endpoint
+        res = await api.replyToComment(replyTarget.id, draft);
+      } else {
+        // Use dedicated post comment endpoint
+        res = await api.postComment(post.id, draft);
+      }
+
+      // Ensure response has replies array for mapping
+      if (res && !res.replies) res.replies = [];
+
       // Swap temp for real server row
-      if (replyTarget) {
-        const swapDeep = (list) => list.map(c => {
-          if (c.id === replyTarget.id) {
-            return { ...c, replies: (c.replies || []).map(r => r.id === tempId ? res : r) };
-          }
-          if (c.replies && c.replies.length) {
-            return { ...c, replies: swapDeep(c.replies) };
-          }
-          return c;
-        });
-        setComments(prev => swapDeep(prev));
-      } else {
-        setComments(prev => prev.map(c => c.id === tempId ? res : c));
-      }
+      const swapDeep = (list) => list.map(c => {
+        if (c.id === tempId) return res;
+        if (c.replies && c.replies.length) {
+          return { ...c, replies: swapDeep(c.replies) };
+        }
+        return c;
+      });
+      setComments(prev => swapDeep(prev));
     } catch (err) {
-      // Roll back optimistic insert + put the draft back in the box.
-      if (replyTarget) {
-        setComments(prev => prev.map(c =>
-          c.id === replyTarget.id
-            ? { ...c, replies: (c.replies || []).filter(r => r.id !== tempId) }
-            : c
-        ));
-      } else {
-        setComments(prev => prev.filter(c => c.id !== tempId));
-      }
+      // Roll back
+      const removeDeep = (list) => list.filter(c => c.id !== tempId).map(c => ({
+        ...c,
+        replies: c.replies ? removeDeep(c.replies) : []
+      }));
+      setComments(prev => removeDeep(prev));
       setText(draft);
       console.error('[Comment] post failed:', err);
     } finally { setSending(false); }
@@ -287,24 +300,35 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
 
   const handleLikeComment = async (comment) => {
     if (!api.hasToken()) return;
+    // Optimistic like
+    const updateLikesDeep = (list) => list.map(c => {
+      if (c.id === comment.id) {
+        const newIsLiked = !c.is_liked;
+        const newLikes = (c.likes_count || c.likes || 0) + (newIsLiked ? 1 : -1);
+        return { ...c, is_liked: newIsLiked, likes_count: newLikes, likes: newLikes };
+      }
+      if (c.replies && c.replies.length) {
+        return { ...c, replies: updateLikesDeep(c.replies) };
+      }
+      return c;
+    });
+    setComments(prev => updateLikesDeep(prev));
+
     try {
-      await api.request(`/comments/${comment.id}/like/`, { method: 'POST' });
-      setComments(prev => prev.map(c => 
-        c.id === comment.id 
-          ? { ...c, is_liked: !c.is_liked, likes: (c.likes || 0) + (c.is_liked ? -1 : 1) }
-          : c
-      ));
-    } catch {}
+      await api.likeComment(comment.id);
+    } catch (err) {
+      // Roll back on error (optional, but good for UX)
+      setComments(prev => updateLikesDeep(prev));
+    }
   };
 
   const handleReply = (comment) => {
     setReplyingTo(comment);
-    inputRef.current?.focus();
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   const handleCancelReply = () => {
     setReplyingTo(null);
-    setText('');
   };
 
   return (
@@ -333,7 +357,12 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
         </div>
         {/* Comments list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
-          {comments.length === 0 ? (
+          {loading && comments.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 40, color: T?.sub || '#666' }}>
+              <div className="loader-spin" style={{ width: 24, height: 24, border: `2px solid ${T?.pri || '#000'}`, borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto 12px' }} />
+              <div style={{ fontSize: 13 }}>Loading comments...</div>
+            </div>
+          ) : comments.length === 0 ? (
             <div style={{ textAlign: 'center', color: T?.sub || '#666', padding: 30, fontSize: 14 }}>No comments yet. Be first!</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
