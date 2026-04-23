@@ -41,14 +41,16 @@ export default function ProfileDetailScreen({ route, navigation }) {
     try {
       setLoading(true);
       const [profileData, postsRaw] = await Promise.all([
-        api.getUser(userId),
-        api.getUserPosts(userId),
+        api.getUser(userId).catch(err => { console.error('getUser error:', err); return null; }),
+        api.getUserPosts(userId).catch(err => { console.error('getUserPosts error:', err); return []; }),
       ]);
 
-      const p = profileData.user || profileData;
-      setProfile(p);
+      if (profileData) {
+        const p = profileData.user || profileData;
+        setProfile(p);
+        setIsFollowing(profileData.is_following || false);
+      }
       setPosts(Array.isArray(postsRaw) ? postsRaw : (postsRaw.results || []));
-      setIsFollowing(profileData.is_following || false);
     } catch (error) {
       console.error('Profile fetch error:', error);
     } finally {

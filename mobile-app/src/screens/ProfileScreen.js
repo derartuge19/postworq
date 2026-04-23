@@ -49,14 +49,17 @@ export default function ProfileScreen({ navigation }) {
       const targetUserId = profile?.id || user.id;
       
       const [profileData, followersRaw, followingRaw] = await Promise.all([
-        api.getProfile(),
-        api.getFollowers(targetUserId),
-        api.getFollowing(targetUserId),
+        api.getProfile().catch(err => { console.error('getProfile error:', err); return null; }),
+        api.getFollowers(targetUserId).catch(err => { console.error('getFollowers error:', err); return []; }),
+        api.getFollowing(targetUserId).catch(err => { console.error('getFollowing error:', err); return []; }),
       ]);
 
-      setProfile(profileData);
-      setFollowers(Array.isArray(followersRaw) ? followersRaw.length : (followersRaw.results?.length || 0));
-      setFollowing(Array.isArray(followingRaw) ? followingRaw.length : (followingRaw.results?.length || 0));
+      if (profileData) {
+        setProfile(profileData);
+        // Use counts from profile object if available, otherwise use list length
+        setFollowers(profileData.followers_count ?? (Array.isArray(followersRaw) ? followersRaw.length : (followersRaw.results?.length || 0)));
+        setFollowing(profileData.following_count ?? (Array.isArray(followingRaw) ? followingRaw.length : (followingRaw.results?.length || 0)));
+      }
       
       // Initial fetch of posts
       await fetchPosts();
@@ -72,16 +75,22 @@ export default function ProfileScreen({ navigation }) {
 
   const fetchPosts = async () => {
     try {
+      const userId = profile?.id || user?.id;
+      if (!userId && activeTab !== 'saved') {
+        console.warn('fetchPosts: No user ID available');
+        return;
+      }
+
       let data;
       if (activeTab === 'saved') {
-        const raw = await api.getSavedPosts();
+        const raw = await api.getSavedPosts().catch(() => []);
         data = Array.isArray(raw) ? raw : (raw.results || []);
       } else if (activeTab === 'reels') {
-        const raw = await api.getUserPosts(user.id);
+        const raw = await api.getUserPosts(userId).catch(() => []);
         const rawArr = Array.isArray(raw) ? raw : (raw.results || []);
         data = rawArr.filter(p => p.media?.includes('.mp4') || p.media?.includes('/video/'));
       } else {
-        const raw = await api.getUserPosts(user.id);
+        const raw = await api.getUserPosts(userId).catch(() => []);
         data = Array.isArray(raw) ? raw : (raw.results || []);
       }
       setPosts(data);

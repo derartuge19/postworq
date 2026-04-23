@@ -180,9 +180,14 @@ const api = {
         if (response.status === 401) {
           console.error('🔒 401 Unauthorized - authentication required');
         }
-        console.error('API Error:', response.status, data);
+        const silentEndpoints = ['/notifications/me/', '/profile/get_privacy/', '/profile/update_privacy/'];
+        const isSilent = response.status === 404 && silentEndpoints.some(e => endpoint.includes(e));
+        
+        if (!isSilent) {
+          console.error(`API Error [${endpoint}]:`, response.status, data);
+        }
         const errorMsg = typeof data === 'string' ? data : (data.error || JSON.stringify(data));
-        throw new Error(`[HTTP ${response.status}] ${errorMsg}`);
+        throw new Error(`[HTTP ${response.status}] ${endpoint}: ${errorMsg}`);
       }
 
       if (cacheable && cacheKey) setCache(cacheKey, data);
