@@ -13,8 +13,6 @@ import {
   Alert,
   TextInput,
   ScrollView,
-  Animated,
-  PanResponder,
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
@@ -75,7 +73,6 @@ export default function HomeScreen({ navigation }) {
   const [customGift, setCustomGift] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [votingInProgress, setVotingInProgress] = useState({}); // { reelId: boolean }
-  const [doubleTapHeart, setDoubleTapHeart] = useState({}); // { postId: timestamp }
 
   const toggleCaption = (postId) => {
     setExpandedCaptions(prev => ({ ...prev, [postId]: !prev[postId] }));
@@ -174,15 +171,6 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  // Double-tap like handler with heart animation
-  const handleDoubleTapLike = (postId, currentLiked) => {
-    if (!currentLiked) {
-      handleVote(postId, false);
-    }
-    // Trigger heart animation (use timestamp to re-trigger)
-    setDoubleTapHeart(prev => ({ ...prev, [postId]: Date.now() }));
-  };
-
   const handleSave = async (reelId, currentSaved) => {
     try {
       setPosts(posts.map(post => 
@@ -276,58 +264,6 @@ export default function HomeScreen({ navigation }) {
     const isVisible = visibleItems.includes(item.id);
     const currentLiked = item.has_voted || item.is_liked || false;
 
-    // Double-tap detection for this post
-    const lastTap = useRef(0);
-    const tapTimeout = useRef(null);
-    const DOUBLE_TAP_WINDOW = 280;
-    const heartScale = useRef(new Animated.Value(0)).current;
-
-    // Animate heart on double-tap
-    const animateHeart = () => {
-      heartScale.setValue(0);
-      Animated.sequence([
-        Animated.timing(heartScale, {
-          toValue: 1.2,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(heartScale, {
-          toValue: 1,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(heartScale, {
-          toValue: 0,
-          duration: 200,
-          delay: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    };
-
-    const handleMediaTap = () => {
-      const now = Date.now();
-      const timeSinceLastTap = now - lastTap.current;
-      
-      if (timeSinceLastTap < DOUBLE_TAP_WINDOW) {
-        // Double tap detected - LIKE
-        if (tapTimeout.current) {
-          clearTimeout(tapTimeout.current);
-          tapTimeout.current = null;
-        }
-        handleDoubleTapLike(item.id, currentLiked);
-        animateHeart();
-      } else {
-        // First tap - schedule single tap action (video press)
-        tapTimeout.current = setTimeout(() => {
-          if (isVideo) handleVideoPress(item.id);
-          tapTimeout.current = null;
-        }, DOUBLE_TAP_WINDOW);
-      }
-      
-      lastTap.current = now;
-    };
-
     return (
       <View style={styles.postCard}>
         {/* Header */}
@@ -357,64 +293,49 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Media with double-tap */}
-        <View style={styles.mediaContainer}>
-          <TouchableOpacity 
-            activeOpacity={1}
-            onPress={handleMediaTap}
-            style={styles.mediaTouchable}
-          >
-            {mediaSrc ? (
-              isVideo ? (
-                <>
-                  <Video
-                    source={{ uri: mediaSrc }}
-                    style={styles.media}
-                    shouldPlay={isVisible}
-                    isLooping
-                    resizeMode={ResizeMode.CONTAIN}
-                    useNativeControls={false}
-                    isMuted={true}
-                  />
-                  {!isVisible && (
-                    <View style={styles.playOverlay}>
-                      <View style={styles.playCircle}>
-                        <Ionicons name="play" size={24} color="#000" style={{ marginLeft: 3 }} />
-                      </View>
+        {/* Media */}
+        <TouchableOpacity 
+          activeOpacity={0.9} 
+          onPress={() => isVideo && handleVideoPress(item.id)}
+          style={styles.mediaContainer}
+        >
+          {mediaSrc ? (
+            isVideo ? (
+              <>
+                <Video
+                  source={{ uri: mediaSrc }}
+                  style={styles.media}
+                  shouldPlay={isVisible}
+                  isLooping
+                  resizeMode={ResizeMode.CONTAIN}
+                  useNativeControls={false}
+                  isMuted={true}
+                />
+                {!isVisible && (
+                  <View style={styles.playOverlay}>
+                    <View style={styles.playCircle}>
+                      <Ionicons name="play" size={24} color="#000" style={{ marginLeft: 3 }} />
                     </View>
-                  )}
-                </>
-              ) : (
-                <Image source={{ uri: mediaSrc }} style={styles.media} />
-              )
+                  </View>
+                )}
+              </>
             ) : (
-              <View style={[styles.media, { justifyContent: 'center', alignItems: 'center' }]}>
-                <Text style={{ color: T.sub }}>No Media</Text>
-              </View>
-            )}
+              <Image source={{ uri: mediaSrc }} style={styles.media} />
+            )
+          ) : (
+            <View style={[styles.media, { justifyContent: 'center', alignItems: 'center' }]}>
+              <Text style={{ color: T.sub }}>No Media</Text>
+            </View>
+          )}
 
-            {/* View count */}
-            {mediaSrc && (
-              <View style={styles.viewBadge}>
-                <Ionicons name="eye" size={12} color="#fff" />
-                <Text style={styles.viewBadgeText}>{item.view_count || 0}</Text>
-              </View>
-            )}
-
-            {/* Double-tap heart animation */}
-            <Animated.View
-              style={[
-                styles.heartAnimationContainer,
-                {
-                  opacity: heartScale,
-                  transform: [{ scale: heartScale }],
-                }
-              ]}
-            >
-              <Ionicons name="heart" size={100} color="#ff2e63" style={styles.heartIcon} />
-            </Animated.View>
-          </TouchableOpacity>
-        </View>
+          {/* View count */}
+          {mediaSrc && (
+            <View style={styles.viewBadge}>
+              <Ionicons name="eye" size={12} color="#fff" />
+              <Text style={styles.viewBadgeText}>{item.view_count || 0}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
         {/* Actions Row */}
         <View style={styles.actionsRow}>
@@ -444,27 +365,13 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Caption & Comments link */}
+        {/* Caption */}
         <View style={styles.captionContainer}>
           {!!item.caption && (
-            <View>
-              <Text 
-                style={styles.captionText} 
-                numberOfLines={expandedCaptions[item.id] ? undefined : 2}
-              >
-                <Text style={styles.captionUsername} onPress={() => handleProfile(item.user?.id)}>
-                  {item.user?.username}{' '}
-                </Text>
-                {item.caption}
-              </Text>
-              {item.caption.length > 60 && (
-                <TouchableOpacity onPress={() => toggleCaption(item.id)}>
-                  <Text style={styles.moreBtn}>
-                    {expandedCaptions[item.id] ? 'less' : 'more'}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            <Text style={styles.captionText} numberOfLines={2}>
+              <Text style={styles.captionUsername}>{item.user?.username} </Text>
+              {item.caption}
+            </Text>
           )}
           
           <TouchableOpacity onPress={() => handleComment(item.id)}>
@@ -755,25 +662,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 11,
     fontWeight: '600',
-  },
-  mediaTouchable: {
-    position: 'relative',
-  },
-  heartAnimationContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -50,
-    marginLeft: -50,
-    opacity: 0,
-    transform: [{ scale: 0 }],
-  },
-  heartIcon: {
-    shadowColor: '#ff2e63',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 10,
   },
   actionsRow: {
     flexDirection: 'row',
