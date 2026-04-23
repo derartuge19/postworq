@@ -187,13 +187,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
       )}
 
       {/* ── Full-screen Video ── */}
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={handleDoubleTap}
-        onLongPress={() => onLongPress(item)}
-        delayLongPress={500}
-        style={StyleSheet.absoluteFill}
-      >
+      <View style={StyleSheet.absoluteFill}>
         <Video
           ref={videoRef}
           source={{ uri: mediaUri }}
@@ -205,7 +199,15 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
           useNativeControls={false}
           onReadyForDisplay={onReadyForDisplay}
         />
-      </TouchableOpacity>
+        {/* Transparent touch layer to capture gestures */}
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={handleDoubleTap}
+          onLongPress={() => onLongPress(item)}
+          delayLongPress={500}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
 
       {/* ── Heart Pop Animation Overlay ── */}
       <Animated.View style={[styles.heartOverlay, { transform: [{ scale: heartScale }] }]}>
