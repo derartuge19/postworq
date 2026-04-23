@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import {
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import api from '../api';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
@@ -355,6 +355,13 @@ export default function ReelsScreen({ route, navigation }) {
   const { user } = useAuth();
 
   useEffect(() => { fetchReels(0); }, []);
+
+  // Refresh reels when screen comes into focus (e.g., returning from Comments)
+  useFocusEffect(
+    useCallback(() => {
+      fetchReels(0);
+    }, [])
+  );
 
   const handleSendGift = async () => {
     if (!giftPost) return;
