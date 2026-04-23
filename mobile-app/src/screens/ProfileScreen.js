@@ -96,49 +96,18 @@ export default function ProfileScreen({ navigation }) {
     }
   }, [user, profile?.id]);
 
-  const fetchPosts = async () => {
-    try {
-      const userId = profile?.id || user?.id;
-      console.log('ProfileScreen: fetchPosts starting. Target User ID:', userId, 'Tab:', activeTab);
-      
-      if (!userId && activeTab !== 'saved') {
-        console.warn('ProfileScreen: fetchPosts - No user ID available');
-        return;
-      }
-
-      let data;
-      if (activeTab === 'saved') {
-        const raw = await api.getSavedPosts().catch(() => []);
-        data = Array.isArray(raw) ? raw : (raw.results || []);
-      } else if (activeTab === 'reels') {
-        const raw = await api.getUserPosts(userId).catch(() => []);
-        const rawArr = Array.isArray(raw) ? raw : (raw.results || []);
-        data = rawArr.filter(p => p.media?.includes('.mp4') || p.media?.includes('/video/'));
-      } else {
-        const raw = await api.getUserPosts(userId).catch(() => []);
-        data = Array.isArray(raw) ? raw : (raw.results || []);
-      }
-      console.log(`ProfileScreen: Fetched ${data.length} posts for ${activeTab}`);
-      setPosts(data);
-    } catch (error) {
-      console.error('ProfileScreen fetchPosts error:', error);
+  const getVideoThumbnail = (url) => {
+    if (!url) return null;
+    if (url.includes('cloudinary') && url.includes('/video/upload/')) {
+      return url
+        .replace('/video/upload/', '/video/upload/so_0,w_300,h_300,c_fill,q_auto:low,f_jpg/')
+        .replace(/\.(mp4|webm|ogg|mov)(\?.*)?$/i, '.jpg');
     }
+    return null;
   };
 
-  useEffect(() => {
-    if (isFocused) {
-      fetchPosts();
-    }
-  }, [activeTab, isFocused]);
-
-  useEffect(() => {
-    if (isFocused) {
-      fetchProfileData();
-    }
-  }, [isFocused, fetchProfileData]);
-
   const renderPostItem = ({ item }) => {
-    const mediaUri = item.image || item.thumbnail || item.media;
+    const mediaUri = item.thumbnail || item.image || getVideoThumbnail(item.media) || item.media;
     const isVideo = item.media?.includes('.mp4') || item.media?.includes('/video/') || item.is_reel;
     
     return (
@@ -159,6 +128,48 @@ export default function ProfileScreen({ navigation }) {
       </TouchableOpacity>
     );
   };
+
+  const fetchPosts = useCallback(async () => {
+    try {
+      const userId = profile?.id || user?.id;
+      console.log('ProfileScreen: fetchPosts starting. ID:', userId, 'Tab:', activeTab);
+      
+      if (!userId && activeTab !== 'saved') return;
+
+      let data;
+      if (activeTab === 'saved') {
+        const raw = await api.getSavedPosts().catch(() => []);
+        data = Array.isArray(raw) ? raw : (raw.results || []);
+      } else if (activeTab === 'reels') {
+        const raw = await api.getUserPosts(userId).catch(() => []);
+        const rawArr = Array.isArray(raw) ? raw : (raw.results || []);
+        data = rawArr.filter(p => {
+          const url = p.media || p.image || '';
+          return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video') || p.is_reel;
+        });
+      } else {
+        const raw = await api.getUserPosts(userId).catch(() => []);
+        data = Array.isArray(raw) ? raw : (raw.results || []);
+      }
+      
+      console.log(`ProfileScreen: Fetched ${data.length} posts for ${activeTab}`);
+      setPosts(data);
+    } catch (error) {
+      console.error('ProfileScreen fetchPosts error:', error);
+    }
+  }, [profile?.id, user?.id, activeTab]);
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchPosts();
+    }
+  }, [fetchPosts, isFocused]);
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchProfileData();
+    }
+  }, [isFocused, fetchProfileData]);
 
   if (loading && !profile) {
     return (
