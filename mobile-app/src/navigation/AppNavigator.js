@@ -209,7 +209,7 @@ function MainStack() {
       <Stack.Screen name="VideoDetail"    component={VideoDetailScreen}    options={{ title: 'Video' }} />
       <Stack.Screen name="ProfileDetail"  component={ProfileDetailScreen}  options={{ title: 'Profile' }} />
       <Stack.Screen name="EditProfile"    component={EditProfileScreen}     options={{ headerShown: false }} />
-      <Stack.Screen name="Comments"           component={CommentsScreen}           options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="Comments"           component={CommentsScreen}           options={{ title: 'Comments', headerBackTitleVisible: false }} />
       <Stack.Screen name="Campaigns"          component={CampaignsScreen}          options={{ title: 'Campaigns' }} />
       <Stack.Screen name="CampaignDetail"     component={CampaignDetailScreen}     options={{ title: 'Campaign' }} />
       <Stack.Screen name="CampaignFeed"       component={CampaignFeedScreen}       options={{ title: 'Campaign Feed' }} />
