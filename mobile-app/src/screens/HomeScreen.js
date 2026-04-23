@@ -256,6 +256,8 @@ export default function HomeScreen({ navigation }) {
               onPress={() => {
                 if (item === 'Explore') {
                   navigation.navigate('Explore');
+                } else if (item === 'Campaigns') {
+                  navigation.navigate('Campaigns');
                 } else {
                   setActiveTab(item);
                 }
