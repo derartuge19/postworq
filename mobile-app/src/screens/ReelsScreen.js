@@ -381,13 +381,20 @@ export default function ReelsScreen({ route, navigation }) {
   const fetchReels = async (offset = 0) => {
     try {
       const data    = await api.request(`/reels/?limit=15&offset=${offset}`);
+      console.log('ReelsScreen: API response:', data);
       const raw     = Array.isArray(data) ? data : (data.results || []);
-      const isVideo = (url) => {
-        if (!url) return false;
-        return url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('/video/upload/');
-      };
+      console.log('ReelsScreen: Parsed raw items:', raw);
       
-      let items = raw.filter(r => isVideo(r.media || r.image));
+      // Temporarily disable video filter to see all items
+      // const isVideo = (url) => {
+      //   if (!url) return false;
+      //   return url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('/video/upload/');
+      // };
+      
+      // let items = raw.filter(r => isVideo(r.media || r.image));
+      let items = raw; // Show all items for now
+      
+      console.log('ReelsScreen: Items to display:', items);
       
       if (offset === 0 && initialId) {
         const idx = items.findIndex(r => r.id === initialId);

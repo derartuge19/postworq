@@ -111,7 +111,10 @@ export default function HomeScreen({ navigation }) {
     try {
       setLoading(true);
       const data = await api.getReels();
-      setPosts(data.results || data);
+      console.log('HomeScreen: API response:', data);
+      const posts = Array.isArray(data) ? data : (data.results || []);
+      console.log('HomeScreen: Parsed posts:', posts);
+      setPosts(posts);
     } catch (error) {
       console.error('Error loading posts:', error);
     } finally {
