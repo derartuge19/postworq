@@ -287,6 +287,15 @@ export default function CommentsScreen({ route, navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={insets.bottom}
     >
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Comments</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       {/* Comments List */}
       <ScrollView 
         ref={scrollViewRef}
