@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import config from '../config';
@@ -33,6 +33,7 @@ const mediaUrl = (url) => {
 export default function ProfileScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
+  const nav = useNavigation();
   const { user, logout } = useAuth();
   
   const [loading, setLoading] = useState(true);
@@ -40,7 +41,7 @@ export default function ProfileScreen({ navigation }) {
   const [posts, setPosts] = useState([]);
   const [followers, setFollowers] = useState(0);
   const [following, setFollowing] = useState(0);
-  const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'reels' | 'saved'
+  const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'reels' | 'saved' | 'campaigns'
 
   const fetchProfileData = useCallback(async () => {
     const currentUserId = user?.id;
@@ -107,6 +108,22 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const renderPostItem = ({ item }) => {
+    // Handle campaign entries differently
+    if (activeTab === 'campaigns') {
+      return (
+        <TouchableOpacity 
+          style={styles.campaignThumb}
+          onPress={() => navigation.navigate('CampaignDetail', { campaignId: item.campaign_id })}
+        >
+          <View style={styles.campaignThumbContent}>
+            <Ionicons name="trophy" size={24} color={BRAND_GOLD} />
+            <Text style={styles.campaignThumbTitle} numberOfLines={2}>{item.campaign_title || 'Campaign'}</Text>
+            <Text style={styles.campaignThumbStatus}>{item.status}</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
     const mediaUri = item.thumbnail || item.image || getVideoThumbnail(item.media) || item.media;
     const isVideo = item.media?.includes('.mp4') || item.media?.includes('/video/') || item.is_reel;
     
@@ -147,6 +164,9 @@ export default function ProfileScreen({ navigation }) {
           const url = p.media || p.image || '';
           return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video') || p.is_reel;
         });
+      } else if (activeTab === 'campaigns') {
+        const raw = await api.getUserCampaignEntries().catch(() => []);
+        data = Array.isArray(raw) ? raw : (raw.results || []);
       } else {
         const raw = await api.getUserPosts(userId).catch(() => []);
         data = Array.isArray(raw) ? raw : (raw.results || []);
@@ -170,6 +190,16 @@ export default function ProfileScreen({ navigation }) {
       fetchProfileData();
     }
   }, [isFocused, fetchProfileData]);
+
+  // Listen for tab press event to refresh when already on Profile screen
+  useEffect(() => {
+    const unsubscribe = nav.addListener('tabPress', (e) => {
+      // Refresh profile data when tab is pressed while already on screen
+      fetchProfileData();
+    });
+
+    return unsubscribe;
+  }, [nav, fetchProfileData]);
 
   if (loading && !profile) {
     return (
@@ -290,6 +320,13 @@ export default function ProfileScreen({ navigation }) {
             <Text style={[styles.tabLabel, activeTab === 'reels' && styles.activeTabLabel]}>Reels</Text>
           </TouchableOpacity>
           <TouchableOpacity 
+            style={[styles.tabItem, activeTab === 'campaigns' && styles.activeTab]}
+            onPress={() => setActiveTab('campaigns')}
+          >
+            <Ionicons name="trophy-outline" size={22} color={activeTab === 'campaigns' ? BRAND_GOLD : '#666'} />
+            <Text style={[styles.tabLabel, activeTab === 'campaigns' && styles.activeTabLabel]}>Campaigns</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
             style={[styles.tabItem, activeTab === 'saved' && styles.activeTab]}
             onPress={() => setActiveTab('saved')}
           >
@@ -370,6 +407,34 @@ const styles = StyleSheet.create({
   postThumb: { width: width / 3 - 2, height: width / 3 - 2, margin: 1, backgroundColor: '#f0f0f0' },
   thumbImage: { width: '100%', height: '100%', objectFit: 'cover' },
   videoBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(0,0,0,0.5)', padding: 2, borderRadius: 4 },
+  campaignThumb: { 
+    width: width / 3 - 2, 
+    height: width / 3 - 2, 
+    margin: 1, 
+    backgroundColor: 'rgba(218, 155, 42, 0.1)', 
+    borderWidth: 1,
+    borderColor: 'rgba(218, 155, 42, 0.3)',
+  },
+  campaignThumbContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 8,
+  },
+  campaignThumbTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#000',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  campaignThumbStatus: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: BRAND_GOLD,
+    textTransform: 'uppercase',
+    marginTop: 4,
+  },
   empty: { height: 200, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: '#999', marginTop: 10 },
 });

@@ -455,10 +455,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
+  actionItemDisabled: {
+    opacity: 0.5,
+  },
   actionText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#000',
+  },
+  actionTextDisabled: {
+    color: '#999',
   },
   captionContainer: {
     paddingHorizontal: 12,

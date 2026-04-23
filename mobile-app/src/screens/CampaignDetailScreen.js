@@ -12,9 +12,16 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api';
+import config from '../config';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const BRAND_GOLD = '#DA9B2A';
+
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${config.API_BASE_URL.replace('/api', '')}${url}`;
+};
 
 export default function CampaignDetailScreen({ route, navigation }) {
   const { campaignId } = route.params;
@@ -37,9 +44,13 @@ export default function CampaignDetailScreen({ route, navigation }) {
       const data = await api.getCampaignDetail(campaignId);
       setCampaign(data);
       setEntries(data.entries || []);
-      // Check if user has already entered
-      const userHasEntered = data.entries?.some(entry => entry.user_id === data.current_user_id);
-      setUserEntry(userHasEntered ? data.entries.find(entry => entry.user_id === data.current_user_id) : null);
+      // Check if user has already entered - check both user_id and user.id
+      const userHasEntered = data.entries?.some(entry => 
+        entry.user_id === data.current_user_id || entry.user?.id === data.current_user_id
+      );
+      setUserEntry(userHasEntered ? data.entries.find(entry => 
+        entry.user_id === data.current_user_id || entry.user?.id === data.current_user_id
+      ) : null);
     } catch (error) {
       console.error('Failed to load campaign:', error);
       Alert.alert('Error', 'Failed to load campaign details');
@@ -94,6 +105,8 @@ export default function CampaignDetailScreen({ route, navigation }) {
 
   const canVote = () => {
     if (!campaign) return false;
+    // Only grand campaigns allow voting
+    if (campaign.campaign_type !== 'grand') return false;
     const now = new Date();
     const votingStart = new Date(campaign.voting_start);
     const votingEnd = new Date(campaign.voting_end);
@@ -176,20 +189,63 @@ export default function CampaignDetailScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* Dates */}
-          <View style={styles.datesContainer}>
-            <View style={styles.dateItem}>
-              <Ionicons name="calendar" size={20} color="#666" />
-              <View style={styles.dateInfo}>
-                <Text style={styles.dateLabel}>Entry Deadline</Text>
-                <Text style={styles.dateValue}>{formatDate(campaign.entry_deadline)}</Text>
+          {/* Entry Requirements */}
+          {(campaign.min_followers > 0 || campaign.min_level > 0 || campaign.min_votes_per_reel > 0 || campaign.required_hashtags) && (
+            <View style={styles.requirementsContainer}>
+              <View style={styles.requirementsHeader}>
+                <Ionicons name="flag" size={20} color={BRAND_GOLD} />
+                <Text style={styles.requirementsTitle}>Entry Requirements</Text>
+              </View>
+              <View style={styles.requirementsGrid}>
+                {campaign.required_hashtags && (
+                  <View style={styles.requirementItem}>
+                    <Text style={styles.requirementLabel}>Required Hashtags</Text>
+                    <Text style={styles.requirementValue}>{campaign.required_hashtags}</Text>
+                  </View>
+                )}
+                {campaign.min_followers > 0 && (
+                  <View style={styles.requirementItem}>
+                    <Text style={styles.requirementLabel}>Min Followers</Text>
+                    <Text style={styles.requirementValue}>{campaign.min_followers}+</Text>
+                  </View>
+                )}
+                {campaign.min_level > 0 && (
+                  <View style={styles.requirementItem}>
+                    <Text style={styles.requirementLabel}>Min Level</Text>
+                    <Text style={styles.requirementValue}>Level {campaign.min_level}</Text>
+                  </View>
+                )}
+                {campaign.min_votes_per_reel > 0 && (
+                  <View style={styles.requirementItem}>
+                    <Text style={styles.requirementLabel}>Min Votes/Reel</Text>
+                    <Text style={styles.requirementValue}>{campaign.min_votes_per_reel}+</Text>
+                  </View>
+                )}
+                {campaign.winner_count > 0 && (
+                  <View style={styles.requirementItem}>
+                    <Text style={styles.requirementLabel}>Winners</Text>
+                    <Text style={styles.requirementValue}>{campaign.winner_count}</Text>
+                  </View>
+                )}
               </View>
             </View>
-            <View style={styles.dateItem}>
-              <Ionicons name="time" size={20} color="#666" />
-              <View style={styles.dateInfo}>
-                <Text style={styles.dateLabel}>Voting Ends</Text>
-                <Text style={styles.dateValue}>{formatDate(campaign.voting_end)}</Text>
+          )}
+
+          {/* Timeline */}
+          <View style={styles.timelineContainer}>
+            <Text style={styles.timelineTitle}>Campaign Timeline</Text>
+            <View style={styles.timelineGrid}>
+              <View style={styles.timelineItem}>
+                <Text style={styles.timelineLabel}>Start Date</Text>
+                <Text style={styles.timelineValue}>{formatDate(campaign.start_date)}</Text>
+              </View>
+              <View style={styles.timelineItem}>
+                <Text style={styles.timelineLabel}>Entry Deadline</Text>
+                <Text style={styles.timelineValue}>{formatDate(campaign.entry_deadline)}</Text>
+              </View>
+              <View style={styles.timelineItem}>
+                <Text style={styles.timelineLabel}>Voting Period</Text>
+                <Text style={styles.timelineValue}>{formatDate(campaign.voting_start)} - {formatDate(campaign.voting_end)}</Text>
               </View>
             </View>
           </View>
@@ -212,6 +268,41 @@ export default function CampaignDetailScreen({ route, navigation }) {
             </View>
           </View>
 
+          {/* User's Entry with Gamification */}
+          {userEntry && (
+            <View style={styles.userEntryCard}>
+              <View style={styles.userEntryHeader}>
+                <View style={styles.userEntryIcon}>
+                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                </View>
+                <View style={styles.userEntryInfo}>
+                  <Text style={styles.userEntryTitle}>Your Entry Submitted!</Text>
+                  <Text style={styles.userEntrySubtitle}>Good luck! 🍀</Text>
+                </View>
+                {userEntry.rank && userEntry.rank <= 3 && (
+                  <View style={[styles.rankBadge, { backgroundColor: userEntry.rank === 1 ? '#FFD700' : userEntry.rank === 2 ? '#C0C0C0' : '#CD7F32' }]}>
+                    <Ionicons name="crown" size={16} color="#fff" />
+                    <Text style={styles.rankBadgeText}>#{userEntry.rank}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.userEntryStats}>
+                <View style={styles.entryStat}>
+                  <Text style={styles.entryStatValue}>{userEntry.vote_count || 0}</Text>
+                  <Text style={styles.entryStatLabel}>Votes</Text>
+                </View>
+                <View style={styles.entryStat}>
+                  <Text style={styles.entryStatValue}>#{userEntry.rank || '-'}</Text>
+                  <Text style={styles.entryStatLabel}>Rank</Text>
+                </View>
+                <View style={styles.entryStat}>
+                  <Ionicons name="checkmark" size={20} color="#10B981" />
+                  <Text style={styles.entryStatLabel}>Active</Text>
+                </View>
+              </View>
+            </View>
+          )}
+
           {/* Action Buttons */}
           {canSubmit() && (
             <TouchableOpacity 
@@ -219,27 +310,38 @@ export default function CampaignDetailScreen({ route, navigation }) {
               onPress={() => setShowSubmitModal(true)}
             >
               <Ionicons name="add-circle" size={20} color="#fff" />
-              <Text style={styles.submitButtonText}>Submit Entry</Text>
+              <Text style={styles.submitButtonText}>🎯 Join Campaign</Text>
             </TouchableOpacity>
           )}
 
-          {canVote() && (
+          {userEntry ? (
+            <View style={styles.statusButton}>
+              <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+              <Text style={styles.statusButtonText}>Already Entered</Text>
+            </View>
+          ) : !canSubmit() && (
+            <View style={[styles.statusButton, styles.cannotSubmitButton]}>
+              <Ionicons name="alert-circle" size={20} color="#EF4444" />
+              <Text style={styles.statusButtonText}>Cannot Submit</Text>
+            </View>
+          )}
+
+          <View style={styles.quickActions}>
             <TouchableOpacity 
-              style={styles.voteButton}
+              style={styles.quickActionButton}
+              onPress={() => navigation.navigate('CampaignLeaderboard', { campaignId })}
+            >
+              <Ionicons name="trophy" size={18} color={BRAND_GOLD} />
+              <Text style={styles.quickActionText}>Leaderboard</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.quickActionButton}
               onPress={() => navigation.navigate('CampaignFeed', { campaignId })}
             >
-              <Ionicons name="people" size={20} color="#fff" />
-              <Text style={styles.voteButtonText}>Vote for Entries</Text>
+              <Ionicons name="list" size={18} color={BRAND_GOLD} />
+              <Text style={styles.quickActionText}>Feed</Text>
             </TouchableOpacity>
-          )}
-
-          <TouchableOpacity 
-            style={styles.leaderboardButton}
-            onPress={() => navigation.navigate('CampaignLeaderboard', { campaignId })}
-          >
-            <Ionicons name="trophy" size={20} color={BRAND_GOLD} />
-            <Text style={[styles.leaderboardButtonText, { color: BRAND_GOLD }]}>View Leaderboard</Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -511,5 +613,188 @@ const styles = StyleSheet.create({
   },
   modalButtonTextSecondary: {
     color: '#000',
+  },
+  requirementsContainer: {
+    padding: 16,
+    backgroundColor: 'rgba(59,130,246,0.05)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59,130,246,0.2)',
+    marginBottom: 16,
+  },
+  requirementsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  requirementsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+    marginLeft: 8,
+  },
+  requirementsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  requirementItem: {
+    width: '48%',
+    padding: 12,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    marginBottom: 8,
+    marginRight: '2%',
+  },
+  requirementLabel: {
+    fontSize: 11,
+    color: '#666',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  requirementValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: BRAND_GOLD,
+  },
+  timelineContainer: {
+    padding: 16,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    marginBottom: 16,
+  },
+  timelineTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 12,
+  },
+  timelineGrid: {
+    gap: 12,
+  },
+  timelineItem: {
+    marginBottom: 8,
+  },
+  timelineLabel: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  timelineValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  userEntryCard: {
+    backgroundColor: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(218,155,42,0.1))',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#10B981',
+    marginBottom: 16,
+  },
+  userEntryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  userEntryIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#10B981',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userEntryInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  userEntryTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000',
+  },
+  userEntrySubtitle: {
+    fontSize: 13,
+    color: '#666',
+  },
+  rankBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+  },
+  rankBadgeText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  userEntryStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  entryStat: {
+    alignItems: 'center',
+  },
+  entryStatValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: BRAND_GOLD,
+  },
+  entryStatLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  statusButton: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(16,185,129,0.15)',
+    borderRadius: 12,
+    padding: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#10B981',
+    marginBottom: 12,
+  },
+  cannotSubmitButton: {
+    backgroundColor: 'rgba(239,68,68,0.15)',
+    borderColor: '#EF4444',
+  },
+  statusButtonText: {
+    color: '#10B981',
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quickActionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    gap: 8,
+  },
+  quickActionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: BRAND_GOLD,
   },
 });
