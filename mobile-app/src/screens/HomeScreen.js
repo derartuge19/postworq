@@ -625,13 +625,16 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     width: '100%',
-    height: 400,
+    aspectRatio: 9/16,
     backgroundColor: '#000',
     position: 'relative',
+    minHeight: 300,
+    maxHeight: 500,
   },
   media: {
     width: '100%',
     height: '100%',
+    resizeMode: 'contain',
   },
   playOverlay: {
     ...StyleSheet.absoluteFillObject,
