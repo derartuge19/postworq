@@ -556,7 +556,7 @@ class ReelViewSet(viewsets.ModelViewSet):
                     message=f"{request.user.username} liked your post"
                 )
             
-            return Response({'voted': True, 'votes': reel.votes})
+            return Response({'has_voted': True, 'is_liked': True, 'votes': reel.votes})
         else:
             vote.delete()
             reel.votes -= 1
@@ -571,7 +571,7 @@ class ReelViewSet(viewsets.ModelViewSet):
                     reel=reel
                 ).delete()
             
-            return Response({'voted': False, 'votes': reel.votes})
+            return Response({'has_voted': False, 'is_liked': False, 'votes': reel.votes})
     
     @action(detail=True, methods=['post'])
     def save(self, request, pk=None):
