@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Platform, ActivityIndicator, Alert, Linking } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet, Platform, ActivityIndicator, Alert, Linking, PanResponder } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -122,20 +122,70 @@ function CustomTabBar({ state, descriptors, navigation }) {
   );
 }
 
-// ── Main Tab Navigator ─────────────────────────────────────────────────────────
-function MainTabs() {
+// ── Swipe Navigation Wrapper ───────────────────────────────────────────────────
+function SwipeableTabs({ navigation }) {
+  const swipeStart = useRef({ x: 0, y: 0, active: false });
+  const TAB_ORDER = ['Home', 'Reels', 'Create', 'Notifications', 'Profile'];
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => false, // Only handle horizontal swipes, not vertical scroll
+      onPanResponderGrant: (e) => {
+        swipeStart.current = {
+          x: e.nativeEvent.locationX,
+          y: e.nativeEvent.locationY,
+          active: true
+        };
+      },
+      onPanResponderRelease: (e) => {
+        if (!swipeStart.current.active) return;
+        
+        const dx = e.nativeEvent.locationX - swipeStart.current.x;
+        const dy = e.nativeEvent.locationY - swipeStart.current.y;
+        
+        // Must be horizontal swipe with minimal vertical movement
+        const absX = Math.abs(dx);
+        const absY = Math.abs(dy);
+        
+        // Thresholds: 70px horizontal distance, horizontal must be 1.8x vertical
+        if (absX > 70 && absX > absY * 1.8) {
+          const currentRoute = navigation.getState().routes[navigation.getState().index].name;
+          const currentIndex = TAB_ORDER.indexOf(currentRoute);
+          
+          if (currentIndex !== -1) {
+            const nextIndex = dx < 0 ? currentIndex + 1 : currentIndex - 1; // left = next, right = prev
+            
+            if (nextIndex >= 0 && nextIndex < TAB_ORDER.length) {
+              navigation.navigate(TAB_ORDER[nextIndex]);
+            }
+          }
+        }
+        
+        swipeStart.current.active = false;
+      },
+    })
+  ).current;
+
   return (
-    <Tab.Navigator
-      tabBar={props => <CustomTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tab.Screen name="Home"          component={HomeScreen} />
-      <Tab.Screen name="Reels"         component={ReelsScreen} />
-      <Tab.Screen name="Create"        component={CreateScreen} />
-      <Tab.Screen name="Notifications" component={NotificationsScreen} />
-      <Tab.Screen name="Profile"       component={ProfileScreen} />
-    </Tab.Navigator>
+    <View style={{ flex: 1 }} {...panResponder.panHandlers}>
+      <Tab.Navigator
+        tabBar={props => <CustomTabBar {...props} />}
+        screenOptions={{ headerShown: false }}
+      >
+        <Tab.Screen name="Home"          component={HomeScreen} />
+        <Tab.Screen name="Reels"         component={ReelsScreen} />
+        <Tab.Screen name="Create"        component={CreateScreen} />
+        <Tab.Screen name="Notifications" component={NotificationsScreen} />
+        <Tab.Screen name="Profile"       component={ProfileScreen} />
+      </Tab.Navigator>
+    </View>
   );
+}
+
+// ── Main Tab Navigator ─────────────────────────────────────────────────────────
+function MainTabs({ navigation }) {
+  return <SwipeableTabs navigation={navigation} />;
 }
 
 // ── Main Stack (wraps tabs + push screens) ─────────────────────────────────────
