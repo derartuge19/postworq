@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import config from '../config';
@@ -47,6 +48,7 @@ const FILTERS = [
 
 export default function NotificationsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
+  const nav = useNavigation();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,6 +101,16 @@ export default function NotificationsScreen({ navigation }) {
       clearTimeout(timer);
     };
   }, [fetchNotifications]);
+
+  // Listen for tab press event to refresh when already on Notifications screen
+  useEffect(() => {
+    const unsubscribe = nav.addListener('tabPress', (e) => {
+      // Refresh notifications when tab is pressed while already on screen
+      fetchNotifications(true);
+    });
+
+    return unsubscribe;
+  }, [nav, fetchNotifications]);
 
   const onRefresh = () => {
     setRefreshing(true);

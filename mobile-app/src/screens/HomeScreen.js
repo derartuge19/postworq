@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import api from '../api';
 import GamificationBar from '../components/GamificationBar';
 import config from '../config';
@@ -58,6 +58,7 @@ const mediaUrl = (url) => {
 };
 
 export default function HomeScreen({ navigation }) {
+  const nav = useNavigation();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('For You');
@@ -140,6 +141,17 @@ export default function HomeScreen({ navigation }) {
       loadPosts();
     }, [])
   );
+
+  // Listen for tab press event to refresh when already on Home screen
+  useEffect(() => {
+    const unsubscribe = nav.addListener('tabPress', (e) => {
+      // Prevent default navigation behavior since we're already on the screen
+      // This will refresh the content instead
+      loadPosts();
+    });
+
+    return unsubscribe;
+  }, [nav]);
 
   const loadPosts = async () => {
     try {

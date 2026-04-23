@@ -70,6 +70,8 @@ function CustomTabBar({ state, descriptors, navigation }) {
           if (!isFocused && !event.defaultPrevented) {
             navigation.navigate(route.name);
           }
+          // If already focused, the tabPress event is still emitted
+          // Screens can listen to this event to refresh their content
         };
 
         // ── Icon map ──

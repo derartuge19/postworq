@@ -21,7 +21,7 @@ import {
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useIsFocused, useFocusEffect } from '@react-navigation/native';
+import { useIsFocused, useFocusEffect, useNavigation } from '@react-navigation/native';
 import api from '../api';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
@@ -337,6 +337,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
 });
 
 export default function ReelsScreen({ route, navigation }) {
+  const nav            = useNavigation();
   const isFocused      = useIsFocused();
   const insets         = useSafeAreaInsets();
   const [reels, setReels]           = useState([]);
@@ -362,6 +363,16 @@ export default function ReelsScreen({ route, navigation }) {
       fetchReels(0);
     }, [])
   );
+
+  // Listen for tab press event to refresh when already on Reels screen
+  useEffect(() => {
+    const unsubscribe = nav.addListener('tabPress', (e) => {
+      // Refresh reels when tab is pressed while already on screen
+      fetchReels(0);
+    });
+
+    return unsubscribe;
+  }, [nav]);
 
   const handleSendGift = async () => {
     if (!giftPost) return;
