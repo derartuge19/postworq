@@ -37,7 +37,7 @@ const T = {
 
 const BRAND_GOLD = '#DA9B2A';
 
-const ALL_TABS = ['For You', 'Discover', 'Campaigns', 'Categories'];
+const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 
 const timeAgo = (dateStr) => {
   if (!dateStr) return '';
@@ -228,7 +228,13 @@ export default function HomeScreen({ navigation }) {
           const isActive = activeTab === item;
           return (
             <TouchableOpacity
-              onPress={() => setActiveTab(item)}
+              onPress={() => {
+                if (item === 'Explore') {
+                  navigation.navigate('Explore');
+                } else {
+                  setActiveTab(item);
+                }
+              }}
               activeOpacity={0.75}
               style={[
                 styles.tabButton,

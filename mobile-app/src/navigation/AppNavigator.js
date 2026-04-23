@@ -14,7 +14,7 @@ import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
-import DiscoverScreen from '../screens/DiscoverScreen';
+import ExploreScreen from '../screens/ExploreScreen';
 import CreateScreen from '../screens/CreateScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -150,6 +150,7 @@ function MainStack() {
       }}
     >
       <Stack.Screen name="MainTabs"       component={MainTabs}             options={{ headerShown: false }} />
+      <Stack.Screen name="Explore"        component={ExploreScreen}        options={{ headerShown: false }} />
       <Stack.Screen name="Reels"          component={ReelsScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="VideoDetail"    component={VideoDetailScreen}    options={{ title: 'Video' }} />
       <Stack.Screen name="ProfileDetail"  component={ProfileDetailScreen}  options={{ title: 'Profile' }} />

@@ -331,6 +331,16 @@ const api = {
   // Search
   search: (query) => api.request(`/search/?q=${encodeURIComponent(query)}`),
 
+  // Explore/Trending
+  getTrendingContent: (category = 'all', timeRange = '7d', limit = 12, offset = 0) =>
+    api.request(`/explorer/trending/?category=${category}&time_range=${timeRange}&limit=${limit}&offset=${offset}`),
+
+  getTrendingHashtags: (timeRange = '7d', limit = 15) =>
+    api.request(`/explorer/hashtags/?time_range=${timeRange}&limit=${limit}`),
+
+  getHashtagContent: (tag, limit = 30) =>
+    api.request(`/explorer/hashtag/?tag=${encodeURIComponent(tag)}&limit=${limit}`),
+
   getUser: (userId) => api.request(`/profile/${userId}/`),
 
   getUserPosts: (userId) => api.request(`/reels/?user=${userId}`),
