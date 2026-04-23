@@ -217,20 +217,19 @@ export default function ExploreScreen({ navigation }) {
 
   // Render video thumbnail
   const renderVideoThumb = ({ item, index }) => {
-    const videoUrl = item.file_url || item.media;
-    const imageUrl = item.image || item.media;
-    const isVideo = !!(videoUrl || '').match(/\.(mp4|webm|ogg|mov)/i) || (videoUrl && videoUrl.includes('/video/'));
+    // Use the actual fields from ReelSerializer: image and media
+    const imageUrl = item.image;
+    const mediaUrl_field = item.media;
+    const isVideo = !!(mediaUrl_field || '').match(/\.(mp4|webm|ogg|mov)/i) || (mediaUrl_field && mediaUrl_field.includes('/video/'));
     
-    // Better thumbnail logic with multiple fallbacks
+    // Thumbnail logic matching the API response structure
     let thumb = null;
-    if (item.thumbnail_url) {
-      thumb = mediaUrl(item.thumbnail_url);
-    } else if (imageUrl && !isVideo) {
-      thumb = mediaUrl(imageUrl);
-    } else if (videoUrl) {
-      thumb = mediaUrl(videoUrl);
-    } else if (item.media) {
-      thumb = mediaUrl(item.media);
+    if (imageUrl && !isVideo) {
+      // If it's an image, use the image field
+      thumb = imageUrl;
+    } else if (mediaUrl_field) {
+      // For videos, use the media field (will show video thumbnail)
+      thumb = mediaUrl_field;
     }
 
     return (
