@@ -11,6 +11,7 @@ import {
   StatusBar,
   FlatList,
   Alert,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -45,17 +46,20 @@ export default function ProfileScreen({ navigation }) {
     if (!user) return;
     try {
       setLoading(true);
-      const [profileData, postsRaw, followersRaw, followingRaw] = await Promise.all([
+      const targetUserId = profile?.id || user.id;
+      
+      const [profileData, followersRaw, followingRaw] = await Promise.all([
         api.getProfile(),
-        api.getUserPosts(user.id),
-        api.getFollowers(user.id),
-        api.getFollowing(user.id),
+        api.getFollowers(targetUserId),
+        api.getFollowing(targetUserId),
       ]);
 
       setProfile(profileData);
-      setPosts(Array.isArray(postsRaw) ? postsRaw : (postsRaw.results || []));
       setFollowers(Array.isArray(followersRaw) ? followersRaw.length : (followersRaw.results?.length || 0));
       setFollowing(Array.isArray(followingRaw) ? followingRaw.length : (followingRaw.results?.length || 0));
+      
+      // Initial fetch of posts
+      await fetchPosts();
     } catch (error) {
       console.error('Profile fetch error:', error);
       if (error.message.includes('404')) {
@@ -64,7 +68,33 @@ export default function ProfileScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, profile?.id]);
+
+  const fetchPosts = async () => {
+    try {
+      let data;
+      if (activeTab === 'saved') {
+        const raw = await api.getSavedPosts();
+        data = Array.isArray(raw) ? raw : (raw.results || []);
+      } else if (activeTab === 'reels') {
+        const raw = await api.getUserPosts(user.id);
+        const rawArr = Array.isArray(raw) ? raw : (raw.results || []);
+        data = rawArr.filter(p => p.media?.includes('.mp4') || p.media?.includes('/video/'));
+      } else {
+        const raw = await api.getUserPosts(user.id);
+        data = Array.isArray(raw) ? raw : (raw.results || []);
+      }
+      setPosts(data);
+    } catch (error) {
+      console.error('Fetch posts error:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchPosts();
+    }
+  }, [activeTab, isFocused]);
 
   useEffect(() => {
     if (isFocused) {
@@ -73,14 +103,19 @@ export default function ProfileScreen({ navigation }) {
   }, [isFocused, fetchProfileData]);
 
   const renderPostItem = ({ item }) => {
-    const isVideo = item.media?.includes('.mp4') || item.media?.includes('/video/');
+    const mediaUri = item.image || item.thumbnail || item.media;
+    const isVideo = item.media?.includes('.mp4') || item.media?.includes('/video/') || item.is_reel;
     
     return (
       <TouchableOpacity 
         style={styles.postThumb}
         onPress={() => navigation.navigate('Reels', { reelId: item.id })}
       >
-        <Image source={{ uri: mediaUrl(item.image || item.media) }} style={styles.thumbImage} />
+        <Image 
+          source={{ uri: mediaUrl(mediaUri) }} 
+          style={styles.thumbImage}
+          resizeMode="cover"
+        />
         {isVideo && (
           <View style={styles.videoBadge}>
             <Ionicons name="play" size={12} color="#fff" />
@@ -98,29 +133,40 @@ export default function ProfileScreen({ navigation }) {
     );
   }
 
-  const filteredPosts = activeTab === 'reels' 
-    ? posts.filter(p => p.media?.includes('.mp4') || p.media?.includes('/video/'))
-    : posts;
+  const filteredPosts = posts;
+
+  const handleShareProfile = async () => {
+    try {
+      const profileUrl = `${config.API_BASE_URL.replace('/api', '')}/profile/${profile?.username || user?.username}`;
+      await Share.share({
+        message: `Check out @${profile?.username || user?.username}'s profile on FlipStar! ${profileUrl}`,
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
 
   return (
     <View style={styles.root}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerUsername}>@{profile?.username || user?.username || 'user'}</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-            <Ionicons name="settings-outline" size={24} color="#000" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Gamification Section */}
-        <GamificationBar userId={user?.id} />
+        {/* Gamification Section (Now at the very top) */}
+        <View style={{ paddingTop: insets.top }}>
+          <GamificationBar userId={user?.id} />
+        </View>
+
+        {/* Header (Now inside ScrollView, below Gamification) */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerUsername}>@{profile?.username || user?.username || 'user'}</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+              <Ionicons name="settings-outline" size={24} color="#000" />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Profile Info */}
         <View style={styles.profileInfo}>
@@ -140,11 +186,17 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.statCount}>{posts.length}</Text>
                 <Text style={styles.statLabel}>Posts</Text>
               </View>
-              <TouchableOpacity style={styles.statItem} onPress={() => {}}>
+              <TouchableOpacity 
+                style={styles.statItem} 
+                onPress={() => navigation.navigate('FollowList', { userId: profile?.id || user?.id, type: 'followers' })}
+              >
                 <Text style={styles.statCount}>{followers}</Text>
                 <Text style={styles.statLabel}>Followers</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.statItem} onPress={() => {}}>
+              <TouchableOpacity 
+                style={styles.statItem} 
+                onPress={() => navigation.navigate('FollowList', { userId: profile?.id || user?.id, type: 'following' })}
+              >
                 <Text style={styles.statCount}>{following}</Text>
                 <Text style={styles.statLabel}>Following</Text>
               </TouchableOpacity>
@@ -168,7 +220,7 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.shareBtn}
-              onPress={() => {}}
+              onPress={handleShareProfile}
             >
               <Text style={styles.shareBtnText}>Share Profile</Text>
             </TouchableOpacity>

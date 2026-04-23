@@ -75,14 +75,19 @@ export default function ProfileDetailScreen({ route, navigation }) {
   };
 
   const renderPostItem = ({ item }) => {
-    const isVideo = item.media?.includes('.mp4') || item.media?.includes('/video/');
+    const mediaUri = item.image || item.thumbnail || item.media;
+    const isVideo = item.media?.includes('.mp4') || item.media?.includes('/video/') || item.is_reel;
     
     return (
       <TouchableOpacity 
         style={styles.postThumb}
         onPress={() => navigation.navigate('Reels', { reelId: item.id })}
       >
-        <Image source={{ uri: mediaUrl(item.image || item.media) }} style={styles.thumbImage} />
+        <Image 
+          source={{ uri: mediaUrl(mediaUri) }} 
+          style={styles.thumbImage}
+          resizeMode="cover"
+        />
         {isVideo && (
           <View style={styles.videoBadge}>
             <Ionicons name="play" size={12} color="#fff" />
@@ -134,14 +139,20 @@ export default function ProfileDetailScreen({ route, navigation }) {
                 <Text style={styles.statCount}>{posts.length}</Text>
                 <Text style={styles.statLabel}>Posts</Text>
               </View>
-              <View style={styles.statItem}>
+              <TouchableOpacity 
+                style={styles.statItem}
+                onPress={() => navigation.navigate('FollowList', { userId: profile?.id, type: 'followers' })}
+              >
                 <Text style={styles.statCount}>{profile?.followers_count || 0}</Text>
                 <Text style={styles.statLabel}>Followers</Text>
-              </View>
-              <View style={styles.statItem}>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.statItem}
+                onPress={() => navigation.navigate('FollowList', { userId: profile?.id, type: 'following' })}
+              >
                 <Text style={styles.statCount}>{profile?.following_count || 0}</Text>
                 <Text style={styles.statLabel}>Following</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
 

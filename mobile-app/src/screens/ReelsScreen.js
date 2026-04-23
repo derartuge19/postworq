@@ -77,16 +77,20 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
       // Double tap detected
       if (!liked) handleLike();
       animateHeart();
+      // Clear timeout if double tap happens
+      if (tapTimeout.current) clearTimeout(tapTimeout.current);
     } else {
-      // Single tap detected - toggle pause after delay to distinguish from double tap
-      setTimeout(() => {
-        if (Date.now() - lastTap.current >= 300) {
-          setPaused(p => !p);
-        }
+      // Single tap detected - toggle pause after delay
+      if (tapTimeout.current) clearTimeout(tapTimeout.current);
+      tapTimeout.current = setTimeout(() => {
+        setPaused(p => !p);
+        tapTimeout.current = null;
       }, 300);
     }
     lastTap.current = now;
   };
+
+  const tapTimeout = useRef(null);
 
   const animateHeart = () => {
     heartScale.setValue(0);
