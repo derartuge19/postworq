@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Video, ResizeMode } from 'expo-av';
 import * as SecureStore from 'expo-secure-store';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import config from '../config';
 import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
@@ -43,6 +44,7 @@ async function saveDrafts(drafts) {
 
 export default function CreateScreen({ navigation }) {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   // Stage: 'pick' | 'edit' | 'details' | 'uploading'
   const [stage, setStage] = useState('pick');
@@ -181,7 +183,7 @@ export default function CreateScreen({ navigation }) {
         <StatusBar barStyle="dark-content" />
         
         {/* Header */}
-        <View style={s.newHeader}>
+        <View style={[s.newHeader, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
             <Ionicons name="close" size={24} color="#000" />
           </TouchableOpacity>
@@ -298,7 +300,7 @@ export default function CreateScreen({ navigation }) {
         </View>
 
         {/* Top bar */}
-        <View style={s.editTop}>
+        <View style={[s.editTop, { top: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => setStage('pick')} style={s.editIconBtn}>
             <Ionicons name="close" size={26} color="#fff" />
           </TouchableOpacity>
@@ -386,7 +388,7 @@ export default function CreateScreen({ navigation }) {
     return (
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.container}>
         <StatusBar barStyle="dark-content" />
-        <View style={s.header}>
+        <View style={[s.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => setStage('edit')}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
@@ -469,9 +471,13 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
 
   header: {
-    height: 58, flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#e0e0e0',
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e0e0e0',
   },
   headerTitle: { fontSize: 17, fontWeight: '800' },
   draftBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: BRAND + '18', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, gap: 4 },
@@ -479,9 +485,9 @@ const s = StyleSheet.create({
 
   // Header styles for new design
   newHeader: {
-    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 60,
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 15,
