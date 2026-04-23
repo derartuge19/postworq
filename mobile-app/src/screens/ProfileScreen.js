@@ -43,10 +43,18 @@ export default function ProfileScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'reels' | 'saved'
 
   const fetchProfileData = useCallback(async () => {
-    if (!user) return;
+    const currentUserId = user?.id;
+    console.log('ProfileScreen: fetchProfileData starting. Auth User ID:', currentUserId);
+    
+    if (!currentUserId) {
+      console.log('ProfileScreen: No auth user ID yet, skipping fetch');
+      return;
+    }
+
     try {
       setLoading(true);
-      const targetUserId = profile?.id || user.id;
+      const targetUserId = profile?.id || currentUserId;
+      console.log('ProfileScreen: Fetching for targetUserId:', targetUserId);
       
       const [profileData, followersRaw, followingRaw] = await Promise.all([
         api.getProfile().catch(err => { console.error('getProfile error:', err); return null; }),
@@ -54,20 +62,35 @@ export default function ProfileScreen({ navigation }) {
         api.getFollowing(targetUserId).catch(err => { console.error('getFollowing error:', err); return []; }),
       ]);
 
+      console.log('ProfileScreen: API Results:', { 
+        hasProfile: !!profileData, 
+        followersCount: Array.isArray(followersRaw) ? followersRaw.length : 'non-array',
+        followingCount: Array.isArray(followingRaw) ? followingRaw.length : 'non-array'
+      });
+
       if (profileData) {
-        setProfile(profileData);
+        const actualProfile = profileData.user || profileData;
+        console.log('ProfileScreen: Setting profile data. Stats:', {
+          followers: actualProfile.followers_count,
+          following: actualProfile.following_count
+        });
+        setProfile(actualProfile);
+        
         // Use counts from profile object if available, otherwise use list length
-        setFollowers(profileData.followers_count ?? (Array.isArray(followersRaw) ? followersRaw.length : (followersRaw.results?.length || 0)));
-        setFollowing(profileData.following_count ?? (Array.isArray(followingRaw) ? followingRaw.length : (followingRaw.results?.length || 0)));
+        setFollowers(actualProfile.followers_count ?? (Array.isArray(followersRaw) ? followersRaw.length : (followersRaw.results?.length || 0)));
+        setFollowing(actualProfile.following_count ?? (Array.isArray(followingRaw) ? followingRaw.length : (followingRaw.results?.length || 0)));
+      } else if (user) {
+        // Fallback to auth user if profile fetch fails
+        console.log('ProfileScreen: Profile fetch failed, falling back to auth user');
+        setProfile(user);
+        setFollowers(user.followers_count || 0);
+        setFollowing(user.following_count || 0);
       }
       
       // Initial fetch of posts
       await fetchPosts();
     } catch (error) {
-      console.error('Profile fetch error:', error);
-      if (error.message.includes('404')) {
-        Alert.alert('Profile Not Found', 'Your profile could not be found. Please contact support or try logging out and in again.');
-      }
+      console.error('ProfileScreen fetch error:', error);
     } finally {
       setLoading(false);
     }
@@ -76,8 +99,10 @@ export default function ProfileScreen({ navigation }) {
   const fetchPosts = async () => {
     try {
       const userId = profile?.id || user?.id;
+      console.log('ProfileScreen: fetchPosts starting. Target User ID:', userId, 'Tab:', activeTab);
+      
       if (!userId && activeTab !== 'saved') {
-        console.warn('fetchPosts: No user ID available');
+        console.warn('ProfileScreen: fetchPosts - No user ID available');
         return;
       }
 
@@ -93,9 +118,10 @@ export default function ProfileScreen({ navigation }) {
         const raw = await api.getUserPosts(userId).catch(() => []);
         data = Array.isArray(raw) ? raw : (raw.results || []);
       }
+      console.log(`ProfileScreen: Fetched ${data.length} posts for ${activeTab}`);
       setPosts(data);
     } catch (error) {
-      console.error('Fetch posts error:', error);
+      console.error('ProfileScreen fetchPosts error:', error);
     }
   };
 
