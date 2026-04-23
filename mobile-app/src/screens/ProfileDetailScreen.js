@@ -46,17 +46,35 @@ export default function ProfileDetailScreen({ route, navigation }) {
       setPosts(posts);
 
       // Extract user data from posts instead of calling getUser endpoint
+      let userProfile = null;
       if (posts.length > 0) {
         const userFromPosts = posts[0].user;
         if (userFromPosts) {
-          setProfile(userFromPosts);
+          userProfile = userFromPosts;
           setIsFollowing(userFromPosts.is_following || false);
         }
       } else {
-        // If no posts, try to get user data from a different approach
-        // For now, set a minimal profile
-        setProfile({ id: userId, username: 'Unknown' });
+        // If no posts, set a minimal profile
+        userProfile = { id: userId, username: 'Unknown' };
         setIsFollowing(false);
+      }
+
+      // Fetch follower/following counts separately
+      try {
+        const followersData = await api.getFollowers(userId).catch(() => ({ results: [] }));
+        const followingData = await api.getFollowing(userId).catch(() => ({ results: [] }));
+        
+        const followersCount = Array.isArray(followersData) ? followersData.length : (followersData.count || followersData.results?.length || 0);
+        const followingCount = Array.isArray(followingData) ? followingData.length : (followingData.count || followingData.results?.length || 0);
+        
+        setProfile({
+          ...userProfile,
+          followers_count: userProfile?.followers_count || followersCount,
+          following_count: userProfile?.following_count || followingCount,
+        });
+      } catch (error) {
+        console.error('Failed to fetch follow counts:', error);
+        setProfile(userProfile);
       }
     } catch (error) {
       console.error('Profile fetch error:', error);
