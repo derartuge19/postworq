@@ -16,6 +16,7 @@ import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
+import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -56,7 +57,7 @@ const TIME_RANGES = [
 const mediaUrl = (url) => {
   if (!url) return null;
   if (url.startsWith('http')) return url;
-  return `${api.API_BASE_URL?.replace('/api', '') || ''}${url}`;
+  return `${config.API_BASE_URL.replace('/api', '')}${url}`;
 };
 
 const fmt = (n) => {
@@ -220,10 +221,17 @@ export default function ExploreScreen({ navigation }) {
     const imageUrl = item.image || item.media;
     const isVideo = !!(videoUrl || '').match(/\.(mp4|webm|ogg|mov)/i) || (videoUrl && videoUrl.includes('/video/'));
     
-    const thumb = item.thumbnail_url
-      ? mediaUrl(item.thumbnail_url)
-      : imageUrl ? mediaUrl(imageUrl)
-      : videoUrl ? mediaUrl(videoUrl) : null;
+    // Better thumbnail logic with multiple fallbacks
+    let thumb = null;
+    if (item.thumbnail_url) {
+      thumb = mediaUrl(item.thumbnail_url);
+    } else if (imageUrl && !isVideo) {
+      thumb = mediaUrl(imageUrl);
+    } else if (videoUrl) {
+      thumb = mediaUrl(videoUrl);
+    } else if (item.media) {
+      thumb = mediaUrl(item.media);
+    }
 
     return (
       <TouchableOpacity

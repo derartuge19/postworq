@@ -333,13 +333,13 @@ const api = {
 
   // Explore/Trending
   getTrendingContent: (category = 'all', timeRange = '7d', limit = 12, offset = 0) =>
-    api.request(`/trending/?category=${category}&time_range=${timeRange}&limit=${limit}&offset=${offset}`),
+    api.request(`/explorer/trending/?category=${category}&time_range=${timeRange}&limit=${limit}&offset=${offset}`),
 
   getTrendingHashtags: (timeRange = '7d', limit = 15) =>
-    api.request(`/trending/hashtags/?time_range=${timeRange}&limit=${limit}`),
+    api.request(`/explorer/trending-hashtags/?time_range=${timeRange}&limit=${limit}`),
 
   getHashtagContent: (tag, limit = 30) =>
-    api.request(`/trending/hashtag/?tag=${encodeURIComponent(tag)}&limit=${limit}`),
+    api.request(`/explorer/hashtag/?tag=${encodeURIComponent(tag)}&limit=${limit}`),
 
   getUser: (userId) => api.request(`/profile/${userId}/`),
 
