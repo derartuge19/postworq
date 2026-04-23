@@ -12,6 +12,8 @@ import {
   FlatList,
   Alert,
   Share,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -43,6 +45,13 @@ export default function ProfileScreen({ navigation }) {
   const [following, setFollowing] = useState(0);
   const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'reels' | 'saved' | 'campaigns'
   const [campaignStats, setCampaignStats] = useState(null);
+  const [postMenuId, setPostMenuId] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
+  const [editCaption, setEditCaption] = useState('');
+  const [editHashtags, setEditHashtags] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState(null);
 
   const fetchProfileData = useCallback(async () => {
     const currentUserId = user?.id;
@@ -127,6 +136,7 @@ export default function ProfileScreen({ navigation }) {
 
     const mediaUri = item.thumbnail || item.image || getVideoThumbnail(item.media) || item.media;
     const isVideo = item.media?.includes('.mp4') || item.media?.includes('/video/') || item.is_reel;
+    const isOwnPost = item.user?.id === user?.id;
     
     return (
       <TouchableOpacity 
@@ -142,6 +152,17 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.videoBadge}>
             <Ionicons name="play" size={12} color="#fff" />
           </View>
+        )}
+        {isOwnPost && (
+          <TouchableOpacity
+            style={styles.postMenuBtn}
+            onPress={(e) => {
+              e.stopPropagation();
+              setPostMenuId(postMenuId === item.id ? null : item.id);
+            }}
+          >
+            <Ionicons name="ellipsis-vertical" size={16} color="#fff" />
+          </TouchableOpacity>
         )}
       </TouchableOpacity>
     );
@@ -221,6 +242,46 @@ export default function ProfileScreen({ navigation }) {
       });
     } catch (error) {
       console.error('Share error:', error);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    setConfirmDeleteId(null);
+    try {
+      await api.deletePost(postId);
+      setSuccessMsg('Post deleted!');
+      setTimeout(() => setSuccessMsg(null), 2500);
+      fetchPosts();
+    } catch (error) {
+      console.error('Failed to delete post:', error);
+      Alert.alert('Error', 'Could not delete this post. Please try again.');
+    }
+  };
+
+  const handleEditPost = (post) => {
+    setPostMenuId(null);
+    setEditingPost(post);
+    setEditCaption(post.caption || '');
+    setEditHashtags(post.hashtags || '');
+  };
+
+  const handleEditSave = async () => {
+    if (!editingPost) return;
+    setIsSaving(true);
+    try {
+      await api.updatePost(editingPost.id, {
+        caption: editCaption,
+        hashtags: editHashtags
+      });
+      setEditingPost(null);
+      setSuccessMsg('Post updated!');
+      setTimeout(() => setSuccessMsg(null), 2500);
+      fetchPosts();
+    } catch (error) {
+      console.error('Failed to update post:', error);
+      Alert.alert('Error', 'Could not update this post. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -436,6 +497,121 @@ export default function ProfileScreen({ navigation }) {
           />
         )}
       </ScrollView>
+
+      {/* Post Menu Bottom Sheet */}
+      <Modal visible={!!postMenuId} transparent animationType="slide">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setPostMenuId(null)}
+        >
+          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            <TouchableOpacity
+              style={styles.sheetItem}
+              onPress={() => { const p = posts.find(p => p.id === postMenuId); handleEditPost(p); }}
+            >
+              <Ionicons name="create-outline" size={20} color={BRAND_GOLD} />
+              <Text style={styles.sheetItemText}>Edit Caption</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.sheetItem}
+              onPress={() => { setConfirmDeleteId(postMenuId); setPostMenuId(null); }}
+            >
+              <Ionicons name="trash-outline" size={20} color="#EF4444" />
+              <Text style={[styles.sheetItemText, { color: '#EF4444' }]}>Delete Post</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Edit Post Modal */}
+      <Modal visible={!!editingPost} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setEditingPost(null)}
+        >
+          <View style={styles.editModal} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Edit Post</Text>
+            <Text style={styles.modalSubtitle}>Update your post details below.</Text>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Caption</Text>
+              <TextInput
+                style={styles.textInput}
+                value={editCaption}
+                onChangeText={setEditCaption}
+                placeholder="Write a caption..."
+                multiline
+                numberOfLines={4}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Hashtags</Text>
+              <TextInput
+                style={styles.textInput}
+                value={editHashtags}
+                onChangeText={setEditHashtags}
+                placeholder="#hashtag1 #hashtag2"
+              />
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.cancelBtn]}
+                onPress={() => setEditingPost(null)}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.saveBtn]}
+                onPress={handleEditSave}
+                disabled={isSaving}
+              >
+                <Text style={styles.saveBtnText}>{isSaving ? 'Saving...' : 'Save Changes'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Confirm Delete Modal */}
+      <Modal visible={!!confirmDeleteId} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setConfirmDeleteId(null)}
+        >
+          <View style={styles.confirmModal} onStartShouldSetResponder={() => true}>
+            <Text style={styles.confirmEmoji}>🗑️</Text>
+            <Text style={styles.confirmTitle}>Delete Post?</Text>
+            <Text style={styles.confirmSubtitle}>This cannot be undone.</Text>
+            <View style={styles.confirmButtons}>
+              <TouchableOpacity
+                style={[styles.confirmBtn, styles.confirmCancelBtn]}
+                onPress={() => setConfirmDeleteId(null)}
+              >
+                <Text style={styles.confirmCancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmBtn, styles.confirmDeleteBtn]}
+                onPress={() => handleDeletePost(confirmDeleteId)}
+              >
+                <Text style={styles.confirmDeleteBtnText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Success Toast */}
+      {successMsg && (
+        <View style={styles.successToast}>
+          <Text style={styles.successToastText}>✓ {successMsg}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -655,5 +831,183 @@ const styles = StyleSheet.create({
   emptySubtitle: {
     fontSize: 13,
     color: '#666',
+  },
+  postMenuBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 12,
+    padding: 6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 40,
+    maxHeight: '80%',
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E7E5E4',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 15,
+    marginTop: 8,
+  },
+  sheetItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F4',
+    gap: 14,
+  },
+  sheetItemText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  editModal: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 24,
+    margin: 20,
+    maxHeight: '90%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 20,
+  },
+  formGroup: {
+    marginBottom: 16,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  textInput: {
+    width: '100%',
+    padding: 12,
+    fontSize: 15,
+    color: '#000',
+    borderWidth: 1.5,
+    borderColor: '#e5e5e5',
+    borderRadius: 12,
+    minHeight: 80,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  modalBtn: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelBtn: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+  },
+  cancelBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#000',
+  },
+  saveBtn: {
+    backgroundColor: BRAND_GOLD,
+  },
+  saveBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  confirmModal: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 28,
+    margin: 20,
+    alignItems: 'center',
+  },
+  confirmEmoji: {
+    fontSize: 44,
+    marginBottom: 12,
+  },
+  confirmTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 8,
+  },
+  confirmSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  confirmButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  confirmBtn: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  confirmCancelBtn: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+  },
+  confirmCancelBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#000',
+  },
+  confirmDeleteBtn: {
+    backgroundColor: '#EF4444',
+  },
+  confirmDeleteBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  successToast: {
+    position: 'absolute',
+    bottom: 90,
+    left: '50%',
+    transform: [{ translateX: -50 }],
+    backgroundColor: '#1C1917',
+    color: '#fff',
+    padding: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    zIndex: 100,
+  },
+  successToastText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
