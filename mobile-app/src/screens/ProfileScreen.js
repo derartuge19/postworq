@@ -15,6 +15,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -49,6 +50,8 @@ export default function ProfileScreen({ navigation }) {
   const [editingPost, setEditingPost] = useState(null);
   const [editCaption, setEditCaption] = useState('');
   const [editHashtags, setEditHashtags] = useState('');
+  const [editMediaFile, setEditMediaFile] = useState(null);
+  const [editMediaPreview, setEditMediaPreview] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
@@ -270,17 +273,59 @@ export default function ProfileScreen({ navigation }) {
     setEditingPost(post);
     setEditCaption(post.caption || '');
     setEditHashtags(post.hashtags || '');
+    setEditMediaFile(null);
+    setEditMediaPreview(null);
+  };
+
+  const handleEditMediaChange = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setEditMediaFile(result.assets[0]);
+        setEditMediaPreview(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking media:', error);
+      Alert.alert('Error', 'Could not pick media. Please try again.');
+    }
   };
 
   const handleEditSave = async () => {
     if (!editingPost) return;
     setIsSaving(true);
     try {
-      await api.updatePost(editingPost.id, {
-        caption: editCaption,
-        hashtags: editHashtags
-      });
+      // If there's a new media file, use FormData
+      if (editMediaFile) {
+        const formData = new FormData();
+        formData.append('caption', editCaption);
+        formData.append('hashtags', editHashtags);
+        formData.append('file', {
+          uri: editMediaFile.uri,
+          type: editMediaFile.type || 'image/jpeg',
+          name: editMediaFile.fileName || 'media.jpg',
+        });
+
+        await api.request(`/reels/${editingPost.id}/`, {
+          method: 'PATCH',
+          body: formData,
+        });
+      } else {
+        // No new media, just update text fields
+        await api.updatePost(editingPost.id, {
+          caption: editCaption,
+          hashtags: editHashtags
+        });
+      }
+
       setEditingPost(null);
+      setEditMediaFile(null);
+      setEditMediaPreview(null);
       setSuccessMsg('Post updated!');
       setTimeout(() => setSuccessMsg(null), 2500);
       fetchPosts();
@@ -543,6 +588,50 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.modalTitle}>Edit Post</Text>
             <Text style={styles.modalSubtitle}>Update your post details below.</Text>
 
+            {/* Media Preview */}
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Media</Text>
+              <View style={styles.mediaPreview}>
+                {(() => {
+                  const displayUrl = editMediaPreview || (() => {
+                    const mediaUrl = editingPost.media || editingPost.image || '';
+                    return mediaUrl.startsWith('http') ? mediaUrl : `${config.API_BASE_URL.replace('/api', '')}${mediaUrl}`;
+                  })();
+                  
+                  const isVideo = editMediaFile 
+                    ? editMediaFile.type?.startsWith('video/')
+                    : (editingPost.media || '').match(/\.(mp4|webm|ogg|mov)$/i) || (editingPost.media || '').includes('video');
+                  
+                  if (isVideo) {
+                    return (
+                      <View style={styles.videoPlaceholder}>
+                        <Ionicons name="videocam" size={40} color="#666" />
+                        <Text style={styles.videoPlaceholderText}>Video</Text>
+                      </View>
+                    );
+                  } else {
+                    return (
+                      <Image 
+                        source={{ uri: displayUrl }} 
+                        style={styles.mediaImage}
+                        resizeMode="cover"
+                      />
+                    );
+                  }
+                })()}
+              </View>
+              <TouchableOpacity
+                style={styles.changeMediaBtn}
+                onPress={handleEditMediaChange}
+              >
+                <Ionicons name="camera" size={16} color={BRAND_GOLD} />
+                <Text style={styles.changeMediaBtnText}>{editMediaFile ? 'Change Media Again' : 'Change Media'}</Text>
+              </TouchableOpacity>
+              {editMediaFile && (
+                <Text style={styles.newMediaSelectedText}>✓ New media selected</Text>
+              )}
+            </View>
+
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>Caption</Text>
               <TextInput
@@ -563,6 +652,7 @@ export default function ProfileScreen({ navigation }) {
                 onChangeText={setEditHashtags}
                 placeholder="#hashtag1 #hashtag2"
               />
+              <Text style={styles.formHelperText}>Separate hashtags with spaces (e.g., #travel #photography)</Text>
             </View>
 
             <View style={styles.modalButtons}>
@@ -908,6 +998,58 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
     marginBottom: 8,
+  },
+  mediaPreview: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+  },
+  mediaImage: {
+    width: '100%',
+    height: '100%',
+  },
+  videoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoPlaceholderText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#666',
+  },
+  changeMediaBtn: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1.5,
+    borderColor: '#e5e5e5',
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  changeMediaBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  newMediaSelectedText: {
+    fontSize: 12,
+    color: BRAND_GOLD,
+    marginTop: 6,
+    fontWeight: '600',
+  },
+  formHelperText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
   },
   textInput: {
     width: '100%',
