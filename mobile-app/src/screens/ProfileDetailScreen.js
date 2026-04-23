@@ -40,19 +40,28 @@ export default function ProfileDetailScreen({ route, navigation }) {
   const fetchProfileData = useCallback(async () => {
     try {
       setLoading(true);
-      const [profileData, postsRaw] = await Promise.all([
-        api.getUser(userId).catch(err => { console.error('getUser error:', err); return null; }),
-        api.getUserPosts(userId).catch(err => { console.error('getUserPosts error:', err); return []; }),
-      ]);
+      const postsRaw = await api.getUserPosts(userId).catch(err => { console.error('getUserPosts error:', err); return []; });
+      
+      const posts = Array.isArray(postsRaw) ? postsRaw : (postsRaw.results || []);
+      setPosts(posts);
 
-      if (profileData) {
-        const p = profileData.user || profileData;
-        setProfile(p);
-        setIsFollowing(profileData.is_following || false);
+      // Extract user data from posts instead of calling getUser endpoint
+      if (posts.length > 0) {
+        const userFromPosts = posts[0].user;
+        if (userFromPosts) {
+          setProfile(userFromPosts);
+          setIsFollowing(userFromPosts.is_following || false);
+        }
+      } else {
+        // If no posts, try to get user data from a different approach
+        // For now, set a minimal profile
+        setProfile({ id: userId, username: 'Unknown' });
+        setIsFollowing(false);
       }
-      setPosts(Array.isArray(postsRaw) ? postsRaw : (postsRaw.results || []));
     } catch (error) {
       console.error('Profile fetch error:', error);
+      setProfile({ id: userId, username: 'Unknown' });
+      setIsFollowing(false);
     } finally {
       setLoading(false);
     }
