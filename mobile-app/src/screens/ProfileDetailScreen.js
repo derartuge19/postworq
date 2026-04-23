@@ -229,17 +229,22 @@ export default function ProfileDetailScreen({ route, navigation }) {
           >
             <Ionicons name="film-outline" size={22} color={activeTab === 'reels' ? BRAND_GOLD : '#666'} />
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.tabItem, activeTab === 'saved' && styles.activeTab]}
-            onPress={() => setActiveTab('saved')}
-          >
-            <Ionicons name="bookmark-outline" size={22} color={activeTab === 'saved' ? BRAND_GOLD : '#666'} />
-          </TouchableOpacity>
+          {isOwnProfile && (
+            <TouchableOpacity 
+              style={[styles.tabItem, activeTab === 'saved' && styles.activeTab]}
+              onPress={() => setActiveTab('saved')}
+            >
+              <Ionicons name="bookmark-outline" size={22} color={activeTab === 'saved' ? BRAND_GOLD : '#666'} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Grid */}
         <FlatList
-          data={activeTab === 'reels' ? posts.filter(p => p.media?.includes('.mp4') || p.is_reel) : activeTab === 'saved' ? [] : posts}
+          data={activeTab === 'reels' ? posts.filter(p => {
+            const url = p.media || p.image || '';
+            return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video') || p.is_reel;
+          }) : posts}
           renderItem={renderPostItem}
           keyExtractor={item => item.id.toString()}
           numColumns={3}
@@ -248,7 +253,9 @@ export default function ProfileDetailScreen({ route, navigation }) {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="apps-outline" size={40} color="#ccc" />
-              <Text style={styles.emptyText}>No posts yet</Text>
+              <Text style={styles.emptyText}>
+                {activeTab === 'reels' ? 'No reels yet' : activeTab === 'saved' ? 'No saved posts' : 'No posts yet'}
+              </Text>
             </View>
           }
         />
