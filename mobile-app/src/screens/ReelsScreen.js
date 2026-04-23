@@ -73,19 +73,33 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
 
   const handleDoubleTap = () => {
     const now = Date.now();
+    console.log('ReelItem: Tap detected at', now);
+    
     if (now - lastTap.current < 300) {
       // Double tap detected
+      console.log('ReelItem: Double tap! Liking...');
       if (!liked) handleLike();
       animateHeart();
-      // Clear timeout if double tap happens
       if (tapTimeout.current) clearTimeout(tapTimeout.current);
     } else {
-      // Single tap detected - toggle pause after delay
+      // Single tap detected - toggle pause after short delay
       if (tapTimeout.current) clearTimeout(tapTimeout.current);
       tapTimeout.current = setTimeout(() => {
-        setPaused(p => !p);
+        const nextPaused = !paused;
+        console.log('ReelItem: Single tap! Toggling pause to:', nextPaused);
+        setPaused(nextPaused);
+        
+        // Immediate playback control
+        if (videoRef.current) {
+          if (nextPaused) {
+            videoRef.current.pauseAsync().catch(() => {});
+          } else if (isActive && isFocused) {
+            videoRef.current.playAsync().catch(() => {});
+          }
+        }
+        
         tapTimeout.current = null;
-      }, 300);
+      }, 250); // Match web app's 250ms
     }
     lastTap.current = now;
   };
@@ -196,7 +210,9 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
       {/* ── Pause icon (center) ── */}
       {paused && (
         <View style={styles.pauseCenter} pointerEvents="none">
-          <Ionicons name="play" size={60} color="rgba(255,255,255,0.8)" />
+          <View style={styles.pauseCircle}>
+            <Ionicons name="pause" size={40} color="#fff" />
+          </View>
         </View>
       )}
 
@@ -571,6 +587,16 @@ const styles = StyleSheet.create({
   },
   scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'transparent' },
   pauseCenter: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 5 },
+  pauseCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
   sidebar: { position: 'absolute', right: 12, alignItems: 'center', zIndex: 20 },
   sideBtn: { alignItems: 'center', marginBottom: 20 },
   sideBtnLabel: { 
