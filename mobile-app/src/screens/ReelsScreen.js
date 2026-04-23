@@ -140,8 +140,29 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
   const initial = username[0]?.toUpperCase() || '?';
   const bottomBase = 60 + insets.bottom;
 
+  const [orientation, setOrientation] = useState('portrait'); // 'portrait' | 'landscape'
+
+  const onReadyForDisplay = (event) => {
+    if (event.naturalSize) {
+      const { width, height } = event.naturalSize;
+      setOrientation(width > height ? 'landscape' : 'portrait');
+    }
+  };
+
   return (
     <View style={styles.slide} {...panResponder.panHandlers}>
+
+      {/* ── Background (Blurred for landscape) ── */}
+      {orientation === 'landscape' && (
+        <View style={StyleSheet.absoluteFill}>
+          <Image 
+            source={{ uri: mediaUri }} 
+            style={StyleSheet.absoluteFill} 
+            blurRadius={20}
+          />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)' }]} />
+        </View>
+      )}
 
       {/* ── Full-screen Video ── */}
       <TouchableOpacity
@@ -155,11 +176,12 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
           ref={videoRef}
           source={{ uri: mediaUri }}
           style={StyleSheet.absoluteFill}
-          resizeMode={ResizeMode.COVER}
+          resizeMode={orientation === 'landscape' ? ResizeMode.CONTAIN : ResizeMode.COVER}
           isLooping
           isMuted={muted}
           shouldPlay={isActive && isFocused && !paused}
           useNativeControls={false}
+          onReadyForDisplay={onReadyForDisplay}
         />
       </TouchableOpacity>
 
