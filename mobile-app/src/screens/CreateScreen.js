@@ -228,9 +228,6 @@ export default function CreateScreen({ navigation }) {
                   <Text style={s.cardSub}>Use camera with filters</Text>
                 </View>
               </View>
-              <TouchableOpacity style={s.cardRightBtn}>
-                <Ionicons name="trash-outline" size={20} color="#999" />
-              </TouchableOpacity>
             </TouchableOpacity>
 
             <TouchableOpacity style={s.actionCard} onPress={pickFromLibrary}>
