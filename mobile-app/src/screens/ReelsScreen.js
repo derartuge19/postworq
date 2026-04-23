@@ -159,9 +159,13 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
   const onReadyForDisplay = (event) => {
     if (event.naturalSize) {
       const { width, height } = event.naturalSize;
-      setOrientation(width > height ? 'landscape' : 'portrait');
+      const newOrientation = width > height ? 'landscape' : 'portrait';
+      console.log(`ReelItem: Video natural size: ${width}x${height} (${newOrientation})`);
+      setOrientation(newOrientation);
     }
   };
+
+  const bgImageUri = item.thumbnail || item.image || (mediaUri.includes('.mp4') ? null : mediaUri);
 
   return (
     <View style={styles.slide} {...panResponder.panHandlers}>
@@ -169,12 +173,16 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
       {/* ── Background (Blurred for landscape) ── */}
       {orientation === 'landscape' && (
         <View style={StyleSheet.absoluteFill}>
-          <Image 
-            source={{ uri: mediaUri }} 
-            style={StyleSheet.absoluteFill} 
-            blurRadius={20}
-          />
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)' }]} />
+          {bgImageUri ? (
+            <Image 
+              source={{ uri: bgImageUri }} 
+              style={StyleSheet.absoluteFill} 
+              blurRadius={Platform.OS === 'ios' ? 20 : 10} // Adjust for platform
+            />
+          ) : (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
+          )}
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.7)' }]} />
         </View>
       )}
 
