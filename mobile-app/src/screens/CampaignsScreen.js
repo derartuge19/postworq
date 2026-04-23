@@ -172,10 +172,10 @@ export default function CampaignsScreen({ navigation }) {
           </View>
 
           {/* Action Button */}
-          <TouchableOpacity style={styles.actionButton}>
+          <View style={styles.actionButton}>
             <Text style={styles.actionButtonText}>View Campaign</Text>
             <Ionicons name="chevron-forward" size={20} color="#fff" />
-          </TouchableOpacity>
+          </View>
         </View>
       </TouchableOpacity>
     );
