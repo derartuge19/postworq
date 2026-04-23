@@ -120,18 +120,9 @@ export default function ProfileDetailScreen({ route, navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerUsername}>{profile?.username}</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} style={{ paddingTop: insets.top }}>
         {/* Profile Info */}
         <View style={styles.profileInfo}>
           <View style={styles.mainInfoRow}>
@@ -178,14 +169,31 @@ export default function ProfileDetailScreen({ route, navigation }) {
                 style={[styles.followBtn, isFollowing && styles.followingBtn]}
                 onPress={handleToggleFollow}
               >
+                <Ionicons name={isFollowing ? "checkmark" : "add"} size={16} color={isFollowing ? "#000" : "#fff"} style={{ marginRight: 6 }} />
                 <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
                   {isFollowing ? 'Following' : 'Follow'}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.msgBtn}>
-                <Text style={styles.msgBtnText}>Message</Text>
+              <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.goBack()}>
+                <Ionicons name="arrow-back" size={18} color="#000" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconBtn} onPress={() => {/* Share functionality */}}>
+                <Ionicons name="share-social-outline" size={18} color="#000" />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.iconBtn, styles.reportBtn]} onPress={() => {/* Report functionality */}}>
+                <Ionicons name="flag-outline" size={18} color="#EF4444" />
               </TouchableOpacity>
             </View>
+          )}
+
+          {isOwnProfile && (
+            <TouchableOpacity 
+              style={styles.editProfileBtn}
+              onPress={() => navigation.navigate('Profile')}
+            >
+              <Ionicons name="create-outline" size={16} color="#000" style={{ marginRight: 8 }} />
+              <Text style={styles.editProfileBtnText}>Edit Profile</Text>
+            </TouchableOpacity>
           )}
         </View>
 
@@ -203,11 +211,17 @@ export default function ProfileDetailScreen({ route, navigation }) {
           >
             <Ionicons name="film-outline" size={22} color={activeTab === 'reels' ? BRAND_GOLD : '#666'} />
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tabItem, activeTab === 'saved' && styles.activeTab]}
+            onPress={() => setActiveTab('saved')}
+          >
+            <Ionicons name="bookmark-outline" size={22} color={activeTab === 'saved' ? BRAND_GOLD : '#666'} />
+          </TouchableOpacity>
         </View>
 
         {/* Grid */}
         <FlatList
-          data={activeTab === 'reels' ? posts.filter(p => p.media?.includes('.mp4')) : posts}
+          data={activeTab === 'reels' ? posts.filter(p => p.media?.includes('.mp4') || p.is_reel) : activeTab === 'saved' ? [] : posts}
           renderItem={renderPostItem}
           keyExtractor={item => item.id.toString()}
           numColumns={3}
@@ -228,42 +242,52 @@ export default function ProfileDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
-  },
-  backBtn: { width: 40, paddingVertical: 8 },
-  headerUsername: { fontSize: 16, fontWeight: '800', color: '#000' },
-  profileInfo: { padding: 16 },
-  mainInfoRow: { flexDirection: 'row', alignItems: 'center' },
-  avatarWrap: { position: 'relative' },
-  avatar: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, borderColor: '#fff' },
-  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND_GOLD + '20' },
+  profileInfo: { padding: 20 },
+  mainInfoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  avatarWrap: { position: 'relative', flexShrink: 0 },
+  avatar: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: '#fff' },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND_GOLD + '30' },
   avatarInitial: { fontSize: 32, fontWeight: 'bold', color: BRAND_GOLD },
-  statsRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginLeft: 20 },
+  statsRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginLeft: 20, marginBottom: 12 },
   statItem: { alignItems: 'center' },
-  statCount: { fontSize: 18, fontWeight: '800', color: '#000' },
-  statLabel: { fontSize: 12, color: '#666', marginTop: 2 },
-  bioSection: { marginTop: 15 },
-  fullName: { fontSize: 15, fontWeight: '700', color: '#000' },
-  bioText: { fontSize: 14, color: '#333', marginTop: 4, lineHeight: 20 },
-  actionButtons: { flexDirection: 'row', gap: 8, marginTop: 20 },
-  followBtn: { flex: 1, height: 36, backgroundColor: BRAND_GOLD, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  followingBtn: { backgroundColor: '#efefef' },
+  statCount: { fontSize: 18, fontWeight: '700', color: '#000' },
+  statLabel: { fontSize: 13, color: '#666', marginTop: 2 },
+  bioSection: { marginBottom: 16 },
+  fullName: { fontSize: 15, fontWeight: '700', color: '#000', marginBottom: 4 },
+  bioText: { fontSize: 14, color: '#333', lineHeight: 20 },
+  actionButtons: { flexDirection: 'row', gap: 8 },
+  followBtn: { flex: 1, height: 36, backgroundColor: BRAND_GOLD, borderRadius: 8, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 20 },
+  followingBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e5e5' },
   followBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
   followingBtnText: { color: '#000' },
-  msgBtn: { flex: 1, height: 36, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  msgBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
+  iconBtn: { 
+    width: 40, 
+    height: 36, 
+    backgroundColor: '#fff', 
+    borderWidth: 1, 
+    borderColor: '#e5e5e5', 
+    borderRadius: 8, 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  reportBtn: { borderColor: '#e5e5e5' },
+  editProfileBtn: { 
+    width: '100%', 
+    height: 36, 
+    backgroundColor: '#fff', 
+    borderWidth: 1, 
+    borderColor: '#e5e5e5', 
+    borderRadius: 8, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    flexDirection: 'row',
+    marginTop: 20,
+  },
+  editProfileBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
   tabs: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#eee',
-    marginTop: 10,
   },
   tabItem: {
     flex: 1,
@@ -275,7 +299,7 @@ const styles = StyleSheet.create({
   activeTab: { borderBottomColor: BRAND_GOLD },
   grid: { padding: 1 },
   postThumb: { width: width / 3 - 2, height: width / 3 - 2, margin: 1, backgroundColor: '#f0f0f0' },
-  thumbImage: { width: '100%', height: '100%', objectFit: 'cover' },
+  thumbImage: { width: '100%', height: '100%' },
   videoBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(0,0,0,0.5)', padding: 2, borderRadius: 4 },
   empty: { height: 200, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: '#999', marginTop: 10 },
