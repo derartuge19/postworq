@@ -454,7 +454,7 @@ const api = {
   updateCampaignEngagement: (campaignId) =>
     api.request(`/campaigns/${campaignId}/engagement/update/`, { method: 'POST' }),
 
-  getUserCampaignEntries: () => api.request('/campaigns/my-entries/'),
+  getUserCampaignEntries: (userId) => api.request(`/campaigns/profile/${userId || ''}`),
 
   // Health check
   healthCheck: () => api.request('/health/'),

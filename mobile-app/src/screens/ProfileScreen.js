@@ -42,6 +42,7 @@ export default function ProfileScreen({ navigation }) {
   const [followers, setFollowers] = useState(0);
   const [following, setFollowing] = useState(0);
   const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'reels' | 'saved' | 'campaigns'
+  const [campaignStats, setCampaignStats] = useState(null);
 
   const fetchProfileData = useCallback(async () => {
     const currentUserId = user?.id;
@@ -165,8 +166,9 @@ export default function ProfileScreen({ navigation }) {
           return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video') || p.is_reel;
         });
       } else if (activeTab === 'campaigns') {
-        const raw = await api.getUserCampaignEntries().catch(() => []);
-        data = Array.isArray(raw) ? raw : (raw.results || []);
+        const raw = await api.getUserCampaignEntries(userId).catch(() => null);
+        setCampaignStats(raw);
+        data = raw?.campaigns || [];
       } else {
         const raw = await api.getUserPosts(userId).catch(() => []);
         data = Array.isArray(raw) ? raw : (raw.results || []);
@@ -335,21 +337,104 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Grid */}
-        <FlatList
-          data={filteredPosts}
-          renderItem={renderPostItem}
-          keyExtractor={item => item.id.toString()}
-          numColumns={3}
-          scrollEnabled={false}
-          contentContainerStyle={styles.grid}
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              <Ionicons name="apps-outline" size={40} color="#ccc" />
-              <Text style={styles.emptyText}>No posts yet</Text>
-            </View>
-          }
-        />
+        {/* Campaign Stats */}
+        {activeTab === 'campaigns' ? (
+          <View style={styles.campaignStatsContainer}>
+            {campaignStats ? (
+              <>
+                <View style={styles.campaignHeader}>
+                  <Ionicons name="trophy" size={22} color={BRAND_GOLD} />
+                  <Text style={styles.campaignHeaderText}>Campaign Achievements</Text>
+                </View>
+
+                {/* Overall Stats Grid */}
+                <View style={styles.statsGrid}>
+                  <View style={styles.statCard}>
+                    <Ionicons name="flag" size={18} color={BRAND_GOLD} />
+                    <Text style={styles.statValue}>{campaignStats.total_campaigns || 0}</Text>
+                    <Text style={styles.statLabel}>Campaigns</Text>
+                  </View>
+                  <View style={styles.statCard}>
+                    <Ionicons name="award" size={18} color={BRAND_GOLD} />
+                    <Text style={styles.statValue}>{campaignStats.total_score || 0}</Text>
+                    <Text style={styles.statLabel}>Total Score</Text>
+                  </View>
+                  <View style={styles.statCard}>
+                    <Ionicons name="trending-up" size={18} color={BRAND_GOLD} />
+                    <Text style={styles.statValue}>{campaignStats.best_rank ? `#${campaignStats.best_rank}` : '–'}</Text>
+                    <Text style={styles.statLabel}>Best Rank</Text>
+                  </View>
+                  <View style={styles.statCard}>
+                    <Ionicons name="calendar" size={18} color={BRAND_GOLD} />
+                    <Text style={styles.statValue}>{campaignStats.current_streak || 0}</Text>
+                    <Text style={styles.statLabel}>Streak</Text>
+                  </View>
+                </View>
+
+                {/* Campaign List */}
+                {campaignStats.campaigns?.length > 0 && (
+                  <View style={styles.campaignList}>
+                    <Text style={styles.campaignListTitle}>Active Campaigns</Text>
+                    {campaignStats.campaigns.map((campaign) => (
+                      <TouchableOpacity 
+                        key={campaign.campaign_id}
+                        style={styles.campaignListItem}
+                        onPress={() => navigation.navigate('CampaignDetail', { campaignId: campaign.campaign_id })}
+                      >
+                        <View style={styles.campaignListItemInfo}>
+                          <Text style={styles.campaignListItemTitle}>{campaign.campaign_title}</Text>
+                          <Text style={styles.campaignListItemSubtitle}>
+                            {campaign.posts_count} posts · Rank #{campaign.rank || '–'}
+                          </Text>
+                        </View>
+                        <View style={styles.campaignListItemScore}>
+                          <Text style={styles.campaignListItemScoreText}>{campaign.total_score} pts</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+
+                {/* Badges */}
+                {campaignStats.badges?.length > 0 && (
+                  <View style={styles.badgesContainer}>
+                    <Text style={styles.badgesTitle}>Badges Earned</Text>
+                    <View style={styles.badgesList}>
+                      {campaignStats.badges.map((badge, idx) => (
+                        <View key={idx} style={styles.badgeItem}>
+                          <Ionicons name="award" size={13} color={BRAND_GOLD} />
+                          <Text style={styles.badgeText}>{badge.title}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </>
+            ) : (
+              <View style={styles.empty}>
+                <Ionicons name="trophy" size={48} color={BRAND_GOLD} />
+                <Text style={styles.emptyTitle}>No campaigns yet</Text>
+                <Text style={styles.emptySubtitle}>Join a campaign to see your stats here!</Text>
+              </View>
+            )}
+          </View>
+        ) : (
+          /* Grid */
+          <FlatList
+            data={filteredPosts}
+            renderItem={renderPostItem}
+            keyExtractor={item => item.id.toString()}
+            numColumns={3}
+            scrollEnabled={false}
+            contentContainerStyle={styles.grid}
+            ListEmptyComponent={
+              <View style={styles.empty}>
+                <Ionicons name="apps-outline" size={40} color="#ccc" />
+                <Text style={styles.emptyText}>No posts yet</Text>
+              </View>
+            }
+          />
+        )}
       </ScrollView>
     </View>
   );
@@ -435,6 +520,140 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginTop: 4,
   },
+  campaignStatsContainer: {
+    padding: 20,
+  },
+  campaignHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  campaignHeaderText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#000',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 24,
+  },
+  statCard: {
+    width: '48%',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    marginBottom: 8,
+    marginRight: '2%',
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#000',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  campaignList: {
+    marginBottom: 24,
+  },
+  campaignListTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 12,
+  },
+  campaignListItem: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    marginBottom: 10,
+  },
+  campaignListItemInfo: {
+    flex: 1,
+  },
+  campaignListItemTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 3,
+  },
+  campaignListItemSubtitle: {
+    fontSize: 12,
+    color: '#666',
+  },
+  campaignListItemScore: {
+    backgroundColor: 'rgba(218, 155, 42, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(218, 155, 42, 0.3)',
+    padding: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  campaignListItemScoreText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: BRAND_GOLD,
+  },
+  badgesContainer: {
+    marginBottom: 24,
+  },
+  badgesTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 12,
+  },
+  badgesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  badgeItem: {
+    backgroundColor: 'rgba(218, 155, 42, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(218, 155, 42, 0.3)',
+    padding: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: BRAND_GOLD,
+  },
   empty: { height: 200, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: '#999', marginTop: 10 },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: '#666',
+  },
 });
