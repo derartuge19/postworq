@@ -1,5 +1,6 @@
 import config from './config';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 const API_BASE_URL = config.API_BASE_URL;
 
