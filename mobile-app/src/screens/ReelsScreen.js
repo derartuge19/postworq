@@ -48,12 +48,16 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
   // Heart animation state
   const heartScale = useRef(new Animated.Value(0)).current;
   const lastTap = useRef(0);
+  const tapTimeout = useRef(null);
+  const DOUBLE_TAP_WINDOW = 280; // ms - match web app
 
   // Play / pause based on visibility AND screen focus
   useEffect(() => {
     if (!videoRef.current) return;
     if (isActive && isFocused && !paused) {
-      videoRef.current.playAsync().catch(() => {});
+      videoRef.current.playAsync().catch((err) => {
+        console.log('Play error:', err.message);
+      });
     } else {
       videoRef.current.pauseAsync().catch(() => {});
     }
@@ -71,40 +75,51 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
     }
   };
 
-  const handleDoubleTap = () => {
-    const now = Date.now();
-    console.log('ReelItem: Tap detected at', now);
-    
-    if (now - lastTap.current < 300) {
-      // Double tap detected
-      console.log('ReelItem: Double tap! Liking...');
-      if (!liked) handleLike();
-      animateHeart();
-      if (tapTimeout.current) clearTimeout(tapTimeout.current);
-    } else {
-      // Single tap detected - toggle pause after short delay
-      if (tapTimeout.current) clearTimeout(tapTimeout.current);
-      tapTimeout.current = setTimeout(() => {
-        const nextPaused = !paused;
-        console.log('ReelItem: Single tap! Toggling pause to:', nextPaused);
-        setPaused(nextPaused);
-        
-        // Immediate playback control
-        if (videoRef.current) {
-          if (nextPaused) {
-            videoRef.current.pauseAsync().catch(() => {});
-          } else if (isActive && isFocused) {
-            videoRef.current.playAsync().catch(() => {});
-          }
-        }
-        
-        tapTimeout.current = null;
-      }, 250); // Match web app's 250ms
+  // Clear any pending single-tap timer
+  const clearPendingSingleTap = () => {
+    if (tapTimeout.current) {
+      clearTimeout(tapTimeout.current);
+      tapTimeout.current = null;
     }
-    lastTap.current = now;
   };
 
-  const tapTimeout = useRef(null);
+  const togglePause = () => {
+    const nextPaused = !paused;
+    console.log('ReelItem: Toggling pause to:', nextPaused);
+    setPaused(nextPaused);
+    
+    // Immediate playback control
+    if (videoRef.current) {
+      if (nextPaused) {
+        videoRef.current.pauseAsync().catch(() => {});
+      } else if (isActive && isFocused) {
+        videoRef.current.playAsync().catch((err) => {
+          console.log('Resume play error:', err.message);
+        });
+      }
+    }
+  };
+
+  const handleVideoTap = () => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTap.current;
+    
+    if (timeSinceLastTap < DOUBLE_TAP_WINDOW) {
+      // Double tap detected - LIKE
+      console.log('ReelItem: Double tap! Liking...');
+      clearPendingSingleTap();
+      if (!liked) handleLike();
+      animateHeart();
+    } else {
+      // First tap - schedule single tap action (pause toggle)
+      tapTimeout.current = setTimeout(() => {
+        togglePause();
+        tapTimeout.current = null;
+      }, DOUBLE_TAP_WINDOW);
+    }
+    
+    lastTap.current = now;
+  };
 
   const animateHeart = () => {
     heartScale.setValue(0);
@@ -202,7 +217,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
         {/* Transparent touch layer to capture gestures */}
         <TouchableOpacity
           activeOpacity={1}
-          onPress={handleDoubleTap}
+          onPress={handleVideoTap}
           onLongPress={() => onLongPress(item)}
           delayLongPress={500}
           style={StyleSheet.absoluteFill}
@@ -217,11 +232,11 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
       {/* ── Gradient scrim at bottom ── */}
       <View style={styles.scrim} pointerEvents="none" />
 
-      {/* ── Pause icon (center) ── */}
+      {/* ── Play/Pause indicator (center) ── */}
       {paused && (
         <View style={styles.pauseCenter} pointerEvents="none">
           <View style={styles.pauseCircle}>
-            <Ionicons name="pause" size={40} color="#fff" />
+            <Ionicons name="play" size={40} color="#fff" style={{ marginLeft: 4 }} />
           </View>
         </View>
       )}
@@ -603,11 +618,16 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   sidebar: { position: 'absolute', right: 12, alignItems: 'center', zIndex: 20 },
   sideBtn: { alignItems: 'center', marginBottom: 20 },
