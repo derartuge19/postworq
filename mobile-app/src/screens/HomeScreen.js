@@ -82,9 +82,10 @@ export default function HomeScreen({ navigation }) {
   const parseCaption = (caption, postId) => {
     if (!caption) return null;
     
+    // Better regex to match hashtags with letters, numbers, and underscores
     const parts = caption.split(/(#\w+)/g);
     return parts.map((part, index) => {
-      if (part.startsWith('#')) {
+      if (part.startsWith('#') && part.length > 1) {
         return (
           <Text 
             key={`${postId}-hashtag-${index}`}
@@ -366,12 +367,12 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.leftActions}>
             <TouchableOpacity style={[styles.actionBtn, votingInProgress[item.id] && { opacity: 0.6 }]} onPress={() => handleVote(item.id, item.has_voted || item.is_liked)} disabled={votingInProgress[item.id]}>
               <Ionicons name={(item.has_voted || item.is_liked) ? "heart" : "heart-outline"} size={22} color={(item.has_voted || item.is_liked) ? "#EF4444" : T.txt} />
-              <Text style={styles.actionText}>{item.votes > 0 ? item.votes : ''}</Text>
+              <Text style={styles.actionText}>{item.votes || 0}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.actionBtn} onPress={() => handleComment(item.id)}>
               <Ionicons name="chatbubble-outline" size={20} color={T.txt} />
-              <Text style={styles.actionText}>{(item.comments_count || 0) > 0 ? item.comments_count : ''}</Text>
+              <Text style={styles.actionText}>{item.comments_count || item.comment_count || 0}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item.id)}>
@@ -718,9 +719,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   actionText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: T.sub,
+    minWidth: 16,
+    textAlign: 'center',
   },
   captionContainer: {
     paddingHorizontal: 12,
@@ -737,6 +740,7 @@ const styles = StyleSheet.create({
   hashtagText: {
     color: T.pri,
     fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   commentsLink: {
     color: T.sub,
