@@ -484,6 +484,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
+    paddingTop: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
     backgroundColor: '#fff',
