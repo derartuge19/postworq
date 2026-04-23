@@ -372,7 +372,7 @@ export default function HomeScreen({ navigation }) {
             
             <TouchableOpacity style={styles.actionBtn} onPress={() => handleComment(item.id)}>
               <Ionicons name="chatbubble-outline" size={20} color={T.txt} />
-              <Text style={styles.actionText}>{Math.max(1, item.comments_count || item.comment_count || 0)}</Text>
+              <Text style={styles.actionText}>{(item.comments_count || item.comment_count || 0) > 0 ? (item.comments_count || item.comment_count) : ''}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item.id)}>
