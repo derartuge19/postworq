@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import api from '../api';
 import GamificationBar from '../components/GamificationBar';
 import config from '../config';
@@ -71,6 +72,7 @@ export default function HomeScreen({ navigation }) {
   const [giftAmount, setGiftAmount] = useState(50);
   const [customGift, setCustomGift] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
+  const [votingInProgress, setVotingInProgress] = useState({}); // { reelId: boolean }
 
   const toggleCaption = (postId) => {
     setExpandedCaptions(prev => ({ ...prev, [postId]: !prev[postId] }));
@@ -107,6 +109,13 @@ export default function HomeScreen({ navigation }) {
     loadPosts();
   }, []);
 
+  // Refresh posts when screen comes into focus (e.g., returning from Comments)
+  useFocusEffect(
+    useCallback(() => {
+      loadPosts();
+    }, [])
+  );
+
   const loadPosts = async () => {
     try {
       setLoading(true);
@@ -127,15 +136,38 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleVote = async (reelId, currentLiked) => {
+    // Prevent multiple rapid clicks
+    if (votingInProgress[reelId]) return;
+    
+    setVotingInProgress(prev => ({ ...prev, [reelId]: true }));
+    
+    // Optimistic update
+    setPosts(posts.map(post => 
+      post.id === reelId 
+        ? { ...post, votes: currentLiked ? Math.max(0, (post.votes || 0) - 1) : (post.votes || 0) + 1, has_voted: !currentLiked, is_liked: !currentLiked }
+        : post
+    ));
+    
     try {
-      setPosts(posts.map(post => 
-        post.id === reelId 
-          ? { ...post, votes: currentLiked ? Math.max(0, (post.votes || 0) - 1) : (post.votes || 0) + 1, is_liked: !currentLiked }
-          : post
-      ));
-      await api.voteReel(reelId);
+      const response = await api.voteReel(reelId);
+      // Update with server response if available
+      if (response && response.votes !== undefined) {
+        setPosts(posts.map(post => 
+          post.id === reelId 
+            ? { ...post, votes: response.votes, has_voted: response.has_voted ?? !currentLiked, is_liked: response.is_liked ?? !currentLiked, comments_count: response.comments_count ?? post.comments_count }
+            : post
+        ));
+      }
     } catch (error) {
       console.error('Error voting:', error);
+      // Revert on error
+      setPosts(posts.map(post => 
+        post.id === reelId 
+          ? { ...post, votes: currentLiked ? (post.votes || 0) + 1 : Math.max(0, (post.votes || 0) - 1), has_voted: currentLiked, is_liked: currentLiked }
+          : post
+      ));
+    } finally {
+      setVotingInProgress(prev => ({ ...prev, [reelId]: false }));
     }
   };
 
@@ -301,8 +333,8 @@ export default function HomeScreen({ navigation }) {
         {/* Actions Row */}
         <View style={styles.actionsRow}>
           <View style={styles.leftActions}>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => handleVote(item.id, item.has_voted)}>
-              <Ionicons name={item.has_voted ? "heart" : "heart-outline"} size={22} color={item.has_voted ? "#EF4444" : T.txt} />
+            <TouchableOpacity style={[styles.actionBtn, votingInProgress[item.id] && { opacity: 0.6 }]} onPress={() => handleVote(item.id, item.has_voted || item.is_liked)} disabled={votingInProgress[item.id]}>
+              <Ionicons name={(item.has_voted || item.is_liked) ? "heart" : "heart-outline"} size={22} color={(item.has_voted || item.is_liked) ? "#EF4444" : T.txt} />
               <Text style={styles.actionText}>{item.votes > 0 ? item.votes : ''}</Text>
             </TouchableOpacity>
             

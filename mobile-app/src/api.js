@@ -298,7 +298,7 @@ const api = {
     api.request(`/reels/${reelId}/comments/`, {
       method: 'POST',
       body: JSON.stringify({ text }),
-    }).then(r => { invalidateCache(`/reels/${reelId}/comments`); return r; }),
+    }).then(r => { invalidateCache(`/reels/${reelId}/comments`); invalidateCache('/reels'); return r; }),
 
   getComments: (reelId) => api.request(`/reels/${reelId}/comments/`),
 
