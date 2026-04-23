@@ -24,14 +24,7 @@
       "expo-secure-store",
       "expo-av",
       "expo-asset",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "kotlinVersion": "1.9.25"
-          }
-        }
-      ]
+      "./plugins/withKotlinVersion"
     ],
     "extra": {
       "eas": {
