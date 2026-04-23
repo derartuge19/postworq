@@ -14,12 +14,24 @@
       "bundleIdentifier": "com.selfistar.app"
     },
     "android": {
-      "package": "com.selfistar.app"
+      "package": "com.selfistar.app",
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "buildToolsVersion": "34.0.0",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "plugins": [
       "expo-secure-store",
       "expo-av",
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cab8b69b-e6fe-4529-bd6e-7cba0909c92e"
+      }
+    }
   }
 }
