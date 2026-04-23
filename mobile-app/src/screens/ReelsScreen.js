@@ -368,6 +368,7 @@ export default function ReelsScreen({ route, navigation }) {
   useEffect(() => {
     const unsubscribe = nav.addListener('tabPress', (e) => {
       // Refresh reels when tab is pressed while already on screen
+      e.preventDefault();
       fetchReels(0);
     });
 

@@ -147,6 +147,7 @@ export default function HomeScreen({ navigation }) {
     const unsubscribe = nav.addListener('tabPress', (e) => {
       // Prevent default navigation behavior since we're already on the screen
       // This will refresh the content instead
+      e.preventDefault();
       loadPosts();
     });
 
