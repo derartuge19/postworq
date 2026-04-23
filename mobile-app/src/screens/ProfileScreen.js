@@ -254,7 +254,14 @@ export default function ProfileScreen({ navigation }) {
       fetchPosts();
     } catch (error) {
       console.error('Failed to delete post:', error);
-      Alert.alert('Error', 'Could not delete this post. Please try again.');
+      // Check if the error is about missing reel
+      if (error.message?.includes('No Reel matches') || error.message?.includes('404')) {
+        Alert.alert('Error', 'This post no longer exists or has already been deleted.');
+        // Refresh posts to remove the stale entry
+        fetchPosts();
+      } else {
+        Alert.alert('Error', 'Could not delete this post. Please try again.');
+      }
     }
   };
 
