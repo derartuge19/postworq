@@ -179,50 +179,71 @@ export default function CreateScreen({ navigation }) {
     return (
       <View style={s.container}>
         <StatusBar barStyle="dark-content" />
-        <View style={s.header}>
-          <Text style={s.headerTitle}>Create Post</Text>
-          {drafts.length > 0 && (
-            <TouchableOpacity
-              style={s.draftBadge}
-              onPress={() => Alert.alert(
-                'Drafts',
-                `You have ${drafts.length} draft(s). Load most recent?`,
-                [
-                  { text: 'Cancel' },
-                  { text: 'Load', onPress: () => loadDraft(drafts[0]) }
-                ]
-              )}
-            >
-              <Ionicons name="document-text" size={14} color={BRAND} />
-              <Text style={s.draftBadgeText}>Drafts ({drafts.length})</Text>
-            </TouchableOpacity>
-          )}
+        
+        {/* Header */}
+        <View style={s.newHeader}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
+            <Ionicons name="close" size={24} color="#000" />
+          </TouchableOpacity>
+          <Text style={s.headerTitle}>New Post</Text>
+          <TouchableOpacity 
+            style={s.draftsBtn}
+            onPress={() => Alert.alert(
+              'Drafts',
+              `You have ${drafts.length} draft(s). Load most recent?`,
+              [
+                { text: 'Cancel' },
+                { text: 'Load', onPress: () => loadDraft(drafts[0]) }
+              ]
+            )}
+          >
+            <Text style={s.draftsBtnText}>Drafts ({drafts.length})</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={s.pickBody}>
-          {/* Hero */}
-          <View style={s.heroCircle}>
-            <Ionicons name="camera" size={42} color="#fff" />
-          </View>
-          <Text style={s.heroTitle}>Create Post</Text>
-          <Text style={s.heroSub}>Choose how you want to share</Text>
-
-          {/* Cards */}
-          <View style={s.cardRow}>
-            <TouchableOpacity style={s.card} onPress={pickFromCamera}>
-              <View style={[s.cardIcon, { backgroundColor: BRAND }]}>
-                <Ionicons name="camera" size={28} color="#fff" />
+        <View style={s.newPickBody}>
+          {/* Hero Section */}
+          <View style={s.heroSection}>
+            <View style={s.heroCircle}>
+              <Ionicons name="camera" size={48} color="#fff" />
+              <View style={s.questionMark}>
+                <Text style={s.questionMarkText}>?</Text>
               </View>
-              <Text style={s.cardTitle}>Camera</Text>
-              <Text style={s.cardSub}>Take photo/video</Text>
+            </View>
+            <Text style={s.heroTitle}>Create Post</Text>
+            <Text style={s.heroSub}>Choose how you want to create content</Text>
+          </View>
+
+          {/* Action Cards */}
+          <View style={s.actionCards}>
+            <TouchableOpacity style={s.actionCard} onPress={pickFromCamera}>
+              <View style={s.cardLeft}>
+                <View style={[s.cardIcon, { backgroundColor: BRAND }]}>
+                  <Ionicons name="camera" size={24} color="#fff" />
+                </View>
+                <View style={s.cardText}>
+                  <Text style={s.cardTitle}>Take Photo/Video</Text>
+                  <Text style={s.cardSub}>Use camera with filters</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={s.cardRightBtn}>
+                <Ionicons name="trash-outline" size={20} color="#999" />
+              </TouchableOpacity>
             </TouchableOpacity>
 
-            <TouchableOpacity style={s.card} onPress={pickFromLibrary}>
-              <View style={[s.cardIcon, { backgroundColor: '#818cf8' }]}>
-                <Ionicons name="images" size={28} color="#fff" />
+            <TouchableOpacity style={s.actionCard} onPress={pickFromLibrary}>
+              <View style={s.cardLeft}>
+                <View style={[s.cardIcon, { backgroundColor: '#818cf8' }]}>
+                  <Ionicons name="cloud-upload-outline" size={24} color="#fff" />
+                </View>
+                <View style={s.cardText}>
+                  <Text style={s.cardTitle}>Upload Image</Text>
+                  <Text style={s.cardSub}>From gallery or files</Text>
+                </View>
               </View>
-              <Text style={s.cardTitle}>Library</Text>
-              <Text style={s.cardSub}>Photo or video</Text>
+              <TouchableOpacity style={s.cardRightBtn}>
+                <Ionicons name="add-outline" size={20} color="#999" />
+              </TouchableOpacity>
             </TouchableOpacity>
           </View>
         </View>
@@ -456,15 +477,146 @@ const s = StyleSheet.create({
   draftBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: BRAND + '18', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, gap: 4 },
   draftBadgeText: { fontSize: 12, fontWeight: '700', color: BRAND },
 
-  pickBody: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  heroCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center', marginBottom: 20, shadowColor: BRAND, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 8 },
-  heroTitle: { fontSize: 26, fontWeight: '800', marginBottom: 8 },
-  heroSub: { fontSize: 14, color: '#999', textAlign: 'center', marginBottom: 40 },
-  cardRow: { flexDirection: 'row', gap: 16, width: '100%' },
-  card: { flex: 1, backgroundColor: '#fafafa', borderRadius: 20, padding: 20, alignItems: 'center', borderWidth: 1.5, borderColor: '#f0f0f0' },
-  cardIcon: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  cardTitle: { fontSize: 15, fontWeight: '800', marginBottom: 2 },
-  cardSub: { fontSize: 12, color: '#888', textAlign: 'center' },
+  // Header styles for new design
+  newHeader: {
+    height: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    backgroundColor: '#fff',
+  },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  draftsBtn: {
+    backgroundColor: BRAND + '15',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  draftsBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: BRAND,
+  },
+
+  // Body styles for new design
+  newPickBody: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 20,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
+  heroCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: BRAND,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    shadowColor: BRAND,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+    position: 'relative',
+  },
+  questionMark: {
+    position: 'absolute',
+    bottom: -5,
+    right: -5,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  questionMarkText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: BRAND,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    marginBottom: 8,
+    color: '#000',
+  },
+  heroSub: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+
+  // Action cards
+  actionCards: {
+    gap: 16,
+  },
+  actionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  cardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  cardIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  cardText: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 2,
+    color: '#000',
+  },
+  cardSub: {
+    fontSize: 13,
+    color: '#666',
+  },
+  cardRightBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   editTop: { position: 'absolute', top: Platform.OS === 'android' ? StatusBar.currentHeight + 8 : 50, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, zIndex: 10 },
   editIconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
