@@ -432,6 +432,15 @@ export default function HomeScreen({ navigation }) {
               {(item.comment_count || item.comments_count || 0) > 0 ? `View all ${item.comment_count || item.comments_count || 0} comments` : 'Add a comment...'}
             </Text>
           </TouchableOpacity>
+
+          {/* Hashtags */}
+          {(item.hashtags_list?.length > 0 || item.hashtags) && (
+            <View style={styles.hashtagsContainer}>
+              {(item.hashtags_list || (item.hashtags || '').split(/\s+/).filter(Boolean)).map((tag, idx) => (
+                <Text key={idx} style={styles.hashtagText}>#{tag}</Text>
+              ))}
+            </View>
+          )}
         </View>
       </View>
     );
@@ -766,6 +775,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     marginTop: 4,
+  },
+  hashtagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 4,
+    gap: 4,
+  },
+  hashtagText: {
+    fontSize: 13,
+    color: T.pri,
+    fontWeight: '600',
   },
   emptyContainer: {
     padding: 40,
