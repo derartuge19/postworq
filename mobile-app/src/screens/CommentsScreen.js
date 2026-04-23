@@ -38,11 +38,12 @@ function buildCommentTree(flatList) {
     const parentVal = c.parent_id || c.parent;
     const parentId = (parentVal && typeof parentVal === 'object') ? parentVal.id : parentVal;
     
-    if (parentId && String(parentId) !== '0') {
+    if (parentId && String(parentId) !== '0' && String(parentId) !== 'null') {
       const parent = map[parentId];
       if (parent) {
         parent.replies.push(node);
       } else {
+        // Parent not found, treat as root
         roots.push(node);
       }
     } else {
@@ -116,7 +117,8 @@ const CommentItem = memo(function CommentItem({ comment, depth = 0, onLike, onRe
 
       {/* Recursive Replies */}
       {comment.replies && comment.replies.length > 0 && (
-        <View style={[styles.repliesContainer, { marginLeft: depth === 0 ? 44 : 20 }]}>
+        <View style={[styles.repliesContainer, { marginLeft: depth === 0 ? 44 : 24 }]}>
+          <View style={styles.replyThreadLine} />
           {comment.replies.map(r => (
             <CommentItem
               key={r.id}
@@ -285,15 +287,6 @@ export default function CommentsScreen({ route, navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={insets.bottom}
     >
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Comments</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
       {/* Comments List */}
       <ScrollView 
         ref={scrollViewRef}
@@ -493,6 +486,15 @@ const styles = StyleSheet.create({
   repliesContainer: {
     flexDirection: 'column',
     gap: 16,
+    position: 'relative',
+  },
+  replyThreadLine: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 1,
+    backgroundColor: '#e5e5e5',
   },
   inputContainer: {
     borderTopWidth: 1,
