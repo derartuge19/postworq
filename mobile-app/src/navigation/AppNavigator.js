@@ -9,6 +9,8 @@ import api from '../api';
 import Constants from 'expo-constants';
 
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { LanguageProvider, useLanguage } from '../contexts/LanguageContext';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -245,14 +247,17 @@ function RootNavigator() {
   return user ? <MainStack /> : <AuthStack />;
 }
 
-// ── App entry ──────────────────────────────────────────────────────────────────
 export default function AppNavigator() {
   return (
-    <AuthProvider>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
-    </AuthProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

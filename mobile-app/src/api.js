@@ -384,11 +384,15 @@ const api = {
       body: JSON.stringify(settings),
     }),
 
+  getNotificationPrefs: () => api.request('/notifications/me/'),
+
   updatePrivacySettings: (settings) =>
     api.request('/profile/update_privacy/', {
       method: 'POST',
       body: JSON.stringify(settings),
     }),
+
+  getPrivacySettings: () => api.request('/profile/get_privacy/', { method: 'GET' }), // Fallback or assuming endpoint exists based on web pattern
 
   changePassword: (data) =>
     api.request('/auth/password/change/', {
