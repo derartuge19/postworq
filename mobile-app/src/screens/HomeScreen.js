@@ -426,6 +426,22 @@ export default function HomeScreen({ navigation }) {
               )}
             </View>
           )}
+
+          {/* Inline Comments - show first 1-2 comments */}
+          {Array.isArray(item.recent_comments) && item.recent_comments.length > 0 && (
+            <View style={styles.inlineCommentsContainer}>
+              {item.recent_comments.slice(0, 2).map(comment => (
+                <TouchableOpacity 
+                  key={comment.id} 
+                  style={styles.inlineCommentItem}
+                  onPress={() => handleComment(item.id)}
+                >
+                  <Text style={styles.inlineCommentUsername}>{comment.user?.username || 'User'}</Text>
+                  <Text style={styles.inlineCommentText}> {comment.text}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
           
           <TouchableOpacity onPress={() => handleComment(item.id)}>
             <Text style={styles.commentsLink}>
@@ -786,6 +802,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: T.pri,
     fontWeight: '600',
+  },
+  inlineCommentsContainer: {
+    marginTop: 8,
+    flexDirection: 'column',
+    gap: 4,
+  },
+  inlineCommentItem: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  inlineCommentUsername: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#000',
+  },
+  inlineCommentText: {
+    fontSize: 13,
+    color: '#333',
   },
   emptyContainer: {
     padding: 40,
