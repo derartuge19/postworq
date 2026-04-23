@@ -25,6 +25,8 @@ import ProfileDetailScreen from '../screens/ProfileDetailScreen';
 import CommentsScreen from '../screens/CommentsScreen';
 import CampaignsScreen from '../screens/CampaignsScreen';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
+import CampaignFeedScreen from '../screens/CampaignFeedScreen';
+import CampaignLeaderboardScreen from '../screens/CampaignLeaderboardScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import FollowListScreen from '../screens/FollowListScreen';
 
@@ -205,11 +207,13 @@ function MainStack() {
       <Stack.Screen name="VideoDetail"    component={VideoDetailScreen}    options={{ title: 'Video' }} />
       <Stack.Screen name="ProfileDetail"  component={ProfileDetailScreen}  options={{ title: 'Profile' }} />
       <Stack.Screen name="EditProfile"    component={EditProfileScreen}     options={{ headerShown: false }} />
-      <Stack.Screen name="Comments"       component={CommentsScreen}       options={{ title: 'Comments' }} />
-      <Stack.Screen name="Campaigns"      component={CampaignsScreen}      options={{ title: 'Campaigns' }} />
-      <Stack.Screen name="CampaignDetail" component={CampaignDetailScreen} options={{ title: 'Campaign' }} />
-      <Stack.Screen name="Settings"       component={SettingsScreen}       options={{ headerShown: false }} />
-      <Stack.Screen name="FollowList"     component={FollowListScreen}     options={{ headerShown: false }} />
+      <Stack.Screen name="Comments"           component={CommentsScreen}           options={{ title: 'Comments' }} />
+      <Stack.Screen name="Campaigns"          component={CampaignsScreen}          options={{ title: 'Campaigns' }} />
+      <Stack.Screen name="CampaignDetail"     component={CampaignDetailScreen}     options={{ title: 'Campaign' }} />
+      <Stack.Screen name="CampaignFeed"       component={CampaignFeedScreen}       options={{ title: 'Campaign Feed' }} />
+      <Stack.Screen name="CampaignLeaderboard" component={CampaignLeaderboardScreen} options={{ title: 'Leaderboard' }} />
+      <Stack.Screen name="Settings"           component={SettingsScreen}           options={{ headerShown: false }} />
+      <Stack.Screen name="FollowList"         component={FollowListScreen}         options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

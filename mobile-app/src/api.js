@@ -429,7 +429,30 @@ const api = {
   // Campaigns
   getCampaigns: () => api.request('/campaigns/'),
 
+  getCampaignsByStatus: (status) => api.request(`/campaigns/?status=${status}`),
+
   getCampaignDetail: (campaignId) => api.request(`/campaigns/${campaignId}/`),
+
+  getCampaignFeed: (campaignId, filter = 'all') => 
+    api.request(`/campaigns/${campaignId}/feed/?filter=${filter}`),
+
+  getCampaignLeaderboard: (campaignId, period = 'overall') => 
+    api.request(`/campaigns/${campaignId}/leaderboard/?period=${period}`),
+
+  voteCampaignEntry: (entryId) =>
+    api.request(`/campaigns/entries/${entryId}/vote/`, { method: 'POST' }),
+
+  submitCampaignEntry: (campaignId, reelId) =>
+    api.request(`/campaigns/${campaignId}/entries/`, {
+      method: 'POST',
+      body: JSON.stringify({ reel_id: reelId }),
+    }),
+
+  getCampaignScoringConfig: (campaignId) =>
+    api.request(`/campaigns/${campaignId}/scoring-config/`),
+
+  updateCampaignEngagement: (campaignId) =>
+    api.request(`/campaigns/${campaignId}/engagement/update/`, { method: 'POST' }),
 
   // Health check
   healthCheck: () => api.request('/health/'),
