@@ -500,42 +500,70 @@ export default function ReelsScreen({ route, navigation }) {
       />
 
       {/* ── Long Press Modal ── */}
-      <Modal visible={!!longPressItem} transparent animationType="fade">
+      <Modal visible={!!longPressItem} transparent animationType="slide">
         <TouchableOpacity 
           style={styles.modalOverlay} 
           activeOpacity={1} 
           onPress={() => setLongPressItem(null)}
         >
-          <View style={styles.menuCard}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              handleShare(longPressItem);
-              setLongPressItem(null);
-            }}>
-              <Ionicons name="share-outline" size={24} color="#000" />
-              <Text style={styles.menuItemText}>Share to...</Text>
-            </TouchableOpacity>
+          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            
+            {/* Grid of icons */}
+            <View style={styles.iconGrid}>
+              <TouchableOpacity style={styles.iconGridItem} onPress={() => {
+                handleShare(longPressItem);
+                setLongPressItem(null);
+              }}>
+                <Ionicons name="link-outline" size={24} color={BRAND_GOLD} />
+                <Text style={styles.iconGridText}>Copy Link</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.iconGridItem} onPress={() => {
+                // Save functionality
+                setLongPressItem(null);
+              }}>
+                <Ionicons name="bookmark-outline" size={24} color="#F59E0B" />
+                <Text style={styles.iconGridText}>Save</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.iconGridItem} onPress={() => {
+                // Download functionality
+                setLongPressItem(null);
+              }}>
+                <Ionicons name="download-outline" size={24} color="#10B981" />
+                <Text style={styles.iconGridText}>Download</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.iconGridItem} onPress={() => {
+                handleShare(longPressItem);
+                setLongPressItem(null);
+              }}>
+                <Ionicons name="share-social-outline" size={24} color="#8B5CF6" />
+                <Text style={styles.iconGridText}>Share</Text>
+              </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              Alert.alert('Report', 'Post has been reported for review.');
-              setLongPressItem(null);
-            }}>
-              <Ionicons name="flag-outline" size={24} color="#FF3B30" />
-              <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>Report</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
+            {/* List options */}
+            <TouchableOpacity style={styles.sheetItem} onPress={() => {
               Alert.alert('Not Interested', 'We will show you fewer posts like this.');
               setLongPressItem(null);
             }}>
-              <Ionicons name="eye-off-outline" size={24} color="#000" />
-              <Text style={styles.menuItemText}>Not Interested</Text>
+              <Text style={styles.sheetItemText}>Not Interested</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.sheetItem} onPress={() => {
+              Alert.alert('Report', 'Post has been reported for review.');
+              setLongPressItem(null);
+            }}>
+              <Text style={[styles.sheetItemText, { color: '#FF3B30' }]}>Report</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.menuItem, { borderBottomWidth: 0 }]} 
+              style={[styles.sheetItem, { borderBottomWidth: 0 }]} 
               onPress={() => setLongPressItem(null)}
             >
-              <Text style={[styles.menuItemText, { marginLeft: 0, width: '100%', textAlign: 'center', fontWeight: '700' }]}>Cancel</Text>
+              <Text style={[styles.sheetItemText, { fontWeight: '700' }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -559,7 +587,7 @@ export default function ReelsScreen({ route, navigation }) {
           activeOpacity={1} 
           onPress={() => setGiftPost(null)}
         >
-          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
+          <View style={styles.giftBottomSheet} onStartShouldSetResponder={() => true}>
             <View style={styles.sheetHeader}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetTitleRow}>
@@ -666,7 +694,14 @@ const styles = StyleSheet.create({
   username: { color: '#fff', fontWeight: '700', fontSize: 15, marginBottom: 4 },
   caption: { color: '#fff', fontSize: 14, lineHeight: 18 },
   moreLabel: { color: 'rgba(255,255,255,0.7)', fontWeight: '700' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  bottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
+  sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15, marginTop: 8 },
+  iconGrid: { flexDirection: 'row', justifyContent: 'space-around', padding: '8px 16px 16px', gap: 8 },
+  iconGridItem: { alignItems: 'center', gap: 4 },
+  iconGridText: { fontSize: 11, color: '#000', marginTop: 4, fontWeight: '500' },
+  sheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
+  sheetItemText: { fontSize: 16, fontWeight: '600', color: '#1C1917' },
   menuCard: { width: SCREEN_WIDTH * 0.7, backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden' },
   menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
   menuItemText: { marginLeft: 12, fontSize: 16, fontWeight: '600', color: '#000' },
@@ -675,7 +710,7 @@ const styles = StyleSheet.create({
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
   
   // Gifting Styles
-  bottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '80%' },
+  giftBottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '80%' },
   sheetHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
   sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15 },
   sheetTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },

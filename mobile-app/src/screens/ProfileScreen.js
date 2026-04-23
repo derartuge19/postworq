@@ -593,6 +593,8 @@ export default function ProfileScreen({ navigation }) {
               <Text style={styles.formLabel}>Media</Text>
               <View style={styles.mediaPreview}>
                 {(() => {
+                  if (!editingPost) return null;
+                  
                   const displayUrl = editMediaPreview || (() => {
                     const mediaUrl = editingPost.media || editingPost.image || '';
                     return mediaUrl.startsWith('http') ? mediaUrl : `${config.API_BASE_URL.replace('/api', '')}${mediaUrl}`;
