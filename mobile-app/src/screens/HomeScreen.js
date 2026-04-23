@@ -214,6 +214,8 @@ export default function HomeScreen({ navigation }) {
   );
 
   const renderPost = ({ item }) => {
+    if (!item) return null;
+    
     const isVideo = !!item.media && (
       /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
       item.media.includes('/video/upload/') ||
@@ -590,11 +592,13 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     width: '100%',
+    height: 400,
     backgroundColor: '#000',
     position: 'relative',
   },
   media: {
-    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
   playOverlay: {
     ...StyleSheet.absoluteFillObject,
