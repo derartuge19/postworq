@@ -78,6 +78,30 @@ export default function HomeScreen({ navigation }) {
     setExpandedCaptions(prev => ({ ...prev, [postId]: !prev[postId] }));
   };
 
+  // Parse caption to handle hashtags
+  const parseCaption = (caption, postId) => {
+    if (!caption) return null;
+    
+    const parts = caption.split(/(#\w+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('#')) {
+        return (
+          <Text 
+            key={`${postId}-hashtag-${index}`}
+            style={styles.hashtagText}
+            onPress={() => {
+              // Navigate to explore with hashtag
+              navigation.navigate('Explore', { hashtag: part.slice(1) });
+            }}
+          >
+            {part}
+          </Text>
+        );
+      }
+      return <Text key={`${postId}-text-${index}`}>{part}</Text>;
+    });
+  };
+
   const handleSendGift = async () => {
     if (!giftPost) return;
     if (giftPost.user?.id === user?.id) {
@@ -365,18 +389,32 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Caption */}
+        {/* Caption & Comments link */}
         <View style={styles.captionContainer}>
           {!!item.caption && (
-            <Text style={styles.captionText} numberOfLines={2}>
-              <Text style={styles.captionUsername}>{item.user?.username} </Text>
-              {item.caption}
-            </Text>
+            <View>
+              <Text 
+                style={styles.captionText} 
+                numberOfLines={expandedCaptions[item.id] ? undefined : 2}
+              >
+                <Text style={styles.captionUsername} onPress={() => handleProfile(item.user?.id)}>
+                  {item.user?.username}{' '}
+                </Text>
+                {parseCaption(item.caption, item.id)}
+              </Text>
+              {item.caption.length > 60 && (
+                <TouchableOpacity onPress={() => toggleCaption(item.id)}>
+                  <Text style={styles.moreBtn}>
+                    {expandedCaptions[item.id] ? 'less' : 'more'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
           )}
           
           <TouchableOpacity onPress={() => handleComment(item.id)}>
             <Text style={styles.commentsLink}>
-              {(item.comments_count || 0) > 0 ? `View all ${item.comments_count} comments` : 'Add a comment...'}
+              {(item.comment_count || item.comments_count || 0) > 0 ? `View all ${item.comment_count || item.comments_count || 0} comments` : 'Add a comment...'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -695,6 +733,10 @@ const styles = StyleSheet.create({
   },
   captionUsername: {
     fontWeight: '700',
+  },
+  hashtagText: {
+    color: T.pri,
+    fontWeight: '600',
   },
   commentsLink: {
     color: T.sub,
