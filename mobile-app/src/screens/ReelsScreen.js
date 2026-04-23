@@ -383,8 +383,13 @@ export default function ReelsScreen({ route, navigation }) {
       const data    = await api.request(`/reels/?limit=15&offset=${offset}`);
       const raw     = Array.isArray(data) ? data : (data.results || []);
       
-      // Show all items (no video filter)
-      let items = raw;
+      // Filter to show only videos in Reels page
+      const isVideo = (url) => {
+        if (!url) return false;
+        return url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('/video/upload/');
+      };
+      
+      let items = raw.filter(r => isVideo(r.media || r.image));
       
       if (offset === 0 && initialId) {
         const idx = items.findIndex(r => r.id === initialId);
