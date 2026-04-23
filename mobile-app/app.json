@@ -14,12 +14,29 @@
       "bundleIdentifier": "com.selfistar.app"
     },
     "android": {
-      "package": "com.selfistar.app"
+      "package": "com.selfistar.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "plugins": [
       "expo-secure-store",
       "expo-av",
-      "expo-asset"
-    ]
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25"
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6b16eda1-c255-4150-bdbc-8070069416bb"
+      }
+    }
   }
 }
