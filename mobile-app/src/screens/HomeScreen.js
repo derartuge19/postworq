@@ -111,9 +111,7 @@ export default function HomeScreen({ navigation }) {
     try {
       setLoading(true);
       const data = await api.getReels();
-      console.log('HomeScreen: API response:', data);
       const posts = Array.isArray(data) ? data : (data.results || []);
-      console.log('HomeScreen: Parsed posts:', posts);
       setPosts(posts);
     } catch (error) {
       console.error('Error loading posts:', error);
@@ -132,7 +130,7 @@ export default function HomeScreen({ navigation }) {
     try {
       setPosts(posts.map(post => 
         post.id === reelId 
-          ? { ...post, votes: currentLiked ? Math.max(0, (post.votes || 0) - 1) : (post.votes || 0) + 1, has_voted: !currentLiked }
+          ? { ...post, votes: currentLiked ? Math.max(0, (post.votes || 0) - 1) : (post.votes || 0) + 1, is_liked: !currentLiked }
           : post
       ));
       await api.voteReel(reelId);
