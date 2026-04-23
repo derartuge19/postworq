@@ -300,6 +300,17 @@ const api = {
       body: JSON.stringify({ text }),
     }).then(r => { invalidateCache(`/reels/${reelId}/comments`); invalidateCache('/reels'); return r; }),
 
+  replyToComment: (commentId, text) =>
+    api.request(`/comments/${commentId}/reply/`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    }).then(r => { invalidateCache('/comments'); invalidateCache('/reels'); return r; }),
+
+  likeComment: (commentId) =>
+    api.request(`/comments/${commentId}/like/`, {
+      method: 'POST',
+    }).then(r => { invalidateCache('/comments'); invalidateCache('/reels'); return r; }),
+
   getComments: (reelId) => api.request(`/reels/${reelId}/comments/`),
 
   toggleFollow: (userId) =>
