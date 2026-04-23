@@ -86,8 +86,18 @@ export default function EditProfileScreen({ navigation }) {
 
       const response = await api.updateUserProfile(updateData);
 
+      // Invalidate cache to force fresh data
+      api.invalidateCache('/profile');
+      api.invalidateCache('/reels');
+
+      // Add timestamp to profile photo URL to bust cache
+      const updatedUser = { ...user, ...response };
+      if (response.profile_photo) {
+        updatedUser.profile_photo = `${response.profile_photo}?t=${Date.now()}`;
+      }
+
       // Update local auth context
-      updateUser({ ...user, ...response });
+      updateUser(updatedUser);
       
       Alert.alert('Success', 'Profile updated successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() }
