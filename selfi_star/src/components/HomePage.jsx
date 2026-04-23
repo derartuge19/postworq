@@ -1014,7 +1014,6 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             flex: '1 1 auto',
             minHeight: 320,
             maxHeight: 'calc(100vh - 280px)',
-            aspectRatio: '4 / 5',
             cursor: isVideo ? 'pointer' : 'default',
             display: 'flex',
             alignItems: 'center',
@@ -1032,7 +1031,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   poster={post.image ? mediaUrl(post.image) : undefined}
                   preload={index === 0 ? 'metadata' : 'none'}
                   loading={index === 0 ? 'eager' : 'lazy'}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', background: 'transparent', pointerEvents: 'none' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', background: 'transparent', pointerEvents: 'none' }}
                   playsInline
                   loop
                   onPlay={() => setVideoPlaying(true)}
@@ -1056,7 +1055,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 alt={post.caption || ''}
                 loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'default' }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', cursor: 'default' }}
                 onError={() => setImgError(true)}
               />
             )

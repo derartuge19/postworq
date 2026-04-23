@@ -265,7 +265,7 @@ export default function HomeScreen({ navigation }) {
                   style={styles.media}
                   shouldPlay={isVisible}
                   isLooping
-                  resizeMode={ResizeMode.COVER}
+                  resizeMode={ResizeMode.CONTAIN}
                   useNativeControls={false}
                   isMuted={true}
                 />
@@ -589,7 +589,6 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     width: '100%',
-    aspectRatio: 4 / 5,
     backgroundColor: '#000',
     position: 'relative',
   },
