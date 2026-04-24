@@ -665,8 +665,8 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
-    // Save current state before navigating
-    prevNavState.current = { activeTab, showProfile, profileUserId, showVideoDetail, videoDetailId };
+    // Save current state before navigating (without video detail to avoid showing random videos on back)
+    prevNavState.current = { activeTab, showProfile, profileUserId };
     setActiveTab('profile');
     setProfileUserId(userId);
     setShowProfile(true);
@@ -674,8 +674,9 @@ export default function WerqRoot() {
     setShowEditProfile(false);
     setShowFollowersList(false);
     setShowVideoDetail(false);
+    setVideoDetailId(null);
     // Push new history entry for profile overlay
-    pushHistoryState({ showProfile: true, profileUserId: userId, showPostPage: false, showEditProfile: false, showFollowersList: false, activeTab: 'profile', showVideoDetail: false });
+    pushHistoryState({ showProfile: true, profileUserId: userId, showPostPage: false, showEditProfile: false, showFollowersList: false, activeTab: 'profile', showVideoDetail: false, videoDetailId: null });
   };
 
   const handleShowPostPage = () => {
@@ -1027,12 +1028,14 @@ export default function WerqRoot() {
                   const ret = prevNavState.current;
                   if (ret) {
                     setActiveTab(ret.activeTab || 'home');
-                    if (ret.showVideoDetail) { setShowVideoDetail(true); setVideoDetailId(ret.videoDetailId || null); }
+                    // Clear video detail state to avoid showing random videos
+                    setShowVideoDetail(false);
+                    setVideoDetailId(null);
                     prevNavState.current = null;
                     window.history.back();
                   } else {
                     setActiveTab('home');
-                    pushHistoryState({ showProfile: false, activeTab: 'home' }, true);
+                    pushHistoryState({ showProfile: false, activeTab: 'home', showVideoDetail: false, videoDetailId: null }, true);
                   }
                 }}
                 onEditProfile={handleShowEditProfile}
