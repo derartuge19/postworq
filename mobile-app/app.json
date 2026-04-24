@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Flip Star",
-    "slug": "flipstar",
+    "slug": "selfistar",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -30,7 +30,6 @@
       "eas": {
         "projectId": "6b16eda1-c255-4150-bdbc-8070069416bb"
       }
-    },
-    "owner": "eden111310"
+    }
   }
 }
