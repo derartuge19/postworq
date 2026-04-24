@@ -92,7 +92,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         alignItems: "center",
         gap: 10,
       }}>
-        <img src={ethioLogo} alt="Ethio Telecom" style={{ width: 32, height: 32, objectFit: "contain" }} />
+        <img src={ethioLogo} alt="Ethio Telecom" style={{ width: 48, height: 48, objectFit: "contain" }} />
       </div>
       <div style={{
         position: "absolute",
@@ -101,7 +101,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         display: "flex",
         alignItems: "center",
       }}>
-        <img src={flipLogo} alt="FlipStar" style={{ width: 32, height: 32, objectFit: "contain" }} />
+        <img src={flipLogo} alt="FlipStar" style={{ width: 48, height: 48, objectFit: "contain" }} />
       </div>
 
       <div style={{
@@ -114,12 +114,11 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
           textAlign: "center",
           marginBottom: 20,
         }}>
-          <img src="/logo.jpeg" alt="flipstar" style={{ width: 100, height: 100, objectFit: "contain", margin: "0 auto 16px" }} />
           <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 8, color: T.txt }}>
             Create Account
           </div>
           <div style={{ fontSize: 14, color: T.sub }}>
-            Join flipstar today
+            Join FLIPSTAR today
           </div>
         </div>
 
