@@ -66,12 +66,21 @@ class GiftViewSet(viewsets.ModelViewSet):
 
 class PublicGiftViewSet(viewsets.ReadOnlyModelViewSet):
     """Public viewset for users to view available gifts"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     
     def get_queryset(self):
         return Gift.objects.filter(is_active=True).order_by('sort_order', 'coin_value', 'name')
     
     serializer_class = GiftSerializer
+    
+    def list(self, request, *args, **kwargs):
+        """Override list to return results in a consistent format"""
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'results': serializer.data,
+            'count': queryset.count()
+        })
 
 
 class GiftTransactionViewSet(viewsets.ModelViewSet):
