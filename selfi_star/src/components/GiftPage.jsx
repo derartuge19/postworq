@@ -39,9 +39,21 @@ export default function GiftPage({ username, onClose }) {
   const loadGifts = async () => {
     try {
       const response = await api.request('/gifts/');
-      setGifts(response.results || response);
+      const giftsData = response.results || response;
+      console.log('Loaded gifts:', giftsData);
+      setGifts(giftsData);
     } catch (error) {
       console.error('Error loading gifts:', error);
+      // Fallback to default gifts if API fails
+      const defaultGifts = [
+        { id: 1, name: 'Rose', description: 'A beautiful red rose', coin_value: 10, rarity: 'common', category: 'flowers' },
+        { id: 2, name: 'Heart', description: 'A heart symbol', coin_value: 20, rarity: 'common', category: 'hearts' },
+        { id: 3, name: 'Medal', description: 'A gold medal', coin_value: 50, rarity: 'rare', category: 'special' },
+        { id: 4, name: 'Diamond', description: 'A sparkling diamond', coin_value: 100, rarity: 'epic', category: 'gems' },
+        { id: 5, name: 'Teddy Bear', description: 'A cute teddy bear', coin_value: 30, rarity: 'common', category: 'animals' },
+      ];
+      console.log('Using default gifts:', defaultGifts);
+      setGifts(defaultGifts);
     } finally {
       setLoadingGifts(false);
     }

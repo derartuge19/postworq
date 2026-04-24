@@ -167,7 +167,7 @@ export default function GiftSelectorScreen({ route, navigation }) {
             />
           ) : (
             <View style={styles.giftPlaceholder}>
-              <Ionicons name="gift" size={40} color={BRAND_GOLD} />
+              <Text style={{ fontSize: 32 }}>{CATEGORY_ICONS[item.category] || '🎁'}</Text>
             </View>
           )}
         </Animated.View>
@@ -236,7 +236,7 @@ export default function GiftSelectorScreen({ route, navigation }) {
                   resizeMode="contain"
                 />
               ) : (
-                <Ionicons name="gift" size={60} color={BRAND_GOLD} />
+                <Text style={{ fontSize: 60, marginBottom: 12 }}>{CATEGORY_ICONS[selectedGift.category] || '🎁'}</Text>
               )}
               <Text style={styles.modalGiftName}>{selectedGift.name}</Text>
               <View style={styles.modalGiftPrice}>
