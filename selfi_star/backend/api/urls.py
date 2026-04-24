@@ -176,6 +176,7 @@ from .views_legal import (
     get_legal_document, get_all_legal_documents, accept_legal_document,
     get_pending_acceptances, get_user_acceptances
 )
+from .views_gift import GiftViewSet, PublicGiftViewSet, GiftTransactionViewSet, UserGiftStatsViewSet
 
 router = DefaultRouter()
 router.register(r'profile', UserProfileViewSet, basename='profile')
@@ -190,6 +191,10 @@ router.register(r'comments', CommentViewSet, basename='comment')
 router.register(r'comment-replies', CommentReplyViewSet, basename='comment-reply')
 router.register(r'saved', SavedPostViewSet, basename='saved')
 router.register(r'profile-photo', ProfilePhotoViewSet, basename='profile-photo')
+router.register(r'admin/gifts', GiftViewSet, basename='admin-gift')
+router.register(r'gifts', PublicGiftViewSet, basename='gift')
+router.register(r'gift-transactions', GiftTransactionViewSet, basename='gift-transaction')
+router.register(r'gift-stats', UserGiftStatsViewSet, basename='gift-stats')
 
 from .setup_admin_view import setup_admin
 

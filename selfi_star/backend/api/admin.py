@@ -14,6 +14,7 @@ from .models_campaign_extended import (
     WinnerSelection, SelectedWinner, CampaignBadge, GamificationActivity, JudgeScore, PublicVote, GrandFinalist
 )
 from .models_legal import LegalDocument, LegalDocumentVersion, UserLegalAcceptance
+from .models_gift import Gift, GiftTransaction, GiftCombo, UserGiftStats
 
 # Custom Admin Site Configuration
 class SelfieStarAdminSite(admin.AdminSite):
@@ -581,6 +582,38 @@ class UserLegalAcceptanceAdmin(admin.ModelAdmin):
     list_filter = ['document', 'accepted_at']
     search_fields = ['user__username', 'user__email']
     ordering = ['-accepted_at']
+
+# Gift System
+@admin.register(Gift, site=admin_site)
+class GiftAdmin(admin.ModelAdmin):
+    list_display = ['name', 'coin_value', 'rarity', 'category', 'is_active', 'sort_order']
+    list_filter = ['rarity', 'category', 'is_active']
+    search_fields = ['name', 'description']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['sort_order', 'coin_value', 'name']
+
+@admin.register(GiftTransaction, site=admin_site)
+class GiftTransactionAdmin(admin.ModelAdmin):
+    list_display = ['sender', 'recipient', 'gift', 'quantity', 'total_coins', 'is_combo', 'created_at']
+    list_filter = ['is_combo', 'gift__category', 'created_at']
+    search_fields = ['sender__username', 'recipient__username', 'gift__name']
+    readonly_fields = ['created_at']
+    ordering = ['-created_at']
+
+@admin.register(GiftCombo, site=admin_site)
+class GiftComboAdmin(admin.ModelAdmin):
+    list_display = ['user', 'gift', 'combo_count', 'total_coins', 'is_active', 'started_at']
+    list_filter = ['is_active', 'gift__category']
+    search_fields = ['user__username', 'gift__name']
+    readonly_fields = ['started_at', 'last_gift_at']
+    ordering = ['-started_at']
+
+@admin.register(UserGiftStats, site=admin_site)
+class UserGiftStatsAdmin(admin.ModelAdmin):
+    list_display = ['user', 'total_gifts_sent', 'total_coins_sent', 'total_gifts_received', 'total_coins_received', 'highest_combo']
+    search_fields = ['user__username']
+    readonly_fields = ['updated_at']
+    ordering = ['-total_coins_received']
 
 # Register User with custom admin
 admin_site.register(User, CustomUserAdmin)

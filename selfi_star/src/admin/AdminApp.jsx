@@ -26,8 +26,9 @@ import { ReportsPage } from './pages/ReportsPage';
 import { SecurityPage } from './pages/SecurityPage';
 import { LegalDocumentsPage } from './pages/LegalDocumentsPage';
 import { MobileAppPage } from './pages/MobileAppPage';
+import { GiftManagementPage } from './pages/GiftManagementPage';
 import api from '../api';
-import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Trophy, Target, Zap, Award, Flag } from 'lucide-react';
+import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Trophy, Target, Zap, Award, Flag, Gift as GiftIcon } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 export function AdminApp() {
@@ -206,6 +207,8 @@ export function AdminApp() {
         return <SecurityPage theme={T} onNavigate={setCurrentPage} />;
       case 'legal':
         return <LegalDocumentsPage theme={T} />;
+      case 'gifts':
+        return <GiftManagementPage theme={T} />;
       default:
         return <AdminDashboard theme={T} />;
     }

@@ -1,4 +1,4 @@
-import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Lock, Trophy, Target, Zap, Award, Flag, Scale, Smartphone } from 'lucide-react';
+import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Lock, Trophy, Target, Zap, Award, Flag, Scale, Smartphone, Gift as GiftIcon } from 'lucide-react';
 
 export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLogout }) {
   const menuItems = [
@@ -7,6 +7,7 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
     { id: 'contest', icon: Award, label: '90-Day Contest' },
     { id: 'judging', icon: Target, label: 'Judging Portal' },
     { id: 'anti-cheat', icon: Zap, label: 'Anti-Cheat' },
+    { id: 'gifts', icon: GiftIcon, label: 'Gifts' },
     { id: 'users', icon: Users, label: 'Users' },
     { id: 'content', icon: FileVideo, label: 'Content' },
     { id: 'master-campaigns', icon: Trophy, label: 'Master Campaigns' },
