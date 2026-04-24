@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   logoImg: { width: 148, height: 40 },
 
-  titleArea: { alignItems: 'center', paddingVertical: 16 },
+  titleArea: { alignItems: 'center', paddingVertical: 28 },
   title: { fontSize: 26, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
   subtitle: { fontSize: 14, color: BRAND.sub, marginTop: 4 },
 
