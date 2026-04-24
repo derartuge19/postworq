@@ -58,31 +58,23 @@ function CustomTabBar({ state, descriptors, navigation }) {
 
   return (
     <View style={[styles.tabBar, { paddingBottom: insets.bottom || 8 }]}>
-      {TAB_ORDER.map((routeName, index) => {
+      {TAB_ORDER.map((routeName) => {
         const route = state.routes.find(r => r.name === routeName);
         if (!route) return null;
 
         const { options } = descriptors[route.key];
-        const isFocused = state.index === state.routes.indexOf(route);
+        const routeIndex = state.routes.findIndex(r => r.name === routeName);
+        const isFocused = state.index === routeIndex;
         const isCreate  = routeName === 'Create';
 
         const onPress = () => {
-          try {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-            
-            // Always navigate, even if already focused
-            // This ensures tabs work every time they're tapped
-            if (!event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          } catch (error) {
-            console.error('Tab navigation error:', error);
-            // Fallback navigation - always try to navigate
-            navigation.navigate(route.name);
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!event.defaultPrevented) {
+            navigation.navigate({ name: route.name, merge: true });
           }
         };
 
