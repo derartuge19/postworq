@@ -178,15 +178,9 @@ export function AppShell({
             zIndex: 100,
           }}
         >
-          <div style={{ padding: '0 16px', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/logo.jpeg" alt="FlipStar" style={{ width: 28, height: 28, objectFit: 'contain' }} />
-            <span style={T.priGradient ? {
-              fontSize: 16, fontWeight: 900,
-              background: T.priGradient,
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-            } : {
-              fontSize: 16, fontWeight: 900, color: T.pri,
-            }}>FlipStar</span>
+          <div style={{ padding: '0 16px', marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ height: 32, maxWidth: 120, objectFit: 'contain' }} />
+            <img src="/flip-logo.png" alt="FlipStar" style={{ height: 32, maxWidth: 120, objectFit: 'contain' }} />
           </div>
 
           <nav
@@ -346,12 +340,27 @@ export function AppShell({
           height: isMobile ? '100dvh' : '100%',
           overflowY: 'auto',
           paddingBottom: isMobile ? 70 : 0,
+          paddingTop: isMobile ? 56 : 0,
           boxSizing: 'border-box',
           WebkitOverflowScrolling: 'touch',
-          // Disable browser's native pull-to-refresh so our custom one can run.
           overscrollBehaviorY: 'contain',
         }}
       >
+        {/* Mobile top header with logos */}
+        {isMobile && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, height: 56,
+            background: T.cardBg || '#fff',
+            borderBottom: `1px solid ${T.border}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            paddingLeft: 8, paddingRight: 8,
+            zIndex: 999,
+            boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
+          }}>
+            <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ height: 30, maxWidth: 120, objectFit: 'contain' }} />
+            <img src="/flip-logo.png" alt="FlipStar" style={{ height: 30, maxWidth: 120, objectFit: 'contain' }} />
+          </div>
+        )}
         {children}
       </main>
 
