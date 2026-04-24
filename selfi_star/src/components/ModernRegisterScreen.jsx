@@ -3,8 +3,6 @@ import { Mail, Lock, User, Eye, EyeOff, Loader } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import ethioLogo from '../assets/ethio-logo.png';
-import flipLogo from '../assets/flip-logo.png';
 
 export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
   const { colors: T } = useTheme();
@@ -92,7 +90,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         alignItems: "center",
         gap: 10,
       }}>
-        <img src={ethioLogo} alt="Ethio Telecom" style={{ width: 150, height: 150, objectFit: "contain" }} />
+        <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 150, height: 150, objectFit: "contain" }} />
       </div>
       <div style={{
         position: "absolute",
@@ -101,7 +99,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         display: "flex",
         alignItems: "center",
       }}>
-        <img src={flipLogo} alt="FlipStar" style={{ width: 150, height: 150, objectFit: "contain" }} />
+        <img src="/flip-logo.png" alt="FlipStar" style={{ width: 150, height: 150, objectFit: "contain" }} />
       </div>
 
       <div style={{

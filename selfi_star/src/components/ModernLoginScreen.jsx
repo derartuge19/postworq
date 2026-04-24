@@ -3,8 +3,6 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft, Loader, Home, Search, Compass, Film
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import ethioLogo from '../assets/ethio-logo.png';
-import flipLogo from '../assets/flip-logo.png';
 
 export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
   const { colors: T } = useTheme();
@@ -84,7 +82,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
         alignItems: "center",
         gap: 10,
       }}>
-        <img src={ethioLogo} alt="Ethio Telecom" style={{ width: 150, height: 150, objectFit: "contain" }} />
+        <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 150, height: 150, objectFit: "contain" }} />
       </div>
       <div style={{
         position: "absolute",
@@ -93,7 +91,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
         display: "flex",
         alignItems: "center",
       }}>
-        <img src={flipLogo} alt="FlipStar" style={{ width: 150, height: 150, objectFit: "contain" }} />
+        <img src="/flip-logo.png" alt="FlipStar" style={{ width: 150, height: 150, objectFit: "contain" }} />
       </div>
 
       <div style={{
