@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 28, paddingTop: 56, paddingBottom: 8,
   },
-  logoImg: { width: 120, height: 60, },
+  logoImg: { width: 148, height: 40 },
 
   titleArea: { alignItems: 'center', paddingVertical: 20 },
   title: { fontSize: 30, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
