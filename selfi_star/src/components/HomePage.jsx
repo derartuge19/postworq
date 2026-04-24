@@ -315,6 +315,11 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
 
   const handleLikeComment = async (comment) => {
     if (!api.hasToken()) return;
+    // Don't allow liking comments with temporary IDs (not yet saved to database)
+    if (String(comment.id).startsWith('temp-')) {
+      console.warn('Cannot like comment with temporary ID:', comment.id);
+      return;
+    }
     // Optimistic like
     const updateLikesDeep = (list) => list.map(c => {
       if (String(c.id) === String(comment.id)) {
