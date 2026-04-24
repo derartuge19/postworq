@@ -3,14 +3,15 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   StatusBar,
   RefreshControl,
   Dimensions,
+  ScrollView,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -216,11 +217,12 @@ export default function NotificationsScreen({ navigation }) {
         </ScrollView>
       </View>
 
-      <FlatList
+      <FlashList
         data={filteredNotifs}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
+        estimatedItemSize={70}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[BRAND_GOLD]} />
         }
@@ -244,7 +246,6 @@ function getRelativeTime(date) {
   return `${Math.floor(diff/86400)}d ago`;
 }
 
-import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff' },

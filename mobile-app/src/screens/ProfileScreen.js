@@ -4,17 +4,17 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ScrollView,
   Dimensions,
   ActivityIndicator,
   StatusBar,
-  FlatList,
   Alert,
   Share,
   Modal,
   TextInput,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -536,13 +536,14 @@ export default function ProfileScreen({ navigation }) {
           </View>
         ) : (
           /* Grid */
-          <FlatList
+          <FlashList
             data={filteredPosts}
             renderItem={renderPostItem}
             keyExtractor={item => item.id.toString()}
             numColumns={3}
             scrollEnabled={false}
             contentContainerStyle={styles.grid}
+            estimatedItemSize={width / 3}
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Ionicons name="apps-outline" size={40} color="#ccc" />

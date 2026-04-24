@@ -4,9 +4,7 @@ import {
   Text,
   StyleSheet,
   Dimensions,
-  FlatList,
   TouchableOpacity,
-  Image,
   StatusBar,
   ActivityIndicator,
   Platform,
@@ -18,6 +16,8 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -465,7 +465,7 @@ export default function ReelsScreen({ route, navigation }) {
     <View style={styles.root}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
 
-      <FlatList
+      <FlashList
         data={reels}
         keyExtractor={item => String(item.id)}
         renderItem={({ item, index }) => (
@@ -493,11 +493,7 @@ export default function ReelsScreen({ route, navigation }) {
         maxToRenderPerBatch={2}
         windowSize={3}
         updateCellsBatchingPeriod={50}
-        getItemLayout={(_, index) => ({
-          length: SCREEN_HEIGHT,
-          offset: SCREEN_HEIGHT * index,
-          index,
-        })}
+        estimatedItemSize={SCREEN_HEIGHT}
         onEndReached={() => hasMore && !loading && fetchReels(reels.length)}
         onEndReachedThreshold={0.5}
       />

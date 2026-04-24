@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
@@ -98,13 +98,14 @@ export default function FollowListScreen({ route, navigation }) {
           <ActivityIndicator size="large" color={BRAND_GOLD} />
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={users}
           renderItem={renderUserItem}
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.list}
           refreshing={refreshing}
           onRefresh={onRefresh}
+          estimatedItemSize={74}
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="people-outline" size={60} color="#eee" />

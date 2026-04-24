@@ -5,13 +5,14 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Image,
   Dimensions,
   ActivityIndicator,
   TextInput,
   ScrollView,
   StatusBar,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -337,12 +338,13 @@ export default function ExploreScreen({ navigation }) {
         {searchResults.posts?.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>POSTS</Text>
-            <FlatList
+            <FlashList
               data={searchResults.posts}
               renderItem={renderVideoThumb}
               keyExtractor={(item) => item.id.toString()}
               numColumns={3}
               scrollEnabled={false}
+              estimatedItemSize={ITEM_WIDTH * 1.78}
             />
           </View>
         )}
@@ -474,13 +476,14 @@ export default function ExploreScreen({ navigation }) {
           )}
 
           {/* Video Grid */}
-          <FlatList
+          <FlashList
             data={videos}
             renderItem={renderVideoThumb}
             keyExtractor={(item) => item.id.toString()}
             numColumns={3}
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
+            estimatedItemSize={ITEM_WIDTH * 1.78}
             ListFooterComponent={() => (
               loadingMore ? (
                 <View style={styles.loadingMore}>

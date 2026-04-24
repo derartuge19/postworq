@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Image,
   Dimensions,
   ActivityIndicator,
   Share,
@@ -14,6 +13,8 @@ import {
   TextInput,
   ScrollView,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -476,7 +477,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar translucent backgroundColor="transparent" style="dark" />
-      <FlatList
+      <FlashList
         data={posts}
         renderItem={renderPost}
         keyExtractor={(item) => item.id.toString()}
@@ -487,6 +488,7 @@ export default function HomeScreen({ navigation }) {
         refreshing={refreshing}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
+        estimatedItemSize={450}
         ListEmptyComponent={
           !loading && (
             <View style={styles.emptyContainer}>

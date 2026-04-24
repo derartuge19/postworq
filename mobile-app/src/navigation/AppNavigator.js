@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { enableScreens } from 'react-native-screens';
+
+enableScreens();
 import { View, Text, TouchableOpacity, StyleSheet, Platform, ActivityIndicator, Alert, Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';

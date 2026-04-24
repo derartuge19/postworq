@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ScrollView,
   Dimensions,
   ActivityIndicator,
   StatusBar,
-  FlatList,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
@@ -240,7 +240,7 @@ export default function ProfileDetailScreen({ route, navigation }) {
         </View>
 
         {/* Grid */}
-        <FlatList
+        <FlashList
           data={activeTab === 'reels' ? posts.filter(p => {
             const url = p.media || p.image || '';
             return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video') || p.is_reel;
@@ -250,6 +250,7 @@ export default function ProfileDetailScreen({ route, navigation }) {
           numColumns={3}
           scrollEnabled={false}
           contentContainerStyle={styles.grid}
+          estimatedItemSize={width / 3}
           ListEmptyComponent={
             <View style={styles.empty}>
               <Ionicons name="apps-outline" size={40} color="#ccc" />
