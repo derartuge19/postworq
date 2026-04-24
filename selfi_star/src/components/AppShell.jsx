@@ -14,7 +14,6 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import config from '../config';
-import ethioLogo from '../assets/ethio-logo.png';
 import flipLogo from '../assets/flip-logo.png';
 
 export function AppShell({
@@ -181,25 +180,15 @@ export function AppShell({
           }}
         >
           <div style={{ 
-            padding: '0 16px', 
+            padding: '16px', 
             marginBottom: 32, 
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             backgroundColor: 'rgba(255,255,255,0.1)',
             borderRadius: 8,
             minHeight: 40
           }}>
-            <img 
-              src={ethioLogo} 
-              alt="Ethio Telecom" 
-              style={{ height: 32, maxWidth: 120, objectFit: 'contain', display: 'block' }}
-              onError={(e) => {
-                console.error('Ethio logo failed to load');
-                e.target.style.display = 'none';
-              }}
-              onLoad={() => console.log('Ethio logo loaded successfully')}
-            />
             <img 
               src={flipLogo} 
               alt="FlipStar" 
@@ -381,21 +370,11 @@ export function AppShell({
             position: 'fixed', top: 0, left: 0, right: 0, height: 56,
             background: T.cardBg || '#fff',
             borderBottom: `1px solid ${T.border}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             paddingLeft: 8, paddingRight: 8,
             zIndex: 999,
             boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
           }}>
-            <img 
-              src={ethioLogo} 
-              alt="Ethio Telecom" 
-              style={{ height: 30, maxWidth: 120, objectFit: 'contain', display: 'block' }}
-              onError={(e) => {
-                console.error('Mobile ethio logo failed to load');
-                e.target.style.display = 'none';
-              }}
-              onLoad={() => console.log('Mobile ethio logo loaded successfully')}
-            />
             <img 
               src={flipLogo} 
               alt="FlipStar" 
