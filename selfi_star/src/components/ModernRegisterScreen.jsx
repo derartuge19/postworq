@@ -95,9 +95,9 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
           textAlign: "center",
           color: "#fff",
         }}>
-          <img src="/logo.jpeg" alt="FlipStar" style={{ width: 72, height: 72, objectFit: "contain", margin: "0 auto 12px" }} />
+          <img src="/logo.jpeg" alt="flipstar" style={{ width: 72, height: 72, objectFit: "contain", margin: "0 auto 12px" }} />
           <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 8 }}>
-            Join FlipStar
+            Join flipstar
           </div>
           <div style={{ fontSize: 14, opacity: 0.9 }}>
             Create your account and start sharing
