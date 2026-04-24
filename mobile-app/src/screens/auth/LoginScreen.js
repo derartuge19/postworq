@@ -33,8 +33,8 @@ export default function LoginScreen({ navigation }) {
 
       {/* Logos row */}
       <View style={styles.logosRow}>
-        <Image source={ethioLogo} style={styles.logoImg} resizeMode="contain" />
-        <Image source={flipLogo}  style={styles.logoImg} resizeMode="contain" />
+        <Image source={ethioLogo} style={styles.logoLeft} resizeMode="contain" />
+        <Image source={flipLogo}  style={styles.logoRight} resizeMode="contain" />
       </View>
 
       {/* Title */}
@@ -96,10 +96,10 @@ const styles = StyleSheet.create({
 
   logosRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 0, paddingTop: 56, paddingBottom: 8,
-    width: '100%',
+    paddingTop: 56, paddingBottom: 8, width: '100%',
   },
-  logoImg: { width: 148, height: 40 },
+  logoLeft:  { width: 148, height: 40, marginLeft: 0 },
+  logoRight: { width: 148, height: 40, marginRight: 0 },
 
   titleArea: { alignItems: 'center', paddingVertical: 32 },
   title: { fontSize: 30, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
