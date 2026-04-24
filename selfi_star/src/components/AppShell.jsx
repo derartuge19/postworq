@@ -180,25 +180,26 @@ export function AppShell({
           }}
         >
           <div style={{ 
-            padding: '16px', 
+            padding: '20px 16px', 
             marginBottom: 32, 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'flex-start',
             backgroundColor: 'rgba(255,255,255,0.1)',
             borderRadius: 8,
-            minHeight: 40
+            minHeight: 60
           }}>
             <img 
               src={flipLogo} 
               alt="FlipStar" 
               style={{ 
-                height: 40, 
-                width: 140, 
+                height: 60, 
+                width: 180, 
                 objectFit: 'contain', 
                 display: 'block',
-                borderRadius: 4,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                borderRadius: 6,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                marginLeft: 8
               }}
               onError={(e) => {
                 console.error('Flip logo failed to load');
@@ -365,7 +366,7 @@ export function AppShell({
           height: isMobile ? '100dvh' : '100%',
           overflowY: 'auto',
           paddingBottom: isMobile ? 70 : 0,
-          paddingTop: isMobile ? 56 : 0,
+          paddingTop: isMobile ? 70 : 0,
           boxSizing: 'border-box',
           WebkitOverflowScrolling: 'touch',
           overscrollBehaviorY: 'contain',
@@ -374,11 +375,11 @@ export function AppShell({
         {/* Mobile top header with logos */}
         {isMobile && (
           <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, height: 56,
+            position: 'fixed', top: 0, left: 0, right: 0, height: 70,
             background: T.cardBg || '#fff',
             borderBottom: `1px solid ${T.border}`,
             display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
-            paddingLeft: 12, paddingRight: 8,
+            paddingLeft: 16, paddingRight: 8,
             zIndex: 999,
             boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
           }}>
@@ -386,12 +387,13 @@ export function AppShell({
               src={flipLogo} 
               alt="FlipStar" 
               style={{ 
-                height: 35, 
-                width: 120, 
+                height: 50, 
+                width: 150, 
                 objectFit: 'contain', 
                 display: 'block',
-                borderRadius: 4,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                borderRadius: 6,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                marginLeft: 4
               }}
               onError={(e) => {
                 console.error('Mobile flip logo failed to load');
