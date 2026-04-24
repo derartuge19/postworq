@@ -54,3 +54,7 @@ media/
 uploads/
 **/media/
 **/uploads/
+
+# Ignore Gradle cache
+.gradle/
+**/.gradle/
