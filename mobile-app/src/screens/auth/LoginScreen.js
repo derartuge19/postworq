@@ -96,16 +96,16 @@ const styles = StyleSheet.create({
 
   logosRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingTop: 56, paddingBottom: 8, width: '100%',
+    paddingTop: 56, paddingBottom: 24, width: '100%',
   },
   logoLeft:  { width: 148, height: 40, marginLeft: 12 },
   logoRight: { width: 148, height: 40, marginRight: 4 },
 
-  titleArea: { alignItems: 'center', paddingVertical: 32, marginTop: 24 },
+  titleArea: { alignItems: 'center', paddingVertical: 40, marginTop: 40 },
   title: { fontSize: 30, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
   subtitle: { fontSize: 15, color: BRAND.sub, marginTop: 4 },
 
-  form: { flex: 1, padding: 28, paddingTop: 8 },
+  form: { flex: 1, padding: 28, paddingTop: 24 },
 
   inputWrapper: {
     flexDirection: 'row', alignItems: 'center',
