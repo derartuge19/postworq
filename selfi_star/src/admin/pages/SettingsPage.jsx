@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Settings, Save, Key, Database, Bell, Shield, Zap, Globe, Type, Palette, Moon, Sun, Check } from 'lucide-react';
 import api from '../../api';
 import { AlertModal } from '../components/AlertModal';
-import { GlassDemo } from '../components/GlassDemo';
 import { PRESET_THEMES } from '../../contexts/ThemeContext';
 
 // Available Google Fonts
@@ -98,7 +97,6 @@ export function SettingsPage({ theme }) {
           preset: settings.theme_preset || 'flipstar',
           darkMode: settings.dark_mode_default || false,
           customPrimary: settings.primary_color_override || null,
-          glassEnabled: settings.glass_effect_enabled || false,
         };
         localStorage.setItem('_platform_theme', JSON.stringify(themeData));
         window.dispatchEvent(new StorageEvent('storage', { key: '_platform_theme', newValue: JSON.stringify(themeData) }));
@@ -128,7 +126,6 @@ export function SettingsPage({ theme }) {
     { id: 'general', label: 'General', icon: Settings },
     { id: 'typography', label: 'Typography', icon: Type },
     { id: 'theme', label: 'Theme', icon: Palette },
-    { id: 'glass', label: 'Crystal UI', icon: Palette },
     { id: 'content', label: 'Content', icon: Globe },
     { id: 'moderation', label: 'Moderation', icon: Shield },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -668,9 +665,6 @@ export function SettingsPage({ theme }) {
           <ThemeTab settings={settings} handleChange={handleChange} setSettings={setSettings} theme={theme} />
         )}
 
-        {activeTab === 'glass' && (
-          <GlassDemo theme={theme} />
-        )}
 
         {activeTab === 'content' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -874,7 +868,6 @@ function hexToRgba(hex, alpha) {
 function ThemeTab({ settings, handleChange, setSettings, theme }) {
   const selectedPreset = settings.theme_preset || 'flipstar';
   const isDark = settings.dark_mode_default ?? false;
-  const glassEnabled = settings.glass_effect_enabled ?? false;
 
   const previewColors = (() => {
     const p = PRESET_THEMES[selectedPreset] || PRESET_THEMES.flipstar;
@@ -900,13 +893,6 @@ function ThemeTab({ settings, handleChange, setSettings, theme }) {
     applyThemeCSSLive(selectedPreset, nd, settings.primary_color_override || null);
   };
 
-  const toggleGlassEffect = () => {
-    const ng = !glassEnabled;
-    const newSettings = { ...settings, glass_effect_enabled: ng };
-    setSettings(newSettings);
-    window.currentAdminSettings = newSettings;
-    applyThemeCSSLive(selectedPreset, isDark, settings.primary_color_override || null);
-  };
 
   const updateCustomColor = (color) => {
     handleChange('primary_color_override', color || null);
@@ -934,22 +920,6 @@ function ThemeTab({ settings, handleChange, setSettings, theme }) {
           </button>
         </div>
 
-        {/* Glass effect toggle */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: theme.bg, borderRadius: 12, border: `1px solid ${theme.border}`, marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 9, background: `linear-gradient(135deg, ${theme.pri}, ${theme.pri}80)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Palette size={18} color="#fff" />
-            </div>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: theme.txt }}>Glass Effect (Crystal UI)</div>
-              <div style={{ fontSize: 12, color: theme.sub }}>{glassEnabled ? 'Glassmorphism effects enabled' : 'Standard theme colors only'}</div>
-            </div>
-          </div>
-          <button onClick={toggleGlassEffect}
-            style={{ width: 48, height: 28, borderRadius: 14, background: glassEnabled ? theme.pri : theme.border, border: 'none', cursor: 'pointer', position: 'relative', transition: 'all 0.2s', flexShrink: 0 }}>
-            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, left: glassEnabled ? 22 : 2, transition: 'all 0.2s' }} />
-          </button>
-        </div>
 
         {/* Preset grid */}
         <div style={{ fontSize: 13, fontWeight: 700, color: theme.txt, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Choose Preset</div>
