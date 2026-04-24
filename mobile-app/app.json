@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "SelfiStar",
-    "slug": "selfistar",
+    "name": "Flip Star",
+    "slug": "flipstar",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -11,10 +11,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.selfistar.app"
+      "bundleIdentifier": "com.flipstar.app"
     },
     "android": {
-      "package": "com.selfistar.app",
+      "package": "com.flipstar.app",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"

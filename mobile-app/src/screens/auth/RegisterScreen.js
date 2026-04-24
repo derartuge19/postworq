@@ -45,7 +45,7 @@ export default function RegisterScreen({ navigation }) {
     >
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join SelfiStar today</Text>
+        <Text style={styles.subtitle}>Join Flip Star today</Text>
 
         <TextInput
           style={styles.input}

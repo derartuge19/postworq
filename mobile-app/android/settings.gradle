@@ -1,0 +1,3 @@
+rootProject.name = 'flipstar-mobile'
+
+include ':app'

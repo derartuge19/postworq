@@ -1,6 +1,6 @@
-# SelfiStar Mobile App
+# Flip Star Mobile App
 
-React Native mobile app for SelfiStar - A TikTok-style video sharing platform.
+React Native mobile app for Flip Star - A TikTok-style video sharing platform.
 
 ## Features
 

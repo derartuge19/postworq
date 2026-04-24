@@ -40,7 +40,7 @@ export default function LoginScreen({ navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>SelfiStar</Text>
+        <Text style={styles.title}>Flip Star</Text>
         <Text style={styles.subtitle}>Welcome back!</Text>
 
         <TextInput
