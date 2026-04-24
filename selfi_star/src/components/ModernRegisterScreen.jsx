@@ -81,7 +81,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
       padding: 20,
       position: "relative",
     }}>
-      {/* Logo - Top Left */}
+      {/* Logos - Top Left and Right */}
       <div style={{
         position: "absolute",
         top: 20,
@@ -90,8 +90,16 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         alignItems: "center",
         gap: 10,
       }}>
-        <img src="/logo.jpeg" alt="flipstar" style={{ width: 32, height: 32, objectFit: "contain" }} />
-        <div style={{ fontSize: 16, fontWeight: 800, color: T.txt }}>flipstar</div>
+        <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 32, height: 32, objectFit: "contain" }} />
+      </div>
+      <div style={{
+        position: "absolute",
+        top: 20,
+        right: 24,
+        display: "flex",
+        alignItems: "center",
+      }}>
+        <img src="/flip-logo.png" alt="FlipStar" style={{ width: 32, height: 32, objectFit: "contain" }} />
       </div>
 
       <div style={{
