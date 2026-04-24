@@ -366,44 +366,13 @@ export function AppShell({
           height: isMobile ? '100dvh' : '100%',
           overflowY: 'auto',
           paddingBottom: isMobile ? 70 : 0,
-          paddingTop: isMobile ? 70 : 0,
+          paddingTop: isMobile ? 0 : 0,
           boxSizing: 'border-box',
           WebkitOverflowScrolling: 'touch',
           overscrollBehaviorY: 'contain',
         }}
       >
-        {/* Mobile top header with logos */}
-        {isMobile && (
-          <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, height: 70,
-            background: T.cardBg || '#fff',
-            borderBottom: `1px solid ${T.border}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
-            paddingLeft: 16, paddingRight: 8,
-            zIndex: 999,
-            boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
-          }}>
-            <img 
-              src={flipLogo} 
-              alt="FlipStar" 
-              style={{ 
-                height: 50, 
-                width: 150, 
-                objectFit: 'contain', 
-                display: 'block',
-                borderRadius: 6,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                marginLeft: 4
-              }}
-              onError={(e) => {
-                console.error('Mobile flip logo failed to load');
-                e.target.style.display = 'none';
-              }}
-              onLoad={() => console.log('Mobile flip logo loaded successfully')}
-            />
-          </div>
-        )}
-        {children}
+                {children}
       </main>
 
       {/* 4. Mobile Bottom Navigation — matches React Native AppNavigator exactly */}
