@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
 
   logosRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 56, paddingBottom: 8,
+    paddingHorizontal: 0, paddingTop: 56, paddingBottom: 8,
     width: '100%',
   },
   logoImg: { width: 148, height: 40 },
