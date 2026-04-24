@@ -13,6 +13,8 @@ from .models_campaign_extended import (
 from .models_legal import LegalDocument, LegalDocumentVersion, UserLegalAcceptance
 # Import messaging models
 from .models_messaging import Conversation, Message, MessageRead
+# Import gift models
+from .models_gift import Gift, GiftTransaction, GiftCombo, UserGiftStats
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
