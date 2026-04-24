@@ -67,6 +67,7 @@ class GiftViewSet(viewsets.ModelViewSet):
 class PublicGiftViewSet(viewsets.ReadOnlyModelViewSet):
     """Public viewset for users to view available gifts"""
     permission_classes = [permissions.AllowAny]
+    http_method_names = ['get', 'head', 'options']  # Explicitly allow GET, HEAD, OPTIONS
     
     def get_queryset(self):
         return Gift.objects.filter(is_active=True).order_by('sort_order', 'coin_value', 'name')

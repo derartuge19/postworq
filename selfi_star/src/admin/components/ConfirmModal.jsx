@@ -32,7 +32,7 @@ export function ConfirmModal({ theme, isOpen, onClose, onConfirm, title, message
     >
       <div
         style={{
-          background: theme.card,
+          background: '#ffffff',
           borderRadius: 12,
           padding: '24px',
           width: '100%',
@@ -45,7 +45,7 @@ export function ConfirmModal({ theme, isOpen, onClose, onConfirm, title, message
           margin: 0,
           fontSize: 20,
           fontWeight: 700,
-          color: theme.txt,
+          color: '#1C1917',
           marginBottom: 12,
         }}>
           {title}
@@ -54,7 +54,7 @@ export function ConfirmModal({ theme, isOpen, onClose, onConfirm, title, message
         <p style={{
           margin: 0,
           fontSize: 14,
-          color: theme.sub,
+          color: '#6B7280',
           lineHeight: 1.6,
           marginBottom: 24,
         }}>
@@ -71,10 +71,10 @@ export function ConfirmModal({ theme, isOpen, onClose, onConfirm, title, message
             style={{
               flex: 1,
               padding: '12px 24px',
-              background: theme.bg,
-              border: `1px solid ${theme.border}`,
+              background: '#F9FAFB',
+              border: '1px solid #E5E7EB',
               borderRadius: 8,
-              color: theme.txt,
+              color: '#1C1917',
               fontSize: 14,
               fontWeight: 600,
               cursor: 'pointer',
