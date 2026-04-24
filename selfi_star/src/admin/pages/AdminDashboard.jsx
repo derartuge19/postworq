@@ -114,21 +114,21 @@ export function AdminDashboard({ theme }) {
           return (
             <div
               key={index}
-              className="glass-card glass-hover"
               style={{
-                background: 'var(--glass-card)',
+                background: '#fff',
+                border: '1px solid #E7E5E4',
                 borderRadius: 12,
-                padding: 24,
-                border: '1px solid var(--glass-border)',
-                transition: 'all 0.3s',
+                padding: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)';
-                e.currentTarget.style.boxShadow = 'var(--glass-glow)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                e.currentTarget.style.boxShadow = 'var(--glass-shadow)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -181,11 +181,11 @@ export function AdminDashboard({ theme }) {
         gap: 24,
       }}>
         {/* Top Creators */}
-        <div className="glass-card" style={{
-          background: 'var(--glass-card)',
+        <div style={{
+          background: '#fff',
           borderRadius: 12,
           padding: 24,
-          border: '1px solid var(--glass-border)',
+          border: '1px solid #E7E5E4',
         }}>
           <h2 style={{
             margin: 0,
@@ -252,11 +252,11 @@ export function AdminDashboard({ theme }) {
         </div>
 
         {/* Trending Reels */}
-        <div className="glass-card" style={{
-          background: 'var(--glass-card)',
+        <div style={{
+          background: '#fff',
           borderRadius: 12,
           padding: 24,
-          border: '1px solid var(--glass-border)',
+          border: '1px solid #E7E5E4',
         }}>
           <h2 style={{
             margin: 0,

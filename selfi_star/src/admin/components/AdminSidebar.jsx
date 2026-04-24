@@ -26,12 +26,12 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
   ];
 
   return (
-    <div className="glass-sidebar" style={{
+    <div style={{
       width: 240,
-      background: 'var(--glass-bg)',
+      background: '#fff',
       display: 'flex',
       flexDirection: 'column',
-      borderRight: '1px solid var(--glass-border)',
+      borderRight: '1px solid #E7E5E4',
       height: '100vh',
       position: 'fixed',
       left: 0,
@@ -85,10 +85,9 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
           return (
             <button
               key={item.id}
-              className={`glass-hover ${isActive ? 'glass-primary' : ''}`}
               onClick={() => onPageChange(item.id)}
               onMouseEnter={(e) => {
-                if (!isActive) e.currentTarget.style.background = 'var(--glass-bg)';
+                if (!isActive) e.currentTarget.style.background = '#F3F4F6';
               }}
               onMouseLeave={(e) => {
                 if (!isActive) e.currentTarget.style.background = 'transparent';
@@ -96,11 +95,11 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                background: isActive ? 'var(--glass-primary)' : 'transparent',
+                background: isActive ? theme.pri : 'transparent',
                 border: 'none',
                 borderRadius: '10px',
                 margin: '0 8px',
-                color: isActive ? 'var(--color-primary)' : 'var(--color-txt)',
+                color: isActive ? '#fff' : '#1C1917',
                 fontSize: 12,
                 fontWeight: isActive ? 700 : 500,
                 cursor: 'pointer',
@@ -166,14 +165,13 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
         
         <button
           onClick={onLogout}
-          className="glass-button glass-hover"
           style={{
             width: '100%',
             padding: '8px 12px',
-            background: 'var(--glass-bg)',
-            border: '1px solid var(--glass-border)',
+            background: '#F9FAFB',
+            border: '1px solid #E5E7EB',
             borderRadius: 8,
-            color: 'var(--color-txt)',
+            color: '#1C1917',
             fontSize: 13,
             fontWeight: 600,
             cursor: 'pointer',
@@ -184,10 +182,10 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
             transition: 'all 0.2s',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'var(--glass-primary)';
+            e.currentTarget.style.background = '#F3F4F6';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'var(--glass-bg)';
+            e.currentTarget.style.background = '#F9FAFB';
           }}
         >
           <LogOut size={16} />

@@ -137,34 +137,6 @@ function applyCSS(c, glassEnabled = false) {
   r.style.setProperty('--color-sub', c.sub);
   r.style.setProperty('--color-border', c.border);
   r.style.setProperty('--color-card', c.cardBg);
-
-  // Add/remove glass-enabled class on body
-  if (glassEnabled) {
-    document.body.classList.add('glass-enabled');
-  } else {
-    document.body.classList.remove('glass-enabled');
-  }
-
-  // Glassmorphism variables
-  if (glassEnabled) {
-    r.style.setProperty('--glass-opacity', '0.15');
-    r.style.setProperty('--glass-blur', '16px');
-    r.style.setProperty('--glass-border', 'rgba(255,255,255,0.2)');
-    r.style.setProperty('--glass-shadow', '0 8px 32px rgba(0,0,0,0.1)');
-    r.style.setProperty('--glass-glow', `0 0 20px ${c.pri}20`);
-    r.style.setProperty('--glass-bg', hexToRgba(c.bg, 0.1));
-    r.style.setProperty('--glass-card', hexToRgba(c.cardBg, 0.1));
-    r.style.setProperty('--glass-primary', hexToRgba(c.pri, 0.2));
-  } else {
-    r.style.setProperty('--glass-opacity', '0');
-    r.style.setProperty('--glass-blur', '0px');
-    r.style.setProperty('--glass-border', 'transparent');
-    r.style.setProperty('--glass-shadow', 'none');
-    r.style.setProperty('--glass-glow', 'none');
-    r.style.setProperty('--glass-bg', c.bg);
-    r.style.setProperty('--glass-card', c.cardBg);
-    r.style.setProperty('--glass-primary', c.pri);
-  }
 }
 
 // Helper function to convert hex to rgba

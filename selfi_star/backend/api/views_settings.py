@@ -57,7 +57,6 @@ def get_platform_settings(request):
         'theme_preset': settings.theme_preset,
         'dark_mode_default': settings.dark_mode_default,
         'primary_color_override': settings.primary_color_override,
-        'glass_effect_enabled': settings.glass_effect_enabled,
         'updated_at': settings.updated_at,
     })
 
@@ -113,7 +112,6 @@ def get_public_settings(request):
                 'theme_preset': settings.theme_preset,
                 'dark_mode_default': settings.dark_mode_default,
                 'primary_color_override': settings.primary_color_override,
-                'glass_effect_enabled': settings.glass_effect_enabled,
             })
         except PlatformSettings.DoesNotExist:
             print("[PUBLIC_SETTINGS] No settings found, returning defaults")
@@ -137,7 +135,6 @@ def get_public_settings(request):
             'theme_preset': 'flipstar',
             'dark_mode_default': False,
             'primary_color_override': None,
-            'glass_effect_enabled': False,
         })
     except Exception as e:
         print(f"[PUBLIC_SETTINGS] Unexpected error: {e}")
@@ -158,7 +155,6 @@ def get_public_settings(request):
             'theme_preset': 'flipstar',
             'dark_mode_default': False,
             'primary_color_override': None,
-            'glass_effect_enabled': False,
         })
 
 
