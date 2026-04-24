@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Platform, ActivityIndicator, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, ActivityIndicator, Alert, Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
 import Constants from 'expo-constants';
 
@@ -44,99 +43,55 @@ const BRAND = {
 const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// ── Custom Tab Bar ─────────────────────────────────────────────────────────────
-// Matches the web AppShell mobile bottom nav: Home | Discover | [+] | Alerts | Profile
-function CustomTabBar({ state, descriptors, navigation }) {
-  const insets = useSafeAreaInsets();
-
-  const TAB_ORDER = ['Home', 'Reels', 'Create', 'Notifications', 'Profile'];
-  
-  // Ensure state and routes exist
-  if (!state || !state.routes || !descriptors) {
-    return null;
-  }
-
-  return (
-    <View style={[styles.tabBar, { paddingBottom: insets.bottom || 8 }]}>
-      {TAB_ORDER.map((routeName) => {
-        const route = state.routes.find(r => r.name === routeName);
-        if (!route) return null;
-
-        const { options } = descriptors[route.key];
-        const routeIndex = state.routes.findIndex(r => r.name === routeName);
-        const isFocused = state.index === routeIndex;
-        const isCreate  = routeName === 'Create';
-
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-          if (!event.defaultPrevented) {
-            navigation.navigate({ name: route.name, merge: true });
-          }
-        };
-
-        // ── Icon map ──
-        const iconMap = {
-          Home:          isFocused ? 'home'              : 'home-outline',
-          Reels:         isFocused ? 'film'              : 'film-outline',
-          Create:        'add',
-          Notifications: isFocused ? 'notifications'     : 'notifications-outline',
-          Profile:       isFocused ? 'person'            : 'person-outline',
-        };
-        const iconName = iconMap[routeName];
-        const label    = routeName === 'Notifications' ? 'Alerts' : routeName;
-
-        // ── Center Create pill button ──
-        if (isCreate) {
-          return (
-            <TouchableOpacity
-              key={routeName}
-              accessibilityRole="button"
-              accessibilityLabel="Create new post"
-              onPress={onPress}
-              activeOpacity={0.8}
-              style={styles.createBtn}
-            >
-              <Ionicons name="add" size={22} color="#fff" strokeWidth={2.5} />
-            </TouchableOpacity>
-          );
-        }
-
-        // ── Normal tab ──
-        return (
-          <TouchableOpacity
-            key={routeName}
-            accessibilityRole="button"
-            accessibilityLabel={label}
-            onPress={onPress}
-            activeOpacity={0.7}
-            style={styles.tabItem}
-          >
-            <Ionicons
-              name={iconName}
-              size={24}
-              color={isFocused ? BRAND.pri : BRAND.inactive}
-            />
-            <Text style={[styles.tabLabel, { color: isFocused ? BRAND.pri : BRAND.inactive, fontWeight: isFocused ? '700' : '400' }]}>
-              {label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-}
-
-
 // ── Main Tab Navigator ─────────────────────────────────────────────────────────
 function MainTabs() {
   return (
     <Tab.Navigator
-      tabBar={props => <CustomTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: BRAND.pri,
+        tabBarInactiveTintColor: BRAND.inactive,
+        tabBarStyle: {
+          backgroundColor: BRAND.cardBg,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: BRAND.border,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 6,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+        },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+        tabBarIcon: ({ focused, color, size }) => {
+          const icons = {
+            Home:          focused ? 'home'          : 'home-outline',
+            Reels:         focused ? 'film'          : 'film-outline',
+            Create:        focused ? 'add-circle'    : 'add-circle-outline',
+            Notifications: focused ? 'notifications' : 'notifications-outline',
+            Profile:       focused ? 'person'        : 'person-outline',
+          };
+          const isCreate = route.name === 'Create';
+          if (isCreate) {
+            return (
+              <View style={{
+                width: 40, height: 26, borderRadius: 13,
+                backgroundColor: BRAND.pri,
+                justifyContent: 'center', alignItems: 'center',
+              }}>
+                <Ionicons name="add" size={20} color="#fff" />
+              </View>
+            );
+          }
+          return <Ionicons name={icons[route.name]} size={size} color={color} />;
+        },
+        tabBarLabel: ({ focused, color }) => {
+          const label = route.name === 'Notifications' ? 'Alerts' : route.name;
+          return <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400' }}>{label}</Text>;
+        },
+      })}
     >
       <Tab.Screen name="Home"          component={HomeScreen} />
       <Tab.Screen name="Reels"         component={ReelsScreen} />
@@ -282,52 +237,7 @@ const styles = StyleSheet.create({
     backgroundColor: BRAND.bg,
   },
 
-  // Bottom tab bar — height 60 + safe-area, matching web AppShell height:60
-  tabBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: BRAND.cardBg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: BRAND.border,
-    height: 60 + (Platform.OS === 'ios' ? 0 : 0), // safe-area added via paddingBottom
-    paddingTop: 6,
-    // subtle shadow on iOS
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-  },
-
-  tabLabel: {
-    fontSize: 10,
-    lineHeight: 14,
-    marginTop: 2,
-  },
-
-  // Center [+] pill — matches web rounded-pill create button
-  createBtn: {
-    width: 48,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: BRAND.pri,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: BRAND.pri,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
-    marginBottom: 4,
-  },
+  // Bottom tab bar styles removed (using built-in tab bar now)
 
   // Update Screen
   updateContainer: {
