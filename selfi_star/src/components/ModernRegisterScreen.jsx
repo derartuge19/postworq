@@ -90,7 +90,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         alignItems: "center",
         gap: 10,
       }}>
-        <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 150, height: 150, objectFit: "contain" }} />
+        <img src="https://postworqq.vercel.app/ethio-logo.png" alt="Ethio Telecom" style={{ width: 150, height: 150, objectFit: "contain" }} />
       </div>
       <div style={{
         position: "absolute",
@@ -99,7 +99,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         display: "flex",
         alignItems: "center",
       }}>
-        <img src="/flip-logo.png" alt="FlipStar" style={{ width: 150, height: 150, objectFit: "contain" }} />
+        <img src="https://postworqq.vercel.app/flip-logo.png" alt="FlipStar" style={{ width: 150, height: 150, objectFit: "contain" }} />
       </div>
 
       <div style={{
