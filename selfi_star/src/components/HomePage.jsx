@@ -1171,20 +1171,22 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 <Share2 size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
                 <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
-              {/* Gift */}
-              <button
-                className="hp-btn hp-action"
-                onClick={(e) => { e.stopPropagation(); setShowGiftModal(true); }}
-                title="Send Gift"
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '4px 6px', borderRadius: 8,
-                  display: 'flex', alignItems: 'center', gap: 3,
-                  '--hp-hover': (T?.border || '#e0e0e0') + '60',
-                }}
-              >
-                <Gift size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-              </button>
+              {/* Gift - only show on other people's posts */}
+              {post.user?.username !== authUser?.username && (
+                <button
+                  className="hp-btn hp-action"
+                  onClick={(e) => { e.stopPropagation(); setShowGiftModal(true); }}
+                  title="Send Gift"
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: '4px 6px', borderRadius: 8,
+                    display: 'flex', alignItems: 'center', gap: 3,
+                    '--hp-hover': (T?.border || '#e0e0e0') + '60',
+                  }}
+                >
+                  <Gift size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                </button>
+              )}
             </div>
             {/* Save */}
             <button
