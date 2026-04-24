@@ -10,7 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const BRAND = { pri: '#DA9B2A', bg: '#fff', txt: '#1a1a1a', sub: '#888', border: '#f0e6d0' };
 
 const ethioLogo  = require('../../image/Ethio telecom Logo PNG format.png');
-const flipLogo   = require('../../image/Flip Star Final Logo v3.png');
+const flipLogo   = require('../../image/Flip Star Final Logo v3 side (2).png');
 
 export default function RegisterScreen({ navigation }) {
   const [username, setUsername]   = useState('');
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 28, paddingTop: 52, paddingBottom: 4,
   },
-  logoImg: { width: 110, height: 60 },
+  logoImg: { width: 120, height: 60 },
 
   titleArea: { alignItems: 'center', paddingVertical: 16 },
   title: { fontSize: 26, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
