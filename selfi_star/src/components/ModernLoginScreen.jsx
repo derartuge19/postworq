@@ -82,8 +82,8 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
         alignItems: "center",
         gap: 10,
       }}>
-        <img src="/logo.jpeg" alt="flipstar" style={{ width: 40, height: 40, objectFit: "contain" }} />
-        <div style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>flipstar</div>
+        <img src="/logo.jpeg" alt="flipstar" style={{ width: 32, height: 32, objectFit: "contain" }} />
+        <div style={{ fontSize: 16, fontWeight: 800, color: T.txt }}>flipstar</div>
       </div>
 
       <div style={{
@@ -96,7 +96,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
           textAlign: "center",
           marginBottom: 20,
         }}>
-          <img src="/logo.jpeg" alt="flipstar" style={{ width: 80, height: 80, objectFit: "contain", margin: "0 auto 12px" }} />
+          <img src="/logo.jpeg" alt="flipstar" style={{ width: 100, height: 100, objectFit: "contain", margin: "0 auto 16px" }} />
           <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 8, color: T.txt }}>
             Welcome Back!
           </div>

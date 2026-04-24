@@ -74,33 +74,42 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
   return (
     <div style={{
       minHeight: "100vh",
-      background: `linear-gradient(135deg, ${T.pri}30, ${T.dark})`,
+      background: T.bg,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       padding: 20,
+      position: "relative",
     }}>
+      {/* Logo - Top Left */}
+      <div style={{
+        position: "absolute",
+        top: 20,
+        left: 24,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+      }}>
+        <img src="/logo.jpeg" alt="flipstar" style={{ width: 32, height: 32, objectFit: "contain" }} />
+        <div style={{ fontSize: 16, fontWeight: 800, color: T.txt }}>flipstar</div>
+      </div>
+
       <div style={{
         width: "100%",
         maxWidth: 440,
-        background: "#fff",
-        borderRadius: 20,
-        boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-        overflow: "hidden",
       }}>
         {/* Header */}
         <div style={{
-          background: `linear-gradient(135deg, ${T.dark}, ${T.pri})`,
           padding: "40px 32px",
           textAlign: "center",
-          color: "#fff",
+          marginBottom: 20,
         }}>
-          <img src="/logo.jpeg" alt="flipstar" style={{ width: 72, height: 72, objectFit: "contain", margin: "0 auto 12px" }} />
-          <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 8 }}>
-            Join flipstar
+          <img src="/logo.jpeg" alt="flipstar" style={{ width: 100, height: 100, objectFit: "contain", margin: "0 auto 16px" }} />
+          <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 8, color: T.txt }}>
+            Create Account
           </div>
-          <div style={{ fontSize: 14, opacity: 0.9 }}>
-            Create your account and start sharing
+          <div style={{ fontSize: 14, color: T.sub }}>
+            Join flipstar today
           </div>
         </div>
 
