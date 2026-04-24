@@ -10,6 +10,9 @@ python manage.py makemigrations
 echo "Applying migrations..."
 python manage.py migrate --verbosity=2
 
+echo "🎁 Seeding default gifts..."
+python manage.py seed_default_gifts
+
 echo "📦 Collecting static files..."
 python manage.py collectstatic --noinput
 
