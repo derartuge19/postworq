@@ -36,7 +36,7 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
       position: 'fixed',
       left: 0,
       top: 0,
-      zIndex: 100,
+      zIndex: 1000,
     }}>
       {/* Logo */}
       <div style={{

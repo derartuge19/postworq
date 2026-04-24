@@ -235,6 +235,8 @@ export function AdminApp() {
         overflow: 'auto',
         padding: '32px',
         marginLeft: 240,
+        position: 'relative',
+        zIndex: 1,
       }}>
         {renderPage()}
       </div>
