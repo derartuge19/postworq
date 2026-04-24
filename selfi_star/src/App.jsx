@@ -479,7 +479,7 @@ export default function WerqRoot() {
   }, []);
 
   // Push state to history whenever navigation state changes
-  const pushHistoryState = (newState) => {
+  const pushHistoryState = (newState, replace = false) => {
     const state = {
       showLogin: newState.showLogin !== undefined ? newState.showLogin : showLogin,
       showRegister: newState.showRegister !== undefined ? newState.showRegister : showRegister,
@@ -502,7 +502,11 @@ export default function WerqRoot() {
       videoDetailId: newState.videoDetailId !== undefined ? newState.videoDetailId : videoDetailId,
       showExplorer: newState.showExplorer !== undefined ? newState.showExplorer : showExplorer,
     };
-    window.history.pushState(state, '');
+    if (replace) {
+      window.history.replaceState(state, '');
+    } else {
+      window.history.pushState(state, '');
+    }
   };
 
   // Function to reset all special page states
@@ -652,13 +656,16 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
+    // Save current state before navigating
+    prevNavState.current = { activeTab, showProfile, profileUserId, showVideoDetail, videoDetailId };
     setActiveTab('profile');
     setProfileUserId(userId);
     setShowProfile(true);
     setShowPostPage(false);
     setShowEditProfile(false);
     setShowFollowersList(false);
-    pushHistoryState({ showProfile: true, profileUserId: userId, showPostPage: false, showEditProfile: false, showFollowersList: false, activeTab: 'profile' });
+    setShowVideoDetail(false);
+    pushHistoryState({ showProfile: true, profileUserId: userId, showPostPage: false, showEditProfile: false, showFollowersList: false, activeTab: 'profile', showVideoDetail: false });
   };
 
   const handleShowPostPage = () => {
@@ -681,9 +688,12 @@ export default function WerqRoot() {
     if (ret) {
       setActiveTab(ret.activeTab || 'home');
       if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); }
+      if (ret.showVideoDetail) { setShowVideoDetail(true); setVideoDetailId(ret.videoDetailId || null); }
       prevNavState.current = null;
+      pushHistoryState({ showPostPage: false, activeTab: ret.activeTab, showProfile: ret.showProfile, showVideoDetail: ret.showVideoDetail }, true);
     } else {
       setActiveTab('home');
+      pushHistoryState({ showPostPage: false, activeTab: 'home' }, true);
     }
   };
 
@@ -723,6 +733,8 @@ export default function WerqRoot() {
       activeTab,
       showProfile,
       profileUserId,
+      showVideoDetail,
+      videoDetailId,
     };
     setActiveTab('settings');
     setShowSettings(true);
@@ -735,7 +747,8 @@ export default function WerqRoot() {
     setShowCampaignDetail(false);
     setShowCampaignLeaderboard(false);
     setShowCampaignFeed(false);
-    pushHistoryState({ showSettings: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showNotifications: false, showCampaigns: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false });
+    setShowVideoDetail(false);
+    pushHistoryState({ showSettings: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showNotifications: false, showCampaigns: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false, showVideoDetail: false });
   };
 
   const handleCloseSettings = () => {
@@ -747,9 +760,15 @@ export default function WerqRoot() {
         setShowProfile(true);
         setProfileUserId(ret.profileUserId || null);
       }
+      if (ret.showVideoDetail) {
+        setShowVideoDetail(true);
+        setVideoDetailId(ret.videoDetailId || null);
+      }
       settingsReturnState.current = null;
+      pushHistoryState({ showSettings: false, activeTab: ret.activeTab, showProfile: ret.showProfile, showVideoDetail: ret.showVideoDetail }, true);
     } else {
       setActiveTab('home');
+      pushHistoryState({ showSettings: false, activeTab: 'home' }, true);
     }
   };
 
@@ -758,7 +777,7 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
-    prevNavState.current = { activeTab, showProfile, profileUserId };
+    prevNavState.current = { activeTab, showProfile, profileUserId, showVideoDetail, videoDetailId };
     setActiveTab('campaigns');
     setShowCampaigns(true);
     setShowProfile(false);
@@ -770,7 +789,8 @@ export default function WerqRoot() {
     setShowCampaignDetail(false);
     setShowCampaignLeaderboard(false);
     setShowCampaignFeed(false);
-    pushHistoryState({ showCampaigns: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showNotifications: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false });
+    setShowVideoDetail(false);
+    pushHistoryState({ showCampaigns: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showNotifications: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false, showVideoDetail: false });
   };
 
   const handleShowNotifications = () => {
@@ -778,7 +798,7 @@ export default function WerqRoot() {
       setShowLogin(true);
       return;
     }
-    prevNavState.current = { activeTab, showProfile, profileUserId };
+    prevNavState.current = { activeTab, showProfile, profileUserId, showVideoDetail, videoDetailId };
     setActiveTab('notifications');
     setShowNotifications(true);
     setUnreadNotifCount(0);
@@ -791,10 +811,13 @@ export default function WerqRoot() {
     setShowCampaignDetail(false);
     setShowCampaignLeaderboard(false);
     setShowCampaignFeed(false);
-    pushHistoryState({ showNotifications: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showCampaigns: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false });
+    setShowVideoDetail(false);
+    pushHistoryState({ showNotifications: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showSettings: false, showCampaigns: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false, showVideoDetail: false });
   };
 
   const handleShowVideoDetail = (reelId) => {
+    // Save current state before navigating
+    prevNavState.current = { activeTab, showProfile, profileUserId };
     resetAllPages();
     startTransition(() => {
       setActiveTab('reels');
@@ -811,7 +834,7 @@ export default function WerqRoot() {
         showCampaignLeaderboard: false,
         showCampaignFeed: false,
         showExplorer: false,
-        showVideoDetail: false,
+        showVideoDetail: true,
         showEditProfile: false,
         showFollowersList: false,
       });
@@ -869,7 +892,7 @@ export default function WerqRoot() {
             // to the last notification / post the user previously opened.
             setVideoDetailId(null);
             saveNav({ activeTab: tab });
-            // Explicitly clear ALL overlay flags so refresh never re-opens them
+            // Use replaceState instead of pushState for tab switching to avoid building up history
             pushHistoryState({
               activeTab: tab,
               showNotifications: false,
@@ -884,7 +907,7 @@ export default function WerqRoot() {
               showVideoDetail: false,
               showEditProfile: false,
               showFollowersList: false,
-            });
+            }, true);
           });
         }}
         onLogout={handleLogout}
@@ -921,7 +944,16 @@ export default function WerqRoot() {
                 onBack={() => {
                   setShowNotifications(false);
                   const ret = prevNavState.current;
-                  if (ret) { setActiveTab(ret.activeTab || 'home'); if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); } prevNavState.current = null; } else { setActiveTab('home'); }
+                  if (ret) { 
+                    setActiveTab(ret.activeTab || 'home'); 
+                    if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); }
+                    if (ret.showVideoDetail) { setShowVideoDetail(true); setVideoDetailId(ret.videoDetailId || null); }
+                    prevNavState.current = null;
+                    pushHistoryState({ showNotifications: false, activeTab: ret.activeTab, showProfile: ret.showProfile, showVideoDetail: ret.showVideoDetail }, true);
+                  } else { 
+                    setActiveTab('home');
+                    pushHistoryState({ showNotifications: false, activeTab: 'home' }, true);
+                  }
                 }}
                 onShowPostPage={handleShowPostPage}
                 onLogout={handleLogout}
@@ -976,7 +1008,19 @@ export default function WerqRoot() {
               <ProfilePage
                 user={authUser}
                 userId={profileUserId}
-                onBack={() => setShowProfile(false)}
+                onBack={() => {
+                  setShowProfile(false);
+                  const ret = prevNavState.current;
+                  if (ret) {
+                    setActiveTab(ret.activeTab || 'home');
+                    if (ret.showVideoDetail) { setShowVideoDetail(true); setVideoDetailId(ret.videoDetailId || null); }
+                    prevNavState.current = null;
+                    pushHistoryState({ showProfile: false, activeTab: ret.activeTab, showVideoDetail: ret.showVideoDetail }, true);
+                  } else {
+                    setActiveTab('home');
+                    pushHistoryState({ showProfile: false, activeTab: 'home' }, true);
+                  }
+                }}
                 onEditProfile={handleShowEditProfile}
                 onShowSettings={handleShowSettings}
                 onShowFollowers={(userId) =>
@@ -1010,6 +1054,7 @@ export default function WerqRoot() {
                 onBack={() => {
                   setShowCampaignDetail(false);
                   setShowCampaigns(true);
+                  pushHistoryState({ showCampaignDetail: false, showCampaigns: true, activeTab: 'campaigns' }, true);
                 }}
                 onShowLeaderboard={() => {
                   setShowCampaignDetail(false);
@@ -1031,6 +1076,7 @@ export default function WerqRoot() {
                 onBack={() => {
                   setShowCampaignLeaderboard(false);
                   setShowCampaignDetail(true);
+                  pushHistoryState({ showCampaignLeaderboard: false, showCampaignDetail: true, activeTab: 'campaigns' }, true);
                 }}
               />
             </Suspense>
@@ -1044,6 +1090,7 @@ export default function WerqRoot() {
                 onBack={() => {
                   setShowCampaignFeed(false);
                   setShowCampaignDetail(true);
+                  pushHistoryState({ showCampaignFeed: false, showCampaignDetail: true, activeTab: 'campaigns' }, true);
                 }}
               />
             </Suspense>
@@ -1061,7 +1108,16 @@ export default function WerqRoot() {
                 onBack={() => {
                   setShowCampaigns(false);
                   const ret = prevNavState.current;
-                  if (ret) { setActiveTab(ret.activeTab || 'home'); if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); } prevNavState.current = null; } else { setActiveTab('home'); }
+                  if (ret) { 
+                    setActiveTab(ret.activeTab || 'home'); 
+                    if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); }
+                    if (ret.showVideoDetail) { setShowVideoDetail(true); setVideoDetailId(ret.videoDetailId || null); }
+                    prevNavState.current = null;
+                    pushHistoryState({ showCampaigns: false, activeTab: ret.activeTab, showProfile: ret.showProfile, showVideoDetail: ret.showVideoDetail }, true);
+                  } else { 
+                    setActiveTab('home');
+                    pushHistoryState({ showCampaigns: false, activeTab: 'home' }, true);
+                  }
                 }}
               />
             </Suspense>
