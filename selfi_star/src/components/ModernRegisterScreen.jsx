@@ -86,7 +86,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
       {/* Logos - Top Left and Right */}
       <div style={{
         position: "absolute",
-        top: 5,
+        top: 0,
         left: 24,
         display: "flex",
         alignItems: "center",
@@ -96,7 +96,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
       </div>
       <div style={{
         position: "absolute",
-        top: 5,
+        top: 0,
         right: 24,
         display: "flex",
         alignItems: "center",
