@@ -184,7 +184,7 @@ export function AppShell({
             marginBottom: 32, 
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             backgroundColor: 'rgba(255,255,255,0.1)',
             borderRadius: 8,
             minHeight: 40
@@ -192,7 +192,14 @@ export function AppShell({
             <img 
               src={flipLogo} 
               alt="FlipStar" 
-              style={{ height: 32, maxWidth: 120, objectFit: 'contain', display: 'block' }}
+              style={{ 
+                height: 40, 
+                width: 140, 
+                objectFit: 'contain', 
+                display: 'block',
+                borderRadius: 4,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}
               onError={(e) => {
                 console.error('Flip logo failed to load');
                 e.target.style.display = 'none';
@@ -370,15 +377,22 @@ export function AppShell({
             position: 'fixed', top: 0, left: 0, right: 0, height: 56,
             background: T.cardBg || '#fff',
             borderBottom: `1px solid ${T.border}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            paddingLeft: 8, paddingRight: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+            paddingLeft: 12, paddingRight: 8,
             zIndex: 999,
             boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
           }}>
             <img 
               src={flipLogo} 
               alt="FlipStar" 
-              style={{ height: 30, maxWidth: 120, objectFit: 'contain', display: 'block' }}
+              style={{ 
+                height: 35, 
+                width: 120, 
+                objectFit: 'contain', 
+                display: 'block',
+                borderRadius: 4,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}
               onError={(e) => {
                 console.error('Mobile flip logo failed to load');
                 e.target.style.display = 'none';
