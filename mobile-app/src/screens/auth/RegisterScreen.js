@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
-  ScrollView, StatusBar,
+  ScrollView, StatusBar, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 
 const BRAND = { pri: '#DA9B2A', bg: '#fff', txt: '#1a1a1a', sub: '#888', border: '#f0e6d0' };
+
+const ethioLogo  = require('../../image/Ethio telecom Logo PNG format.png');
+const flipLogo   = require('../../image/Flip Star Final Logo v3.png');
 
 export default function RegisterScreen({ navigation }) {
   const [username, setUsername]   = useState('');
@@ -53,11 +56,14 @@ export default function RegisterScreen({ navigation }) {
       <StatusBar barStyle="dark-content" backgroundColor={BRAND.bg} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* Logo area */}
-        <View style={styles.logoArea}>
-          <View style={styles.logoCircle}>
-            <Ionicons name="star" size={32} color="#fff" />
-          </View>
+        {/* Logos row */}
+        <View style={styles.logosRow}>
+          <Image source={ethioLogo} style={styles.logoImg} resizeMode="contain" />
+          <Image source={flipLogo}  style={styles.logoImg} resizeMode="contain" />
+        </View>
+
+        {/* Title */}
+        <View style={styles.titleArea}>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join Flip Star today</Text>
         </View>
@@ -97,14 +103,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BRAND.bg },
   scroll: { flexGrow: 1 },
 
-  logoArea: { alignItems: 'center', paddingTop: 60, paddingBottom: 28 },
-  logoCircle: {
-    width: 72, height: 72, borderRadius: 36,
-    backgroundColor: BRAND.pri, justifyContent: 'center', alignItems: 'center',
-    marginBottom: 14,
-    shadowColor: BRAND.pri, shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35, shadowRadius: 16, elevation: 10,
+  logosRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 28, paddingTop: 52, paddingBottom: 4,
   },
+  logoImg: { width: 110, height: 60 },
+
+  titleArea: { alignItems: 'center', paddingVertical: 16 },
   title: { fontSize: 26, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
   subtitle: { fontSize: 14, color: BRAND.sub, marginTop: 4 },
 

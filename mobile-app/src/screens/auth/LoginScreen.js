@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
-  StatusBar,
+  StatusBar, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 
 const BRAND = { pri: '#DA9B2A', bg: '#fff', txt: '#1a1a1a', sub: '#888', border: '#f0e6d0' };
+
+const ethioLogo  = require('../../image/Ethio telecom Logo PNG format.png');
+const flipLogo   = require('../../image/Flip Star Final Logo v3.png');
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername]     = useState('');
@@ -28,18 +31,20 @@ export default function LoginScreen({ navigation }) {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle="dark-content" backgroundColor={BRAND.bg} />
 
-      {/* Logo area */}
-      <View style={styles.logoArea}>
-        <View style={styles.logoCircle}>
-          <Ionicons name="star" size={36} color="#fff" />
-        </View>
+      {/* Logos row */}
+      <View style={styles.logosRow}>
+        <Image source={ethioLogo} style={styles.logoImg} resizeMode="contain" />
+        <Image source={flipLogo}  style={styles.logoImg} resizeMode="contain" />
+      </View>
+
+      {/* Title */}
+      <View style={styles.titleArea}>
         <Text style={styles.title}>Flip Star</Text>
         <Text style={styles.subtitle}>Welcome back!</Text>
       </View>
 
       {/* Form */}
       <View style={styles.form}>
-        {/* Username */}
         <View style={styles.inputWrapper}>
           <Ionicons name="person-outline" size={18} color={BRAND.pri} style={styles.inputIcon} />
           <TextInput
@@ -52,7 +57,6 @@ export default function LoginScreen({ navigation }) {
           />
         </View>
 
-        {/* Password */}
         <View style={styles.inputWrapper}>
           <Ionicons name="lock-closed-outline" size={18} color={BRAND.pri} style={styles.inputIcon} />
           <TextInput
@@ -68,19 +72,16 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Login button */}
         <TouchableOpacity style={[styles.btn, loading && { opacity: 0.7 }]} onPress={handleLogin} disabled={loading} activeOpacity={0.85}>
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Login</Text>}
         </TouchableOpacity>
 
-        {/* Divider */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>or</Text>
           <View style={styles.dividerLine} />
         </View>
 
-        {/* Register link */}
         <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.linkRow}>
           <Text style={styles.linkText}>Don't have an account? </Text>
           <Text style={styles.link}>Register</Text>
@@ -92,18 +93,18 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BRAND.bg },
-  logoArea: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 32 },
-  logoCircle: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: BRAND.pri, justifyContent: 'center', alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: BRAND.pri, shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35, shadowRadius: 16, elevation: 10,
+
+  logosRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 28, paddingTop: 56, paddingBottom: 8,
   },
+  logoImg: { width: 110, height: 60 },
+
+  titleArea: { alignItems: 'center', paddingVertical: 20 },
   title: { fontSize: 30, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
   subtitle: { fontSize: 15, color: BRAND.sub, marginTop: 4 },
 
-  form: { flex: 1.2, padding: 28, paddingTop: 8 },
+  form: { flex: 1, padding: 28, paddingTop: 8 },
 
   inputWrapper: {
     flexDirection: 'row', alignItems: 'center',
