@@ -3,33 +3,83 @@ import { Gift, Send, X } from 'lucide-react';
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
 
-const GIFT_AMOUNTS = [10, 25, 50, 100, 200, 500];
+const CATEGORY_ICONS = {
+  flowers: '🌹',
+  hearts: '❤️',
+  gems: '💎',
+  special: '⭐',
+  animals: '🐻',
+  vehicles: '🚗',
+};
+
+const RARITY_COLORS = {
+  common: '#A0A0A0',
+  rare: '#3B82F6',
+  epic: '#8B5CF6',
+  legendary: '#F59E0B',
+};
 
 export default function GiftPage({ username, onClose }) {
   const { colors: T } = useTheme();
-  const [selectedAmount, setSelectedAmount] = useState(50);
-  const [customAmount, setCustomAmount] = useState('');
+  const [gifts, setGifts] = useState([]);
+  const [selectedGift, setSelectedGift] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [loadingGifts, setLoadingGifts] = useState(true);
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
+  const [coinBalance, setCoinBalance] = useState(0);
+
+  useEffect(() => {
+    loadGifts();
+    loadCoinBalance();
+  }, []);
+
+  const loadGifts = async () => {
+    try {
+      const response = await api.request('/gifts/');
+      setGifts(response.results || response);
+    } catch (error) {
+      console.error('Error loading gifts:', error);
+    } finally {
+      setLoadingGifts(false);
+    }
+  };
+
+  const loadCoinBalance = async () => {
+    try {
+      const response = await api.request('/coins/balance/');
+      setCoinBalance(response.coins || 0);
+    } catch (error) {
+      console.error('Error loading coin balance:', error);
+    }
+  };
+
+  const categories = ['all', ...new Set(gifts.map(g => g.category))];
+  
+  const filteredGifts = selectedCategory === 'all' 
+    ? gifts 
+    : gifts.filter(g => g.category === selectedCategory);
 
   const handleSendGift = async () => {
-    if (!username) return;
+    if (!username || !selectedGift) return;
     
-    const amount = customAmount ? parseFloat(customAmount) : selectedAmount;
-    if (!amount || amount <= 0) {
-      alert('Please enter a valid gift amount');
+    const totalCost = selectedGift.coin_value * quantity;
+    if (totalCost > coinBalance) {
+      alert(`Insufficient coins. You need ${totalCost} coins but have ${coinBalance}.`);
       return;
     }
 
     setLoading(true);
     try {
-      await api.request('/gamification/gift/', {
+      await api.request('/gifts/send/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          gift_id: selectedGift.id,
           recipient_username: username,
-          amount: Math.round(amount),
+          quantity: quantity,
           message: message,
         }),
       });
@@ -46,9 +96,19 @@ export default function GiftPage({ username, onClose }) {
     }
   };
 
+  if (loadingGifts) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ background: T?.cardBg || '#fff', borderRadius: 20, padding: 40, textAlign: 'center' }}>
+          <div style={{ fontSize: 24, color: T?.txt || '#000' }}>Loading gifts...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ background: T?.cardBg || '#fff', borderRadius: 20, padding: 24, maxWidth: 400, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+      <div style={{ background: T?.cardBg || '#fff', borderRadius: 20, padding: 24, maxWidth: 500, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -68,6 +128,12 @@ export default function GiftPage({ username, onClose }) {
           </div>
         </div>
 
+        {/* Coin Balance */}
+        <div style={{ marginBottom: 20, padding: '12px 16px', background: T?.bg || '#f5f5f5', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontSize: 14, color: T?.sub || '#666' }}>Your Balance:</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: T?.pri || '#000' }}>{coinBalance} coins</div>
+        </div>
+
         {success ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🎁</div>
@@ -76,50 +142,105 @@ export default function GiftPage({ username, onClose }) {
           </div>
         ) : (
           <>
-            {/* Amount Selection */}
+            {/* Category Filter */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 10 }}>Select Amount</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                {GIFT_AMOUNTS.map((amount) => (
+              <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 10 }}>Category</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {categories.map(cat => (
                   <button
-                    key={amount}
-                    onClick={() => { setSelectedAmount(amount); setCustomAmount(''); }}
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
                     style={{
-                      padding: '12px 8px',
-                      borderRadius: 10,
-                      border: `2px solid ${selectedAmount === amount && !customAmount ? (T?.pri || '#000') : T?.border || '#e0e0e0'}`,
-                      background: selectedAmount === amount && !customAmount ? (T?.pri || '#000') + '10' : T?.bg || '#f5f5f5',
-                      color: T?.txt || '#000',
+                      padding: '8px 16px',
+                      borderRadius: 20,
+                      border: `1px solid ${selectedCategory === cat ? (T?.pri || '#000') : T?.border || '#e0e0e0'}`,
+                      background: selectedCategory === cat ? (T?.pri || '#000') : T?.bg || '#f5f5f5',
+                      color: selectedCategory === cat ? '#fff' : T?.txt || '#000',
+                      fontSize: 13,
                       fontWeight: 600,
                       cursor: 'pointer',
-                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
                     }}
                   >
-                    ${amount}
+                    {cat !== 'all' && CATEGORY_ICONS[cat]} {cat.charAt(0).toUpperCase() + cat.slice(1)}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Custom Amount */}
+            {/* Gift Selection */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 6 }}>Or enter custom amount</div>
-              <input
-                type="number"
-                value={customAmount}
-                onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(0); }}
-                placeholder="Enter amount"
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  border: `1px solid ${T?.border || '#e0e0e0'}`,
-                  background: T?.bg || '#f5f5f5',
-                  color: T?.txt || '#000',
-                  fontSize: 14,
-                }}
-              />
+              <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 10 }}>Select Gift</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, maxHeight: 200, overflowY: 'auto' }}>
+                {filteredGifts.map(gift => (
+                  <button
+                    key={gift.id}
+                    onClick={() => { setSelectedGift(gift); setQuantity(1); }}
+                    style={{
+                      padding: 12,
+                      borderRadius: 12,
+                      border: `2px solid ${selectedGift?.id === gift.id ? (T?.pri || '#000') : T?.border || '#e0e0e0'}`,
+                      background: selectedGift?.id === gift.id ? (T?.pri || '#000') + '10' : T?.bg || '#f5f5f5',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <div style={{ fontSize: 32 }}>{CATEGORY_ICONS[gift.category] || '🎁'}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: T?.txt || '#000', textAlign: 'center' }}>{gift.name}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: T?.pri || '#000' }}>{gift.coin_value} coins</div>
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Quantity */}
+            {selectedGift && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 10 }}>Quantity</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 8,
+                      border: `1px solid ${T?.border || '#e0e0e0'}`,
+                      background: T?.bg || '#f5f5f5',
+                      color: T?.txt || '#000',
+                      fontSize: 18,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    -
+                  </button>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: T?.txt || '#000', minWidth: 40, textAlign: 'center' }}>{quantity}</div>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 8,
+                      border: `1px solid ${T?.border || '#e0e0e0'}`,
+                      background: T?.bg || '#f5f5f5',
+                      color: T?.txt || '#000',
+                      fontSize: 18,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+                <div style={{ fontSize: 14, color: T?.pri || '#000', fontWeight: 700, marginTop: 8 }}>
+                  Total: {selectedGift.coin_value * quantity} coins
+                </div>
+              </div>
+            )}
 
             {/* Message */}
             <div style={{ marginBottom: 20 }}>
@@ -145,7 +266,7 @@ export default function GiftPage({ username, onClose }) {
             {/* Send Button */}
             <button
               onClick={handleSendGift}
-              disabled={loading}
+              disabled={loading || !selectedGift}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -155,8 +276,8 @@ export default function GiftPage({ username, onClose }) {
                 color: '#fff',
                 fontSize: 16,
                 fontWeight: 700,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.5 : 1,
+                cursor: loading || !selectedGift ? 'not-allowed' : 'pointer',
+                opacity: loading || !selectedGift ? 0.5 : 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -166,7 +287,7 @@ export default function GiftPage({ username, onClose }) {
               {loading ? 'Sending...' : (
                 <>
                   <Send size={18} />
-                  Send Gift
+                  Send Gift ({selectedGift ? `${selectedGift.coin_value * quantity} coins` : 'Select a gift'})
                 </>
               )}
             </button>
