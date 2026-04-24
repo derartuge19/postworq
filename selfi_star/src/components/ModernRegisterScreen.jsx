@@ -92,7 +92,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         alignItems: "center",
         gap: 10,
       }}>
-        <img src={ethioLogo} alt="Ethio Telecom" style={{ width: 48, height: 48, objectFit: "contain" }} />
+        <img src={ethioLogo} alt="Ethio Telecom" style={{ width: 4530, height: 1223, objectFit: "contain" }} />
       </div>
       <div style={{
         position: "absolute",
@@ -101,7 +101,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         display: "flex",
         alignItems: "center",
       }}>
-        <img src={flipLogo} alt="FlipStar" style={{ width: 48, height: 48, objectFit: "contain" }} />
+        <img src={flipLogo} alt="FlipStar" style={{ width: 4530, height: 1223, objectFit: "contain" }} />
       </div>
 
       <div style={{
