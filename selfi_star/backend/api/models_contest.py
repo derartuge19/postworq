@@ -277,8 +277,8 @@ class GiftToCreator(models.Model):
     """
     Gift coins to creators (+5 bonus points to recipient)
     """
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gifts_sent')
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gifts_received')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contest_gifts_sent')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contest_gifts_received')
     reel = models.ForeignKey('Reel', on_delete=models.CASCADE, null=True, blank=True)
     
     coins = models.PositiveIntegerField()
