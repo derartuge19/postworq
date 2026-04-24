@@ -21,6 +21,7 @@
       ]
     },
     "plugins": [
+      "./plugins/withSuppressKotlinVersionCompatibility.js",
       "expo-secure-store",
       "expo-av",
       "expo-asset",
