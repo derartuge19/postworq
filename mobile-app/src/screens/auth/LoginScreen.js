@@ -98,8 +98,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingTop: 56, paddingBottom: 8, width: '100%',
   },
-  logoLeft:  { width: 148, height: 40, marginLeft: 0 },
-  logoRight: { width: 148, height: 40, marginRight: 0 },
+  logoLeft:  { width: 148, height: 40, marginLeft: 12 },
+  logoRight: { width: 148, height: 40, marginRight: 4 },
 
   titleArea: { alignItems: 'center', paddingVertical: 32, marginTop: 24 },
   title: { fontSize: 30, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
