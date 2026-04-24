@@ -368,8 +368,10 @@ export default function ReelsScreen({ route, navigation }) {
   useEffect(() => {
     const unsubscribe = nav.addListener('tabPress', (e) => {
       // Refresh reels when tab is pressed while already on screen
-      e.preventDefault();
-      fetchReels(0);
+      const currentRoute = nav.getState()?.routes[nav.getState()?.index];
+      if (currentRoute?.name === 'Reels') {
+        fetchReels(0);
+      }
     });
 
     return unsubscribe;

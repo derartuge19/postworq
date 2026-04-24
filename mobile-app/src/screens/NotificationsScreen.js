@@ -106,8 +106,10 @@ export default function NotificationsScreen({ navigation }) {
   useEffect(() => {
     const unsubscribe = nav.addListener('tabPress', (e) => {
       // Refresh notifications when tab is pressed while already on screen
-      e.preventDefault();
-      fetchNotifications(true);
+      const currentRoute = nav.getState()?.routes[nav.getState()?.index];
+      if (currentRoute?.name === 'Notifications') {
+        fetchNotifications(true);
+      }
     });
 
     return unsubscribe;

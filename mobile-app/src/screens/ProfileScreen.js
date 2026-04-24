@@ -221,8 +221,10 @@ export default function ProfileScreen({ navigation }) {
   useEffect(() => {
     const unsubscribe = nav.addListener('tabPress', (e) => {
       // Refresh profile data when tab is pressed while already on screen
-      e.preventDefault();
-      fetchProfileData();
+      const currentRoute = nav.getState()?.routes[nav.getState()?.index];
+      if (currentRoute?.name === 'Profile') {
+        fetchProfileData();
+      }
     });
 
     return unsubscribe;

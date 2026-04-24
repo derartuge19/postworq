@@ -145,10 +145,12 @@ export default function HomeScreen({ navigation }) {
   // Listen for tab press event to refresh when already on Home screen
   useEffect(() => {
     const unsubscribe = nav.addListener('tabPress', (e) => {
-      // Prevent default navigation behavior since we're already on the screen
-      // This will refresh the content instead
-      e.preventDefault();
-      loadPosts();
+      // Only refresh if we're already on the Home screen
+      // Don't prevent navigation from other tabs
+      const currentRoute = nav.getState()?.routes[nav.getState()?.index];
+      if (currentRoute?.name === 'Home') {
+        loadPosts();
+      }
     });
 
     return unsubscribe;
