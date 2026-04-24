@@ -1172,7 +1172,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift - only show on other people's posts */}
-              {post.user?.username !== authUser?.username && (
+              {post.user?.username !== currentUser?.username && (
                 <button
                   className="hp-btn hp-action"
                   onClick={(e) => { e.stopPropagation(); setShowGiftModal(true); }}
