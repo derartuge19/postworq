@@ -78,7 +78,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
       {/* Logos - Top Left and Right */}
       <div style={{
         position: "absolute",
-        top: 0,
+        top: -50,
         left: 24,
         display: "flex",
         alignItems: "center",
@@ -88,7 +88,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
       </div>
       <div style={{
         position: "absolute",
-        top: 0,
+        top: -50,
         right: 24,
         display: "flex",
         alignItems: "center",
