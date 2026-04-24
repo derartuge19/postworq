@@ -105,7 +105,8 @@ const styles = StyleSheet.create({
 
   logosRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 28, paddingTop: 52, paddingBottom: 4,
+    paddingHorizontal: 16, paddingTop: 52, paddingBottom: 4,
+    width: '100%',
   },
   logoImg: { width: 148, height: 40 },
 
