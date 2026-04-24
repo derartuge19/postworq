@@ -82,6 +82,32 @@ class PublicGiftViewSet(viewsets.ReadOnlyModelViewSet):
             'results': serializer.data,
             'count': queryset.count()
         })
+        
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def send(self, request):
+        """Send a gift to another user by username"""
+        gift_id = request.data.get('gift_id')
+        recipient_username = request.data.get('recipient_username')
+        quantity = request.data.get('quantity', 1)
+        message = request.data.get('message', '')
+        
+        try:
+            recipient = User.objects.get(username=recipient_username)
+        except User.DoesNotExist:
+            return Response({'error': 'Recipient not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+        data = {
+            'gift_id': gift_id,
+            'recipient_id': recipient.id,
+            'quantity': quantity,
+            'message': message,
+        }
+        
+        # Instantiate GiftTransactionViewSet to reuse send_gift logic
+        viewset = GiftTransactionViewSet()
+        viewset.request = request
+        viewset.format_kwarg = self.format_kwarg
+        return viewset.send_gift(request, data)
 
 
 class GiftTransactionViewSet(viewsets.ModelViewSet):

@@ -191,7 +191,13 @@ export default function GiftPage({ username, onClose }) {
                       gap: 8,
                     }}
                   >
-                    <div style={{ fontSize: 32 }}>{CATEGORY_ICONS[gift.category] || '🎁'}</div>
+                    <div style={{ fontSize: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 48, width: 48 }}>
+                      {gift.image_url ? (
+                        <img src={gift.image_url} alt={gift.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      ) : (
+                        CATEGORY_ICONS[gift.category] || '🎁'
+                      )}
+                    </div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: T?.txt || '#000', textAlign: 'center' }}>{gift.name}</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: T?.pri || '#000' }}>{gift.coin_value} coins</div>
                   </button>
