@@ -39,7 +39,7 @@ export default function LoginScreen({ navigation }) {
 
       {/* Title */}
       <View style={styles.titleArea}>
-        <Text style={styles.title}>flipstar</Text>
+        <Text style={styles.title}>FLIPSTAR</Text>
         <Text style={styles.subtitle}>Welcome back!</Text>
       </View>
 

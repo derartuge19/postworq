@@ -65,7 +65,7 @@ export default function RegisterScreen({ navigation }) {
         {/* Title */}
         <View style={styles.titleArea}>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join flipstar today</Text>
+          <Text style={styles.subtitle}>Join FLIPSTAR today</Text>
         </View>
 
         {/* Form */}
