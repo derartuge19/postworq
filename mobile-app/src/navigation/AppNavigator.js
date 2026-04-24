@@ -74,17 +74,15 @@ function CustomTabBar({ state, descriptors, navigation }) {
               canPreventDefault: true,
             });
             
-            if (!isFocused && !event.defaultPrevented) {
+            // Always navigate, even if already focused
+            // This ensures tabs work every time they're tapped
+            if (!event.defaultPrevented) {
               navigation.navigate(route.name);
             }
-            // If already focused, the tabPress event is still emitted
-            // Screens can listen to this event to refresh their content
           } catch (error) {
             console.error('Tab navigation error:', error);
-            // Fallback navigation
-            if (!isFocused) {
-              navigation.navigate(route.name);
-            }
+            // Fallback navigation - always try to navigate
+            navigation.navigate(route.name);
           }
         };
 

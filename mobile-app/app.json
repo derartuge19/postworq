@@ -24,19 +24,7 @@
       "./plugins/withSuppressKotlinVersionCompatibility.js",
       "expo-secure-store",
       "expo-av",
-      "expo-asset",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "kotlinVersion": "1.9.25",
-            "compileSdkVersion": 34,
-            "targetSdkVersion": 34,
-            "buildToolsVersion": "34.0.0",
-            "composeCompilerVersion": "1.5.14"
-          }
-        }
-      ]
+      "expo-asset"
     ],
     "extra": {
       "eas": {
