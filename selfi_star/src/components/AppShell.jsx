@@ -14,6 +14,8 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import config from '../config';
+import ethioLogo from '../assets/ethio-logo.png';
+import flipLogo from '../assets/flip-logo.png';
 
 export function AppShell({
   user,
@@ -178,9 +180,36 @@ export function AppShell({
             zIndex: 100,
           }}
         >
-          <div style={{ padding: '0 16px', marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ height: 32, maxWidth: 120, objectFit: 'contain' }} />
-            <img src="/flip-logo.png" alt="FlipStar" style={{ height: 32, maxWidth: 120, objectFit: 'contain' }} />
+          <div style={{ 
+            padding: '0 16px', 
+            marginBottom: 32, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            borderRadius: 8,
+            minHeight: 40
+          }}>
+            <img 
+              src={ethioLogo} 
+              alt="Ethio Telecom" 
+              style={{ height: 32, maxWidth: 120, objectFit: 'contain', display: 'block' }}
+              onError={(e) => {
+                console.error('Ethio logo failed to load');
+                e.target.style.display = 'none';
+              }}
+              onLoad={() => console.log('Ethio logo loaded successfully')}
+            />
+            <img 
+              src={flipLogo} 
+              alt="FlipStar" 
+              style={{ height: 32, maxWidth: 120, objectFit: 'contain', display: 'block' }}
+              onError={(e) => {
+                console.error('Flip logo failed to load');
+                e.target.style.display = 'none';
+              }}
+              onLoad={() => console.log('Flip logo loaded successfully')}
+            />
           </div>
 
           <nav
@@ -357,8 +386,26 @@ export function AppShell({
             zIndex: 999,
             boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
           }}>
-            <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ height: 30, maxWidth: 120, objectFit: 'contain' }} />
-            <img src="/flip-logo.png" alt="FlipStar" style={{ height: 30, maxWidth: 120, objectFit: 'contain' }} />
+            <img 
+              src={ethioLogo} 
+              alt="Ethio Telecom" 
+              style={{ height: 30, maxWidth: 120, objectFit: 'contain', display: 'block' }}
+              onError={(e) => {
+                console.error('Mobile ethio logo failed to load');
+                e.target.style.display = 'none';
+              }}
+              onLoad={() => console.log('Mobile ethio logo loaded successfully')}
+            />
+            <img 
+              src={flipLogo} 
+              alt="FlipStar" 
+              style={{ height: 30, maxWidth: 120, objectFit: 'contain', display: 'block' }}
+              onError={(e) => {
+                console.error('Mobile flip logo failed to load');
+                e.target.style.display = 'none';
+              }}
+              onLoad={() => console.log('Mobile flip logo loaded successfully')}
+            />
           </div>
         )}
         {children}
