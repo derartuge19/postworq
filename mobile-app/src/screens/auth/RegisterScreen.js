@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   logoLeft:  { width: 148, height: 40, marginLeft: 0 },
   logoRight: { width: 148, height: 40, marginRight: 0 },
 
-  titleArea: { alignItems: 'center', paddingVertical: 28 },
+  titleArea: { alignItems: 'center', paddingVertical: 28, marginTop: 24 },
   title: { fontSize: 26, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
   subtitle: { fontSize: 14, color: BRAND.sub, marginTop: 4 },
 
