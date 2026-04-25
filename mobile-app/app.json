@@ -28,8 +28,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "1e8f59d0-a751-4401-b564-1d82fe146723"
       }
-    }
+    },
+    "owner": "eden111310"
   }
 }
