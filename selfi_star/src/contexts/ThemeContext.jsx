@@ -254,8 +254,9 @@ export const ThemeProvider = ({ children }) => {
 
   const applyFromSettings = useCallback((settings) => {
     if (!settings) return;
-    const p = settings.theme_preset || preset;
-    const dm = settings.dark_mode_default ?? darkMode;
+    const p = settings.theme_preset || 'flipstar';
+    // Brand standard: always dark mode — backend setting cannot override this
+    const dm = true;
     const cp = settings.primary_color_override || null;
     const ge = settings.glass_effect_enabled ?? glassEnabled;
     setPreset(p);
@@ -263,7 +264,7 @@ export const ThemeProvider = ({ children }) => {
     setCustomPrimary(cp);
     setGlassEnabled(ge);
     persist(p, dm, cp, ge);
-  }, [preset, darkMode, glassEnabled]);
+  }, [glassEnabled]);
 
   return (
     <ThemeContext.Provider value={{
