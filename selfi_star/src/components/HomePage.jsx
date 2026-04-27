@@ -147,8 +147,8 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: 700, fontSize: isReply ? 12 : 13, color: T?.txt || '#000' }}>{comment.user?.username}</span>
-            <span style={{ fontSize: isReply ? 12 : 13, color: T?.txt || '#000', wordBreak: 'break-word', lineHeight: 1.4 }}>
+            <span style={{ fontWeight: 700, fontSize: isReply ? 12 : 13, color: T?.priFallback || '#E2B355' }}>{comment.user?.username}</span>
+            <span style={{ fontSize: isReply ? 12 : 13, color: '#F5E6C8', wordBreak: 'break-word', lineHeight: 1.4 }}>
               {comment.text}
             </span>
           </div>
@@ -370,11 +370,11 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: T?.cardBg || '#fff', borderRadius: '20px 20px 0 0', maxHeight: '75vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ width: '100%', maxWidth: 560, margin: '0 auto', background: T?.cardBg || '#1A1A1A', borderRadius: '20px 20px 0 0', maxHeight: '75vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', borderTop: '1.5px solid rgba(226,179,85,0.3)' }}
       >
         {/* Handle bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: `1px solid ${T?.border || '#e0e0e0'}` }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: T?.txt || '#000' }}>Comments</span>
+          <span style={{ fontSize: 15, fontWeight: 700, background: 'linear-gradient(to bottom, #D4AF37, #F9E08B)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Comments</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T?.sub || '#666' }}><X size={20} /></button>
         </div>
         {/* Comments list */}
@@ -411,8 +411,8 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
             gap: 8, 
             padding: '10px 16px', 
             paddingBottom: window.innerWidth <= 1024 ? 12 : 'max(10px, env(safe-area-inset-bottom))',
-            borderTop: `1px solid ${T?.border || '#e0e0e0'}`,
-            background: T?.cardBg || '#fff'
+            borderTop: `1px solid ${T?.border || '#262626'}`,
+            background: T?.cardBg || '#1A1A1A'
           }}
         >
           {replyingTo && (
@@ -435,7 +435,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
               onChange={e => setText(e.target.value)}
               placeholder={replyingTo ? `Reply to @${replyingTo.user?.username}...` : (api.hasToken() ? 'Add a comment…' : 'Log in to comment')}
               disabled={!api.hasToken()}
-              style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1px solid ${T?.border || '#e0e0e0'}`, background: T?.cardBg || '#fff', color: T?.txt || '#000', fontSize: 16, outline: 'none' }}
+              style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1.5px solid rgba(226,179,85,0.35)`, background: '#111', color: '#F5E6C8', fontSize: 16, outline: 'none' }}
             />
             <button
               type="submit"
@@ -1148,7 +1148,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
-                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.priFallback || '#E2B355', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
               </button>
               {/* Comment */}
               <button
@@ -1192,7 +1192,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                     '--hp-hover': (T?.border || '#e0e0e0') + '60',
                   }}
                 >
-                  <Gift size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
+                  <Gift size={baseFontSize} color={T?.priFallback || '#E2B355'} style={{ transition: 'transform 0.15s' }} />
                 </button>
               )}
             </div>
@@ -1220,7 +1220,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             <div
               onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
               style={{
-                fontSize: 'calc(var(--font-size-base) * 0.75)', color: T?.txt || '#000', marginTop: 1, lineHeight: 1.3,
+                fontSize: 'calc(var(--font-size-base) * 0.75)', color: '#F5E6C8', marginTop: 1, lineHeight: 1.3,
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical',
                 WebkitLineClamp: captionExpanded ? 'unset' : 2,
@@ -1229,7 +1229,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 cursor: 'pointer',
               }}
             >
-              <span style={{ fontWeight: 700 }}>{post.user?.username} </span>
+              <span style={{ fontWeight: 700, color: T?.priFallback || '#E2B355' }}>{post.user?.username} </span>
               {post.caption}
               {post.caption.length > 100 && (
                 <span
@@ -1251,13 +1251,13 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   key={c.id}
                   onClick={(e) => { e.stopPropagation(); setShowComments(true); }}
                   style={{
-                    fontSize: 12, color: T?.txt || '#000', lineHeight: 1.3,
+                    fontSize: 12, color: '#F5E6C8', lineHeight: 1.3,
                     display: '-webkit-box', WebkitBoxOrient: 'vertical',
                     WebkitLineClamp: 1, overflow: 'hidden',
                     wordBreak: 'break-word', cursor: 'pointer',
                   }}
                 >
-                  <span style={{ fontWeight: 700 }}>{c.user?.username} </span>
+                  <span style={{ fontWeight: 700, color: T?.priFallback || '#E2B355' }}>{c.user?.username} </span>
                   {c.text}
                 </div>
               ))}
@@ -1269,7 +1269,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             onClick={handleCommentClick}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              padding: 0, fontSize: 12, color: T?.sub || '#666',
+              padding: 0, fontSize: 12, color: T?.priFallback || '#E2B355',
               display: 'block', marginTop: post.caption || inlineComments.length ? 2 : 0,
             }}
           >
@@ -1282,7 +1282,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
               fontSize: 13, marginTop: 4,
             }}>
               {post.hashtags_list.map(tag => (
-                <span key={tag} style={{ color: T?.pri || '#DA9B2A', fontWeight: 600, marginRight: 4 }}>
+                <span key={tag} style={{ color: T?.priFallback || '#E2B355', fontWeight: 700, marginRight: 4 }}>
                   #{tag}
                 </span>
               ))}
@@ -1683,7 +1683,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 background: isActive
                   ? (T?.priGradient || `linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)`)
                   : (T?.cardBg || '#1A1A1A'),
-                color: isActive ? '#000' : (T?.txt || '#fff'),
+                color: isActive ? '#000' : '#C2994B',
                 fontWeight: isActive ? 700 : 600,
                 fontSize: 13,
                 whiteSpace: 'nowrap',
