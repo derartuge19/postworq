@@ -1167,17 +1167,12 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 ) : (
                   <Heart
                     size={baseFontSize}
-<<<<<<< HEAD
-                    fill={liked ? '#E2B355' : 'none'}
-                    color={liked ? '#E2B355' : T?.txt || '#000'}
-=======
-                    fill={liked ? '#F9E08B' : 'none'}
-                    color={liked ? '#F9E08B' : '#F9E08B'}
->>>>>>> f5d4a56 (fix: update HomePage icons to use #F9E08B with fill states on touch)
+                    fill={liked ? '#FFD700' : 'none'}
+                    color={liked ? '#FFD700' : '#FFD700'}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
-                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#FFD700', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
               </button>
               {/* Comment */}
               <button
@@ -1190,8 +1185,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <MessageCircle size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
-                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
+                <MessageCircle size={baseFontSize} color="#FFD700" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#FFD700', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
               </button>
               {/* Share */}
               <button
@@ -1205,8 +1200,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
-                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
+                <Share2 size={baseFontSize} color="#FFD700" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#FFD700', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift - only show on other people's posts */}
               {post.user?.username !== currentUser?.username && (
@@ -1221,7 +1216,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                     '--hp-hover': (T?.border || '#e0e0e0') + '60',
                   }}
                 >
-                  <Gift size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
+                  <Gift size={baseFontSize} color="#FFD700" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
                 </button>
               )}
             </div>
@@ -1238,8 +1233,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             >
               <Bookmark
                 size={baseFontSize}
-                fill={saved ? '#F9E08B' : 'none'}
-                color="#F9E08B"
+                fill={saved ? '#FFD700' : 'none'}
+                color="#FFD700"
               />
             </button>
           </div>
@@ -1883,11 +1878,11 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
 // Add CSS for icon hover and active states
 const iconStyles = `
   .hp-action:hover svg {
-    fill: #F9E08B !important;
+    fill: #FFD700 !important;
     transition: fill 0.15s ease;
   }
   .hp-action:active svg {
-    fill: #F9E08B !important;
+    fill: #FFD700 !important;
     transform: scale(0.9);
     transition: all 0.1s ease;
   }
