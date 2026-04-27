@@ -1360,7 +1360,7 @@ export const TikTokLayout = memo(function TikTokLayout({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          background: '#fff',
+          background: T.bg || '#0D0D0D',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           position: 'relative',
@@ -1382,7 +1382,7 @@ export const TikTokLayout = memo(function TikTokLayout({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(180deg, #fff 0%, transparent 100%)',
+            background: 'linear-gradient(180deg, rgba(226,179,85,0.15) 0%, transparent 100%)',
             zIndex: 1000,
           }}>
             <div style={{
@@ -1513,7 +1513,7 @@ export const TikTokLayout = memo(function TikTokLayout({
             ) : videos.length === 0 ? (
               <div
                 style={{
-                  background: '#fff',
+                  background: T.bg || '#0D0D0D',
                   borderRadius: 16,
                   padding: 60,
                   textAlign: 'center',
@@ -1567,7 +1567,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                     setLongPressMenu(video.id);
                   }}
                   style={{
-                    background: isMobile ? '#fff' : 'transparent',
+                    background: isMobile ? (T.bg || '#0D0D0D') : 'transparent',
                     borderRadius: isMobile ? 0 : 12,
                     overflow: 'hidden',
                     aspectRatio: isMobile ? undefined : '9/16',
@@ -2694,7 +2694,7 @@ export const TikTokLayout = memo(function TikTokLayout({
         >
           <div
             style={{
-              background: '#fff',
+              background: T.bg || '#0D0D0D',
               borderRadius: 16,
               padding: '24px',
               maxWidth: 400,
@@ -2750,7 +2750,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                     marginBottom: 8,
                     border: `1px solid ${T.border}`,
                     borderRadius: 8,
-                    background: '#fff',
+                    background: T.cardBg || '#1A1A1A',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -2759,8 +2759,8 @@ export const TikTokLayout = memo(function TikTokLayout({
                     color: T.txt,
                     transition: 'background 0.2s',
                   }}
-                  onMouseEnter={(e) => (e.target.style.background = '#f5f5f5')}
-                  onMouseLeave={(e) => (e.target.style.background = '#fff')}
+                  onMouseEnter={(e) => (e.target.style.background = 'rgba(226,179,85,0.12)')}
+                  onMouseLeave={(e) => (e.target.style.background = T.cardBg || '#1A1A1A')}
                 >
                   <span style={{ fontSize: 20 }}>{category.icon}</span>
                   <span style={{ fontWeight: 500 }}>{category.label}</span>
