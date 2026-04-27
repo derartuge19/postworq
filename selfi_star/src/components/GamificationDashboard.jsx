@@ -3,7 +3,7 @@ import { Gift, Coins, Flame, Calendar, RotateCw, Sparkles, CheckCircle, X, Refre
 import api from '../../api';
 
 // Gamification Dashboard Component
-export function GamificationDashboard({ userId, theme }) {
+export function GamificationDashboard({ userId, theme, onShowWallet }) {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -204,6 +204,7 @@ export function GamificationDashboard({ userId, theme }) {
           onClose={() => setShowGiftModal(false)}
           onSuccess={loadStatus}
           coins={status.coins.balance}
+          onShowWallet={onShowWallet}
         />
       )}
     </div>
@@ -552,7 +553,7 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
   );
 }
 
-function GiftModal({ theme, onClose, onSuccess, coins }) {
+function GiftModal({ theme, onClose, onSuccess, coins, onShowWallet }) {
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState(10);
   const [message, setMessage] = useState('');

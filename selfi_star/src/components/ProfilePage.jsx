@@ -445,7 +445,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           <div style={{ position: "sticky", top: 0, zIndex: 10 }}>
 
             {/* 1. Gamification bar — coin / streak / spin / gifts */}
-            {isOwnProfile && <GamificationBar userId={userId || user?.id} theme={T} />}
+            {isOwnProfile && <GamificationBar userId={userId || user?.id} theme={T} onShowWallet={onShowWallet} />}
 
             {/* 2. Navigation row — back ← username · posts ⚙️ */}
             <div style={{

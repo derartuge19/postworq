@@ -295,7 +295,7 @@ const SpinModal = memo(function SpinModal({ spin, onSpin, onClose }) {
 });
 
 /* ─── GIFT MODAL ─────────────────────────────── */
-const GiftModal = memo(function GiftModal({ coins, onClose, onRefresh }) {
+const GiftModal = memo(function GiftModal({ coins, onClose, onRefresh, onShowWallet }) {
   const [recipientId, setRecipientId] = useState('');
   const [amount, setAmount] = useState(10);
   const [message, setMessage] = useState('');
@@ -458,7 +458,7 @@ const IconCard = memo(function IconCard({ emoji, icon, value, label, color, badg
 // payload is younger than CACHE_TTL (shows instantly, refreshes in bg).
 const CACHE_TTL_MS = 60 * 1000; // 1 min
 
-export function GamificationBar({ userId, theme }) {
+export function GamificationBar({ userId, theme, onShowWallet }) {
   const [status, setStatus] = useState(() => {
     // Seed synchronously from cache so the bar paints with real data on
     // the very first render — no skeleton flash when returning to Profile.
@@ -580,7 +580,7 @@ export function GamificationBar({ userId, theme }) {
       {/* Modals — spin modal intentionally removed. */}
       {modal === 'coins'  && <CoinsModal  coins={coins}  onClose={()=>setModal(null)}/>}
       {modal === 'streak' && <StreakModal streak={login_streak} onClaim={handleLoginBonus} onClose={()=>setModal(null)}/>}
-      {modal === 'gift'   && <GiftModal  coins={coins} onClose={()=>setModal(null)} onRefresh={load}/>}
+      {modal === 'gift'   && <GiftModal  coins={coins} onClose={()=>setModal(null)} onRefresh={load} onShowWallet={onShowWallet}/>}
     </>
   );
 }
