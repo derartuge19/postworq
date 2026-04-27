@@ -822,15 +822,13 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
       {/* ── BOTTOM NAV BAR ──────────────────────────────────────────────── */}
       <nav style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
-        height: 64,
-        background: T.dark === '#0C1A12' ? 'rgba(255,255,255,0.96)' : 'rgba(10,10,10,0.96)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderTop: `1px solid ${T.pri}20`,
+        height: 60,
+        background: T.bg,
+        borderTop: `1px solid ${T.border}`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-around',
         zIndex: 5000,
-        paddingBottom: 4,
-        boxShadow: `0 -4px 24px ${T.pri}20`,
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        boxShadow: '0 -2px 16px rgba(0,0,0,0.07)',
       }}>
         <style>{`
           .ep-nav-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); border: none; background: transparent; cursor: pointer; }
@@ -839,18 +837,78 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
         {bottomNavItems.map(({ id, label, Icon, action, isCreate, badge }) => {
           if (isCreate) return (
             <button key={id} className="ep-nav-btn"
-              style={{ background: T.priGradient || T.pri, border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 20px ${T.pri}40`, cursor: 'pointer', flexShrink: 0, marginBottom: 6 }}>
-              <Icon size={24} strokeWidth={2.2} color="#F9E08B" />
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                borderRadius: '50%', 
+                width: 36, 
+                height: 36, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                cursor: 'pointer', 
+                flexShrink: 0,
+                position: 'relative',
+                WebkitTapHighlightColor: 'transparent !important',
+                outline: 'none',
+              }}>
+              <div style={{
+                position: 'relative',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 36,
+                height: 36,
+                background: '#F9E08B',
+                borderRadius: '50%',
+                flexShrink: 0,
+              }}>
+                <Icon
+                  size={20}
+                  strokeWidth={2.5}
+                  color={'#fff'}
+                  fill={'#fff'}
+                />
+              </div>
             </button>
           );
           return (
             <button key={id} className="ep-nav-btn"
               onClick={() => action?.()}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '4px 10px', minWidth: 50, position: 'relative', cursor: 'pointer' }}>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10 }}>
-                <Icon size={22} strokeWidth={1.8} color={'#F9E08B'} />
+              style={{ 
+                flex: 1,
+                height: '100%',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+                padding: '4px 8px',
+                position: 'relative',
+                WebkitTapHighlightColor: 'transparent !important',
+                outline: 'none',
+              }}>
+              <div style={{
+                position: 'relative',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon
+                  size={24}
+                  strokeWidth={1.8}
+                  color={'#F9E08B'}
+                  fill={'none'}
+                />
                 {badge > 0 && (
-                  <div style={{ position: 'absolute', top: 2, right: 2, minWidth: 14, height: 14, borderRadius: 7, background: '#EF4444', color: '#fff', fontSize: 8, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px', boxSizing: 'border-box', border: '1.5px solid #fff', lineHeight: 1 }}>
+                  <div style={{
+                    position: 'absolute', top: -4, right: -6,
+                    minWidth: 15, height: 15, borderRadius: 8,
+                    background: '#EF4444', color: '#fff',
+                    fontSize: 8, fontWeight: 800,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '0 3px', boxSizing: 'border-box',
+                    border: '1.5px solid #fff', lineHeight: 1,
+                  }}>
                     {badge > 99 ? '99+' : badge}
                   </div>
                 )}
