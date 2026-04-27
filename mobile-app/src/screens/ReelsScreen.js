@@ -25,6 +25,7 @@ import { useIsFocused, useFocusEffect, useNavigation } from '@react-navigation/n
 import api from '../api';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -354,6 +355,7 @@ export default function ReelsScreen({ route, navigation }) {
   const [customGift, setCustomGift] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const { user } = useAuth();
+  const { colors: T, isDarkMode } = useTheme();
 
   useEffect(() => { fetchReels(0); }, []);
 
@@ -505,8 +507,8 @@ export default function ReelsScreen({ route, navigation }) {
           activeOpacity={1} 
           onPress={() => setLongPressItem(null)}
         >
-          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
-            <View style={styles.sheetHandle} />
+          <View style={[styles.bottomSheet, { backgroundColor: T.card }]} onStartShouldSetResponder={() => true}>
+            <View style={[styles.sheetHandle, { backgroundColor: T.border }]} />
             
             {/* Grid of icons */}
             <View style={styles.iconGrid}>
@@ -514,47 +516,57 @@ export default function ReelsScreen({ route, navigation }) {
                 handleShare(longPressItem);
                 setLongPressItem(null);
               }}>
-                <Ionicons name="link-outline" size={24} color={BRAND_GOLD} />
-                <Text style={styles.iconGridText}>Copy Link</Text>
+                <View style={[styles.iconCircleGrid, { backgroundColor: BRAND_GOLD + '15' }]}>
+                  <Ionicons name="link-outline" size={24} color={BRAND_GOLD} />
+                </View>
+                <Text style={[styles.iconGridText, { color: T.text }]}>Copy Link</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.iconGridItem} onPress={() => {
                 // Save functionality
                 setLongPressItem(null);
               }}>
-                <Ionicons name="bookmark-outline" size={24} color="#F59E0B" />
-                <Text style={styles.iconGridText}>Save</Text>
+                <View style={[styles.iconCircleGrid, { backgroundColor: '#F59E0B15' }]}>
+                  <Ionicons name="bookmark-outline" size={24} color="#F59E0B" />
+                </View>
+                <Text style={[styles.iconGridText, { color: T.text }]}>Save</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.iconGridItem} onPress={() => {
                 // Download functionality
                 setLongPressItem(null);
               }}>
-                <Ionicons name="download-outline" size={24} color="#10B981" />
-                <Text style={styles.iconGridText}>Download</Text>
+                <View style={[styles.iconCircleGrid, { backgroundColor: '#10B98115' }]}>
+                  <Ionicons name="download-outline" size={24} color="#10B981" />
+                </View>
+                <Text style={[styles.iconGridText, { color: T.text }]}>Download</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.iconGridItem} onPress={() => {
                 handleShare(longPressItem);
                 setLongPressItem(null);
               }}>
-                <Ionicons name="share-social-outline" size={24} color="#8B5CF6" />
-                <Text style={styles.iconGridText}>Share</Text>
+                <View style={[styles.iconCircleGrid, { backgroundColor: '#8B5CF615' }]}>
+                  <Ionicons name="share-social-outline" size={24} color="#8B5CF6" />
+                </View>
+                <Text style={[styles.iconGridText, { color: T.text }]}>Share</Text>
               </TouchableOpacity>
             </View>
 
             {/* List options */}
-            <TouchableOpacity style={styles.sheetItem} onPress={() => {
+            <TouchableOpacity style={[styles.sheetItem, { borderBottomColor: T.border }]} onPress={() => {
               Alert.alert('Not Interested', 'We will show you fewer posts like this.');
               setLongPressItem(null);
             }}>
-              <Text style={styles.sheetItemText}>Not Interested</Text>
+              <Ionicons name="eye-off-outline" size={20} color={T.sub} style={{ marginRight: 12 }} />
+              <Text style={[styles.sheetItemText, { color: T.text }]}>Not Interested</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.sheetItem} onPress={() => {
+            <TouchableOpacity style={[styles.sheetItem, { borderBottomColor: T.border }]} onPress={() => {
               Alert.alert('Report', 'Post has been reported for review.');
               setLongPressItem(null);
             }}>
+              <Ionicons name="flag-outline" size={20} color="#FF3B30" style={{ marginRight: 12 }} />
               <Text style={[styles.sheetItemText, { color: '#FF3B30' }]}>Report</Text>
             </TouchableOpacity>
 
@@ -562,7 +574,7 @@ export default function ReelsScreen({ route, navigation }) {
               style={[styles.sheetItem, { borderBottomWidth: 0 }]} 
               onPress={() => setLongPressItem(null)}
             >
-              <Text style={[styles.sheetItemText, { fontWeight: '700' }]}>Cancel</Text>
+              <Text style={[styles.sheetItemText, { fontWeight: '700', color: T.text, textAlign: 'center', width: '100%' }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -696,6 +708,7 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   bottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
   sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15, marginTop: 8 },
+  iconCircleGrid: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   iconGrid: { flexDirection: 'row', justifyContent: 'space-around', padding: '8px 16px 16px', gap: 8 },
   iconGridItem: { alignItems: 'center', gap: 4 },
   iconGridText: { fontSize: 11, color: '#000', marginTop: 4, fontWeight: '500' },

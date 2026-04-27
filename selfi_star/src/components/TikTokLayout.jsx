@@ -1668,8 +1668,9 @@ export const TikTokLayout = memo(function TikTokLayout({
                                 position: 'absolute',
                                 top: 40,
                                 right: 0,
-                                background: '#fff',
+                                background: T.cardBg,
                                 borderRadius: 12,
+                                border: `1px solid ${T.border}`,
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
                                 minWidth: 180,
                                 zIndex: 999,
@@ -1726,9 +1727,10 @@ export const TikTokLayout = memo(function TikTokLayout({
                                   alignItems: 'center',
                                   gap: 12,
                                   color: '#EF4444',
+                                  fontWeight: 600,
                                 }}
                               >
-                                <AlertTriangle size={18} /> Report
+                                <AlertTriangle size={18} color="#EF4444" /> Report
                               </button>
                             </div>
                           </>
@@ -1759,7 +1761,7 @@ export const TikTokLayout = memo(function TikTokLayout({
                         style={{
                           width: '100%',
                           maxWidth: 480,
-                          background: '#fff',
+                          background: T.cardBg,
                           borderRadius: '20px 20px 0 0',
                           padding: '8px 0 40px',
                           paddingBottom: 'max(40px, env(safe-area-inset-bottom, 40px))',
@@ -2173,8 +2175,9 @@ export const TikTokLayout = memo(function TikTokLayout({
                             position: 'absolute',
                             top: 50,
                             right: 0,
-                            background: '#fff',
+                            background: T.cardBg,
                             borderRadius: 8,
+                            border: `1px solid ${T.border}`,
                             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                             minWidth: 200,
                             zIndex: 1000,
