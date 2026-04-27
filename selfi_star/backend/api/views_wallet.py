@@ -9,6 +9,8 @@ Endpoints:
 - GET    /api/wallet/withdrawals/           User's withdrawal request history
 - POST   /api/wallet/withdrawals/<id>/cancel/   Cancel pending withdrawal
 - GET    /api/wallet/config/                Public-safe wallet config (rates, thresholds)
+- POST   /api/wallet/telebirr/initiate/     Initiate Telebirr payment for coin purchase
+- POST   /api/wallet/telebirr-callback/     Telebirr payment callback webhook
 """
 from decimal import Decimal
 
@@ -22,6 +24,7 @@ from rest_framework.response import Response
 
 from .models_contest import UserCoinBalance, CoinTransaction, CoinPackage
 from .models_wallet import WalletConfig, WithdrawalRequest
+from .telebirr_service import telebirr_service
 
 
 # ---------------------------------------------------------------------------
@@ -687,3 +690,149 @@ def admin_adjust_balance(request):
             'purchased': balance.purchased_balance,
         },
     })
+
+
+# ---------------------------------------------------------------------------
+# Telebirr Payment Integration
+# ---------------------------------------------------------------------------
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def telebirr_initiate_payment(request):
+    """
+    Initiate a Telebirr payment for coin purchase.
+    Body: { package_id, phone_number }
+    """
+    package_id = request.data.get('package_id')
+    phone_number = request.data.get('phone_number')
+    
+    if not package_id:
+        return Response({'error': 'package_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not phone_number:
+        return Response({'error': 'phone_number is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        package = CoinPackage.objects.get(id=package_id, is_active=True)
+    except CoinPackage.DoesNotExist:
+        return Response({'error': 'Package not found or inactive'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Calculate total amount (package price + potential fee)
+    config = WalletConfig.get_config()
+    fee_percent = config.withdrawal_fee_percent or Decimal('0.0')
+    fee_amount = float(package.price_etb) * float(fee_percent) / 100
+    total_amount = float(package.price_etb) + fee_amount
+    
+    # Initiate payment with Telebirr
+    result = telebirr_service.initiate_payment(
+        amount=total_amount,
+        phone_number=phone_number,
+        user_id=request.user.id,
+        package_id=package_id
+    )
+    
+    if result.get('success'):
+        # Create a pending transaction record
+        balance = _get_or_create_balance(request.user)
+        transaction = CoinTransaction.objects.create(
+            user=request.user,
+            transaction_type='purchase',
+            coins=0,  # Will be updated after successful payment
+            payment_method='telebirr',
+            payment_reference=result.get('transaction_id'),
+            package=package,
+            description=f'Pending Telebirr payment for {package.name}',
+            is_successful=False
+        )
+        
+        return Response({
+            'success': True,
+            'payment_url': result.get('payment_url'),
+            'transaction_id': result.get('transaction_id'),
+            'out_trade_no': result.get('out_trade_no'),
+            'amount': total_amount,
+            'package': {
+                'id': package.id,
+                'name': package.name,
+                'coin_amount': package.coin_amount,
+                'bonus_coins': package.bonus_coins,
+                'total_coins': package.get_total_coins(),
+            },
+            'message': 'Payment initiated. Redirect to payment_url to complete.'
+        })
+    else:
+        return Response({
+            'error': result.get('error', 'Payment initiation failed'),
+            'details': result
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Telebirr calls this without authentication
+def telebirr_callback(request):
+    """
+    Handle Telebirr payment callback (webhook).
+    This endpoint is called by Telebirr after payment completion.
+    """
+    callback_data = request.data
+    
+    # Process the callback
+    result = telebirr_service.process_callback(callback_data)
+    
+    if not result.get('success'):
+        return Response({'error': result.get('error')}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Extract transaction info
+    out_trade_no = result.get('transaction_id')
+    telebirr_transaction_id = result.get('telebirr_transaction_id')
+    amount = result.get('amount')
+    is_paid = result.get('success')
+    
+    # Find the pending transaction
+    try:
+        transaction = CoinTransaction.objects.get(
+            payment_reference=out_trade_no,
+            payment_method='telebirr',
+            is_successful=False
+        )
+    except CoinTransaction.DoesNotExist:
+        return Response({'error': 'Transaction not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if is_paid:
+        # Payment successful - credit the user's account
+        package = transaction.package
+        total_coins = package.get_total_coins() if package else 0
+        
+        balance = _get_or_create_balance(transaction.user)
+        
+        # Add coins to purchased balance
+        balance.add_purchased(
+            amount=total_coins,
+            transaction_type='purchase',
+            payment_method='telebirr',
+            payment_reference=telebirr_transaction_id,
+            package=package,
+            description=f'Coin purchase via Telebirr: {package.name if package else "Unknown"}'
+        )
+        
+        # Update transaction record
+        transaction.coins = total_coins
+        transaction.is_successful = True
+        transaction.payment_reference = telebirr_transaction_id
+        transaction.description = f'Successful Telebirr payment for {package.name if package else "Unknown"}'
+        transaction.save()
+        
+        return Response({
+            'success': True,
+            'message': 'Payment processed successfully',
+            'coins_added': total_coins
+        })
+    else:
+        # Payment failed - update transaction record
+        transaction.description = f'Failed Telebirr payment: {result.get("status")}'
+        transaction.save()
+        
+        return Response({
+            'success': False,
+            'message': 'Payment failed or cancelled'
+        }, status=status.HTTP_400_BAD_REQUEST)

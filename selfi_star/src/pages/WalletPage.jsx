@@ -667,6 +667,41 @@ function WithdrawModal({ theme: T, balance, config, onClose, onSuccess }) {
 
 function TopUpModal({ theme: T, packages, onClose }) {
   const [selected, setSelected] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handlePurchase = async () => {
+    if (!selected || !phoneNumber) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${window.location.origin}/api/wallet/telebirr/initiate/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          package_id: selected.id,
+          phone_number: phoneNumber,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.payment_url) {
+        // Redirect to Telebirr payment page
+        window.open(data.payment_url, '_blank');
+        onClose();
+      } else {
+        alert(data.error || 'Payment initiation failed');
+      }
+    } catch (error) {
+      console.error('Telebirr payment error:', error);
+      alert('Payment initiation failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Modal onClose={onClose} theme={T} title="Buy Coins with Telebirr">
@@ -713,17 +748,24 @@ function TopUpModal({ theme: T, packages, onClose }) {
         </div>
       )}
 
-      <div style={{ fontSize: 12, color: T.sub, marginBottom: 12, textAlign: 'center' }}>
-        💳 Telebirr payment integration coming soon.
-        For now, contact support to top up.
+      {/* Phone Number Input */}
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ ...modalLabel(T), marginBottom: 6 }}>Phone Number (for Telebirr)</label>
+        <input
+          type="tel"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          placeholder="+251 9xx xxx xxx"
+          style={modalInput(T)}
+        />
       </div>
 
       <button
-        onClick={onClose}
-        disabled={!selected}
-        style={{ ...btnPrimary(T), width: '100%' }}
+        onClick={handlePurchase}
+        disabled={!selected || !phoneNumber || loading}
+        style={{ ...btnPrimary(T), width: '100%', opacity: (!selected || !phoneNumber || loading) ? 0.5 : 1 }}
       >
-        {selected ? `Pay ${Number(selected.price_etb).toFixed(0)} ETB via Telebirr` : 'Select a package'}
+        {loading ? 'Processing...' : selected ? `Pay ${Number(selected.price_etb).toFixed(0)} ETB via Telebirr` : 'Select a package'}
       </button>
     </Modal>
   );

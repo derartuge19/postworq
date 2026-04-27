@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from "react";
-import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2 } from "lucide-react";
+import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2, Wallet } from "lucide-react";
 import { GamificationBar } from "./GamificationBar";
 import api from "../api";
 import config from "../config";
@@ -55,7 +55,7 @@ function writeFollowCache(userId, data) {
   } catch {}
 }
 
-export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings }) {
+export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings, onShowWallet }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const isOwnProfile = !userId || userId === user?.id;
@@ -474,15 +474,27 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 </div>
               </div>
               {isOwnProfile && (
-                <button
-                  onClick={onShowSettings}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    padding: 8, display: 'flex', alignItems: 'center', color: T.txt,
-                  }}
-                >
-                  <Settings size={24} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    onClick={onShowWallet}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      padding: 8, display: 'flex', alignItems: 'center', color: T.txt,
+                    }}
+                    title="Wallet"
+                  >
+                    <Wallet size={24} />
+                  </button>
+                  <button
+                    onClick={onShowSettings}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      padding: 8, display: 'flex', alignItems: 'center', color: T.txt,
+                    }}
+                  >
+                    <Settings size={24} />
+                  </button>
+                </div>
               )}
             </div>
           </div>

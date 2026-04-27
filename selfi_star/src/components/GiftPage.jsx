@@ -37,6 +37,8 @@ export default function GiftPage({ username, onClose }) {
   const [coinBalance, setCoinBalance] = useState(0);
   const [showRechargeDialog, setShowRechargeDialog] = useState(false);
   const [rechargeError, setRechargeError] = useState(null);
+  const [showTelebirrPayment, setShowTelebirrPayment] = useState(false);
+  const [telebirrPaymentUrl, setTelebirrPaymentUrl] = useState(null);
 
   useEffect(() => {
     loadGifts();
@@ -57,8 +59,8 @@ export default function GiftPage({ username, onClose }) {
 
   const loadCoinBalance = async () => {
     try {
-      const response = await api.request('/coins/balance/');
-      setCoinBalance(response.coins || 0);
+      const response = await api.request('/wallet/');
+      setCoinBalance(response.balance?.purchased || 0);
     } catch (error) {
       console.error('Error loading coin balance:', error);
     }
@@ -72,10 +74,17 @@ export default function GiftPage({ username, onClose }) {
 
   const handleSendGift = async () => {
     if (!username || !selectedGift) return;
-    
+
     const totalCost = selectedGift.coin_value * quantity;
     if (totalCost > coinBalance) {
-      alert(`Insufficient coins. You need ${totalCost} coins but have ${coinBalance}.`);
+      // Show recharge dialog with automatic Telebirr payment option
+      setRechargeError({
+        needs_recharge: true,
+        required_coins: totalCost,
+        current_purchased_coins: coinBalance,
+        current_earned_coins: 0,
+      });
+      setShowRechargeDialog(true);
       return;
     }
 
@@ -99,7 +108,7 @@ export default function GiftPage({ username, onClose }) {
     } catch (err) {
       console.error('Gift send error:', err);
       const errorData = err.response?.data || err;
-      
+
       if (errorData.needs_recharge) {
         setRechargeError(errorData);
         setShowRechargeDialog(true);
@@ -108,6 +117,31 @@ export default function GiftPage({ username, onClose }) {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTelebirrPayment = async (packageId, phoneNumber) => {
+    try {
+      const response = await api.request('/wallet/telebirr/initiate/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          package_id: packageId,
+          phone_number: phoneNumber,
+        }),
+      });
+
+      if (response.success && response.payment_url) {
+        // Redirect to Telebirr payment page
+        setTelebirrPaymentUrl(response.payment_url);
+        setShowTelebirrPayment(true);
+        window.open(response.payment_url, '_blank');
+      } else {
+        alert(response.error || 'Payment initiation failed');
+      }
+    } catch (error) {
+      console.error('Telebirr payment error:', error);
+      alert('Payment initiation failed. Please try again.');
     }
   };
 
@@ -315,11 +349,85 @@ export default function GiftPage({ username, onClose }) {
                 You need {rechargeError.required_coins} purchased coins to send this gift.
                 <br /><br />
                 <strong>Your current balance:</strong><br />
-                • Earned coins: {rechargeError.current_earned_coins} (cannot be used for gifting)<br />
                 • Purchased coins: {rechargeError.current_purchased_coins}
                 <br /><br />
                 Only purchased coins can be used to send gifts.
               </div>
+
+              {/* Phone Number Input for Telebirr */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: 12, color: T?.sub, marginBottom: 6, display: 'block' }}>Phone Number (for Telebirr)</label>
+                <input
+                  type="tel"
+                  placeholder="+251 9xx xxx xxx"
+                  id="telebirr-phone"
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: 10,
+                    border: `1px solid ${T?.border || '#e0e0e0'}`,
+                    background: T?.bg || '#f5f5f5',
+                    color: T?.txt || '#000',
+                    fontSize: 14,
+                  }}
+                />
+              </div>
+
+              {/* Quick Coin Package Options */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, color: T?.sub, marginBottom: 8 }}>Quick Recharge Options</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <button
+                    onClick={() => {
+                      const phone = document.getElementById('telebirr-phone')?.value;
+                      if (!phone) {
+                        alert('Please enter your phone number');
+                        return;
+                      }
+                      // Find smallest package that meets the requirement
+                      const minPackage = gifts.length > 0 ? Math.ceil(rechargeError.required_coins / 10) * 10 : 100;
+                      handleTelebirrPayment(1, phone); // Using package ID 1 as default
+                    }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: 10,
+                      border: `1px solid ${T?.border || '#e0e0e0'}`,
+                      background: T?.bg || '#f5f5f5',
+                      color: T?.txt || '#000',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    100 Coins<br />
+                    <span style={{ fontSize: 11, color: T?.sub }}>~10 ETB</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const phone = document.getElementById('telebirr-phone')?.value;
+                      if (!phone) {
+                        alert('Please enter your phone number');
+                        return;
+                      }
+                      handleTelebirrPayment(2, phone); // Using package ID 2
+                    }}
+                    style={{
+                      padding: '12px',
+                      borderRadius: 10,
+                      border: `1px solid ${T?.border || '#e0e0e0'}`,
+                      background: T?.bg || '#f5f5f5',
+                      color: T?.txt || '#000',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    500 Coins<br />
+                    <span style={{ fontSize: 11, color: T?.sub }}>~50 ETB</span>
+                  </button>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', gap: 12 }}>
                 <button
                   onClick={() => setShowRechargeDialog(false)}
@@ -339,9 +447,14 @@ export default function GiftPage({ username, onClose }) {
                 </button>
                 <button
                   onClick={() => {
+                    const phone = document.getElementById('telebirr-phone')?.value;
+                    if (!phone) {
+                      alert('Please enter your phone number');
+                      return;
+                    }
+                    // Open wallet page for more options
                     setShowRechargeDialog(false);
-                    // Navigate to wallet/purchase page when available
-                    alert('Coin purchase feature coming soon! Please contact support to purchase coins.');
+                    window.location.href = '/wallet';
                   }}
                   style={{
                     flex: 1,
@@ -355,7 +468,7 @@ export default function GiftPage({ username, onClose }) {
                     cursor: 'pointer',
                   }}
                 >
-                  Get Coins
+                  More Options
                 </button>
               </div>
             </div>

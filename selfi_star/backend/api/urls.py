@@ -181,6 +181,7 @@ from .views_wallet import (
     wallet_summary, wallet_transactions, withdrawal_info, request_withdrawal,
     my_withdrawals, cancel_withdrawal, public_wallet_config,
     admin_wallet_config, admin_withdrawals_list, admin_withdrawal_action, admin_adjust_balance,
+    telebirr_initiate_payment, telebirr_callback,
 )
 
 router = DefaultRouter()
@@ -381,6 +382,8 @@ urlpatterns = [
     path('wallet/withdraw/', request_withdrawal, name='wallet-withdraw'),
     path('wallet/withdrawals/', my_withdrawals, name='wallet-my-withdrawals'),
     path('wallet/withdrawals/<int:withdrawal_id>/cancel/', cancel_withdrawal, name='wallet-cancel-withdrawal'),
+    path('wallet/telebirr/initiate/', telebirr_initiate_payment, name='telebirr-initiate'),
+    path('wallet/telebirr-callback/', telebirr_callback, name='telebirr-callback'),
     # ============ WALLET (Admin) ============
     path('admin/wallet/config/', admin_wallet_config, name='admin-wallet-config'),
     path('admin/wallet/withdrawals/', admin_withdrawals_list, name='admin-wallet-withdrawals'),
