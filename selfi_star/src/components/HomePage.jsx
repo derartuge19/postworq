@@ -160,7 +160,7 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
                   onClick={() => onLike(comment)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
                 >
-                  <Heart size={14} fill={comment.is_liked ? (T?.pri || '#000') : 'none'} color={comment.is_liked ? (T?.pri || '#000') : T?.sub || '#666'} />
+                  <Heart size={14} fill={comment.is_liked ? '#E2B355' : 'none'} color={comment.is_liked ? '#E2B355' : (T?.sub || '#999')} />
                   {comment.likes > 0 && <span style={{ fontSize: 10, color: T?.sub || '#666' }}>{comment.likes}</span>}
                 </button>
                 <button
@@ -1161,8 +1161,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <MessageCircle size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
+                <MessageCircle size={baseFontSize} color={T?.priFallback || '#E2B355'} style={{ transition: 'transform 0.15s' }} />
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.priFallback || '#E2B355', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
               </button>
               {/* Share */}
               <button
@@ -1176,8 +1176,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={baseFontSize} color={T?.txt || '#000'} style={{ transition: 'transform 0.15s' }} />
-                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.sub || '#666', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
+                <Share2 size={baseFontSize} color={T?.priFallback || '#E2B355'} style={{ transition: 'transform 0.15s' }} />
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: T?.priFallback || '#E2B355', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift - only show on other people's posts */}
               {post.user?.username !== currentUser?.username && (
@@ -1209,8 +1209,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             >
               <Bookmark
                 size={baseFontSize}
-                fill={saved ? T?.pri || '#000' : 'none'}
-                color={saved ? T?.pri || '#000' : T?.txt || '#000'}
+                fill={saved ? (T?.priFallback || '#E2B355') : 'none'}
+                color={saved ? (T?.priFallback || '#E2B355') : (T?.priFallback || '#E2B355')}
               />
             </button>
           </div>

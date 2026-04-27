@@ -222,19 +222,22 @@ export function AppShell({
                 <button
                   key={item.id}
                   onClick={() => handleItemClick(item)}
+                  className={isActive ? 'sidebar-nav-gold' : ''}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 12,
                     padding: '12px 16px',
                     border: 'none',
-                    background: isActive ? T.pri + '10' : 'transparent',
+                    background: isActive ? `${T.priFallback || '#E2B355'}18` : 'transparent',
                     borderRadius: 12,
                     cursor: 'pointer',
-                    color: isActive ? T.pri : T.txt,
+                    color: isActive ? (T.priFallback || '#E2B355') : T.txt,
                     fontWeight: isActive ? 700 : 500,
                     transition: 'all 0.2s',
                     position: 'relative',
+                    WebkitTapHighlightColor: 'transparent',
+                    outline: 'none',
                   }}
                 >
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -263,7 +266,11 @@ export function AppShell({
                       </div>
                     )}
                   </div>
-                  <span>{item.label}</span>
+                  <span style={isActive ? {
+                    background: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)',
+                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  } : {}}>{item.label}</span>
                 </button>
               );
             })}
@@ -392,12 +399,50 @@ export function AppShell({
             boxShadow: '0 -2px 16px rgba(0,0,0,0.07)',
           }}
         >
+          {/* Gold gradient paint server — referenced by CSS stroke/fill on active icons */}
+          <svg aria-hidden="true" focusable="false" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+            <defs>
+              <linearGradient id="appshell-gold-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#D4AF37" />
+                <stop offset="50%" stopColor="#F9E08B" />
+                <stop offset="100%" stopColor="#B8860B" />
+              </linearGradient>
+            </defs>
+          </svg>
           <style>{`
             .mob-nav-btn {
               transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1),opacity 0.1s;
-              -webkit-tap-highlight-color: transparent;
+              -webkit-tap-highlight-color: transparent !important;
+              outline: none;
             }
             .mob-nav-btn:active { transform: scale(0.80) !important; opacity: 0.75; }
+            .mob-nav-btn:focus { outline: none; }
+            /* Gold gradient on active icon strokes */
+            .mob-nav-gold svg path,
+            .mob-nav-gold svg line,
+            .mob-nav-gold svg polyline,
+            .mob-nav-gold svg circle,
+            .mob-nav-gold svg rect,
+            .mob-nav-gold svg ellipse {
+              stroke: url(#appshell-gold-grad) !important;
+            }
+            /* Gradient text on active labels */
+            .mob-nav-gold-lbl {
+              background: linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+              font-weight: 700;
+            }
+            /* Desktop sidebar gradient */
+            .sidebar-nav-gold svg path,
+            .sidebar-nav-gold svg line,
+            .sidebar-nav-gold svg polyline,
+            .sidebar-nav-gold svg circle,
+            .sidebar-nav-gold svg rect,
+            .sidebar-nav-gold svg ellipse {
+              stroke: url(#appshell-gold-grad) !important;
+            }
           `}</style>
 
           {MOBILE_BOTTOM_TABS.map(({ item, label, isCreate, badge }) => {
@@ -435,7 +480,7 @@ export function AppShell({
               <button
                 key={item.id}
                 id={`mob-nav-${item.id}`}
-                className="mob-nav-btn"
+                className={`mob-nav-btn${isActive ? ' mob-nav-gold' : ''}`}
                 onClick={() => handleItemClick(item)}
                 style={{
                   background: 'transparent',
@@ -450,6 +495,8 @@ export function AppShell({
                   position: 'relative',
                   minWidth: 44,
                   flex: 1,
+                  WebkitTapHighlightColor: 'transparent',
+                  outline: 'none',
                 }}
               >
                 {/* Icon */}
@@ -460,7 +507,7 @@ export function AppShell({
                   <Icon
                     size={24}
                     strokeWidth={isActive ? 2.5 : 1.8}
-                    color={isActive ? (T.pri || '#DA9B2A') : (T.sub || '#999')}
+                    color={isActive ? (T.priFallback || '#E2B355') : (T.sub || '#999')}
                   />
                   {badgeCount > 0 && (
                     <div style={{
@@ -479,12 +526,14 @@ export function AppShell({
 
                 {/* Label */}
                 {label ? (
-                  <span style={{
-                    fontSize: 10,
-                    fontWeight: isActive ? 700 : 400,
-                    color: isActive ? (T.pri || '#DA9B2A') : (T.sub || '#999'),
-                    lineHeight: 1,
-                  }}>{label}</span>
+                  <span
+                    className={isActive ? 'mob-nav-gold-lbl' : ''}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: isActive ? 700 : 400,
+                      color: isActive ? undefined : (T.sub || '#999'),
+                      lineHeight: 1,
+                    }}>{label}</span>
                 ) : null}
               </button>
             );
