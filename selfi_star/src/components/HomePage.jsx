@@ -1338,7 +1338,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   );
 });
 
-const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
+const ALL_TABS = ['For You', 'Explore', 'Campaigns'];
 
 export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail, onShowWallet }) {
   const { colors: T } = useTheme();

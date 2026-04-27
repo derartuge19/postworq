@@ -39,7 +39,7 @@ const T = {
 
 const BRAND_GOLD = '#DA9B2A';
 
-const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
+const ALL_TABS = ['For You', 'Explore', 'Campaigns'];
 
 const timeAgo = (dateStr) => {
   if (!dateStr) return '';
