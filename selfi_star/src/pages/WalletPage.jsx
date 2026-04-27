@@ -17,41 +17,69 @@ import api from '../api';
  * All amounts shown in coins; conversion to ETB displayed where relevant.
  * No dollar signs anywhere — Birr only.
  */
+const CACHE_KEY = 'wallet_cache';
+const CACHE_TTL = 60 * 1000; // 1 minute
+
+function readCache() {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { ts, summary, config } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) return null;
+    return { summary, config };
+  } catch { return null; }
+}
+
+function writeCache(summary, config) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), summary, config }));
+  } catch {}
+}
+
 export function WalletPage({ theme, onBack }) {
   const T = theme || defaultTheme();
   const [activeTab, setActiveTab] = useState('overview'); // overview | transactions | withdrawals
 
-  const [summary, setSummary] = useState(null);
-  const [config, setConfig] = useState(null);
+  // Seed from cache instantly — no loading flash on revisit
+  const cached = readCache();
+  const [summary, setSummary] = useState(cached?.summary || null);
+  const [config, setConfig] = useState(cached?.config || null);
   const [transactions, setTransactions] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cached); // skip loading if cache hit
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
 
   useEffect(() => {
-    loadAll();
+    if (cached) {
+      // Cache hit: paint immediately, refresh silently in background
+      loadAll(true);
+    } else {
+      loadAll(false);
+    }
   }, []);
 
-  async function loadAll() {
+  async function loadAll(silent = false) {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
+      else setRefreshing(true);
       setError('');
-      console.log('Loading wallet data...');
       const [s, c] = await Promise.all([
         api.request('/wallet/'),
         api.request('/wallet/config/'),
       ]);
-      console.log('Wallet data loaded:', { summary: s, config: c });
       setSummary(s);
       setConfig(c);
+      writeCache(s, c);
     } catch (err) {
       console.error('Wallet load failed:', err);
-      setError(err.message || 'Failed to load wallet');
+      if (!silent) setError(err.message || 'Failed to load wallet');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
 
@@ -82,8 +110,25 @@ export function WalletPage({ theme, onBack }) {
   if (loading) {
     return (
       <div style={{ ...styles.container, background: T.bg }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
-          <Loader size={32} color={T.pri} className="spin" />
+        {/* Header with back button always available */}
+        <div style={{ ...styles.header, background: T.card, borderColor: T.border }}>
+          {onBack && (
+            <button onClick={onBack} style={styles.backBtn}>
+              <ChevronLeft size={24} color={T.txt} />
+            </button>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+            <Wallet size={22} color={T.pri} />
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: T.txt }}>My Wallet</h2>
+          </div>
+        </div>
+        {/* Skeleton cards */}
+        <div style={{ padding: 16 }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{ height: 80, borderRadius: 14, background: T.card, marginBottom: 12,
+              animation: 'pulse 1.5s ease-in-out infinite alternate' }} />
+          ))}
+          <style>{`@keyframes pulse{from{opacity:1}to{opacity:0.5}}`}</style>
         </div>
       </div>
     );
@@ -92,10 +137,17 @@ export function WalletPage({ theme, onBack }) {
   if (error) {
     return (
       <div style={{ ...styles.container, background: T.bg, padding: 20 }}>
+        <div style={{ ...styles.header, background: T.card, borderColor: T.border }}>
+          {onBack && (
+            <button onClick={onBack} style={styles.backBtn}>
+              <ChevronLeft size={24} color={T.txt} />
+            </button>
+          )}
+        </div>
         <div style={{ textAlign: 'center', padding: 40 }}>
           <AlertCircle size={40} color={T.red || '#EF4444'} />
           <p style={{ color: T.txt, marginTop: 16 }}>{error}</p>
-          <button onClick={loadAll} style={{ ...btnPrimary(T), marginTop: 16 }}>
+          <button onClick={() => loadAll(false)} style={{ ...btnPrimary(T), marginTop: 16 }}>
             <RefreshCw size={16} /> Retry
           </button>
         </div>
@@ -122,8 +174,8 @@ export function WalletPage({ theme, onBack }) {
             My Wallet
           </h2>
         </div>
-        <button onClick={loadAll} style={styles.iconBtn}>
-          <RefreshCw size={18} color={T.sub} />
+        <button onClick={() => loadAll(false)} style={styles.iconBtn}>
+          <RefreshCw size={18} color={T.sub} className={refreshing ? 'spin' : ''} />
         </button>
       </div>
 
