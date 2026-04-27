@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Wallet, Coins, ArrowUpFromLine, Settings, RefreshCw,
   CheckCircle2, XCircle, Clock, Loader, Search, Filter,
-  TrendingUp, TrendingDown, User, Save, AlertTriangle, ChevronRight
+  TrendingUp, TrendingDown, User, Save, AlertTriangle, ChevronRight, Gift
 } from 'lucide-react';
 import api from '../../api';
 
@@ -65,9 +65,37 @@ export function CoinManagementPage({ theme }) {
     try {
       setSaving(true);
       setError('');
+      const flat = {
+        welcome_bonus: config.rewards.welcome_bonus,
+        daily_post_bonus: config.rewards.daily_post_bonus,
+        campaign_join_reward: config.rewards.campaign_join_reward,
+        receive_like_reward: config.rewards.receive_like_reward,
+        receive_like_daily_cap: config.rewards.receive_like_daily_cap,
+        campaign_winner_reward: config.rewards.campaign_winner_reward,
+        referral_reward: config.rewards.referral_reward,
+        cost_post_create: config.costs.post_create,
+        cost_like: config.costs.like,
+        cost_comment: config.costs.comment,
+        cost_join_campaign: config.costs.join_campaign,
+        cost_extra_campaign_entry: config.costs.extra_campaign_entry,
+        cost_boost_2hr: config.costs.boost_2hr,
+        cost_boost_24hr: config.costs.boost_24hr,
+        withdrawal_enabled: config.withdrawal.enabled,
+        withdrawal_min_coins: config.withdrawal.min_coins,
+        coins_per_birr: config.withdrawal.coins_per_birr,
+        withdrawal_fee_percent: config.withdrawal.fee_percent,
+        withdrawal_processing_days: config.withdrawal.processing_days,
+        earned_coins_giftable: config.gifting.earned_coins_giftable,
+        purchased_coins_giftable: config.gifting.purchased_coins_giftable,
+        earned_coins_withdrawable: config.gifting.earned_coins_withdrawable,
+        purchased_coins_withdrawable: config.gifting.purchased_coins_withdrawable,
+        min_balance_to_post: config.thresholds.min_balance_to_post,
+        min_balance_to_join_campaign: config.thresholds.min_balance_to_join_campaign,
+        earned_coins_expire_days: config.expiry.earned_coins_expire_days,
+      };
       await api.request('/admin/wallet/config/', {
         method: 'PATCH',
-        body: JSON.stringify(config),
+        body: JSON.stringify(flat),
       });
       await loadConfig();
       setAdjustResult({ type: 'success', message: 'Wallet configuration saved' });
@@ -256,24 +284,24 @@ function ConfigTab({ theme: T, config, setConfig, onSave, saving, result }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: 24 }}>
         {/* Earning Rewards */}
         <SectionCard theme={T} title="Earning Rewards" icon={<TrendingUp size={20} color="#10B981" />}>
-          <FieldRow label="Welcome Bonus" value={config.rewards.welcome_bonus} onChange={(v) => updateField('rewards', 'welcome_bonus', parseInt(v) || 0)} />
-          <FieldRow label="Daily Post Bonus" value={config.rewards.daily_post_bonus} onChange={(v) => updateField('rewards', 'daily_post_bonus', parseInt(v) || 0)} />
-          <FieldRow label="Campaign Join Reward" value={config.rewards.campaign_join_reward} onChange={(v) => updateField('rewards', 'campaign_join_reward', parseInt(v) || 0)} />
-          <FieldRow label="Like Received Reward" value={config.rewards.receive_like_reward} onChange={(v) => updateField('rewards', 'receive_like_reward', parseInt(v) || 0)} />
-          <FieldRow label="Like Daily Cap" value={config.rewards.receive_like_daily_cap} onChange={(v) => updateField('rewards', 'receive_like_daily_cap', parseInt(v) || 0)} />
-          <FieldRow label="Campaign Winner Bonus" value={config.rewards.campaign_winner_reward} onChange={(v) => updateField('rewards', 'campaign_winner_reward', parseInt(v) || 0)} />
-          <FieldRow label="Referral Reward" value={config.rewards.referral_reward} onChange={(v) => updateField('rewards', 'referral_reward', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Welcome Bonus" value={config.rewards.welcome_bonus} onChange={(v) => updateField('rewards', 'welcome_bonus', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Daily Post Bonus" value={config.rewards.daily_post_bonus} onChange={(v) => updateField('rewards', 'daily_post_bonus', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Campaign Join Reward" value={config.rewards.campaign_join_reward} onChange={(v) => updateField('rewards', 'campaign_join_reward', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Like Received Reward" value={config.rewards.receive_like_reward} onChange={(v) => updateField('rewards', 'receive_like_reward', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Like Daily Cap" value={config.rewards.receive_like_daily_cap} onChange={(v) => updateField('rewards', 'receive_like_daily_cap', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Campaign Winner Bonus" value={config.rewards.campaign_winner_reward} onChange={(v) => updateField('rewards', 'campaign_winner_reward', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Referral Reward" value={config.rewards.referral_reward} onChange={(v) => updateField('rewards', 'referral_reward', parseInt(v) || 0)} />
         </SectionCard>
 
         {/* Action Costs */}
         <SectionCard theme={T} title="Action Costs" icon={<TrendingDown size={20} color="#EF4444" />}>
-          <FieldRow label="Create Post Cost" value={config.costs.post_create} onChange={(v) => updateField('costs', 'post_create', parseInt(v) || 0)} />
-          <FieldRow label="Like Cost" value={config.costs.like} onChange={(v) => updateField('costs', 'like', parseInt(v) || 0)} />
-          <FieldRow label="Comment Cost" value={config.costs.comment} onChange={(v) => updateField('costs', 'comment', parseInt(v) || 0)} />
-          <FieldRow label="Join Campaign Cost" value={config.costs.join_campaign} onChange={(v) => updateField('costs', 'join_campaign', parseInt(v) || 0)} />
-          <FieldRow label="Extra Entry Cost" value={config.costs.extra_campaign_entry} onChange={(v) => updateField('costs', 'extra_campaign_entry', parseInt(v) || 0)} />
-          <FieldRow label="Boost 2hr Cost" value={config.costs.boost_2hr} onChange={(v) => updateField('costs', 'boost_2hr', parseInt(v) || 0)} />
-          <FieldRow label="Boost 24hr Cost" value={config.costs.boost_24hr} onChange={(v) => updateField('costs', 'boost_24hr', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Create Post Cost" value={config.costs.post_create} onChange={(v) => updateField('costs', 'post_create', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Like Cost" value={config.costs.like} onChange={(v) => updateField('costs', 'like', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Comment Cost" value={config.costs.comment} onChange={(v) => updateField('costs', 'comment', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Join Campaign Cost" value={config.costs.join_campaign} onChange={(v) => updateField('costs', 'join_campaign', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Extra Entry Cost" value={config.costs.extra_campaign_entry} onChange={(v) => updateField('costs', 'extra_campaign_entry', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Boost 2hr Cost" value={config.costs.boost_2hr} onChange={(v) => updateField('costs', 'boost_2hr', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Boost 24hr Cost" value={config.costs.boost_24hr} onChange={(v) => updateField('costs', 'boost_24hr', parseInt(v) || 0)} />
         </SectionCard>
 
         {/* Withdrawal Settings */}
@@ -284,10 +312,10 @@ function ConfigTab({ theme: T, config, setConfig, onSave, saving, result }) {
             onChange={(v) => updateField('withdrawal', 'enabled', v)}
             theme={T}
           />
-          <FieldRow label="Min Coins" value={config.withdrawal.min_coins} onChange={(v) => updateField('withdrawal', 'min_coins', parseInt(v) || 0)} />
-          <FieldRow label="Coins per Birr" value={config.withdrawal.coins_per_birr} onChange={(v) => updateField('withdrawal', 'coins_per_birr', parseInt(v) || 0)} />
-          <FieldRow label="Fee Percent" value={config.withdrawal.fee_percent} onChange={(v) => updateField('withdrawal', 'fee_percent', parseFloat(v) || 0)} />
-          <FieldRow label="Processing Days" value={config.withdrawal.processing_days} onChange={(v) => updateField('withdrawal', 'processing_days', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Min Coins" value={config.withdrawal.min_coins} onChange={(v) => updateField('withdrawal', 'min_coins', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Coins per Birr" value={config.withdrawal.coins_per_birr} onChange={(v) => updateField('withdrawal', 'coins_per_birr', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Fee Percent" value={config.withdrawal.fee_percent} onChange={(v) => updateField('withdrawal', 'fee_percent', parseFloat(v) || 0)} />
+          <FieldRow theme={T} label="Processing Days" value={config.withdrawal.processing_days} onChange={(v) => updateField('withdrawal', 'processing_days', parseInt(v) || 0)} />
         </SectionCard>
 
         {/* Gifting Policy */}
@@ -300,13 +328,13 @@ function ConfigTab({ theme: T, config, setConfig, onSave, saving, result }) {
 
         {/* Thresholds */}
         <SectionCard theme={T} title="Balance Thresholds" icon={<Wallet size={20} color="#3B82F6" />}>
-          <FieldRow label="Min Balance to Post" value={config.thresholds.min_balance_to_post} onChange={(v) => updateField('thresholds', 'min_balance_to_post', parseInt(v) || 0)} />
-          <FieldRow label="Min Balance to Join Campaign" value={config.thresholds.min_balance_to_join_campaign} onChange={(v) => updateField('thresholds', 'min_balance_to_join_campaign', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Min Balance to Post" value={config.thresholds.min_balance_to_post} onChange={(v) => updateField('thresholds', 'min_balance_to_post', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Min Balance to Join Campaign" value={config.thresholds.min_balance_to_join_campaign} onChange={(v) => updateField('thresholds', 'min_balance_to_join_campaign', parseInt(v) || 0)} />
         </SectionCard>
 
         {/* Expiry */}
         <SectionCard theme={T} title="Expiry" icon={<Clock size={20} color="#6B7280" />}>
-          <FieldRow label="Earned Coins Expire Days (0 = never)" value={config.expiry.earned_coins_expire_days} onChange={(v) => updateField('expiry', 'earned_coins_expire_days', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Earned Coins Expire Days (0 = never)" value={config.expiry.earned_coins_expire_days} onChange={(v) => updateField('expiry', 'earned_coins_expire_days', parseInt(v) || 0)} />
         </SectionCard>
       </div>
 
@@ -592,17 +620,18 @@ function SectionCard({ theme: T, title, icon, children }) {
   );
 }
 
-function FieldRow({ label, value, onChange, type = 'number' }) {
+function FieldRow({ label, value, onChange, type = 'number', theme: T }) {
+  const theme = T || defaultTheme();
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <span style={{ fontSize: 13, color: T.sub, minWidth: 140 }}>{label}</span>
+      <span style={{ fontSize: 13, color: theme.sub, minWidth: 140 }}>{label}</span>
       <input
         type={type}
-        value={value}
+        value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
         style={{
-          flex: 1, padding: 8, borderRadius: 6, border: `1px solid ${T.border}`,
-          background: T.bg, color: T.txt, fontSize: 14,
+          flex: 1, padding: 8, borderRadius: 6, border: `1px solid ${theme.border}`,
+          background: theme.bg, color: theme.txt, fontSize: 14,
         }}
       />
     </div>
@@ -617,7 +646,7 @@ function ToggleField({ label, checked, onChange, theme: T }) {
         onClick={() => onChange(!checked)}
         style={{
           width: 44, height: 24, borderRadius: 12, background: checked ? T.pri : '#E5E7EB',
-          border: 'none', cursor: pointer, position: 'relative', transition: 'background 0.2s',
+          border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
         }}
       >
         <div style={{
@@ -697,8 +726,5 @@ const btnDanger = (T) => ({
   padding: 8, borderRadius: 6, border: 'none', background: '#EF4444',
   color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer',
 });
-
-// Import Gift icon at top
-import { Gift } from 'lucide-react';
 
 export default CoinManagementPage;
