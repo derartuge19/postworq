@@ -749,7 +749,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           <div
             key={post.id}
             style={{
-              aspectRatio: "1",
+              width: "100%",
+              paddingBottom: "100%",
               background: (T.border || "#e0e0e0") + "20",
               position: "relative",
               cursor: "pointer",
@@ -855,10 +856,11 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                       src={videoUrl}
                       poster={getVideoPoster(videoUrl)}
                       style={{
-                        maxWidth: "100%",
-                        maxHeight: "100%",
-                        objectFit: "contain",
-                        background: T.bg,
+                        position: "absolute",
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
                       }}
                       muted
                       loop
@@ -893,9 +895,11 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   loading="lazy"
                   decoding="async"
                   style={{
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                    objectFit: "contain",
+                    position: "absolute",
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
                   }}
                 />
               );
