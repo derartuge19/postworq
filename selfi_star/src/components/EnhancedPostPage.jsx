@@ -840,7 +840,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
           if (isCreate) return (
             <button key={id} className="ep-nav-btn"
               style={{ background: T.priGradient || T.pri, border: 'none', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 20px ${T.pri}40`, cursor: 'pointer', flexShrink: 0, marginBottom: 6 }}>
-              <Icon size={24} strokeWidth={2.2} color="#fff" />
+              <Icon size={24} strokeWidth={2.2} color="#F9E08B" />
             </button>
           );
           return (
@@ -848,14 +848,14 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               onClick={() => action?.()}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, padding: '4px 10px', minWidth: 50, position: 'relative', cursor: 'pointer' }}>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10 }}>
-                <Icon size={22} strokeWidth={1.8} color={T.sub || '#9ca3af'} />
+                <Icon size={22} strokeWidth={1.8} color={'#F9E08B'} />
                 {badge > 0 && (
                   <div style={{ position: 'absolute', top: 2, right: 2, minWidth: 14, height: 14, borderRadius: 7, background: '#EF4444', color: '#fff', fontSize: 8, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px', boxSizing: 'border-box', border: '1.5px solid #fff', lineHeight: 1 }}>
                     {badge > 99 ? '99+' : badge}
                   </div>
                 )}
               </div>
-              <span style={{ fontSize: 10, fontWeight: 500, color: T.sub || '#9ca3af', lineHeight: 1 }}>{label}</span>
+              <span style={{ fontSize: 10, fontWeight: 500, color: '#F9E08B', lineHeight: 1 }}>{label}</span>
             </button>
           );
         })}
@@ -882,12 +882,12 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     animation: 'spin 1s linear infinite',
                   }}>
-                    <RefreshCw size={24} color="#fff" />
+                    <RefreshCw size={24} color="#F9E08B" />
                   </div>
-                  <div style={{ marginTop: 16, fontSize: 14, color: T.txt, fontWeight: 600 }}>
+                  <div style={{ marginTop: 16, fontSize: 14, color: '#F9E08B', fontWeight: 600 }}>
                     Starting camera...
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 12, color: T.sub }}>
+                  <div style={{ marginTop: 8, fontSize: 12, color: '#F9E08B' }}>
                     Please allow camera permissions if prompted
                   </div>
                   <style>{`
@@ -944,7 +944,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   onClick={() => { stopCamera(); setCaptureMode('upload'); }}
                   onTouchEnd={(e) => { e.preventDefault(); stopCamera(); setCaptureMode('upload'); }}
                   style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={20} color="#fff" />
+                  <X size={20} color="#F9E08B" />
                 </button>
 
                 {/* Mode tabs — force light text on dark overlay so the Photo/
@@ -957,7 +957,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                       style={{
                         padding: '6px 14px', borderRadius: 20,
                         background: camMode === m ? T.pri : 'transparent',
-                        color: '#fff',
+                        color: '#F9E08B',
                         fontSize: 13, fontWeight: 700,
                         textShadow: camMode === m ? 'none' : '0 1px 2px rgba(0,0,0,0.8)',
                       }}>
@@ -971,7 +971,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   onClick={() => setFlashOn(f => !f)}
                   onTouchEnd={(e) => { e.preventDefault(); setFlashOn(f => !f); }}
                   style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {flashOn ? <Zap size={18} color="#FACC15" fill="#FACC15" /> : <ZapOff size={18} color="#fff" />}
+                  {flashOn ? <Zap size={18} color="#F9E08B" fill="#F9E08B" /> : <ZapOff size={18} color="#F9E08B" />}
                 </button>
               </div>
 
@@ -1006,24 +1006,24 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 zIndex: 30,
               }}>
                 {[
-                  { icon: <RefreshCw size={22} color="#fff" />, label: 'Flip', action: () => {
+                  { icon: <RefreshCw size={22} color="#F9E08B" />, label: 'Flip', action: () => {
                     const newMode = facingMode === 'user' ? 'environment' : 'user';
                     setFacingMode(newMode);
                     // Force camera restart with new facingMode
                     stopCamera();
                     setTimeout(() => startCamera(), 100);
                   } },
-                  { icon: <Type size={22} color="#fff" />, label: 'Text', action: () => setShowTextInput(true) },
-                  { icon: <Music size={22} color={backgroundSound ? '#FACC15' : '#fff'} />, label: 'Sound', action: () => setShowSoundSheet(true) },
-                  { icon: <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2}><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>, label: 'Filter', action: () => setShowFilters(f => !f) },
-                  { icon: <span style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>{selectedSpeed}</span>, label: 'Speed', action: () => setShowSpeeds(s => !s) },
+                  { icon: <Type size={22} color="#F9E08B" />, label: 'Text', action: () => setShowTextInput(true) },
+                  { icon: <Music size={22} color={backgroundSound ? '#F9E08B' : '#F9E08B'} />, label: 'Sound', action: () => setShowSoundSheet(true) },
+                  { icon: <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#F9E08B" strokeWidth={2}><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg>, label: 'Filter', action: () => setShowFilters(f => !f) },
+                  { icon: <span style={{ fontSize: 13, fontWeight: 800, color: '#F9E08B' }}>{selectedSpeed}</span>, label: 'Speed', action: () => setShowSpeeds(s => !s) },
                 ].map((item, i) => (
                   <button key={i} className="ep-btn" onClick={item.action} onTouchEnd={(e) => { e.preventDefault(); item.action(); }}
                     style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', padding: 8, margin: -8 }}>
                     <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.15)' }}>
                       {item.icon}
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{item.label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#F9E08B', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -1042,7 +1042,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                       style={{
                         padding: '6px 14px', borderRadius: 12,
                         background: selectedSpeed === sp ? T.pri : 'rgba(255,255,255,0.12)',
-                        color: '#fff', fontSize: 13, fontWeight: 700,
+                        color: '#F9E08B', fontSize: 13, fontWeight: 700,
                       }}>{sp}</button>
                   ))}
                 </div>
@@ -1068,7 +1068,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                       }} />
                       <span style={{
                         fontSize: 11,
-                        color: '#fff',
+                        color: '#F9E08B',
                         fontWeight: selectedFilter === f.id ? 800 : 600,
                         textShadow: '0 1px 3px rgba(0,0,0,0.9)',
                       }}>{f.name}</span>
