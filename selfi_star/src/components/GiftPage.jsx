@@ -145,56 +145,88 @@ export default function GiftPage({ username, onClose, onShowWallet }) {
     }
   };
 
+  // surface = one step above the modal card so inset elements are always visible
+  const card = T?.cardBg || '#1A1A1A';
+  const surface = T?.border || '#333';
+  const txt = T?.txt || '#fff';
+  const sub = T?.sub || '#999';
+  const pri = T?.pri || '#DA9B2A';
+  const border = T?.border || '#333';
+
+  const inputStyle = {
+    width: '100%',
+    padding: '12px 14px',
+    borderRadius: 10,
+    border: `1.5px solid ${border}`,
+    background: surface,
+    color: txt,
+    fontSize: 14,
+    outline: 'none',
+    boxSizing: 'border-box',
+  };
+
+  const secondaryBtn = {
+    flex: 1,
+    padding: '12px',
+    borderRadius: 10,
+    border: `1.5px solid ${border}`,
+    background: surface,
+    color: txt,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+  };
+
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ background: T?.cardBg || '#fff', borderRadius: 20, padding: 24, maxWidth: 500, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ background: card, borderRadius: 20, padding: 24, maxWidth: 500, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.6)', border: `1px solid ${border}` }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Gift size={24} color={T?.pri || '#000'} />
-            <div style={{ fontSize: 18, fontWeight: 700, color: T?.txt || '#000' }}>Send Gift</div>
+            <Gift size={24} color={pri} />
+            <div style={{ fontSize: 18, fontWeight: 700, color: txt }}>Send Gift</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: T?.sub || '#666' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: sub }}>
             <X size={20} />
           </button>
         </div>
 
         {/* Recipient */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 6 }}>To</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: T?.txt || '#000', padding: '10px 14px', background: T?.bg || '#f5f5f5', borderRadius: 10 }}>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: sub, marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>To</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: txt, padding: '10px 14px', background: surface, borderRadius: 10, border: `1px solid ${border}` }}>
             @{username}
           </div>
         </div>
 
         {/* Coin Balance */}
-        <div style={{ marginBottom: 20, padding: '12px 16px', background: T?.bg || '#f5f5f5', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontSize: 14, color: T?.sub || '#666' }}>Your Balance:</div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: T?.pri || '#000' }}>{coinBalance} coins</div>
+        <div style={{ marginBottom: 20, padding: '12px 16px', background: `${pri}18`, borderRadius: 10, border: `1px solid ${pri}40`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 14, color: sub }}>Your Balance</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: pri }}>🪙 {coinBalance}</div>
         </div>
 
         {success ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🎁</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: T?.txt || '#000', marginBottom: 8 }}>Gift Sent!</div>
-            <div style={{ fontSize: 14, color: T?.sub || '#666' }}>Your gift has been sent successfully</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: txt, marginBottom: 8 }}>Gift Sent!</div>
+            <div style={{ fontSize: 14, color: sub }}>Your gift has been sent successfully</div>
           </div>
         ) : (
           <>
             {/* Category Filter */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 10 }}>Category</div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, color: sub, marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Category</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {categories.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
                     style={{
-                      padding: '8px 16px',
+                      padding: '7px 14px',
                       borderRadius: 20,
-                      border: `1px solid ${selectedCategory === cat ? (T?.pri || '#000') : T?.border || '#e0e0e0'}`,
-                      background: selectedCategory === cat ? (T?.pri || '#000') : T?.bg || '#f5f5f5',
-                      color: selectedCategory === cat ? '#fff' : T?.txt || '#000',
+                      border: `1.5px solid ${selectedCategory === cat ? pri : border}`,
+                      background: selectedCategory === cat ? `${pri}22` : surface,
+                      color: selectedCategory === cat ? pri : txt,
                       fontSize: 13,
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -210,9 +242,9 @@ export default function GiftPage({ username, onClose, onShowWallet }) {
             </div>
 
             {/* Gift Selection */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 10 }}>Select Gift</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, maxHeight: 200, overflowY: 'auto' }}>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, color: sub, marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Select Gift</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, maxHeight: 210, overflowY: 'auto' }}>
                 {filteredGifts.map(gift => (
                   <button
                     key={gift.id}
@@ -220,25 +252,25 @@ export default function GiftPage({ username, onClose, onShowWallet }) {
                     style={{
                       padding: 12,
                       borderRadius: 12,
-                      border: `2px solid ${selectedGift?.id === gift.id ? (T?.pri || '#000') : T?.border || '#e0e0e0'}`,
-                      background: selectedGift?.id === gift.id ? (T?.pri || '#000') + '10' : T?.bg || '#f5f5f5',
+                      border: `2px solid ${selectedGift?.id === gift.id ? pri : border}`,
+                      background: selectedGift?.id === gift.id ? `${pri}22` : surface,
                       cursor: 'pointer',
-                      transition: 'all 0.2s',
+                      transition: 'all 0.15s',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      gap: 8,
+                      gap: 6,
                     }}
                   >
-                    <div style={{ fontSize: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 48, width: 48 }}>
+                    <div style={{ fontSize: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44, width: 44 }}>
                       {gift.image_url ? (
                         <img src={gift.image_url} alt={gift.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                       ) : (
                         CATEGORY_ICONS[gift.category] || '🎁'
                       )}
                     </div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: T?.txt || '#000', textAlign: 'center' }}>{gift.name}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: T?.pri || '#000' }}>{gift.coin_value} coins</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: txt, textAlign: 'center' }}>{gift.name}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: pri }}>{gift.coin_value}🪙</div>
                   </button>
                 ))}
               </div>
@@ -246,65 +278,34 @@ export default function GiftPage({ username, onClose, onShowWallet }) {
 
             {/* Quantity */}
             {selectedGift && (
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 10 }}>Quantity</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, color: sub, marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Quantity</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: 8,
-                      border: `1px solid ${T?.border || '#e0e0e0'}`,
-                      background: T?.bg || '#f5f5f5',
-                      color: T?.txt || '#000',
-                      fontSize: 18,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    -
-                  </button>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: T?.txt || '#000', minWidth: 40, textAlign: 'center' }}>{quantity}</div>
+                    style={{ width: 40, height: 40, borderRadius: 8, border: `1.5px solid ${border}`, background: surface, color: txt, fontSize: 20, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >−</button>
+                  <div style={{ flex: 1, textAlign: 'center', fontSize: 20, fontWeight: 800, color: txt }}>{quantity}</div>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: 8,
-                      border: `1px solid ${T?.border || '#e0e0e0'}`,
-                      background: T?.bg || '#f5f5f5',
-                      color: T?.txt || '#000',
-                      fontSize: 18,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    +
-                  </button>
+                    style={{ width: 40, height: 40, borderRadius: 8, border: `1.5px solid ${border}`, background: surface, color: txt, fontSize: 20, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >+</button>
                 </div>
-                <div style={{ fontSize: 14, color: T?.pri || '#000', fontWeight: 700, marginTop: 8 }}>
-                  Total: {selectedGift.coin_value * quantity} coins
+                <div style={{ fontSize: 14, color: pri, fontWeight: 700, marginTop: 8, textAlign: 'center' }}>
+                  Total: 🪙 {selectedGift.coin_value * quantity} coins
                 </div>
               </div>
             )}
 
             {/* Message */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: T?.sub || '#666', marginBottom: 6 }}>Add a message (optional)</div>
+              <div style={{ fontSize: 12, color: sub, marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Message (optional)</div>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Write a nice message..."
                 rows={3}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  border: `1px solid ${T?.border || '#e0e0e0'}`,
-                  background: T?.bg || '#f5f5f5',
-                  color: T?.txt || '#000',
-                  fontSize: 14,
-                  resize: 'none',
-                }}
+                style={{ ...inputStyle, resize: 'none' }}
               />
             </div>
 
@@ -314,19 +315,19 @@ export default function GiftPage({ username, onClose, onShowWallet }) {
               disabled={loading || !selectedGift}
               style={{
                 width: '100%',
-                padding: '12px',
-                borderRadius: 10,
+                padding: '14px',
+                borderRadius: 12,
                 border: 'none',
-                background: T?.pri || '#000',
-                color: '#fff',
+                background: loading || !selectedGift ? border : pri,
+                color: loading || !selectedGift ? sub : '#fff',
                 fontSize: 16,
                 fontWeight: 700,
                 cursor: loading || !selectedGift ? 'not-allowed' : 'pointer',
-                opacity: loading || !selectedGift ? 0.5 : 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 8,
+                transition: 'background 0.2s',
               }}
             >
               {loading ? 'Sending...' : (
@@ -341,134 +342,73 @@ export default function GiftPage({ username, onClose, onShowWallet }) {
 
         {/* Recharge Dialog */}
         {showRechargeDialog && rechargeError && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 20000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <div style={{ background: T?.cardBg || '#fff', borderRadius: 20, padding: 32, maxWidth: 450, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
-              <div style={{ fontSize: 48, textAlign: 'center', marginBottom: 16 }}>💰</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: T?.txt || '#000', marginBottom: 12, textAlign: 'center' }}>Insufficient Purchased Coins</div>
-              <div style={{ fontSize: 14, color: T?.sub || '#666', marginBottom: 20, lineHeight: 1.6 }}>
-                You need {rechargeError.required_coins} purchased coins to send this gift.
-                <br /><br />
-                <strong>Your current balance:</strong><br />
-                • Purchased coins: {rechargeError.current_purchased_coins}
-                <br /><br />
-                Only purchased coins can be used to send gifts.
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 20000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <div style={{ background: card, borderRadius: 20, padding: 28, maxWidth: 440, width: '100%', boxShadow: '0 24px 64px rgba(0,0,0,0.7)', border: `1px solid ${border}` }}>
+              <div style={{ fontSize: 44, textAlign: 'center', marginBottom: 12 }}>💰</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: txt, marginBottom: 10, textAlign: 'center' }}>Insufficient Coins</div>
+
+              {/* Info box */}
+              <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '14px 16px', marginBottom: 20, fontSize: 14, color: txt, lineHeight: 1.7 }}>
+                <div>Need: <strong style={{ color: pri }}>🪙 {rechargeError.required_coins}</strong></div>
+                <div>Balance: <strong style={{ color: sub }}>🪙 {rechargeError.current_purchased_coins} purchased</strong></div>
+                <div style={{ fontSize: 12, color: sub, marginTop: 6 }}>Only purchased coins can be used to send gifts.</div>
               </div>
 
-              {/* Phone Number Input for Telebirr */}
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ fontSize: 12, color: T?.sub, marginBottom: 6, display: 'block' }}>Phone Number (for Telebirr)</label>
+              {/* Phone Number Input */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 12, color: sub, marginBottom: 6, display: 'block', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Phone for Telebirr</label>
                 <input
                   type="tel"
                   placeholder="+251 9xx xxx xxx"
                   id="telebirr-phone"
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    borderRadius: 10,
-                    border: `1px solid ${T?.border || '#e0e0e0'}`,
-                    background: T?.bg || '#f5f5f5',
-                    color: T?.txt || '#000',
-                    fontSize: 14,
-                  }}
+                  style={inputStyle}
                 />
               </div>
 
               {/* Quick Coin Package Options */}
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 12, color: T?.sub, marginBottom: 8 }}>Quick Recharge Options</div>
+                <div style={{ fontSize: 12, color: sub, marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Quick Recharge</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <button
-                    onClick={() => {
-                      const phone = document.getElementById('telebirr-phone')?.value;
-                      if (!phone) {
-                        alert('Please enter your phone number');
-                        return;
-                      }
-                      // Find smallest package that meets the requirement
-                      const minPackage = gifts.length > 0 ? Math.ceil(rechargeError.required_coins / 10) * 10 : 100;
-                      handleTelebirrPayment(1, phone); // Using package ID 1 as default
-                    }}
-                    style={{
-                      padding: '12px',
-                      borderRadius: 10,
-                      border: `1px solid ${T?.border || '#e0e0e0'}`,
-                      background: T?.bg || '#f5f5f5',
-                      color: T?.txt || '#000',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    100 Coins<br />
-                    <span style={{ fontSize: 11, color: T?.sub }}>~10 ETB</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      const phone = document.getElementById('telebirr-phone')?.value;
-                      if (!phone) {
-                        alert('Please enter your phone number');
-                        return;
-                      }
-                      handleTelebirrPayment(2, phone); // Using package ID 2
-                    }}
-                    style={{
-                      padding: '12px',
-                      borderRadius: 10,
-                      border: `1px solid ${T?.border || '#e0e0e0'}`,
-                      background: T?.bg || '#f5f5f5',
-                      color: T?.txt || '#000',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    500 Coins<br />
-                    <span style={{ fontSize: 11, color: T?.sub }}>~50 ETB</span>
-                  </button>
+                  {[
+                    { coins: 100, etb: 10, pkgId: 1 },
+                    { coins: 500, etb: 50, pkgId: 2 },
+                  ].map(pkg => (
+                    <button
+                      key={pkg.pkgId}
+                      onClick={() => {
+                        const phone = document.getElementById('telebirr-phone')?.value;
+                        if (!phone) { alert('Please enter your phone number'); return; }
+                        handleTelebirrPayment(pkg.pkgId, phone);
+                      }}
+                      style={{
+                        padding: '14px 12px',
+                        borderRadius: 10,
+                        border: `1.5px solid ${border}`,
+                        background: surface,
+                        color: txt,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      🪙 {pkg.coins}<br />
+                      <span style={{ fontSize: 12, color: sub, fontWeight: 500 }}>{pkg.etb} ETB</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button
-                  onClick={() => setShowRechargeDialog(false)}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    borderRadius: 10,
-                    border: `1px solid ${T?.border || '#e0e0e0'}`,
-                    background: T?.bg || '#f5f5f5',
-                    color: T?.txt || '#000',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setShowRechargeDialog(false)} style={secondaryBtn}>
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    const phone = document.getElementById('telebirr-phone')?.value;
-                    if (!phone) {
-                      alert('Please enter your phone number');
-                      return;
-                    }
-                    // Open wallet page for more options
-                    setShowRechargeDialog(false);
-                    onShowWallet?.();
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    borderRadius: 10,
-                    border: 'none',
-                    background: T?.pri || '#000',
-                    color: '#fff',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
+                  onClick={() => { setShowRechargeDialog(false); onShowWallet?.(); }}
+                  style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: pri, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
                 >
-                  More Options
+                  Open Wallet
                 </button>
               </div>
             </div>
