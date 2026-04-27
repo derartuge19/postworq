@@ -362,54 +362,6 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
                   </div>
                 </div>
 
-                {/* Right side: thumbnail + unread dot */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  {notif.post?.thumbnail && (() => {
-                    const thumbUrl = notif.post.thumbnail;
-                    const isVideo = thumbUrl && (
-                      thumbUrl.match(/\.(mp4|webm|ogg|mov)$/i) || 
-                      thumbUrl.includes('/video/')
-                    );
-                    
-                    // For videos, try to get Cloudinary poster, otherwise use video URL
-                    const displayUrl = isVideo 
-                      ? (getVideoPoster(mediaUrl(thumbUrl)) || mediaUrl(thumbUrl))
-                      : mediaUrl(thumbUrl);
-                    
-                    return (
-                      <div style={{ 
-                        width: 44, 
-                        height: 44, 
-                        borderRadius: 8, 
-                        overflow: 'hidden', 
-                        background: T.border,
-                        flexShrink: 0,
-                      }}>
-                        <img 
-                          src={displayUrl} 
-                          alt=""
-                          loading="lazy"
-                          style={{ 
-                            width: '100%', 
-                            height: '100%', 
-                            objectFit: 'cover',
-                            display: 'block',
-                          }} 
-                          onError={(e) => {
-                            // Fallback to gray background if image fails
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    );
-                  })()}
-                  {!notif.read && (
-                    <div style={{
-                      width: 9, height: 9, borderRadius: '50%',
-                      background: '#EF4444', flexShrink: 0,
-                    }} />
-                  )}
-                </div>
               </div>
             ))}
           </div>

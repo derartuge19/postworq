@@ -323,6 +323,8 @@ const api = {
 
   getFollowing: (userId) => api.request(`/follows/?follower=${userId}`),
 
+  getUserSuggestions: () => api.request('/follows/suggestions/'),
+
   deletePost: (reelId) =>
     api.request(`/reels/${reelId}/`, {
       method: 'DELETE',

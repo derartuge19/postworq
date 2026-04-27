@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import api from '../api';
 import GamificationBar from '../components/GamificationBar';
+import SuggestedUsers from '../components/SuggestedUsers';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -75,6 +76,7 @@ export default function HomeScreen({ navigation }) {
   const [customGift, setCustomGift] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [votingInProgress, setVotingInProgress] = useState({}); // { reelId: boolean }
+  const [showSuggestions, setShowSuggestions] = useState(true);
 
   const toggleCaption = (postId) => {
     setExpandedCaptions(prev => ({ ...prev, [postId]: !prev[postId] }));
@@ -466,6 +468,15 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
+  const feedData = React.useMemo(() => {
+    if (posts.length === 0) return posts;
+    const result = [...posts];
+    if (showSuggestions && result.length > 3) {
+      result.splice(3, 0, { id: '__suggestions__', type: 'suggestions' });
+    }
+    return result;
+  }, [posts, showSuggestions]);
+
   if (loading && posts.length === 0) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -483,8 +494,18 @@ export default function HomeScreen({ navigation }) {
       <StatusBar translucent backgroundColor="transparent" style="dark" />
       {renderHeader()}
       <FlashList
-        data={posts}
-        renderItem={renderPost}
+        data={feedData}
+        renderItem={({ item, index }) => {
+          if (item.type === 'suggestions') {
+            return (
+              <SuggestedUsers
+                onUserPress={(userId) => navigation.navigate('ProfileDetail', { userId })}
+                onDismiss={() => setShowSuggestions(false)}
+              />
+            );
+          }
+          return renderPost({ item, index });
+        }}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
