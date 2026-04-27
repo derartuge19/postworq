@@ -522,17 +522,16 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
   if (left < 8) left = 8;
   if (left + menuWidth > vp.w - 8) left = vp.w - menuWidth - 8;
 
-  // Auto-dismiss after 1 second ([] so parent re-renders don't reset the timer)
+  // Close on outside click or scroll
   useEffect(() => {
-    const timer = setTimeout(() => onClose(), 1000);
-    return () => clearTimeout(timer);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Close on outside click
-  useEffect(() => {
-    const handler = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    const handleClick = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) onClose(); };
+    const handleScroll = () => onClose();
+    document.addEventListener('mousedown', handleClick);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [onClose]);
 
   const handlePostInfo = () => { setShowInfo(true); };
@@ -1036,7 +1035,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
           </div>
           <button
             className="hp-btn"
-            onClick={(e) => { e.stopPropagation(); setOptionsAnchor(e.currentTarget.getBoundingClientRect()); setShowOptions(true); }}
+            onClick={(e) => { e.stopPropagation(); if (showOptions) { setShowOptions(false); return; } setOptionsAnchor(e.currentTarget.getBoundingClientRect()); setShowOptions(true); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: T?.sub || '#666', display: 'flex', alignItems: 'center' }}
           >
             <MoreHorizontal size={baseFontSize * 1.125} />
@@ -1167,12 +1166,12 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 ) : (
                   <Heart
                     size={baseFontSize}
-                    fill={liked ? '#FFD700' : 'none'}
-                    color={liked ? '#FFD700' : '#FFD700'}
+                    fill={liked ? '#F9E08B' : 'none'}
+                    color={liked ? '#F9E08B' : '#F9E08B'}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
-                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#FFD700', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{likes > 0 ? likes : ''}</span>
               </button>
               {/* Comment */}
               <button
@@ -1185,8 +1184,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <MessageCircle size={baseFontSize} color="#FFD700" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
-                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#FFD700', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
+                <MessageCircle size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
               </button>
               {/* Share */}
               <button
@@ -1200,8 +1199,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={baseFontSize} color="#FFD700" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
-                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#FFD700', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
+                <Share2 size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
+                <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift - only show on other people's posts */}
               {post.user?.username !== currentUser?.username && (
@@ -1216,7 +1215,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                     '--hp-hover': (T?.border || '#e0e0e0') + '60',
                   }}
                 >
-                  <Gift size={baseFontSize} color="#FFD700" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
+                  <Gift size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
                 </button>
               )}
             </div>
@@ -1233,8 +1232,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             >
               <Bookmark
                 size={baseFontSize}
-                fill={saved ? '#FFD700' : 'none'}
-                color="#FFD700"
+                fill={saved ? '#F9E08B' : 'none'}
+                color="#F9E08B"
               />
             </button>
           </div>
@@ -1878,11 +1877,11 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
 // Add CSS for icon hover and active states
 const iconStyles = `
   .hp-action:hover svg {
-    fill: #FFD700 !important;
+    fill: #F9E08B !important;
     transition: fill 0.15s ease;
   }
   .hp-action:active svg {
-    fill: #FFD700 !important;
+    fill: #F9E08B !important;
     transform: scale(0.9);
     transition: all 0.1s ease;
   }

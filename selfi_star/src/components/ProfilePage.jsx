@@ -683,19 +683,19 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             style={{
               width: "100%",
               padding: "10px 20px",
-              border: `1px solid ${T.border}`,
-              background: "#fff",
+              border: `1px solid ${T.pri || '#E2B355'}`,
+              background: "transparent",
               borderRadius: 8,
               cursor: "pointer",
               fontSize: 14,
               fontWeight: 700,
-              color: T.txt,
+              color: T.pri || '#E2B355',
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: 8,
             }}>
-            <Edit size={16} />
+            <Edit size={16} color={T.pri || '#E2B355'} />
             Edit Profile
           </button>
         )}
