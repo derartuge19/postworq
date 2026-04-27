@@ -657,7 +657,7 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
 });
 
 /* ── Post Card ── */
-const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onRequireAuth, onNavigateToReel, onCommentAdded, onVoteAdded, onShowVideoDetail, videoObserver }) {
+const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onRequireAuth, onNavigateToReel, onCommentAdded, onVoteAdded, onShowVideoDetail, videoObserver, onShowWallet }) {
   // Seed from post + any persisted local state so the heart stays filled
   // even when the cached feed's `is_liked` is stale.
   const [liked, setLiked] = useState(() => post.is_liked || readIdSet(LIKES_KEY).has(post.id));
@@ -1764,6 +1764,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 onVoteAdded={() => {}}
                 onShowVideoDetail={onShowVideoDetail}
                 videoObserver={videoObserverRef.current}
+                onShowWallet={onShowWallet}
               />
               {/* Inject horizontal suggestions after the 3rd post on mobile */}
               {window.innerWidth <= 1024 && index === 2 && showMobileSuggestions && (
