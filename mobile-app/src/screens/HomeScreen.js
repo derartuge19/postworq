@@ -77,6 +77,8 @@ export default function HomeScreen({ navigation }) {
   const [giftMessage, setGiftMessage] = useState('');
   const [votingInProgress, setVotingInProgress] = useState({}); // { reelId: boolean }
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [followStates, setFollowStates] = useState({}); // { userId: boolean }
+  const [suggestionTriggerUserId, setSuggestionTriggerUserId] = useState(null);
 
   const toggleCaption = (postId) => {
     setExpandedCaptions(prev => ({ ...prev, [postId]: !prev[postId] }));
@@ -293,6 +295,19 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 
+  const handleFollow = async (userId) => {
+    try {
+      // Optimistic update
+      setFollowStates(prev => ({ ...prev, [userId]: true }));
+      setSuggestionTriggerUserId(userId);
+      await api.toggleFollow(userId);
+    } catch (error) {
+      console.error('Error following:', error);
+      setFollowStates(prev => ({ ...prev, [userId]: false }));
+      setSuggestionTriggerUserId(null);
+    }
+  };
+
   const renderPost = ({ item }) => {
     if (!item) return null;
     
@@ -306,7 +321,11 @@ export default function HomeScreen({ navigation }) {
     const isVisible = visibleItems.includes(item.id);
     const currentLiked = item.has_voted || item.is_liked || false;
 
+    const isFollowing = followStates[item.user?.id] ?? item.user?.is_following;
+    const isOwnPost = user?.id === item.user?.id;
+
     return (
+      <View key={item.id}>
       <View style={styles.postCard}>
         {/* Header */}
         <View style={styles.header}>
@@ -327,6 +346,15 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.username}>{item.user?.username || 'user'}</Text>
               </TouchableOpacity>
               <Ionicons name="checkmark-circle" size={14} color={T.pri} style={{ marginLeft: 4 }} />
+              
+              {!isOwnPost && !isFollowing && (
+                <>
+                  <Text style={{ color: T.sub, marginHorizontal: 6 }}>•</Text>
+                  <TouchableOpacity onPress={() => handleFollow(item.user?.id)}>
+                    <Text style={{ color: T.pri, fontWeight: '700', fontSize: 13 }}>Follow</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
             <Text style={styles.time}>{timeAgo(item.created_at)}</Text>
           </View>
@@ -461,6 +489,17 @@ export default function HomeScreen({ navigation }) {
             </View>
           )}
         </View>
+      </View>
+      
+      {suggestionTriggerUserId === item.user?.id && (
+        <SuggestedUsers
+          onUserPress={(uid) => {
+            setSuggestionTriggerUserId(null);
+            navigation.navigate('ProfileDetail', { userId: uid });
+          }}
+          onDismiss={() => setSuggestionTriggerUserId(null)}
+        />
+      )}
       </View>
     );
   };

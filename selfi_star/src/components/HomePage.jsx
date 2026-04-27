@@ -657,26 +657,27 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
 });
 
 /* ── Post Card ── */
-const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onRequireAuth, onNavigateToReel, onCommentAdded, onVoteAdded, onShowVideoDetail, videoObserver, onShowWallet }) {
+const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowProfile, onRequireAuth, onNavigateToReel, onCommentAdded, onVoteAdded, onShowVideoDetail, videoObserver, onShowWallet, onFollow, isFollowing }) {
   // Seed from post + any persisted local state so the heart stays filled
   // even when the cached feed's `is_liked` is stale.
   const [liked, setLiked] = useState(() => post.is_liked || readIdSet(LIKES_KEY).has(post.id));
   const [likes, setLikes] = useState(post.votes || 0);
   const [saved, setSaved] = useState(() => post.is_saved || readIdSet(SAVES_KEY).has(post.id));
-  const [likeAnim, setLikeAnim] = useState(false);
-  const [saveAnim, setSaveAnim] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const [videoPlaying, setVideoPlaying] = useState(false);
-  const [showComments, setShowComments] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [optionsAnchor, setOptionsAnchor] = useState(null);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [inlineComments, setInlineComments] = useState(post.recent_comments || []);
   const [commentCount, setCommentCount] = useState(post.comment_count || 0);
-  // Inline comments — seed from backend-provided recent_comments so we
-  // paint instantly without a per-card fetch.
-  const [inlineComments, setInlineComments] = useState(
-    Array.isArray(post.recent_comments) ? post.recent_comments.slice(0, 3) : []
-  );
   const [showAllInline, setShowAllInline] = useState(false);
+
+  const isOwnPost = currentUser?.id === post.user?.id;
+
+  const handleFollowClick = (e) => {
+    e.stopPropagation();
+    if (!currentUser) { onRequireAuth?.(); return; }
+    onFollow?.(post.user?.id);
+  };
 
   // ── Re-sync local UI with prop changes ────────────────────────────────────
   // When the feed background-refreshes, the same card receives a new `post`
@@ -1007,6 +1008,26 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 {post.user?.username || 'user'}
               </button>
               <CheckCircle size={baseFontSize * 0.75} fill={T?.pri || '#000'} color="#fff" />
+
+              {!isOwnPost && !isFollowing && (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <span style={{ color: T?.sub || '#666', margin: '0 4px', fontSize: 14 }}>•</span>
+                  <button
+                    onClick={handleFollowClick}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: T?.pri || '#DA9B2A',
+                      fontWeight: 700,
+                      fontSize: 'calc(var(--font-size-base, 16px) * 0.8125)',
+                      cursor: 'pointer',
+                      padding: '0 4px',
+                    }}
+                  >
+                    Follow
+                  </button>
+                </div>
+              )}
             </div>
             <div style={{ fontSize: 'calc(var(--font-size-base, 16px) * 0.6875)', color: T?.sub || '#666' }}>{timeAgo(post.created_at)}</div>
           </div>
@@ -1360,6 +1381,8 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showMobileSuggestions, setShowMobileSuggestions] = useState(true);
+  const [followStates, setFollowStates] = useState({}); // { userId: boolean }
+  const [suggestionTriggerUserId, setSuggestionTriggerUserId] = useState(null);
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
 
@@ -1433,6 +1456,18 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   // re-creating the callback (which would trash memoization in child effects).
   const postsRef = useRef(posts);
   useEffect(() => { postsRef.current = posts; }, [posts]);
+
+  const handleFollow = useCallback(async (userId) => {
+    try {
+      setFollowStates(prev => ({ ...prev, [userId]: true }));
+      setSuggestionTriggerUserId(userId);
+      await api.toggleFollow(userId);
+    } catch (e) {
+      console.error('Follow error:', e);
+      setFollowStates(prev => ({ ...prev, [userId]: false }));
+      setSuggestionTriggerUserId(null);
+    }
+  }, []);
 
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {
     try {
@@ -1765,6 +1800,8 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 onShowVideoDetail={onShowVideoDetail}
                 videoObserver={videoObserverRef.current}
                 onShowWallet={onShowWallet}
+                onFollow={handleFollow}
+                isFollowing={followStates[post.user?.id] ?? post.user?.is_following}
               />
               {/* Inject horizontal suggestions after the 3rd post on mobile */}
               {window.innerWidth <= 1024 && index === 2 && showMobileSuggestions && (
@@ -1772,6 +1809,15 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                   onUserClick={onShowProfile}
                   onDismiss={() => setShowMobileSuggestions(false)}
                 />
+              )}
+              {/* Triggered suggestions after follow */}
+              {suggestionTriggerUserId === post.user?.id && (
+                <div style={{ margin: '8px 0 16px' }}>
+                  <HorizontalUserSuggestions 
+                    onUserClick={onShowProfile}
+                    onDismiss={() => setSuggestionTriggerUserId(null)}
+                  />
+                </div>
               )}
             </div>
           ))
