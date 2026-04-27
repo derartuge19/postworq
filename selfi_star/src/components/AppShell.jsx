@@ -44,7 +44,7 @@ export function AppShell({
   // All nav items (sidebar uses full list; mobile bottom uses subset)
   const menuItems = [
     { id: 'home',          icon: Home,         label: 'Home' },
-    { id: 'reels',         icon: Film,         label: 'Discover' },
+    { id: 'reels',         icon: Film,         label: 'Reels' },
     {
       id: 'campaigns',
       icon: Trophy,
@@ -77,7 +77,7 @@ export function AppShell({
   // Matches the React Native AppNavigator tab order exactly.
   const MOBILE_BOTTOM_TABS = [
     { item: menuItems[0], label: 'Home',          iconName: 'home' },
-    { item: menuItems[1], label: 'Discover',       iconName: 'discover' },
+    { item: menuItems[1], label: 'Reels',          iconName: 'discover' },
     { item: menuItems[5], label: '',               isCreate: true },
     { item: menuItems[3], label: 'Alerts',         iconName: 'bell',    badge: unreadNotifCount },
     { item: menuItems[6], label: 'Profile',        iconName: 'profile' },
