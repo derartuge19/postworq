@@ -84,22 +84,22 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
       {/* Logos - Top Left and Right */}
       <div style={{
         position: "absolute",
-        top: -50,
+        top: 16,
         left: 24,
         display: "flex",
         alignItems: "center",
         gap: 10,
       }}>
-        <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 150, height: 150, objectFit: "contain" }} onError={(e) => { console.error('Ethio logo failed to load'); e.target.style.display = 'none'; }} />
+        <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 90, height: 90, objectFit: "contain" }} onError={(e) => { e.target.style.display = 'none'; }} />
       </div>
       <div style={{
         position: "absolute",
-        top: -50,
+        top: 16,
         right: 24,
         display: "flex",
         alignItems: "center",
       }}>
-        <img src="/flip-logo.png" alt="FlipStar" style={{ width: 150, height: 150, objectFit: "contain" }} onError={(e) => { console.error('Flip logo failed to load'); e.target.style.display = 'none'; }} />
+        <img src="/Flip_Star_Final_Logo_v3_side__2_-removebg-preview.png" alt="FlipStar" style={{ width: 120, height: 60, objectFit: "contain" }} onError={(e) => { e.target.style.display = 'none'; }} />
       </div>
 
       <div style={{

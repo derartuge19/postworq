@@ -14,7 +14,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import config from '../config';
-const flipLogo = '/flip-logo.png';
+import flipLogo from '../assets/flip-logo.png';
 
 export function AppShell({
   user,
