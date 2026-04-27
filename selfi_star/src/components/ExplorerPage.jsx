@@ -204,14 +204,14 @@ function VideoThumb({ reel, rank, index = 0, hero = false, onOpen, T }) {
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
         {hero && reel.user?.username && (
-          <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#fff',
+          <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#F9E08B',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             @{reel.user.username}
           </span>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-          <Heart size={hero ? 13 : 10} color="#fff" fill="#fff" />
-          <span style={{ color: '#fff', fontSize: hero ? 12 : 10, fontWeight: 600 }}>
+          <Heart size={hero ? 13 : 10} color="#F9E08B" fill="#F9E08B" />
+          <span style={{ color: '#F9E08B', fontSize: hero ? 12 : 10, fontWeight: 600 }}>
             {fmt(reel.votes || 0)}
           </span>
         </div>
@@ -460,7 +460,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
           {inSearchMode || searchFocused ? null : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <Flame size={22} color={T.pri} />
-              <span style={{ fontSize: 20, fontWeight: 800, color: T.txt }}>Explore</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#F9E08B' }}>Explore</span>
             </div>
           )}
           {/* Search input wrapper */}
@@ -498,11 +498,11 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
                 border: `1px solid ${T.border}`,
               }}>
                 <div style={{ padding: '10px 14px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: T.sub, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#F9E08B', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <Clock size={12} /> Recent
                   </span>
                   <button onClick={() => { saveRecent([]); setRecentSearches([]); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: T.sub, fontWeight: 600 }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#F9E08B', fontWeight: 600 }}>
                     Clear all
                   </button>
                 </div>
@@ -526,7 +526,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
                   padding: '5px 10px', borderRadius: 20,
                   border: `1.5px solid ${timeRange === r.id ? T.pri : T.border}`,
                   background: timeRange === r.id ? T.pri : 'transparent',
-                  color: timeRange === r.id ? '#fff' : T.sub,
+                  color: timeRange === r.id ? '#fff' : '#F9E08B',
                   fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
                 }}>
                   {r.label}
@@ -539,7 +539,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
         {/* Row 2 - category navigation (explore mode only) */}
         {!inSearchMode && (
           <div style={{ padding: '0 16px 12px' }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: T.sub, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#F9E08B', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
               <TrendingUp size={14} /> CATEGORIES
             </div>
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -584,7 +584,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
                 {/* Users */}
                 {searchResults.users?.length > 0 && (
                   <div style={{ marginBottom: 28 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#F9E08B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <User size={13} /> PEOPLE
                     </div>
                     {searchResults.users.map(u => {
@@ -601,8 +601,8 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
                             {photo ? <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 20 }}>👤</span>}
                           </div>
                           <div style={{ flex: 1, textAlign: 'left' }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: T.txt }}>@{u.username}</div>
-                            {u.followers_count > 0 && <div style={{ fontSize: 12, color: T.sub }}>{fmt(u.followers_count)} followers</div>}
+                            <div style={{ fontSize: 14, fontWeight: 700, color: '#F9E08B' }}>@{u.username}</div>
+                            {u.followers_count > 0 && <div style={{ fontSize: 12, color: '#F9E08B' }}>{fmt(u.followers_count)} followers</div>}
                           </div>
                           <ChevronRight size={16} color={T.sub} />
                         </button>
@@ -614,7 +614,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
                 {/* Hashtags */}
                 {searchResults.hashtags?.length > 0 && (
                   <div style={{ marginBottom: 28 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#F9E08B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Hash size={13} /> HASHTAGS
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -634,7 +634,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
                 {/* Posts */}
                 {searchResults.posts?.length > 0 && (
                   <div style={{ marginBottom: 24 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#F9E08B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Play size={13} /> POSTS
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
@@ -647,9 +647,9 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
 
                 {/* No results */}
                 {!searchResults.users?.length && !searchResults.hashtags?.length && !searchResults.posts?.length && (
-                  <div style={{ textAlign: 'center', padding: '60px 20px', color: T.sub }}>
+                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#F9E08B' }}>
                     <Search size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
-                    <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 6 }}>No results for "{debouncedQ}"</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#F9E08B', marginBottom: 6 }}>No results for "{debouncedQ}"</div>
                     <div style={{ fontSize: 13 }}>Try different keywords or browse trending below</div>
                   </div>
                 )}
@@ -665,7 +665,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
             {/* ── Trending hashtags strip ─────────────────────────────── */}
             {!hashLoading && hashtags.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: T.sub, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#F9E08B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <TrendingUp size={13} /> TRENDING HASHTAGS
                 </div>
                 <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 4 }}>
@@ -720,13 +720,13 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
                 {hashtagView ? (
                   <>
                     <Hash size={44} style={{ opacity: 0.3, marginBottom: 12 }} />
-                    <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 6 }}>No posts with #{hashtagView.tag}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#F9E08B', marginBottom: 6 }}>No posts with #{hashtagView.tag}</div>
                     <div style={{ fontSize: 13 }}>Be the first to post with this hashtag!</div>
                   </>
                 ) : (
                   <>
                     <TrendingUp size={44} style={{ opacity: 0.3, marginBottom: 12 }} />
-                    <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 6 }}>Nothing trending yet</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#F9E08B', marginBottom: 6 }}>Nothing trending yet</div>
                     <div style={{ fontSize: 13 }}>Check back soon or try a different category</div>
                   </>
                 )}
