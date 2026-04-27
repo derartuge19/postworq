@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Heart, MessageCircle, UserPlus, Trophy, Bell, Check, AtSign, Reply, RefreshCw } from "lucide-react";
+import { Heart, MessageCircle, UserPlus, Trophy, Bell, Check, AtSign, Reply, RefreshCw, ArrowLeft } from "lucide-react";
 import api from "../api";
 import config from "../config.js";
 import { getRelativeTime } from "../utils/timeUtils";
@@ -175,6 +175,15 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {onBack && (
+                <button onClick={onBack} style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: 6, borderRadius: '50%', color: T.txt,
+                }}>
+                  <ArrowLeft size={22} strokeWidth={2.5} />
+                </button>
+              )}
               <div style={{ position: 'relative' }}>
                 <Bell size={22} color={T.pri} strokeWidth={2.5} />
                 {hasUnread && (
