@@ -177,6 +177,11 @@ from .views_legal import (
     get_pending_acceptances, get_user_acceptances
 )
 from .views_gift import GiftViewSet, PublicGiftViewSet, GiftTransactionViewSet, UserGiftStatsViewSet
+from .views_wallet import (
+    wallet_summary, wallet_transactions, withdrawal_info, request_withdrawal,
+    my_withdrawals, cancel_withdrawal, public_wallet_config,
+    admin_wallet_config, admin_withdrawals_list, admin_withdrawal_action, admin_adjust_balance,
+)
 
 router = DefaultRouter()
 router.register(r'profile', UserProfileViewSet, basename='profile')
@@ -368,6 +373,19 @@ urlpatterns = [
     path('admin/legal/<int:document_id>/publish/', admin_legal_document_publish, name='admin-legal-publish'),
     path('admin/legal/<int:document_id>/archive/', admin_legal_document_archive, name='admin-legal-archive'),
     path('admin/legal/<int:document_id>/acceptances/', admin_legal_document_acceptances, name='admin-legal-acceptances'),
+    # ============ WALLET (User) ============
+    path('wallet/', wallet_summary, name='wallet-summary'),
+    path('wallet/transactions/', wallet_transactions, name='wallet-transactions'),
+    path('wallet/config/', public_wallet_config, name='wallet-public-config'),
+    path('wallet/withdrawal-info/', withdrawal_info, name='wallet-withdrawal-info'),
+    path('wallet/withdraw/', request_withdrawal, name='wallet-withdraw'),
+    path('wallet/withdrawals/', my_withdrawals, name='wallet-my-withdrawals'),
+    path('wallet/withdrawals/<int:withdrawal_id>/cancel/', cancel_withdrawal, name='wallet-cancel-withdrawal'),
+    # ============ WALLET (Admin) ============
+    path('admin/wallet/config/', admin_wallet_config, name='admin-wallet-config'),
+    path('admin/wallet/withdrawals/', admin_withdrawals_list, name='admin-wallet-withdrawals'),
+    path('admin/wallet/withdrawals/<int:withdrawal_id>/action/', admin_withdrawal_action, name='admin-wallet-withdrawal-action'),
+    path('admin/wallet/adjust-balance/', admin_adjust_balance, name='admin-wallet-adjust-balance'),
     # Legal Documents - Public/User
     path('legal/', get_all_legal_documents, name='legal-all'),
     path('legal/<str:document_type>/', get_legal_document, name='legal-document'),

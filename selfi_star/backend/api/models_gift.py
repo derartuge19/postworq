@@ -24,8 +24,24 @@ class Gift(models.Model):
     
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='gifts/', help_text='Gift icon/image')
+    image = models.ImageField(upload_to='gifts/', null=True, blank=True, help_text='Optional uploaded icon/image (overrides icon_name if set)')
     animated_image = models.ImageField(upload_to='gifts/animated/', null=True, blank=True, help_text='Animated version of the gift')
+
+    # Lucide icon name for default rendering when no image is uploaded.
+    # Frontend renders <LucideIcon name={icon_name} /> from lucide-react.
+    # Example values: 'Heart', 'Star', 'Gift', 'Crown', 'Diamond', 'Flower', 'Cat'.
+    icon_name = models.CharField(
+        max_length=50,
+        blank=True,
+        default='Gift',
+        help_text='lucide-react icon name (e.g., Heart, Star, Crown, Diamond)'
+    )
+    icon_color = models.CharField(
+        max_length=20,
+        blank=True,
+        default='#FFD700',
+        help_text='Hex color for the lucide icon (e.g., #FF0080 for hearts)'
+    )
     coin_value = models.IntegerField(default=1, help_text='Cost in coins to send this gift')
     rarity = models.CharField(max_length=20, choices=RARITY_CHOICES, default='common')
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='special')

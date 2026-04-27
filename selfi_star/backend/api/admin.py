@@ -15,6 +15,7 @@ from .models_campaign_extended import (
 )
 from .models_legal import LegalDocument, LegalDocumentVersion, UserLegalAcceptance
 from .models_gift import Gift, GiftTransaction, GiftCombo, UserGiftStats
+from .models_wallet import WalletConfig, WithdrawalRequest
 
 # Custom Admin Site Configuration
 class SelfieStarAdminSite(admin.AdminSite):
@@ -614,6 +615,86 @@ class UserGiftStatsAdmin(admin.ModelAdmin):
     search_fields = ['user__username']
     readonly_fields = ['updated_at']
     ordering = ['-total_coins_received']
+
+# ============ WALLET / COIN ECONOMY ADMIN ============
+@admin.register(WalletConfig, site=admin_site)
+class WalletConfigAdmin(admin.ModelAdmin):
+    """Singleton config — only one row should exist (id=1)."""
+    list_display = ['id', 'welcome_bonus', 'coins_per_birr', 'withdrawal_min_coins',
+                    'withdrawal_fee_percent', 'withdrawal_enabled', 'updated_at']
+    fieldsets = (
+        ('Earning Rewards', {
+            'fields': (
+                'welcome_bonus',
+                ('daily_login_day1', 'daily_login_day2', 'daily_login_day3', 'daily_login_day4'),
+                ('daily_login_day5', 'daily_login_day6', 'daily_login_day7'),
+                'daily_post_bonus', 'campaign_join_reward',
+                ('receive_like_reward', 'receive_like_daily_cap'),
+                ('quality_comment_reward', 'quality_comment_daily_cap'),
+                'profile_complete_reward', 'referral_reward', 'campaign_winner_reward',
+            )
+        }),
+        ('Action Costs', {
+            'fields': (
+                ('cost_post_create', 'cost_like', 'cost_comment'),
+                ('cost_join_campaign', 'cost_extra_campaign_entry'),
+                ('cost_boost_2hr', 'cost_boost_24hr'),
+            )
+        }),
+        ('Thresholds', {
+            'fields': ('min_balance_to_post', 'min_balance_to_join_campaign')
+        }),
+        ('Withdrawal (Coin → Birr)', {
+            'fields': (
+                'withdrawal_enabled',
+                ('withdrawal_min_coins', 'withdrawal_max_coins_per_request'),
+                ('coins_per_birr', 'withdrawal_fee_percent'),
+                'withdrawal_processing_days',
+            )
+        }),
+        ('Gifting Policy', {
+            'fields': (
+                ('earned_coins_giftable', 'purchased_coins_giftable'),
+                ('earned_coins_withdrawable', 'purchased_coins_withdrawable'),
+            )
+        }),
+        ('Expiry', {'fields': ('earned_coins_expire_days',)}),
+        ('Audit', {'fields': ('updated_at', 'updated_by'), 'classes': ('collapse',)}),
+    )
+    readonly_fields = ['updated_at']
+
+    def has_add_permission(self, request):
+        # Allow only one row
+        return not WalletConfig.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(WithdrawalRequest, site=admin_site)
+class WithdrawalRequestAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'coin_amount', 'net_birr', 'payout_method',
+                    'status', 'created_at']
+    list_filter = ['status', 'payout_method', 'created_at']
+    search_fields = ['user__username', 'user__email', 'payout_account', 'payout_reference']
+    readonly_fields = ['gross_birr', 'fee_birr', 'net_birr', 'conversion_rate',
+                       'created_at', 'reviewed_at', 'completed_at']
+    ordering = ['-created_at']
+    fieldsets = (
+        ('User & Amount', {
+            'fields': ('user', 'coin_amount', 'conversion_rate',
+                       ('gross_birr', 'fee_birr', 'net_birr'))
+        }),
+        ('Payout Details', {
+            'fields': ('payout_method', 'payout_account', 'payout_account_name', 'payout_reference')
+        }),
+        ('Status & Review', {
+            'fields': ('status', 'admin_notes', 'rejection_reason',
+                       'reviewed_at', 'reviewed_by', 'completed_at')
+        }),
+        ('Timestamps', {'fields': ('created_at',), 'classes': ('collapse',)}),
+    )
+
 
 # Register User with custom admin
 admin_site.register(User, CustomUserAdmin)

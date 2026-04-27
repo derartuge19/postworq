@@ -489,7 +489,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                             lineHeight: 1,
                             marginBottom: 4,
                           }}>
-                            ${campaign.prize_value}
+                            {campaign.prize_value} ETB
                           </div>
                           <div style={{
                             fontSize: 13,

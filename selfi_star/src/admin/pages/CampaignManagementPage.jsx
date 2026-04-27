@@ -536,7 +536,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
                         Prize
                       </div>
                       <div style={{ fontSize: 16, fontWeight: 700, color: theme.pri }}>
-                        ${campaign.prize_value}
+                        {campaign.prize_value} ETB
                       </div>
                     </div>
                     <div style={{ flex: 1 }}>
@@ -1203,7 +1203,7 @@ function CreateCampaignModal({ theme, onClose, onSuccess, selectedMasterCampaign
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., $500 Cash Prize"
+                  placeholder="e.g., 25000 Birr Cash Prize"
                   value={formData.prize_title}
                   onChange={(e) => setFormData({ ...formData, prize_title: e.target.value })}
                   required
@@ -1248,7 +1248,7 @@ function CreateCampaignModal({ theme, onClose, onSuccess, selectedMasterCampaign
               
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: theme.txt, marginBottom: 8 }}>
-                  Prize Value ($) *
+                  Prize Value (Birr) *
                 </label>
                 <input
                   type="number"

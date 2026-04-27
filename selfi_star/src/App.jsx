@@ -22,6 +22,7 @@ const VideoDetailPage = lazy(() => import('./components/VideoDetailPage').then(m
 const MessagesPage = lazy(() => import('./components/MessagesPage').then(m => ({ default: m.MessagesPage })));
 const ExplorerPage = lazy(() => import('./components/ExplorerPage').then(m => ({ default: m.ExplorerPage })));
 const HomePage = lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })));
+const WalletPage = lazy(() => import('./pages/WalletPage').then(m => ({ default: m.WalletPage })));
 const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
 
 // Prefetch critical lazy chunks after initial load for faster navigation
@@ -212,6 +213,7 @@ export default function WerqRoot() {
   const [followersListType, setFollowersListType] = useState(_historyState.followersListType || 'followers');
   const [followersListUserId, setFollowersListUserId] = useState(_historyState.followersListUserId || null);
   const [showSettings, setShowSettings] = useState(_historyState.showSettings || false);
+  const [showWallet, setShowWallet] = useState(_historyState.showWallet || false);
   const settingsReturnState = useRef(null); // tracks where to go back to when settings closes
   const prevNavState = useRef(null); // tracks nav state before any overlay page opens
   const [showNotifications, setShowNotifications] = useState(_historyState.showNotifications || false);
@@ -763,6 +765,28 @@ export default function WerqRoot() {
     pushHistoryState({ showSettings: true, showProfile: false, showPostPage: false, showEditProfile: false, showFollowersList: false, showNotifications: false, showCampaigns: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false, showVideoDetail: false, activeTab: 'settings' });
   };
 
+  const handleShowWallet = () => {
+    if (!authUser) { setShowLogin(true); return; }
+    setShowWallet(true);
+    setShowSettings(false);
+    setShowProfile(false);
+    setShowPostPage(false);
+    setShowEditProfile(false);
+    setShowFollowersList(false);
+    setShowNotifications(false);
+    setShowCampaigns(false);
+    setShowCampaignDetail(false);
+    setShowCampaignLeaderboard(false);
+    setShowCampaignFeed(false);
+    setShowVideoDetail(false);
+    pushHistoryState({ showWallet: true });
+  };
+
+  const handleCloseWallet = () => {
+    setShowWallet(false);
+    pushHistoryState({ showWallet: false }, true);
+  };
+
   const handleCloseSettings = () => {
     setShowSettings(false);
     const ret = settingsReturnState.current;
@@ -936,6 +960,13 @@ export default function WerqRoot() {
         unreadDmCount={unreadDmCount}
       >
         {/* Each lazy page gets its own Suspense so only one loads at a time */}
+        {showWallet && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
+              <WalletPage theme={theme} onBack={handleCloseWallet} />
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
         {showSettings && (
           <LazyLoadErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
@@ -943,6 +974,7 @@ export default function WerqRoot() {
                 user={authUser}
                 onClose={handleCloseSettings}
                 onLogout={handleLogout}
+                onShowWallet={handleShowWallet}
               />
             </Suspense>
           </LazyLoadErrorBoundary>
@@ -1184,7 +1216,7 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen === 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && (
+        {screen === 'landing' && !showWallet && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && (
           <LazyLoadErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
               <LandingPage
@@ -1195,7 +1227,7 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab === 'home' && (
+        {screen !== 'landing' && !showWallet && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab === 'home' && (
           <LazyLoadErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
               <HomePage
@@ -1210,7 +1242,7 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab === 'messages' && (
+        {screen !== 'landing' && !showWallet && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab === 'messages' && (
           <LazyLoadErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
               <MessagesPage
@@ -1220,7 +1252,7 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen !== 'landing' && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab !== 'home' && activeTab !== 'messages' && (
+        {screen !== 'landing' && !showWallet && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab !== 'home' && activeTab !== 'messages' && (
           <TikTokLayout
             user={authUser}
             activeTab={activeTab}

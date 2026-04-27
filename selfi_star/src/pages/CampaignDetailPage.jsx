@@ -434,7 +434,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                     color: T.pri,
                     marginBottom: 4,
                   }}>
-                    ${campaign.prize_value}
+                    {campaign.prize_value} ETB
                   </div>
                   <div style={{
                     fontSize: 15,
@@ -922,7 +922,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   fontSize: 13,
                   color: T.sub,
                 }}>
-                  {entries.length} entries competing for ${campaign.prize_value}
+                  {entries.length} entries competing for {campaign.prize_value} ETB
                 </p>
               </div>
             </div>

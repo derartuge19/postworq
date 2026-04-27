@@ -73,7 +73,7 @@ export function SubscriptionManagement({ theme }) {
 
   const totalSubscribers = plans.reduce((sum, plan) => sum + plan.count, 0);
   const paidSubscribers = plans.slice(1).reduce((sum, plan) => sum + plan.count, 0);
-  const revenue = paidSubscribers * 9.99; // Assuming $9.99 average
+  const revenue = paidSubscribers * 999; // Assuming 999 ETB average
 
   return (
     <div>

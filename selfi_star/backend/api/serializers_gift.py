@@ -10,8 +10,9 @@ class GiftSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gift
         fields = [
-            'id', 'name', 'description', 'image', 'image_url', 'animated_image', 
-            'animated_image_url', 'coin_value', 'rarity', 'category', 'is_active',
+            'id', 'name', 'description', 'image', 'image_url', 'animated_image',
+            'animated_image_url', 'icon_name', 'icon_color',
+            'coin_value', 'rarity', 'category', 'is_active',
             'sort_order', 'xp_reward', 'animation_type', 'animation_duration',
             'created_at', 'updated_at'
         ]
@@ -39,8 +40,9 @@ class GiftCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gift
         fields = [
-            'name', 'description', 'image', 'animated_image', 'coin_value',
-            'rarity', 'category', 'is_active', 'sort_order', 'xp_reward',
+            'name', 'description', 'image', 'animated_image',
+            'icon_name', 'icon_color',
+            'coin_value', 'rarity', 'category', 'is_active', 'sort_order', 'xp_reward',
             'animation_type', 'animation_duration'
         ]
 
@@ -50,8 +52,9 @@ class GiftUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gift
         fields = [
-            'name', 'description', 'image', 'animated_image', 'coin_value',
-            'rarity', 'category', 'is_active', 'sort_order', 'xp_reward',
+            'name', 'description', 'image', 'animated_image',
+            'icon_name', 'icon_color',
+            'coin_value', 'rarity', 'category', 'is_active', 'sort_order', 'xp_reward',
             'animation_type', 'animation_duration'
         ]
 

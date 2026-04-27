@@ -75,16 +75,20 @@ class PublicGiftViewSet(viewsets.ReadOnlyModelViewSet):
         return Gift.objects.filter(is_active=True).order_by('sort_order', 'coin_value', 'name')
         
     def _create_default_gifts(self):
+        # Default gifts use lucide-react icon names — no image upload required.
+        # Frontend renders these via the lucide-react library.
         default_gifts = [
-            {'name': 'Rose', 'category': 'flowers', 'coin_value': 10, 'rarity': 'common', 'sort_order': 1},
-            {'name': 'Heart', 'category': 'hearts', 'coin_value': 50, 'rarity': 'common', 'sort_order': 2},
-            {'name': 'Star', 'category': 'special', 'coin_value': 100, 'rarity': 'rare', 'sort_order': 3},
-            {'name': 'Teddy Bear', 'category': 'animals', 'coin_value': 200, 'rarity': 'rare', 'sort_order': 4},
-            {'name': 'Diamond', 'category': 'gems', 'coin_value': 500, 'rarity': 'epic', 'sort_order': 5},
-            {'name': 'Sports Car', 'category': 'vehicles', 'coin_value': 1000, 'rarity': 'legendary', 'sort_order': 6},
+            {'name': 'Rose',       'icon_name': 'Flower2',  'icon_color': '#EC4899', 'category': 'flowers',  'coin_value': 10,   'rarity': 'common',    'sort_order': 1},
+            {'name': 'Heart',      'icon_name': 'Heart',    'icon_color': '#EF4444', 'category': 'hearts',   'coin_value': 50,   'rarity': 'common',    'sort_order': 2},
+            {'name': 'Star',       'icon_name': 'Star',     'icon_color': '#F59E0B', 'category': 'special',  'coin_value': 100,  'rarity': 'rare',      'sort_order': 3},
+            {'name': 'Teddy Bear', 'icon_name': 'Cat',      'icon_color': '#A78BFA', 'category': 'animals',  'coin_value': 200,  'rarity': 'rare',      'sort_order': 4},
+            {'name': 'Diamond',    'icon_name': 'Diamond',  'icon_color': '#06B6D4', 'category': 'gems',     'coin_value': 500,  'rarity': 'epic',      'sort_order': 5},
+            {'name': 'Crown',      'icon_name': 'Crown',    'icon_color': '#FBBF24', 'category': 'special',  'coin_value': 750,  'rarity': 'epic',      'sort_order': 6},
+            {'name': 'Sports Car', 'icon_name': 'Car',      'icon_color': '#DC2626', 'category': 'vehicles', 'coin_value': 1000, 'rarity': 'legendary', 'sort_order': 7},
+            {'name': 'Rocket',     'icon_name': 'Rocket',   'icon_color': '#8B5CF6', 'category': 'special',  'coin_value': 2000, 'rarity': 'legendary', 'sort_order': 8},
         ]
         for gift_data in default_gifts:
-            Gift.objects.get_or_create(name=gift_data['name'], defaults={**gift_data, 'image': ''})
+            Gift.objects.get_or_create(name=gift_data['name'], defaults=gift_data)
     
     serializer_class = GiftSerializer
     

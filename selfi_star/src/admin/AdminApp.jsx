@@ -27,6 +27,7 @@ import { SecurityPage } from './pages/SecurityPage';
 import { LegalDocumentsPage } from './pages/LegalDocumentsPage';
 import { MobileAppPage } from './pages/MobileAppPage';
 import { GiftManagementPage } from './pages/GiftManagementPage';
+import { CoinManagementPage } from './pages/CoinManagementPage';
 import api from '../api';
 import { BarChart3, Users, FileVideo, CreditCard, LogOut, LayoutDashboard, Settings, Key, FileText, Activity, Bell, Shield, Trophy, Target, Zap, Award, Flag, Gift as GiftIcon } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -209,6 +210,8 @@ export function AdminApp() {
         return <LegalDocumentsPage theme={T} />;
       case 'gifts':
         return <GiftManagementPage theme={T} />;
+      case 'coins':
+        return <CoinManagementPage theme={T} />;
       default:
         return <AdminDashboard theme={T} />;
     }

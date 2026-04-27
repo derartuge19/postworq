@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Coins, Users, TrendingUp, AlertTriangle, Zap, Calendar, DollarSign, Award, Phone, Shield } from 'lucide-react';
+import { Trophy, Coins, Users, TrendingUp, AlertTriangle, Zap, Calendar, Wallet, Award, Phone, Shield } from 'lucide-react';
 import api from '../../api';
 
 export function ContestDashboardPage({ theme }) {
@@ -134,7 +134,7 @@ export function ContestDashboardPage({ theme }) {
           border: `1px solid ${theme.border}`,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <DollarSign size={24} color={theme.green} />
+            <Wallet size={24} color={theme.green} />
             <span style={{ fontSize: 14, fontWeight: 600, color: theme.sub }}>Total Budget</span>
           </div>
           <div style={{ fontSize: 32, fontWeight: 800, color: theme.green }}>

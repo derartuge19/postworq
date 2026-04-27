@@ -340,7 +340,7 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess, selecte
                 <input type="text" value={formData.prize_title}
                   onChange={e => set('prize_title', e.target.value)} required style={inp} />
               </Field>
-              <Field label="Prize Value (USD)" required>
+              <Field label="Prize Value (ETB)" required>
                 <input type="number" value={formData.prize_value} min="0" step="0.01"
                   onChange={e => set('prize_value', e.target.value)} required style={inp} />
               </Field>

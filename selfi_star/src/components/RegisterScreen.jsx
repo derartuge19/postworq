@@ -6,8 +6,8 @@ import { useLegacyT } from "../contexts/ThemeContext";
 
 const PLANS = [
   { id:"free", name:"Explorer", am:"ተመራማሪ", emoji:"🌱", price:"Free", period:"", color:"#10B981", popular:false, features:["1 post/day","Basic analytics","Community access"] },
-  { id:"pro", name:"Star", am:"ኮከብ", emoji:"⭐", price:"$4.99", period:"/mo", color:"#DA9B2A", popular:true, features:["Unlimited posts","Advanced analytics","Priority support","Monetization"] },
-  { id:"premium", name:"Legend", am:"ታላቅ", emoji:"👑", price:"$9.99", period:"/mo", color:"#7C3AED", popular:false, features:["Everything in Star","Custom branding","Direct messaging","Exclusive events"] },
+  { id:"pro", name:"Star", am:"ኮከብ", emoji:"⭐", price:"500 ETB", period:"/mo", color:"#DA9B2A", popular:true, features:["Unlimited posts","Advanced analytics","Priority support","Monetization"] },
+  { id:"premium", name:"Legend", am:"ታላቅ", emoji:"👑", price:"1000 ETB", period:"/mo", color:"#7C3AED", popular:false, features:["Everything in Star","Custom branding","Direct messaging","Exclusive events"] },
 ];
 
 export function RegisterScreen({ onSuccess, onLogin, onBack }) {

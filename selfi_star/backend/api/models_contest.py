@@ -159,12 +159,25 @@ class CoinTransaction(models.Model):
     Coin purchase and spending transactions
     """
     TRANSACTION_TYPES = [
-        ('purchase', 'Purchase'),
-        ('gift', 'Gift to Creator'),
+        ('purchase', 'Purchase (Telebirr)'),
+        ('welcome_bonus', 'Welcome Bonus'),
+        ('daily_login', 'Daily Login Bonus'),
+        ('spin_reward', 'Daily Spin Reward'),
+        ('post_bonus', 'Daily Post Bonus'),
+        ('campaign_join', 'Campaign Join Reward'),
+        ('campaign_winner', 'Campaign Winner Reward'),
+        ('like_received', 'Like Received'),
+        ('comment_reward', 'Quality Comment Reward'),
+        ('referral', 'Referral Bonus'),
+        ('profile_complete', 'Profile Completion'),
+        ('gift_sent', 'Gift Sent'),
+        ('gift_received', 'Gift Received'),
         ('boost', 'Post Boost'),
         ('extra_entry', 'Extra Entry'),
-        ('reward', 'Contest Reward'),
+        ('reward', 'Generic Reward'),
         ('refund', 'Refund'),
+        ('withdrawal', 'Withdrawal to Birr'),
+        ('admin_adjustment', 'Admin Adjustment'),
     ]
     
     PAYMENT_METHODS = [
@@ -203,25 +216,46 @@ class CoinTransaction(models.Model):
 
 class UserCoinBalance(models.Model):
     """
-    Current coin balance for each user
+    Current coin balance for each user.
+
+    Two buckets:
+    - earned_balance: from rewards (login, spin, post, campaign). Restricted use.
+    - purchased_balance: bought via Telebirr. Full use including gifting.
+
+    `balance` field = earned + purchased (kept for backward compatibility).
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='coin_balance')
+
+    # Legacy total balance (kept for backward compat). Always = earned + purchased.
     balance = models.PositiveIntegerField(default=0)
+
+    # New split buckets
+    earned_balance = models.PositiveIntegerField(default=0, help_text='From rewards. Cannot be gifted.')
+    purchased_balance = models.PositiveIntegerField(default=0, help_text='Bought via Telebirr. Full use.')
+
     total_earned = models.PositiveIntegerField(default=0)
     total_spent = models.PositiveIntegerField(default=0)
-    
+    total_purchased = models.PositiveIntegerField(default=0, help_text='Lifetime coins bought')
+    total_withdrawn = models.PositiveIntegerField(default=0, help_text='Lifetime coins withdrawn to Birr')
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'user_coin_balances'
 
-    def add_coins(self, amount, transaction_type='reward', **kwargs):
-        """Add coins to balance"""
-        self.balance += amount
+    def _sync_balance(self):
+        """Keep legacy `balance` field in sync with the two buckets."""
+        self.balance = (self.earned_balance or 0) + (self.purchased_balance or 0)
+
+    def add_earned(self, amount, transaction_type='reward', **kwargs):
+        """Add coins to earned balance (rewards, spin, login, etc.)"""
+        if amount <= 0:
+            raise ValueError('Amount must be positive')
+        self.earned_balance = (self.earned_balance or 0) + amount
         self.total_earned += amount
-        self.save(update_fields=['balance', 'total_earned', 'updated_at'])
-        
-        # Create transaction record
+        self._sync_balance()
+        self.save(update_fields=['earned_balance', 'balance', 'total_earned', 'updated_at'])
+
         return CoinTransaction.objects.create(
             user=self.user,
             transaction_type=transaction_type,
@@ -229,21 +263,88 @@ class UserCoinBalance(models.Model):
             **kwargs
         )
 
-    def spend_coins(self, amount, transaction_type, **kwargs):
-        """Spend coins if sufficient balance"""
-        if self.balance < amount:
-            raise ValueError(f"Insufficient balance. Have {self.balance}, need {amount}")
-        
-        self.balance -= amount
+    def add_purchased(self, amount, transaction_type='purchase', **kwargs):
+        """Add coins to purchased balance (Telebirr top-ups)"""
+        if amount <= 0:
+            raise ValueError('Amount must be positive')
+        self.purchased_balance = (self.purchased_balance or 0) + amount
+        self.total_purchased += amount
+        self._sync_balance()
+        self.save(update_fields=['purchased_balance', 'balance', 'total_purchased', 'updated_at'])
+
+        return CoinTransaction.objects.create(
+            user=self.user,
+            transaction_type=transaction_type,
+            coins=amount,
+            **kwargs
+        )
+
+    def add_coins(self, amount, transaction_type='reward', **kwargs):
+        """Backward-compatible: defaults to earned bucket unless type is purchase."""
+        if transaction_type == 'purchase':
+            return self.add_purchased(amount, transaction_type, **kwargs)
+        return self.add_earned(amount, transaction_type, **kwargs)
+
+    def spend_coins(self, amount, transaction_type, restrict_earned=False, **kwargs):
+        """
+        Spend coins from balance.
+
+        - If restrict_earned=True (e.g., gifting): can only use purchased_balance.
+        - Otherwise: prefer earned_balance first, then purchased_balance.
+        """
+        if amount <= 0:
+            raise ValueError('Amount must be positive')
+
+        if restrict_earned:
+            # Gifting: only purchased coins allowed
+            if (self.purchased_balance or 0) < amount:
+                raise ValueError(
+                    f'Insufficient purchased coins. Have {self.purchased_balance}, need {amount}. '
+                    'Earned coins cannot be used for gifting. Top up via Telebirr.'
+                )
+            self.purchased_balance -= amount
+        else:
+            # In-app actions: prefer earned, fall back to purchased
+            total = (self.earned_balance or 0) + (self.purchased_balance or 0)
+            if total < amount:
+                raise ValueError(f'Insufficient balance. Have {total}, need {amount}')
+
+            from_earned = min(self.earned_balance or 0, amount)
+            from_purchased = amount - from_earned
+            self.earned_balance -= from_earned
+            self.purchased_balance -= from_purchased
+
         self.total_spent += amount
-        self.save(update_fields=['balance', 'total_spent', 'updated_at'])
-        
-        # Create transaction record
+        self._sync_balance()
+        self.save(update_fields=[
+            'earned_balance', 'purchased_balance', 'balance', 'total_spent', 'updated_at'
+        ])
+
         return CoinTransaction.objects.create(
             user=self.user,
             transaction_type=transaction_type,
             coins=-amount,
             **kwargs
+        )
+
+    def withdraw_to_birr(self, amount):
+        """Deduct coins for a withdrawal request (only earned coins by default)."""
+        if amount <= 0:
+            raise ValueError('Amount must be positive')
+        if (self.earned_balance or 0) < amount:
+            raise ValueError(f'Insufficient earned coins. Have {self.earned_balance}, need {amount}')
+        self.earned_balance -= amount
+        self.total_withdrawn += amount
+        self._sync_balance()
+        self.save(update_fields=[
+            'earned_balance', 'balance', 'total_withdrawn', 'updated_at'
+        ])
+
+        return CoinTransaction.objects.create(
+            user=self.user,
+            transaction_type='withdrawal',
+            coins=-amount,
+            description='Withdrawal to Birr (pending review)'
         )
 
 

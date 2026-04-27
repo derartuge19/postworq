@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { X, User, Bell, Lock, Globe, HelpCircle, LogOut, ChevronRight, Moon, Sun } from "lucide-react";
+import { X, User, Bell, Lock, Globe, HelpCircle, LogOut, ChevronRight, Moon, Sun, Wallet } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 
-export function SettingsPage({ user, onClose, onLogout }) {
+export function SettingsPage({ user, onClose, onLogout, onShowWallet }) {
   const { darkMode, toggleDarkMode, colors: T } = useTheme();
   const { language, changeLanguage, t } = useLanguage();
   const [activeSection, setActiveSection] = useState("account");
@@ -67,6 +67,7 @@ export function SettingsPage({ user, onClose, onLogout }) {
 
   const sections = [
     { id: "account", icon: User, label: t('account') },
+    { id: "wallet", icon: Wallet, label: 'Wallet', isExternal: true },
     { id: "notifications", icon: Bell, label: t('notificationsSettings') },
     { id: "privacy", icon: Lock, label: t('privacy') },
     { id: "appearance", icon: darkMode ? Moon : Sun, label: t('appearance') },
@@ -220,7 +221,13 @@ export function SettingsPage({ user, onClose, onLogout }) {
               return (
                 <button
                   key={section.id}
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => {
+                    if (section.isExternal && section.id === 'wallet' && onShowWallet) {
+                      onShowWallet();
+                      return;
+                    }
+                    setActiveSection(section.id);
+                  }}
                   style={{
                     width: "100%",
                     padding: isSmallMobile ? "8px 4px" : (isMobile ? "12px 8px" : "14px 20px"),

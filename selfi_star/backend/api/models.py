@@ -15,6 +15,8 @@ from .models_legal import LegalDocument, LegalDocumentVersion, UserLegalAcceptan
 from .models_messaging import Conversation, Message, MessageRead
 # Import gift models
 from .models_gift import Gift, GiftTransaction, GiftCombo, UserGiftStats
+# Import wallet models
+from .models_wallet import WalletConfig, WithdrawalRequest
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
