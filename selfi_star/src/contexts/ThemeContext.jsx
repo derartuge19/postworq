@@ -188,8 +188,9 @@ export const useLegacyT = () => {
 
 export const ThemeProvider = ({ children }) => {
   const stored = loadStored();
-  const [preset, setPreset] = useState(stored.preset || 'flipstar');
-  const [darkMode, setDarkMode] = useState(stored.darkMode ?? true);
+  // Brand standard: always start with flipstar dark regardless of stored values
+  const [preset, setPreset] = useState('flipstar');
+  const [darkMode, setDarkMode] = useState(true);
   const [customPrimary, setCustomPrimary] = useState(stored.customPrimary || null);
   const [glassEnabled, setGlassEnabled] = useState(stored.glassEnabled ?? false);
 
@@ -254,8 +255,8 @@ export const ThemeProvider = ({ children }) => {
 
   const applyFromSettings = useCallback((settings) => {
     if (!settings) return;
-    const p = settings.theme_preset || 'flipstar';
-    // Brand standard: always dark mode — backend setting cannot override this
+    // Brand standard: always flipstar dark — backend cannot override theme or dark mode
+    const p = 'flipstar';
     const dm = true;
     const cp = settings.primary_color_override || null;
     const ge = settings.glass_effect_enabled ?? glassEnabled;
