@@ -522,6 +522,12 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
   if (left < 8) left = 8;
   if (left + menuWidth > vp.w - 8) left = vp.w - menuWidth - 8;
 
+  // Auto-dismiss after 1 second ([] so parent re-renders don't reset the timer)
+  useEffect(() => {
+    const timer = setTimeout(() => onClose(), 1000);
+    return () => clearTimeout(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Close on outside click
   useEffect(() => {
     const handler = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) onClose(); };
