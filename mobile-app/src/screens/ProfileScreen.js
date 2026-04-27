@@ -232,8 +232,17 @@ export default function ProfileScreen({ navigation }) {
 
   if (loading && !profile) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={BRAND_GOLD} />
+      <View style={[styles.root, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.headerUsername}>Profile</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={BRAND_GOLD} />
+        </View>
       </View>
     );
   }

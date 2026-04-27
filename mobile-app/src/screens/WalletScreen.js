@@ -12,7 +12,27 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api';
+
+const CACHE_KEY = 'wallet_cache';
+const CACHE_TTL = 60 * 1000; // 1 minute
+
+async function readCache() {
+  try {
+    const raw = await AsyncStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { ts, balance, packages } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) return null;
+    return { balance, packages };
+  } catch { return null; }
+}
+
+async function writeCache(balance, packages) {
+  try {
+    await AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), balance, packages }));
+  } catch {}
+}
 
 const BRAND_GOLD = '#DA9B2A';
 
@@ -21,28 +41,46 @@ export default function WalletScreen({ navigation }) {
   const [balance, setBalance] = useState(null);
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
 
   useEffect(() => {
-    loadWalletData();
+    initLoad();
   }, []);
 
-  const loadWalletData = async () => {
+  const initLoad = async () => {
+    const cached = await readCache();
+    if (cached) {
+      setBalance(cached.balance);
+      setPackages(cached.packages);
+      setLoading(false);
+      loadWalletData(true); // silent background refresh
+    } else {
+      loadWalletData(false);
+    }
+  };
+
+  const loadWalletData = async (silent = false) => {
     try {
+      if (!silent) setLoading(true);
+      else setRefreshing(true);
       const [balanceData, packagesData] = await Promise.all([
         api.getWalletBalance(),
         api.getCoinPackages(),
       ]);
+      const pkgs = packagesData.results || packagesData;
       setBalance(balanceData);
-      setPackages(packagesData.results || packagesData);
+      setPackages(pkgs);
+      writeCache(balanceData, pkgs);
     } catch (error) {
       console.error('Error loading wallet data:', error);
-      Alert.alert('Error', 'Failed to load wallet data');
+      if (!silent) Alert.alert('Error', 'Failed to load wallet data');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -89,8 +127,20 @@ export default function WalletScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }, styles.centered]}>
-        <ActivityIndicator size="large" color={BRAND_GOLD} />
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Wallet</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        {/* Skeleton */}
+        <View style={{ padding: 16 }}>
+          {[1, 2, 3].map(i => (
+            <View key={i} style={styles.skeletonCard} />
+          ))}
+        </View>
       </View>
     );
   }
@@ -103,7 +153,11 @@ export default function WalletScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Wallet</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity onPress={() => loadWalletData(false)}>
+          {refreshing
+            ? <ActivityIndicator size="small" color={BRAND_GOLD} />
+            : <Ionicons name="refresh" size={22} color="#666" />}
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
@@ -250,6 +304,12 @@ const styles = StyleSheet.create({
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  skeletonCard: {
+    height: 80,
+    borderRadius: 14,
+    backgroundColor: '#f0f0f0',
+    marginBottom: 12,
   },
   header: {
     flexDirection: 'row',

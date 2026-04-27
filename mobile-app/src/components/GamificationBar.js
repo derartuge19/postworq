@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import api from '../api';
 
 const { width, height } = Dimensions.get('window');
@@ -125,6 +126,7 @@ const StreakModal = ({ streak, onClaim, onClose }) => {
 // Components: Gift Modal
 // ─────────────────────────────────────────────────────────────
 const GiftModal = ({ coins, onClose, onRefresh }) => {
+  const navigation = useNavigation();
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState(10);
   const [message, setMessage] = useState('');
@@ -167,7 +169,15 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
       <ScrollView contentContainerStyle={styles.scrollPadding}>
         <View style={styles.balanceRow}>
           <Text style={styles.balanceLabel}>Your balance</Text>
-          <Text style={styles.balanceValue}>🪙 {coins?.balance ?? 0}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={styles.balanceValue}>🪙 {coins?.balance ?? 0}</Text>
+            <TouchableOpacity
+              onPress={() => { onClose(); navigation.navigate('Wallet'); }}
+              style={styles.topUpBtn}
+            >
+              <Text style={styles.topUpBtnText}>+ Top Up</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         
         <Text style={styles.inputLabel}>Recipient Username</Text>
@@ -423,4 +433,6 @@ const styles = StyleSheet.create({
   doneSub: { fontSize: 14, color: '#78716C', marginBottom: 30, textAlign: 'center' },
   doneBtn: { backgroundColor: '#8B5CF6', borderRadius: 14, padding: 16, width: '100%', alignItems: 'center' },
   doneBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  topUpBtn: { backgroundColor: BRAND_GOLD + '20', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: BRAND_GOLD },
+  topUpBtnText: { color: BRAND_GOLD, fontSize: 12, fontWeight: '700' },
 });
