@@ -257,10 +257,10 @@ export const ThemeProvider = ({ children }) => {
 
   const applyFromSettings = useCallback((settings) => {
     if (!settings) return;
-    // Brand standard: always flipstar dark — backend cannot override theme or dark mode
+    // Brand standard: always flipstar dark — backend cannot override theme, dark mode, or primary color
     const p = 'flipstar';
     const dm = true;
-    const cp = settings.primary_color_override || null;
+    const cp = null; // primary_color_override is ignored — brand gold is enforced
     const ge = settings.glass_effect_enabled ?? glassEnabled;
     setPreset(p);
     setDarkMode(dm);
