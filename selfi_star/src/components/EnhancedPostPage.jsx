@@ -1,7 +1,7 @@
 // ─── TikTok-grade Create Page ──────────────────────────────────────────────
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
-  Home, Film, PlusSquare, MessageCircle, User, Search, Settings, X, 
+  Home, Film, Plus, PlusSquare, MessageCircle, User, Search, Settings, X, 
   Image as ImageIcon, Video, Hash, Type, Upload, Music, Volume2, VolumeX, 
   Play, Pause, RotateCw, RefreshCw, Camera, Mic, MicOff, Sparkles, Palette, 
   ChevronDown, ChevronLeft, ChevronRight, Check, AlertCircle, Trash2,
@@ -829,6 +829,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
         zIndex: 5000,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         boxShadow: '0 -2px 16px rgba(0,0,0,0.07)',
+        overflow: 'visible',
       }}>
         <style>{`
           .ep-nav-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); border: none; background: transparent; cursor: pointer; }
@@ -838,38 +839,42 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
         {bottomNavItems.map(({ id, label, Icon, action, isCreate, badge }) => {
           if (isCreate) return (
             <button key={id} className="ep-nav-btn"
+              onClick={() => action?.()}
               style={{ 
+                flex: 1,
+                height: '100%',
                 background: 'none', 
                 border: 'none', 
-                borderRadius: '50%', 
-                width: 36, 
-                height: 36, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
                 cursor: 'pointer', 
-                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
                 position: 'relative',
-                WebkitTapHighlightColor: 'transparent !important',
+                padding: '0 8px',
+                overflow: 'visible',
+                WebkitTapHighlightColor: 'transparent',
                 outline: 'none',
               }}>
               <div style={{
-                position: 'relative',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 40,
-                height: 40,
-                background: '#F9E08B',
+                position: 'absolute',
+                top: -18,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 54,
+                height: 54,
                 borderRadius: '50%',
+                background: 'linear-gradient(145deg, #F9E08B 0%, #D4A017 100%)',
+                boxShadow: '0 4px 18px rgba(249,224,139,0.5), 0 2px 6px rgba(0,0,0,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 flexShrink: 0,
-                border: '2px solid #F9E08B',
+                border: '3px solid rgba(255,255,255,0.15)',
               }}>
-                <Icon
-                  size={22}
-                  strokeWidth={2.5}
-                  color={'#fff'}
-                  fill={'#fff'}
-                />
+                <Plus size={26} strokeWidth={2.8} color='#1A0A00' />
               </div>
+              <span style={{ fontSize: 10, fontWeight: 500, color: '#F9E08B', lineHeight: 1, marginTop: 'auto', paddingBottom: 4 }}>Create</span>
             </button>
           );
           return (
