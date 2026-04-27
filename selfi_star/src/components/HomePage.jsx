@@ -153,7 +153,7 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
-            <span style={{ fontSize: 10, color: T?.sub || '#666' }}>{timeAgo(comment.created_at)}</span>
+            <span style={{ fontSize: 10, color: '#F9E08B' }}>{timeAgo(comment.created_at)}</span>
             {api.hasToken() && (
               <>
                 <button
@@ -1035,7 +1035,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 </div>
               )}
             </div>
-            <div style={{ fontSize: 'calc(var(--font-size-base, 16px) * 0.6875)', color: T?.sub || '#666' }}>{timeAgo(post.created_at)}</div>
+            <div style={{ fontSize: 'calc(var(--font-size-base, 16px) * 0.6875)', color: '#F9E08B' }}>{timeAgo(post.created_at)}</div>
           </div>
           <button
             className="hp-btn"
@@ -1724,7 +1724,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 background: isActive
                   ? (T?.priGradient || `linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)`)
                   : (T?.cardBg || '#1A1A1A'),
-                color: isActive ? '#000' : '#C2994B',
+                color: isActive ? '#000' : '#F9E08B',
                 fontWeight: isActive ? 700 : 600,
                 fontSize: 13,
                 whiteSpace: 'nowrap',
