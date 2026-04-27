@@ -432,9 +432,9 @@ export function AppShell({
                 }}>
                   <Icon
                     size={24}
-                    strokeWidth={isActive ? 2.5 : 1.8}
+                    strokeWidth={isCreate ? 1.8 : (isActive ? 2.5 : 1.8)}
                     color={'#F9E08B'}
-                    fill={isActive ? '#F9E08B' : 'none'}
+                    fill={isCreate ? '#F9E08B' : (isActive ? '#F9E08B' : 'none')}
                   />
                   {badgeCount > 0 && (
                     <div style={{
