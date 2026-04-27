@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Home,
   Compass,
+  Plus,
   PlusSquare,
   MessageCircle,
   User,
@@ -164,7 +165,6 @@ export function AppShell({
         }
         .appshell-main::-webkit-scrollbar { display: none; }
         .appshell-main { -ms-overflow-style: none; scrollbar-width: none; }
-        .mob-nav-btn:active svg { fill: #000 !important; }
       `}</style>
       {/* 1. Desktop Sidebar */}
       {!isMobile && (
@@ -398,6 +398,7 @@ export function AppShell({
             paddingBottom: 'env(safe-area-inset-bottom, 4px)',
             boxSizing: 'border-box',
             boxShadow: '0 -2px 16px rgba(0,0,0,0.07)',
+            overflow: 'visible',
           }}
         >
           {MOBILE_BOTTOM_TABS.map(({ item, label, isCreate, badge }) => {
@@ -418,48 +419,75 @@ export function AppShell({
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  justifyContent: isCreate ? 'flex-start' : 'center',
                   gap: 2,
-                  padding: '4px 8px',
+                  padding: isCreate ? '0 8px' : '4px 8px',
                   position: 'relative',
                   WebkitTapHighlightColor: 'transparent !important',
                   outline: 'none',
+                  overflow: 'visible',
+                  paddingTop: isCreate ? 0 : 4,
                 }}
               >
                 {/* Icon */}
-                <div style={{
-                  position: 'relative',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: isCreate ? 40 : 'auto',
-                  height: isCreate ? 40 : 'auto',
-                  background: isCreate ? '#F9E08B' : 'none',
-                  borderRadius: isCreate ? '50%' : 'none',
-                  flexShrink: 0,
-                  border: isCreate ? '2px solid #F9E08B' : 'none',
-                }}>
-                  <Icon
-                    size={isCreate ? 22 : 24}
-                    strokeWidth={isCreate ? 2.5 : (isActive ? 2.5 : 1.8)}
-                    color={isCreate ? '#fff' : '#F9E08B'}
-                    fill={isCreate ? '#fff' : (isActive ? '#000' : 'none')}
-                  />
-                  {badgeCount > 0 && (
-                    <div style={{
-                      position: 'absolute', top: -4, right: -6,
-                      minWidth: 15, height: 15, borderRadius: 8,
-                      background: '#EF4444', color: '#fff',
-                      fontSize: 8, fontWeight: 800,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      padding: '0 3px', boxSizing: 'border-box',
-                      border: '1.5px solid #fff', lineHeight: 1,
-                    }}>
-                      {badgeCount > 99 ? '99+' : badgeCount}
-                    </div>
-                  )}
-                </div>
+                {isCreate ? (
+                  <div style={{
+                    position: 'absolute',
+                    top: -18,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 54,
+                    height: 54,
+                    borderRadius: '50%',
+                    background: 'linear-gradient(145deg, #F9E08B 0%, #D4A017 100%)',
+                    boxShadow: '0 4px 18px rgba(249,224,139,0.5), 0 2px 6px rgba(0,0,0,0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    border: '3px solid rgba(255,255,255,0.15)',
+                  }}>
+                    <Plus size={26} strokeWidth={2.8} color='#1A0A00' />
+                  </div>
+                ) : (
+                  <div style={{
+                    position: 'relative',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <Icon
+                      size={24}
+                      strokeWidth={isActive ? 2.5 : 1.8}
+                      color='#F9E08B'
+                      fill={isActive ? '#F9E08B' : 'none'}
+                    />
+                    {badgeCount > 0 && (
+                      <div style={{
+                        position: 'absolute', top: -4, right: -6,
+                        minWidth: 15, height: 15, borderRadius: 8,
+                        background: '#EF4444', color: '#fff',
+                        fontSize: 8, fontWeight: 800,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        padding: '0 3px', boxSizing: 'border-box',
+                        border: '1.5px solid #fff', lineHeight: 1,
+                      }}>
+                        {badgeCount > 99 ? '99+' : badgeCount}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Label */}
-                {label ? (
+                {isCreate ? (
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 500,
+                    color: '#F9E08B',
+                    lineHeight: 1,
+                    marginTop: 'auto',
+                    paddingBottom: 4,
+                  }}>Create</span>
+                ) : label ? (
                   <span
                     className={isActive ? 'mob-nav-gold-lbl' : ''}
                     style={{
