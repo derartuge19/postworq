@@ -447,8 +447,8 @@ const IconCard = memo(function IconCard({ emoji, icon, value, label, color, badg
           boxShadow:'0 1px 4px rgba(239,68,68,.5)'
         }}/>
       )}
-      <div style={{fontSize:15,fontWeight:800,color:'#1C1917',lineHeight:1}}>{value}</div>
-      <div style={{fontSize:10,color:'#78716C',textTransform:'uppercase',letterSpacing:.5,fontWeight:600}}>{label}</div>
+      <div style={{fontSize:15,fontWeight:800,color:'#FFFFFF',lineHeight:1}}>{value}</div>
+      <div style={{fontSize:10,color:'#C2994B',textTransform:'uppercase',letterSpacing:.5,fontWeight:600}}>{label}</div>
     </button>
   );
 });
@@ -533,11 +533,11 @@ export function GamificationBar({ userId, theme, onShowWallet }) {
 
   if (loading && !status) return (
     <div style={{display:'flex',justifyContent:'space-around',padding:'12px 0',
-      background:'linear-gradient(135deg,#FFF8F0 0%,#FFFFFF 100%)',
-      borderTop:`1px solid ${pri}20`,borderBottom:`1px solid ${pri}20`}}>
+      background:'#0D0D0D',
+      borderTop:`1px solid ${pri}30`,borderBottom:`1px solid ${pri}30`}}>
       {['🪙','🔥','🎁'].map((e,i)=>(
         <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'8px 16px'}}>
-          <div style={{width:52,height:52,borderRadius:'50%',background:'#F5F5F4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,animation:'pulse 1.2s infinite'}}>
+          <div style={{width:52,height:52,borderRadius:'50%',background:'#1A1A1A',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,animation:'pulse 1.2s infinite'}}>
             {e}
           </div>
           <div style={{width:24,height:8,background:'#F5F5F4',borderRadius:4,marginTop:2}}/>
@@ -555,24 +555,24 @@ export function GamificationBar({ userId, theme, onShowWallet }) {
           IconCards use flex:1 so they space evenly regardless of count. */}
       <div style={{
         display:'flex',
-        background:'linear-gradient(135deg,#FFF8F0 0%,#FFFFFF 100%)',
-        borderTop:`1px solid ${pri}20`,
-        borderBottom:`1px solid ${pri}20`,
+        background:'#0D0D0D',
+        borderTop:`1px solid ${pri}40`,
+        borderBottom:`1px solid ${pri}40`,
         padding:'4px 0',
       }}>
         <IconCard
           emoji="🪙" value={coins?.balance ?? 0} label="Coins" color={pri}
           onClick={()=>setModal('coins')}
         />
-        <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
+        <div style={{width:1,background:'#262626',alignSelf:'stretch',margin:'8px 0'}}/>
         <IconCard
-          emoji="🔥" value={`${login_streak?.current ?? 0}d`} label="Streak" color="#EF4444"
+          emoji="🔥" value={`${login_streak?.current ?? 0}d`} label="Streak" color={pri}
           badge={hasBonus}
           onClick={()=>setModal('streak')}
         />
-        <div style={{width:1,background:'#F0EDEB',alignSelf:'stretch',margin:'8px 0'}}/>
+        <div style={{width:1,background:'#262626',alignSelf:'stretch',margin:'8px 0'}}/>
         <IconCard
-          emoji="🎁" value={gifts?.received_today ?? 0} label="Gifts" color="#8B5CF6"
+          emoji="🎁" value={gifts?.received_today ?? 0} label="Gifts" color={pri}
           onClick={()=>setModal('gift')}
         />
       </div>
