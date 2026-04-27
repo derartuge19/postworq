@@ -6,6 +6,7 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [isVideo, setIsVideo] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const fileInputRef = useRef(null);
@@ -14,6 +15,7 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
     const file = e.target.files?.[0];
     if (file) {
       setImage(file);
+      setIsVideo(file.type.startsWith('video/'));
       const reader = new FileReader();
       reader.onload = (event) => {
         setPreview(event.target?.result);
@@ -113,11 +115,21 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
             overflow: "hidden",
             position: "relative",
           }}>
-            <img src={preview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            {isVideo ? (
+              <video
+                src={preview}
+                controls
+                autoPlay
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <img src={preview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            )}
             <button
               onClick={() => {
                 setImage(null);
                 setPreview(null);
+                setIsVideo(false);
               }}
               style={{
                 position: "absolute",

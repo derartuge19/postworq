@@ -10,11 +10,11 @@ services:
     envVars:
       # Admin credentials (auto-created on deploy)
       - key: ADMIN_USERNAME
-        value: superadmin
+        value: derartu
       - key: ADMIN_EMAIL
-        value: superadmin@postworq.com
+        value: derartu@postworq.com
       - key: ADMIN_PASSWORD
-        value: Admin123!
+        value: Derartu123!
       # Database (Neon PostgreSQL)
       - key: DB_ENGINE
         value: django.db.backends.postgresql
