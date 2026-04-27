@@ -414,7 +414,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           }}>
             <button
               onClick={onBack}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", color: T.txt }}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", color: '#F9E08B' }}
             >
               <ArrowLeft size={24} />
             </button>
@@ -494,7 +494,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                     onClick={onShowWallet}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      padding: 8, display: 'flex', alignItems: 'center', color: T.txt,
+                      padding: 8, display: 'flex', alignItems: 'center', color: '#F9E08B',
                     }}
                     title="Wallet"
                   >
@@ -504,7 +504,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                     onClick={onShowSettings}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      padding: 8, display: 'flex', alignItems: 'center', color: T.txt,
+                      padding: 8, display: 'flex', alignItems: 'center', color: '#F9E08B',
                     }}
                   >
                     <Settings size={24} />
@@ -622,7 +622,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   cursor: "pointer",
                   fontSize: 14,
                   fontWeight: 700,
-                  color: isFollowing ? T.txt : "#fff",
+                  color: isFollowing ? '#F9E08B' : "#fff",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -648,7 +648,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: T.txt,
+                  color: '#F9E08B',
                 }}
                 title="Share profile"
               >
@@ -732,7 +732,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 justifyContent: "center",
                 gap: 3,
                 borderBottom: isActive ? `3px solid ${T.pri}` : "3px solid transparent",
-                color: isActive ? T.pri : T.sub,
+                color: '#F9E08B',
               }}
             >
               <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
@@ -845,7 +845,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: T.sub,
+                    color: '#F9E08B',
                   }}>
                     No media
                   </div>
@@ -938,7 +938,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         ))}
       </div>
       {posts.length === 0 && (
-        <div style={{ padding: 40, textAlign: "center", color: T.sub }}>
+        <div style={{ padding: 40, textAlign: "center", color: '#F9E08B' }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>📷</div>
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>No posts yet</div>
           <div style={{ fontSize: 13 }}>
@@ -992,7 +992,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               style={{
                 width: '100%', padding: '16px 24px', background: 'none', border: 'none',
                 textAlign: 'left', fontSize: 16, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 14, color: T.txt,
+                display: 'flex', alignItems: 'center', gap: 14, color: '#F9E08B',
               }}
             >
               <Edit2 size={20} style={{ color: T.pri }} /> Edit Caption
@@ -1031,12 +1031,12 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               maxHeight: '90vh', overflowY: 'auto',
             }}
           >
-            <div style={{ fontSize: 18, fontWeight: 700, color: T.txt, marginBottom: 4 }}>Edit Post</div>
-            <div style={{ fontSize: 13, color: T.sub, marginBottom: 20 }}>Update your post details below.</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#F9E08B', marginBottom: 4 }}>Edit Post</div>
+            <div style={{ fontSize: 13, color: '#F9E08B', marginBottom: 20 }}>Update your post details below.</div>
             
             {/* Media Preview */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 8 }}>Media</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#F9E08B', marginBottom: 8 }}>Media</div>
               <div style={{
                 width: '100%', aspectRatio: '1', borderRadius: 12,
                 overflow: 'hidden', background: T.bg,
@@ -1090,7 +1090,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   borderRadius: 10,
                   fontSize: 14,
                   fontWeight: 600,
-                  color: T.txt,
+                  color: '#F9E08B',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -1108,13 +1108,13 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
 
             {/* Caption */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 8 }}>Caption</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#F9E08B', marginBottom: 8 }}>Caption</div>
               <textarea
                 value={editCaption}
                 onChange={e => setEditCaption(e.target.value)}
                 rows={4}
                 style={{
-                  width: '100%', padding: 12, fontSize: 15, color: T.txt,
+                  width: '100%', padding: 12, fontSize: 15, color: '#F9E08B',
                   border: `1.5px solid ${T.border}`, borderRadius: 12,
                   resize: 'none', outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box', lineHeight: 1.5,
@@ -1126,20 +1126,20 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
 
             {/* Hashtags */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.txt, marginBottom: 8 }}>Hashtags</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#F9E08B', marginBottom: 8 }}>Hashtags</div>
               <input
                 type="text"
                 value={editHashtags}
                 onChange={e => setEditHashtags(e.target.value)}
                 style={{
-                  width: '100%', padding: 12, fontSize: 15, color: T.txt,
+                  width: '100%', padding: 12, fontSize: 15, color: '#F9E08B',
                   border: `1.5px solid ${T.border}`, borderRadius: 12,
                   outline: 'none', fontFamily: 'inherit',
                   boxSizing: 'border-box',
                 }}
                 placeholder="#hashtag1 #hashtag2"
               />
-              <div style={{ fontSize: 12, color: T.sub, marginTop: 6 }}>
+              <div style={{ fontSize: 12, color: '#F9E08B', marginTop: 6 }}>
                 Separate hashtags with spaces (e.g., #travel #photography)
               </div>
             </div>
@@ -1152,7 +1152,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   flex: 1, padding: '12px 20px',
                   border: '1.5px solid rgba(249,224,139,0.4)', background: T.cardBg || '#1A1A1A',
                   borderRadius: 12, fontSize: 15, fontWeight: 600,
-                  cursor: 'pointer', color: T.txt,
+                  cursor: 'pointer', color: '#F9E08B',
                 }}
               >
                 Cancel
@@ -1193,8 +1193,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             }}
           >
             <div style={{ fontSize: 44, marginBottom: 12 }}>🗑️</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: T.txt, marginBottom: 8 }}>Delete Post?</div>
-            <div style={{ fontSize: 14, color: T.sub, marginBottom: 24 }}>This cannot be undone.</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#F9E08B', marginBottom: 8 }}>Delete Post?</div>
+            <div style={{ fontSize: 14, color: '#F9E08B', marginBottom: 24 }}>This cannot be undone.</div>
             <div style={{ display: 'flex', gap: 12 }}>
               <button
                 onClick={() => setConfirmDeleteId(null)}
@@ -1202,7 +1202,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   flex: 1, padding: '12px 20px',
                   border: '1.5px solid rgba(249,224,139,0.4)', background: T.cardBg || '#1A1A1A',
                   borderRadius: 12, fontSize: 15, fontWeight: 600,
-                  cursor: 'pointer', color: T.txt,
+                  cursor: 'pointer', color: '#F9E08B',
                 }}
               >
                 Cancel
@@ -1267,11 +1267,11 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               <div style={{ width: 36, height: 4, background: T.border, borderRadius: 4, margin: '0 auto', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, paddingTop: 8 }}>
                 <Gem size={20} color={T.pri} />
-                <span style={{ fontSize: 17, fontWeight: 700, color: T.txt }}>My Rewards</span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: '#F9E08B' }}>My Rewards</span>
               </div>
               <button
                 onClick={() => setShowGamModal(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sub, padding: 4, paddingTop: 12 }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#F9E08B', padding: 4, paddingTop: 12 }}
               >
                 <X size={20} />
               </button>
