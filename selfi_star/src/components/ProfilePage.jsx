@@ -1246,7 +1246,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           <div
             style={{
               width: '100%', maxWidth: 560,
-              maxHeight: 'calc(100vh - 40px - env(safe-area-inset-top, 0px))',
+              maxHeight: '75vh',
               background: T.cardBg || '#1A1A1A',
               borderRadius: '24px 24px 0 0',
               paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px))',
