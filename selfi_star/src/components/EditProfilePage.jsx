@@ -111,6 +111,8 @@ export function EditProfilePage({ user, onBack, onSave }) {
     outline: "none",
     transition: "border 0.2s",
     boxSizing: "border-box",
+    background: T.bg,
+    color: T.txt,
   };
 
   return (
@@ -120,7 +122,7 @@ export function EditProfilePage({ user, onBack, onSave }) {
       left: 0,
       right: 0,
       bottom: 0,
-      background: "#fff",
+      background: T.cardBg,
       zIndex: 200,
       display: "flex",
       flexDirection: "column",
@@ -131,7 +133,7 @@ export function EditProfilePage({ user, onBack, onSave }) {
         position: "sticky",
         top: 0,
         flexShrink: 0,
-        background: "#fff",
+        background: T.cardBg,
         borderBottom: `1px solid ${T.border}`,
         padding: "10px 16px",
         display: "flex",
@@ -344,7 +346,7 @@ export function EditProfilePage({ user, onBack, onSave }) {
         padding: "12px 16px",
         paddingBottom: "max(12px, env(safe-area-inset-bottom))",
         borderTop: `1px solid ${T.border}`,
-        background: "#fff",
+        background: T.cardBg,
         zIndex: 50,
       }}>
         <button

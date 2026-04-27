@@ -60,6 +60,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   const { t } = useLanguage();
   const isOwnProfile = !userId || userId === user?.id;
   const [showGamModal, setShowGamModal] = useState(false);
+  const [showProfileZoom, setShowProfileZoom] = useState(false);
   const targetUserId = userId || user?.id;
   const [mounted, setMounted] = useState(false); // Prevent flash on initial load
 
@@ -525,6 +526,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               <img
                 src={profileUser.profile_photo.startsWith('http') ? profileUser.profile_photo : `${config.API_BASE_URL.replace('/api', '')}${profileUser.profile_photo}`}
                 alt="Profile"
+                onClick={() => setShowProfileZoom(true)}
                 style={{
                   width: 80,
                   height: 80,
@@ -532,7 +534,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   minHeight: 80,
                   borderRadius: "50%",
                   objectFit: "cover",
-                  background: T.pri + "10"
+                  background: T.pri + "10",
+                  cursor: "pointer",
                 }}
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -1314,6 +1317,66 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             <button onClick={() => setShowReportUser(false)}
               style={{ marginTop: 12, width: '100%', padding: 12, border: 'none', borderRadius: 10, background: 'rgba(249,224,139,0.15)', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#F9E08B' }}>
               Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Picture Zoom Modal */}
+      {showProfileZoom && profileUser?.profile_photo && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 4000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onClick={() => setShowProfileZoom(false)}
+        >
+          <div
+            style={{
+              position: 'relative',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <img
+              src={profileUser.profile_photo.startsWith('http') ? profileUser.profile_photo : `${config.API_BASE_URL.replace('/api', '')}${profileUser.profile_photo}`}
+              alt="Profile"
+              style={{
+                width: '100%',
+                height: 'auto',
+                maxHeight: '85vh',
+                borderRadius: 12,
+                objectFit: 'contain',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+              }}
+            />
+            <button
+              onClick={() => setShowProfileZoom(false)}
+              style={{
+                position: 'absolute',
+                top: -16,
+                right: -16,
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.9)',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 24,
+                color: '#000',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              }}
+            >
+              ✕
             </button>
           </div>
         </div>
