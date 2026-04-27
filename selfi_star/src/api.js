@@ -245,6 +245,29 @@ const api = {
       body: JSON.stringify({ username, password }),
     }),
 
+  // Phone OTP Registration
+  sendPhoneOtp: (phone) =>
+    api.request('/auth/send-otp/', { method: 'POST', body: JSON.stringify({ phone }) }),
+
+  verifyPhoneOtp: (phone, code) =>
+    api.request('/auth/verify-otp/', { method: 'POST', body: JSON.stringify({ phone, code }) }),
+
+  registerWithPhone: (phone, username, password, email = '') =>
+    api.request('/auth/register-phone/', {
+      method: 'POST',
+      body: JSON.stringify({ phone, username, password, email }),
+    }),
+
+  // Forgot Password
+  forgotPasswordRequest: (email) =>
+    api.request('/auth/forgot-password/', { method: 'POST', body: JSON.stringify({ email }) }),
+
+  forgotPasswordConfirm: (email, code, new_password) =>
+    api.request('/auth/forgot-password/confirm/', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, new_password }),
+    }),
+
   // Profile
   getProfile: () => api.request('/profile/me/'),
 

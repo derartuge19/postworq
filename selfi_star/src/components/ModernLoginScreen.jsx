@@ -1,17 +1,183 @@
 import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, Loader, Home, Search, Compass, Film, MessageCircle, Bell, Bookmark, Settings } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader, User, ChevronDown, ChevronUp, X } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
-import { useLanguage } from "../contexts/LanguageContext";
+
+const GOLD = "linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)";
+
+const FAQ_ITEMS = [
+  { q: "What is FlipStar?", a: "FlipStar is an Ethiopian social video platform where you can share short videos, join campaigns, win prizes, and earn coins." },
+  { q: "How do I earn coins?", a: "You earn coins by posting videos, daily login streaks, receiving gifts from followers, and winning campaigns." },
+  { q: "How do I join a campaign?", a: "Go to the Campaigns tab, browse active campaigns, and submit your video entry. Winners are chosen by votes or judges." },
+  { q: "Is FlipStar free?", a: "Yes! FlipStar is completely free. Premium features like extra campaign entries are available for purchase." },
+  { q: "Who can register?", a: "Anyone with an Ethiopian phone number (+251) can register. You'll verify your number with an OTP code." },
+  { q: "How do I reset my password?", a: "Tap 'Forgot password?' on the login screen. A 6-digit reset code will be sent to your registered email address." },
+];
+
+const TERMS = `TERMS & CONDITIONS — FlipStar
+
+1. ELIGIBILITY
+You must have a valid Ethiopian phone number to register.
+
+2. CONTENT
+You are responsible for all content you post. No harmful, offensive or illegal content is allowed.
+
+3. COINS & PRIZES
+Coins have no cash value unless explicitly redeemable in a campaign. Prize delivery is subject to campaign rules.
+
+4. PRIVACY
+Your phone number is used only for verification. It will never be shared with third parties.
+
+5. ACCOUNT SECURITY
+Your 6-digit PIN is your responsibility. Do not share it. FlipStar staff will never ask for your PIN.
+
+6. TERMINATION
+Accounts violating these terms may be suspended or permanently banned.
+
+7. CHANGES
+FlipStar reserves the right to update these terms at any time. Continued use constitutes acceptance.
+
+Contact: support@flipstar.app`;
+
+function Overlay({ onClose, children }) {
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#111", borderRadius: "18px 18px 0 0", width: "100%", maxWidth: 500, maxHeight: "88vh", overflowY: "auto", padding: "24px 20px 40px" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function FaqModal({ onClose }) {
+  const [open, setOpen] = useState(null);
+  return (
+    <Overlay onClose={onClose}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div style={{ fontSize: 20, fontWeight: 900, color: "#E2B355" }}>FAQ</div>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}><X size={22} /></button>
+      </div>
+      {FAQ_ITEMS.map((item, i) => (
+        <div key={i} style={{ borderBottom: "1px solid #262626", marginBottom: 2 }}>
+          <button onClick={() => setOpen(open === i ? null : i)}
+            style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "14px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", textAlign: "left" }}>{item.q}</span>
+            {open === i ? <ChevronUp size={16} color="#E2B355" /> : <ChevronDown size={16} color="#C2994B" />}
+          </button>
+          {open === i && <div style={{ fontSize: 13, color: "#C2994B", paddingBottom: 14, lineHeight: 1.6 }}>{item.a}</div>}
+        </div>
+      ))}
+    </Overlay>
+  );
+}
+
+function TermsModal({ onClose }) {
+  return (
+    <Overlay onClose={onClose}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div style={{ fontSize: 20, fontWeight: 900, color: "#E2B355" }}>Terms & Conditions</div>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}><X size={22} /></button>
+      </div>
+      <pre style={{ fontSize: 12, color: "#C2994B", whiteSpace: "pre-wrap", lineHeight: 1.7, fontFamily: "inherit" }}>{TERMS}</pre>
+    </Overlay>
+  );
+}
+
+function ForgotModal({ onClose }) {
+  const [fpStep, setFpStep] = useState(1); // 1=email, 2=code, 3=done
+  const [fpEmail, setFpEmail] = useState("");
+  const [fpCode, setFpCode] = useState("");
+  const [fpPwd, setFpPwd] = useState("");
+  const [fpConfirm, setFpConfirm] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const sendCode = async () => {
+    setError(""); setMsg("");
+    if (!fpEmail) { setError("Enter your email"); return; }
+    setLoading(true);
+    try {
+      await api.forgotPasswordRequest(fpEmail);
+      setMsg("Reset code sent! Check your email.");
+      setFpStep(2);
+    } catch (e) { setError(e?.message || "Failed to send code"); }
+    finally { setLoading(false); }
+  };
+
+  const confirmReset = async () => {
+    setError(""); setMsg("");
+    if (fpCode.length !== 6) { setError("Enter the 6-digit code from your email"); return; }
+    if (!/^\d{6}$/.test(fpPwd)) { setError("New password must be exactly 6 digits"); return; }
+    if (fpPwd !== fpConfirm) { setError("Passwords do not match"); return; }
+    setLoading(true);
+    try {
+      await api.forgotPasswordConfirm(fpEmail, fpCode, fpPwd);
+      setFpStep(3);
+    } catch (e) { setError(e?.message || "Invalid or expired code"); }
+    finally { setLoading(false); }
+  };
+
+  const inp = { width: "100%", padding: "12px 14px", background: "#1A1A1A", border: "1.5px solid #262626", borderRadius: 10, fontSize: 14, color: "#fff", outline: "none", boxSizing: "border-box", marginBottom: 12 };
+
+  return (
+    <Overlay onClose={onClose}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div style={{ fontSize: 20, fontWeight: 900, color: "#E2B355" }}>
+          {fpStep === 1 ? "Forgot Password" : fpStep === 2 ? "Enter Reset Code" : "Password Reset!"}
+        </div>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}><X size={22} /></button>
+      </div>
+      {error && <div style={{ padding: "10px 14px", background: "#2D1010", border: "1px solid #EF4444", borderRadius: 8, color: "#EF4444", fontSize: 13, marginBottom: 12 }}>⚠️ {error}</div>}
+      {msg && <div style={{ padding: "10px 14px", background: "#1A2A1A", border: "1px solid #22C55E", borderRadius: 8, color: "#22C55E", fontSize: 13, marginBottom: 12 }}>{msg}</div>}
+
+      {fpStep === 1 && (
+        <>
+          <div style={{ fontSize: 13, color: "#C2994B", marginBottom: 16 }}>Enter the email you registered with. A 6-digit reset code will be sent to it.</div>
+          <input type="email" placeholder="your@email.com" value={fpEmail} onChange={e => setFpEmail(e.target.value)} style={inp} onKeyDown={e => e.key === "Enter" && sendCode()} />
+          <button onClick={sendCode} disabled={loading} style={{ width: "100%", padding: "13px", background: GOLD, border: "none", borderRadius: 10, color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {loading ? <><Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> Sending…</> : "Send Reset Code"}
+          </button>
+        </>
+      )}
+
+      {fpStep === 2 && (
+        <>
+          <div style={{ fontSize: 13, color: "#C2994B", marginBottom: 16 }}>Enter the 6-digit code sent to <strong style={{ color: "#fff" }}>{fpEmail}</strong> and your new 6-digit PIN.</div>
+          <input type="text" inputMode="numeric" maxLength={6} placeholder="6-digit code from email" value={fpCode} onChange={e => setFpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} style={inp} />
+          <div style={{ position: "relative" }}>
+            <input type={showPwd ? "text" : "password"} inputMode="numeric" maxLength={6} placeholder="New 6-digit PIN" value={fpPwd} onChange={e => setFpPwd(e.target.value.replace(/\D/g, "").slice(0, 6))} style={{ ...inp, paddingRight: 44 }} />
+            <button type="button" onClick={() => setShowPwd(v => !v)} style={{ position: "absolute", right: 12, top: 12, background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}>{showPwd ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+          </div>
+          <input type="password" inputMode="numeric" maxLength={6} placeholder="Confirm new PIN" value={fpConfirm} onChange={e => setFpConfirm(e.target.value.replace(/\D/g, "").slice(0, 6))} style={inp} />
+          <button onClick={confirmReset} disabled={loading} style={{ width: "100%", padding: "13px", background: GOLD, border: "none", borderRadius: 10, color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {loading ? <><Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> Resetting…</> : "Reset Password"}
+          </button>
+          <button onClick={() => { setFpStep(1); setFpCode(""); setError(""); setMsg(""); }} style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", marginTop: 12, display: "block", marginLeft: "auto", marginRight: "auto" }}>← Back</button>
+        </>
+      )}
+
+      {fpStep === 3 && (
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#E2B355", marginBottom: 8 }}>Password Reset!</div>
+          <div style={{ fontSize: 13, color: "#C2994B", marginBottom: 24 }}>You can now log in with your new PIN.</div>
+          <button onClick={onClose} style={{ padding: "12px 32px", background: GOLD, border: "none", borderRadius: 10, color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>Go to Login</button>
+        </div>
+      )}
+    </Overlay>
+  );
+}
 
 export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
   const { colors: T } = useTheme();
-  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [modal, setModal] = useState(null); // 'forgot' | 'faq' | 'terms'
 
   const handleLogin = async (e) => {
     e?.preventDefault();
@@ -63,220 +229,107 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
     }
   };
 
+  const inp = (focused) => ({
+    width: "100%", padding: "13px 16px 13px 46px",
+    background: T.cardBg || "#1A1A1A",
+    border: `1.5px solid ${focused ? "#E2B355" : T.border || "#262626"}`,
+    borderRadius: 10, fontSize: 15, color: T.txt || "#fff", outline: "none", boxSizing: "border-box",
+  });
+
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: T.bg,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 20,
-      position: "relative",
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: 440,
-      }}>
-        {/* Logos row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
-          <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 80, height: 80, objectFit: 'contain' }} />
-          <img src="/Flip_Star_Final_Logo_v3_side__2_-removebg-preview.png" alt="FlipStar" style={{ width: 110, height: 55, objectFit: 'contain' }} />
+    <div style={{ minHeight: "100vh", background: T.bg || "#0D0D0D", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px" }}>
+      {modal === "forgot" && <ForgotModal onClose={() => setModal(null)} />}
+      {modal === "faq" && <FaqModal onClose={() => setModal(null)} />}
+      {modal === "terms" && <TermsModal onClose={() => setModal(null)} />}
+
+      <div style={{ width: "100%", maxWidth: 420 }}>
+        {/* Logos */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 64, height: 64, objectFit: "contain" }} />
+          <img src="/Flip_Star_Final_Logo_v3_side__2_-removebg-preview.png" alt="FlipStar" style={{ width: 100, height: 50, objectFit: "contain" }} />
         </div>
 
-        {/* Header */}
-        <div style={{
-          padding: "40px 32px",
-          textAlign: "center",
-          marginBottom: 20,
-        }}>
-          <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 8, color: T.txt }}>
-            Welcome Back!
+        {/* Card */}
+        <div style={{ background: T.cardBg || "#1A1A1A", borderRadius: 18, padding: "28px 24px", border: "1px solid #E2B35530" }}>
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <div style={{ fontSize: 26, fontWeight: 900, color: "#E2B355", marginBottom: 4 }}>Welcome Back!</div>
+            <div style={{ fontSize: 13, color: "#C2994B" }}>Log in to continue to FLIPSTAR</div>
           </div>
-          <div style={{ fontSize: 14, color: T.sub }}>
-            Log in to continue to FLIPSTAR
-          </div>
-        </div>
 
         {/* Form */}
-        <form onSubmit={handleLogin} style={{ padding: "0 32px" }}>
+        <form onSubmit={handleLogin}>
           {error && (
-            <div style={{
-              padding: "12px 16px",
-              background: "#FEE2E2",
-              border: "1px solid #EF4444",
-              borderRadius: 8,
-              color: "#EF4444",
-              fontSize: 13,
-              fontWeight: 600,
-              marginBottom: 20,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}>
+            <div style={{ padding: "10px 14px", background: "#2D1010", border: "1px solid #EF4444", borderRadius: 8, color: "#EF4444", fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
               ⚠️ {error}
             </div>
           )}
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 8 }}>
-              Email or Username
-            </label>
+          {/* Username field */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#C2994B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>Username</label>
             <div style={{ position: "relative" }}>
-              <Mail
-                size={18}
-                style={{
-                  position: "absolute",
-                  left: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: T.sub,
-                }}
-              />
-              <input
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email or username"
-                style={{
-                  width: "100%",
-                  padding: "12px 16px 12px 44px",
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: "none",
-                  transition: "border 0.2s",
-                }}
-                onFocus={(e) => e.target.style.borderColor = T.pri}
-                onBlur={(e) => e.target.style.borderColor = T.border}
+              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#C2994B", display: "flex" }}><User size={17} /></div>
+              <input type="text" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="Enter your username"
+                style={inp(false)}
+                onFocus={e => e.target.style.border = "1.5px solid #E2B355"}
+                onBlur={e => e.target.style.border = "1.5px solid #262626"}
               />
             </div>
           </div>
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 8 }}>
-              Password
-            </label>
+          {/* Password field */}
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#C2994B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>6-Digit PIN</label>
             <div style={{ position: "relative" }}>
-              <Lock
-                size={18}
-                style={{
-                  position: "absolute",
-                  left: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: T.sub,
-                }}
-              />
+              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#C2994B", display: "flex" }}><Lock size={17} /></div>
               <input
                 type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                style={{
-                  width: "100%",
-                  padding: "12px 44px 12px 44px",
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: "none",
-                  transition: "border 0.2s",
-                }}
-                onFocus={(e) => e.target.style.borderColor = T.pri}
-                onBlur={(e) => e.target.style.borderColor = T.border}
+                inputMode="numeric" maxLength={6}
+                value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="••••••"
+                style={{ ...inp(false), paddingRight: 46 }}
+                onFocus={e => e.target.style.border = "1.5px solid #E2B355"}
+                onBlur={e => e.target.style.border = "1.5px solid #262626"}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 4,
-                  display: "flex",
-                  color: T.sub,
-                }}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}>
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
             </div>
           </div>
 
-          <div style={{ textAlign: "right", marginBottom: 24 }}>
-            <button
-              type="button"
-              style={{
-                background: "none",
-                border: "none",
-                color: T.pri,
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
+          {/* Forgot password */}
+          <div style={{ textAlign: "right", marginBottom: 20 }}>
+            <button type="button" onClick={() => setModal("forgot")}
+              style={{ background: "none", border: "none", color: "#E2B355", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
               Forgot password?
             </button>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "14px",
-              background: loading ? T.sub : `linear-gradient(135deg, ${T.pri}, ${T.dark})`,
-              border: "none",
-              borderRadius: 8,
-              color: "#fff",
-              fontSize: 15,
-              fontWeight: 700,
-              cursor: loading ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              marginBottom: 20,
-            }}
-          >
-            {loading ? (
-              <>
-                <Loader size={18} style={{ animation: "spin 1s linear infinite" }} />
-                Logging in...
-              </>
-            ) : (
-              "Log In"
-            )}
+          {/* Submit */}
+          <button type="submit" disabled={loading}
+            style={{ width: "100%", padding: "14px", background: loading ? "#3A3A3A" : GOLD, border: "none", borderRadius: 10, color: loading ? "#888" : "#000", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+            {loading ? <><Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Logging in…</> : "Log In"}
           </button>
 
-          <div style={{ textAlign: "center", fontSize: 13, color: T.sub }}>
+          {/* Sign up */}
+          <div style={{ textAlign: "center", fontSize: 13, color: "#666", marginBottom: 0 }}>
             Don't have an account?{" "}
-            <button
-              type="button"
-              onClick={onRegister}
-              style={{
-                background: "none",
-                border: "none",
-                color: T.pri,
-                fontWeight: 700,
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
-              Sign up free
-            </button>
+            <button type="button" onClick={onRegister} style={{ background: "none", border: "none", color: "#E2B355", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>Sign up free</button>
           </div>
         </form>
+        </div>
+
+        {/* Footer links */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 20, paddingBottom: 20 }}>
+          <button onClick={() => setModal("faq")} style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>FAQ</button>
+          <span style={{ color: "#262626" }}>|</span>
+          <button onClick={() => setModal("terms")} style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>Terms & Conditions</button>
+        </div>
       </div>
 
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

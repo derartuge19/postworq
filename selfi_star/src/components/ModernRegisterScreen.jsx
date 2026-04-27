@@ -1,359 +1,372 @@
-import { useState } from "react";
-import { Mail, Lock, User, Eye, EyeOff, Loader } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Phone, Lock, User, Eye, EyeOff, Loader, ArrowLeft, CheckCircle, Mail } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
-import { useLanguage } from "../contexts/LanguageContext";
+
+// ── helpers ────────────────────────────────────────────────────────────────
+const GOLD = "linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)";
+
+const inputStyle = (T, focused) => ({
+  width: "100%",
+  padding: "13px 16px 13px 46px",
+  background: T.cardBg || "#1A1A1A",
+  border: `1.5px solid ${focused ? "#E2B355" : T.border || "#262626"}`,
+  borderRadius: 10,
+  fontSize: 15,
+  color: T.txt || "#fff",
+  outline: "none",
+  boxSizing: "border-box",
+  transition: "border 0.2s",
+});
+
+function IconWrap({ children }) {
+  return (
+    <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#C2994B", display: "flex" }}>
+      {children}
+    </div>
+  );
+}
+
+function Field({ label, icon, children }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#C2994B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {label}
+      </label>
+      <div style={{ position: "relative" }}>
+        <IconWrap>{icon}</IconWrap>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function GoldBtn({ loading, onClick, disabled, children }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading || disabled}
+      style={{
+        width: "100%", padding: "14px",
+        background: loading || disabled ? "#3A3A3A" : GOLD,
+        border: "none", borderRadius: 10,
+        color: loading || disabled ? "#888" : "#000",
+        fontSize: 15, fontWeight: 800,
+        cursor: loading || disabled ? "not-allowed" : "pointer",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        marginBottom: 16, letterSpacing: 0.3,
+      }}
+    >
+      {loading ? <><Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Working…</> : children}
+    </button>
+  );
+}
+
+function ErrorBox({ msg }) {
+  if (!msg) return null;
+  return (
+    <div style={{ padding: "11px 14px", background: "#2D1010", border: "1px solid #EF4444", borderRadius: 8, color: "#EF4444", fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
+      ⚠️ {msg}
+    </div>
+  );
+}
+
+function StepDot({ active, done }) {
+  return (
+    <div style={{
+      width: done ? 22 : active ? 22 : 10, height: done ? 22 : active ? 22 : 10,
+      borderRadius: "50%",
+      background: done ? "#E2B355" : active ? GOLD : "#262626",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      transition: "all 0.3s",
+      fontSize: 11, color: "#000", fontWeight: 700,
+    }}>
+      {done ? "✓" : active ? "" : ""}
+    </div>
+  );
+}
+
+// ── OTP input: 6 separate digit boxes ──────────────────────────────────────
+function OtpInput({ value, onChange }) {
+  const refs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
+  const digits = (value + "      ").slice(0, 6).split("");
+
+  const handle = (i, e) => {
+    const v = e.target.value.replace(/\D/g, "").slice(-1);
+    const arr = digits.map((d) => d.trim());
+    arr[i] = v;
+    onChange(arr.join("").replace(/ /g, ""));
+    if (v && i < 5) refs[i + 1].current?.focus();
+    if (!v && e.nativeEvent.inputType === "deleteContentBackward" && i > 0) refs[i - 1].current?.focus();
+  };
+
+  return (
+    <div style={{ display: "flex", gap: 10, justifyContent: "center", margin: "24px 0" }}>
+      {digits.map((d, i) => (
+        <input
+          key={i}
+          ref={refs[i]}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={d.trim()}
+          onChange={(e) => handle(i, e)}
+          style={{
+            width: 46, height: 54, borderRadius: 10, textAlign: "center",
+            fontSize: 22, fontWeight: 800, color: "#fff",
+            background: "#1A1A1A",
+            border: `2px solid ${d.trim() ? "#E2B355" : "#262626"}`,
+            outline: "none", caretColor: "#E2B355",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
   const { colors: T } = useTheme();
-  const { t } = useLanguage();
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState(1); // 1=phone, 2=otp, 3=account
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [verifiedPhone, setVerifiedPhone] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  // Countdown for resend
+  useEffect(() => {
+    if (resendTimer <= 0) return;
+    const t = setTimeout(() => setResendTimer(r => r - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendTimer]);
 
-  const handleRegister = async (e) => {
-    e?.preventDefault();
-    
-    if (!formData.username || !formData.email || !formData.password) {
-      setError("Please fill in all required fields");
-      return;
-    }
-    
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-    
+  const [focusedPhone, setFocusedPhone] = useState(false);
+  const [focusedUser, setFocusedUser] = useState(false);
+  const [focusedEmail, setFocusedEmail] = useState(false);
+  const [focusedPwd, setFocusedPwd] = useState(false);
+  const [focusedConfirm, setFocusedConfirm] = useState(false);
+
+  // ── Step 1: Send OTP ───────────────────────────────────────────────────
+  const handleSendOtp = async () => {
     setError("");
+    if (!phone) { setError("Please enter your phone number"); return; }
     setLoading(true);
-    
     try {
-      const res = await api.register(
-        formData.username,
-        formData.email,
-        formData.password,
-        formData.firstName,
-        formData.lastName
-      );
-      
-      api.setAuthToken(res.token);
-      
-      // Include ALL user data from backend response
-      onSuccess({
-        id: res.user.id,
-        username: res.user.username,
-        email: res.user.email,
-        first_name: res.user.first_name || "",
-        last_name: res.user.last_name || "",
-        name: res.user.first_name || res.user.username,
-        profile_photo: res.user.profile_photo || null,
-        bio: res.user.bio || "",
-        followers_count: res.user.followers_count || 0,
-        following_count: res.user.following_count || 0,
-        is_staff: res.user.is_staff || false,
-      });
+      const res = await api.sendPhoneOtp(phone);
+      setVerifiedPhone(res.phone);
+      setStep(2);
+      setResendTimer(60);
+      // Dev: show code in UI if SMS not configured
+      if (res.dev_code) setError(`DEV MODE — Your code is: ${res.dev_code}`);
     } catch (e) {
-      console.error('Registration error:', e);
-      setError("Registration failed. Username or email may already exist.");
+      setError(e?.message || "Failed to send OTP. Check your phone number.");
     } finally {
       setLoading(false);
     }
   };
 
+  // ── Step 2: Verify OTP ─────────────────────────────────────────────────
+  const handleVerifyOtp = async () => {
+    setError("");
+    if (otp.length !== 6) { setError("Enter the 6-digit code"); return; }
+    setLoading(true);
+    try {
+      await api.verifyPhoneOtp(verifiedPhone, otp);
+      setStep(3);
+    } catch (e) {
+      setError(e?.message || "Invalid or expired code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Step 3: Create Account ─────────────────────────────────────────────
+  const handleRegister = async () => {
+    setError("");
+    if (!username) { setError("Please choose a username"); return; }
+    if (!/^\d{6}$/.test(password)) { setError("Password must be exactly 6 digits (numbers only)"); return; }
+    if (password !== confirm) { setError("Passwords do not match"); return; }
+    setLoading(true);
+    try {
+      const res = await api.registerWithPhone(verifiedPhone, username, password, email);
+      api.setAuthToken(res.token);
+      onSuccess({
+        id: res.user.id, username: res.user.username, email: res.user.email || "",
+        first_name: res.user.first_name || "", last_name: res.user.last_name || "",
+        name: res.user.first_name || res.user.username,
+        profile_photo: res.user.profile_photo || null, bio: res.user.bio || "",
+        followers_count: res.user.followers_count || 0,
+        following_count: res.user.following_count || 0,
+        is_staff: res.user.is_staff || false,
+      });
+    } catch (e) {
+      setError(e?.message || "Registration failed. Username may already exist.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const wrap = {
+    minHeight: "100vh", background: T.bg || "#0D0D0D",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    padding: "20px 16px",
+  };
+
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: T.bg,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 20,
-      position: "relative",
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: 440,
-      }}>
-        {/* Logos row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
-          <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 80, height: 80, objectFit: 'contain' }} />
-          <img src="/Flip_Star_Final_Logo_v3_side__2_-removebg-preview.png" alt="FlipStar" style={{ width: 110, height: 55, objectFit: 'contain' }} />
+    <div style={wrap}>
+      <div style={{ width: "100%", maxWidth: 420 }}>
+
+        {/* Logos */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 64, height: 64, objectFit: "contain" }} />
+          <img src="/Flip_Star_Final_Logo_v3_side__2_-removebg-preview.png" alt="FlipStar" style={{ width: 100, height: 50, objectFit: "contain" }} />
         </div>
 
-        {/* Header */}
-        <div style={{
-          padding: "40px 32px",
-          textAlign: "center",
-          marginBottom: 20,
-        }}>
-          <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 8, color: T.txt }}>
-            Create Account
-          </div>
-          <div style={{ fontSize: 14, color: T.sub }}>
-            Join FLIPSTAR today
-          </div>
+        {/* Step indicator */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 28 }}>
+          <StepDot active={step === 1} done={step > 1} />
+          <div style={{ width: 32, height: 2, background: step > 1 ? "#E2B355" : "#262626", borderRadius: 1, transition: "background 0.3s" }} />
+          <StepDot active={step === 2} done={step > 2} />
+          <div style={{ width: 32, height: 2, background: step > 2 ? "#E2B355" : "#262626", borderRadius: 1, transition: "background 0.3s" }} />
+          <StepDot active={step === 3} done={false} />
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleRegister} style={{ padding: "32px" }}>
-          {error && (
-            <div style={{
-              padding: "12px 16px",
-              background: "#FEE2E2",
-              border: "1px solid #EF4444",
-              borderRadius: 8,
-              color: "#EF4444",
-              fontSize: 13,
-              fontWeight: 600,
-              marginBottom: 20,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}>
-              ⚠️ {error}
-            </div>
+        {/* Card */}
+        <div style={{ background: T.cardBg || "#1A1A1A", borderRadius: 18, padding: "28px 24px", border: "1px solid #E2B35530" }}>
+
+          {/* ── STEP 1: Phone ── */}
+          {step === 1 && (
+            <>
+              <div style={{ textAlign: "center", marginBottom: 24 }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>📱</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#E2B355", marginBottom: 4 }}>Enter Your Phone</div>
+                <div style={{ fontSize: 13, color: "#C2994B" }}>Ethiopian number — an OTP will be sent via SMS</div>
+              </div>
+              <ErrorBox msg={error} />
+              <Field label="Phone Number" icon={<Phone size={17} />}>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  placeholder="09XXXXXXXX or +251XXXXXXXXX"
+                  style={inputStyle(T, focusedPhone)}
+                  onFocus={() => setFocusedPhone(true)}
+                  onBlur={() => setFocusedPhone(false)}
+                  onKeyDown={e => e.key === "Enter" && handleSendOtp()}
+                />
+              </Field>
+              <GoldBtn loading={loading} onClick={handleSendOtp}>Send OTP →</GoldBtn>
+            </>
           )}
 
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 8 }}>
-              Username *
-            </label>
-            <div style={{ position: "relative" }}>
-              <User
-                size={18}
-                style={{
-                  position: "absolute",
-                  left: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: T.sub,
-                }}
-              />
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(e) => handleChange("username", e.target.value)}
-                placeholder="Choose a username"
-                style={{
-                  width: "100%",
-                  padding: "12px 16px 12px 44px",
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: "none",
-                  transition: "border 0.2s",
-                }}
-                onFocus={(e) => e.target.style.borderColor = T.pri}
-                onBlur={(e) => e.target.style.borderColor = T.border}
-              />
-            </div>
-          </div>
+          {/* ── STEP 2: OTP ── */}
+          {step === 2 && (
+            <>
+              <div style={{ textAlign: "center", marginBottom: 8 }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>🔐</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#E2B355", marginBottom: 4 }}>Verify Code</div>
+                <div style={{ fontSize: 13, color: "#C2994B" }}>
+                  Code sent to <strong style={{ color: "#fff" }}>{verifiedPhone}</strong>
+                </div>
+              </div>
+              <ErrorBox msg={!error.startsWith("DEV") ? error : ""} />
+              {error.startsWith("DEV") && (
+                <div style={{ padding: "10px 14px", background: "#1A2A1A", border: "1px solid #22C55E", borderRadius: 8, color: "#22C55E", fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" }}>
+                  {error}
+                </div>
+              )}
+              <OtpInput value={otp} onChange={setOtp} />
+              <GoldBtn loading={loading} onClick={handleVerifyOtp} disabled={otp.length < 6}>Verify Code →</GoldBtn>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <button onClick={() => { setStep(1); setOtp(""); setError(""); }}
+                  style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                  <ArrowLeft size={14} /> Change number
+                </button>
+                {resendTimer > 0 ? (
+                  <span style={{ color: "#666", fontSize: 12 }}>Resend in {resendTimer}s</span>
+                ) : (
+                  <button onClick={handleSendOtp} style={{ background: "none", border: "none", color: "#E2B355", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                    Resend OTP
+                  </button>
+                )}
+              </div>
+            </>
+          )}
 
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 8 }}>
-              Email *
-            </label>
-            <div style={{ position: "relative" }}>
-              <Mail
-                size={18}
-                style={{
-                  position: "absolute",
-                  left: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: T.sub,
-                }}
-              />
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-                placeholder="your@email.com"
-                style={{
-                  width: "100%",
-                  padding: "12px 16px 12px 44px",
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: "none",
-                  transition: "border 0.2s",
-                }}
-                onFocus={(e) => e.target.style.borderColor = T.pri}
-                onBlur={(e) => e.target.style.borderColor = T.border}
-              />
-            </div>
-          </div>
+          {/* ── STEP 3: Account ── */}
+          {step === 3 && (
+            <>
+              <div style={{ textAlign: "center", marginBottom: 20 }}>
+                <CheckCircle size={36} color="#E2B355" style={{ margin: "0 auto 8px" }} />
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#E2B355", marginBottom: 4 }}>Create Account</div>
+                <div style={{ fontSize: 13, color: "#C2994B" }}>Phone verified ✓ — choose your username & PIN</div>
+              </div>
+              <ErrorBox msg={error} />
+              <Field label="Username" icon={<User size={17} />}>
+                <input type="text" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/\s/g, ""))}
+                  placeholder="Choose a unique username"
+                  style={inputStyle(T, focusedUser)}
+                  onFocus={() => setFocusedUser(true)} onBlur={() => setFocusedUser(false)}
+                />
+              </Field>
+              <Field label="Email (optional — needed for password reset)" icon={<Mail size={17} />}>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  style={inputStyle(T, focusedEmail)}
+                  onFocus={() => setFocusedEmail(true)} onBlur={() => setFocusedEmail(false)}
+                />
+              </Field>
+              <Field label="6-Digit PIN Password" icon={<Lock size={17} />}>
+                <input
+                  type={showPwd ? "text" : "password"} inputMode="numeric" maxLength={6}
+                  value={password} onChange={e => setPassword(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="••••••"
+                  style={{ ...inputStyle(T, focusedPwd), paddingRight: 46 }}
+                  onFocus={() => setFocusedPwd(true)} onBlur={() => setFocusedPwd(false)}
+                />
+                <button type="button" onClick={() => setShowPwd(v => !v)}
+                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}>
+                  {showPwd ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </Field>
+              <Field label="Confirm PIN" icon={<Lock size={17} />}>
+                <input
+                  type={showConfirm ? "text" : "password"} inputMode="numeric" maxLength={6}
+                  value={confirm} onChange={e => setConfirm(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="••••••"
+                  style={{ ...inputStyle(T, focusedConfirm), paddingRight: 46 }}
+                  onFocus={() => setFocusedConfirm(true)} onBlur={() => setFocusedConfirm(false)}
+                />
+                <button type="button" onClick={() => setShowConfirm(v => !v)}
+                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}>
+                  {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </Field>
+              <div style={{ fontSize: 11, color: "#666", marginBottom: 16, marginTop: -8 }}>
+                Password must be exactly 6 digits (e.g. 123456)
+              </div>
+              <GoldBtn loading={loading} onClick={handleRegister}>Create Account 🚀</GoldBtn>
+            </>
+          )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 8 }}>
-                First Name
-              </label>
-              <input
-                type="text"
-                value={formData.firstName}
-                onChange={(e) => handleChange("firstName", e.target.value)}
-                placeholder="First"
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: "none",
-                  transition: "border 0.2s",
-                }}
-                onFocus={(e) => e.target.style.borderColor = T.pri}
-                onBlur={(e) => e.target.style.borderColor = T.border}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 8 }}>
-                Last Name
-              </label>
-              <input
-                type="text"
-                value={formData.lastName}
-                onChange={(e) => handleChange("lastName", e.target.value)}
-                placeholder="Last"
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: "none",
-                  transition: "border 0.2s",
-                }}
-                onFocus={(e) => e.target.style.borderColor = T.pri}
-                onBlur={(e) => e.target.style.borderColor = T.border}
-              />
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: T.txt, marginBottom: 8 }}>
-              Password *
-            </label>
-            <div style={{ position: "relative" }}>
-              <Lock
-                size={18}
-                style={{
-                  position: "absolute",
-                  left: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: T.sub,
-                }}
-              />
-              <input
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={(e) => handleChange("password", e.target.value)}
-                placeholder="Create a password"
-                style={{
-                  width: "100%",
-                  padding: "12px 44px 12px 44px",
-                  border: `1px solid ${T.border}`,
-                  borderRadius: 8,
-                  fontSize: 14,
-                  outline: "none",
-                  transition: "border 0.2s",
-                }}
-                onFocus={(e) => e.target.style.borderColor = T.pri}
-                onBlur={(e) => e.target.style.borderColor = T.border}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: "absolute",
-                  right: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 4,
-                  display: "flex",
-                  color: T.sub,
-                }}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-            <div style={{ fontSize: 11, color: T.sub, marginTop: 4 }}>
-              At least 6 characters
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "14px",
-              background: loading ? T.sub : `linear-gradient(135deg, ${T.dark}, ${T.pri})`,
-              border: "none",
-              borderRadius: 8,
-              color: "#fff",
-              fontSize: 15,
-              fontWeight: 700,
-              cursor: loading ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              marginBottom: 20,
-            }}
-          >
-            {loading ? (
-              <>
-                <Loader size={18} style={{ animation: "spin 1s linear infinite" }} />
-                Creating account...
-              </>
-            ) : (
-              "Create Account"
-            )}
-          </button>
-
-          <div style={{ textAlign: "center", fontSize: 13, color: T.sub }}>
+          {/* Footer */}
+          <div style={{ textAlign: "center", fontSize: 13, color: "#666", marginTop: 4 }}>
             Already have an account?{" "}
-            <button
-              type="button"
-              onClick={onLogin}
-              style={{
-                background: "none",
-                border: "none",
-                color: T.pri,
-                fontWeight: 700,
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
+            <button onClick={onLogin} style={{ background: "none", border: "none", color: "#E2B355", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
               Log in
             </button>
           </div>
-        </form>
+        </div>
       </div>
 
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

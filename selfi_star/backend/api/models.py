@@ -50,6 +50,9 @@ class UserProfile(models.Model):
     gifts_received_total = models.IntegerField(default=0)
     last_gift_reset = models.DateField(null=True, blank=True, help_text='Last daily gift counter reset')
     
+    # Ethiopian phone number (e.g. +251912345678) — set during phone-OTP registration
+    phone_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
+
     # Privacy settings
     is_private = models.BooleanField(default=False)
     show_activity = models.BooleanField(default=True)

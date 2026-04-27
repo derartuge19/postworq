@@ -1,4 +1,6 @@
 import traceback
+import random
+import string
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -8,6 +10,49 @@ from django.contrib.auth.models import User
 from django.db.models import F, Count, Exists, OuterRef, Subquery, Prefetch
 from django.utils import timezone
 from datetime import datetime, timedelta
+
+
+# ── OTP / Phone helpers ────────────────────────────────────────────────────
+def _generate_otp():
+    return ''.join(random.choices(string.digits, k=6))
+
+
+def _normalize_ethiopian_phone(phone):
+    """Normalize to +251XXXXXXXXX. Returns None if invalid."""
+    phone = phone.strip().replace(' ', '').replace('-', '')
+    if phone.startswith('+251') and len(phone) == 13:
+        return phone
+    if phone.startswith('251') and len(phone) == 12:
+        return '+' + phone
+    if phone.startswith('0') and len(phone) == 10:
+        return '+251' + phone[1:]
+    if len(phone) == 9 and phone[0] in '79':
+        return '+251' + phone
+    return None
+
+
+def _send_sms(phone, message):
+    """Send SMS via Africa's Talking. Falls back to console log if not configured."""
+    try:
+        from decouple import config as dc
+        at_username = dc('AT_USERNAME', default='')
+        at_api_key = dc('AT_API_KEY', default='')
+        if not at_username or not at_api_key:
+            print(f"[OTP-SMS] Not configured — code for {phone}: {message}")
+            return False
+        import requests as _req
+        resp = _req.post(
+            'https://api.africastalking.com/version1/messaging',
+            headers={'apiKey': at_api_key, 'Accept': 'application/json',
+                     'Content-Type': 'application/x-www-form-urlencoded'},
+            data={'username': at_username, 'to': phone, 'message': message},
+            timeout=10,
+        )
+        print(f"[OTP-SMS] AT response {resp.status_code}: {resp.text[:120]}")
+        return resp.status_code == 201
+    except Exception as exc:
+        print(f"[OTP-SMS] Error: {exc}")
+        return False
 
 from .models import UserProfile, Reel, Comment, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, CommentLike, CommentReply, SavedPost, Notification, Report, ModerationAction
 from .models_campaign import CampaignNotification
@@ -143,6 +188,162 @@ def reset_password(request):
         return Response({'message': 'Password reset successful. You can now login.'})
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# ── Phone OTP Registration ─────────────────────────────────────────────────
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_phone_otp(request):
+    """Step 1 of registration: validate Ethiopian phone and send 6-digit OTP via SMS."""
+    from .models_auth import PhoneOTP
+    phone_raw = request.data.get('phone', '').strip()
+    if not phone_raw:
+        return Response({'error': 'Phone number required'}, status=status.HTTP_400_BAD_REQUEST)
+    phone = _normalize_ethiopian_phone(phone_raw)
+    if not phone:
+        return Response(
+            {'error': 'Invalid Ethiopian phone number. Use format 09XXXXXXXX or +251XXXXXXXXX'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if UserProfile.objects.filter(phone_number=phone).exists():
+        return Response({'error': 'This phone number is already registered'}, status=status.HTTP_400_BAD_REQUEST)
+    # Rate-limit: max 3 OTPs per number per 10 minutes
+    recent = PhoneOTP.objects.filter(phone=phone, created_at__gte=timezone.now() - timedelta(minutes=10)).count()
+    if recent >= 3:
+        return Response({'error': 'Too many requests. Please wait 10 minutes.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+    code = _generate_otp()
+    PhoneOTP.objects.filter(phone=phone).delete()
+    PhoneOTP.objects.create(phone=phone, code=code, expires_at=timezone.now() + timedelta(minutes=10))
+    sms_sent = _send_sms(phone, f'Your FlipStar code: {code}. Valid 10 min. Do not share.')
+    resp = {'message': f'OTP sent to {phone}', 'phone': phone, 'sms_sent': sms_sent}
+    if not sms_sent:
+        resp['dev_code'] = code  # Remove this line in production once SMS is live
+    return Response(resp)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_phone_otp(request):
+    """Step 2: verify the OTP entered by the user."""
+    from .models_auth import PhoneOTP
+    phone = request.data.get('phone', '').strip()
+    code = request.data.get('code', '').strip()
+    if not phone or not code:
+        return Response({'error': 'Phone and code required'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        otp = PhoneOTP.objects.get(phone=phone, code=code, verified=False)
+    except PhoneOTP.DoesNotExist:
+        return Response({'error': 'Invalid or already used code'}, status=status.HTTP_400_BAD_REQUEST)
+    if timezone.now() > otp.expires_at:
+        otp.delete()
+        return Response({'error': 'OTP expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+    otp.verified = True
+    otp.expires_at = timezone.now() + timedelta(minutes=30)  # Give 30 min to finish registration
+    otp.save()
+    return Response({'message': 'Phone verified successfully', 'phone': phone})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_with_phone(request):
+    """Step 3: create account after phone verified. Password must be exactly 6 digits."""
+    from .models_auth import PhoneOTP
+    phone = request.data.get('phone', '').strip()
+    username = request.data.get('username', '').strip()
+    password = request.data.get('password', '').strip()
+    email = request.data.get('email', '').strip()
+    if not phone or not username or not password:
+        return Response({'error': 'phone, username, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+    if not password.isdigit() or len(password) != 6:
+        return Response({'error': 'Password must be exactly 6 digits (numbers only)'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        otp = PhoneOTP.objects.get(phone=phone, verified=True)
+    except PhoneOTP.DoesNotExist:
+        return Response({'error': 'Phone not verified. Please complete OTP step first.'}, status=status.HTTP_400_BAD_REQUEST)
+    if timezone.now() > otp.expires_at:
+        otp.delete()
+        return Response({'error': 'Session expired. Please start registration again.'}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(username=username).exists():
+        return Response({'error': 'Username already taken. Please choose another.'}, status=status.HTTP_400_BAD_REQUEST)
+    if UserProfile.objects.filter(phone_number=phone).exists():
+        return Response({'error': 'Phone number already registered'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        user = User.objects.create_user(username=username, password=password, email=email or '')
+        profile = user.profile
+        profile.phone_number = phone
+        profile.save()
+        otp.delete()
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({'user': UserSerializer(user).data, 'token': token.key}, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ── Forgot Password (email-based) ──────────────────────────────────────────
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def forgot_password_request(request):
+    """Send 6-digit reset code to the user's email."""
+    from .models_auth import PasswordResetToken
+    email = request.data.get('email', '').strip()
+    if not email:
+        return Response({'error': 'Email required'}, status=status.HTTP_400_BAD_REQUEST)
+    SAFE = {'message': 'If an account with that email exists, a reset code has been sent.'}
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response(SAFE)
+    code = _generate_otp()
+    PasswordResetToken.objects.filter(user=user).delete()
+    PasswordResetToken.objects.create(user=user, code=code, expires_at=timezone.now() + timedelta(minutes=15))
+    try:
+        from django.core.mail import send_mail
+        from django.conf import settings
+        send_mail(
+            subject='FlipStar — Password Reset Code',
+            message=(
+                f'Your FlipStar password reset code is: {code}\n\n'
+                'This code expires in 15 minutes.\n'
+                'If you did not request a reset, please ignore this email.'
+            ),
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@flipstar.app'),
+            recipient_list=[email],
+            fail_silently=True,
+        )
+        print(f"[PWD-RESET] Code sent to {email}")
+    except Exception as exc:
+        print(f"[PWD-RESET] Email error: {exc} — dev code: {code}")
+    return Response(SAFE)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def forgot_password_confirm(request):
+    """Verify reset code and set new 6-digit password."""
+    from .models_auth import PasswordResetToken
+    email = request.data.get('email', '').strip()
+    code = request.data.get('code', '').strip()
+    new_password = request.data.get('new_password', '').strip()
+    if not email or not code or not new_password:
+        return Response({'error': 'email, code, and new_password required'}, status=status.HTTP_400_BAD_REQUEST)
+    if not new_password.isdigit() or len(new_password) != 6:
+        return Response({'error': 'New password must be exactly 6 digits'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        user = User.objects.get(email=email)
+        token_obj = PasswordResetToken.objects.get(user=user, code=code, used=False)
+    except (User.DoesNotExist, PasswordResetToken.DoesNotExist):
+        return Response({'error': 'Invalid or expired reset code'}, status=status.HTTP_400_BAD_REQUEST)
+    if timezone.now() > token_obj.expires_at:
+        token_obj.delete()
+        return Response({'error': 'Code expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+    user.set_password(new_password)
+    user.save()
+    token_obj.used = True
+    token_obj.save()
+    return Response({'message': 'Password reset successful. You can now log in.'})
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

@@ -4,7 +4,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from .views import (
-    register, login, reset_password, create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
+    register, login, reset_password,
+    send_phone_otp, verify_phone_otp, register_with_phone,
+    forgot_password_request, forgot_password_confirm,
+    create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
     get_user_notifications, mark_notifications_read, get_unread_notification_count,
     mark_single_notification_read, create_report, admin_reports_list, admin_report_detail,
@@ -211,6 +214,11 @@ urlpatterns = [
     path('auth/register/', register, name='auth-register'),
     path('auth/login/', login, name='auth-login'),
     path('auth/reset-password/', reset_password, name='auth-reset-password'),
+    path('auth/send-otp/', send_phone_otp, name='auth-send-otp'),
+    path('auth/verify-otp/', verify_phone_otp, name='auth-verify-otp'),
+    path('auth/register-phone/', register_with_phone, name='auth-register-phone'),
+    path('auth/forgot-password/', forgot_password_request, name='auth-forgot-password'),
+    path('auth/forgot-password/confirm/', forgot_password_confirm, name='auth-forgot-password-confirm'),
     path('setup-admin/', setup_admin, name='setup-admin'),
     path('posts/create/', create_post, name='create-post'),
     path('notifications/', get_user_notifications, name='user-notifications'),
