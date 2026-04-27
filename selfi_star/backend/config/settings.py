@@ -43,8 +43,7 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = True  # Fallback to allow all origins
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Must be first
-    'api.middleware.CustomCorsMiddleware',  # Custom CORS for Vercel
+    'api.middleware.CustomCorsMiddleware',  # Custom CORS for Vercel - handles all origins
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
