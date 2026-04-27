@@ -151,13 +151,13 @@ export function UserSuggestions({ onUserClick }) {
                 onClick={() => handleFollowToggle(user.id)}
                 style={{
                   padding: "6px 12px",
-                  border: isFollowing ? `1px solid ${T.border}` : "none",
-                  background: isFollowing ? "#fff" : T.pri,
+                  border: isFollowing ? `1.5px solid rgba(226,179,85,0.4)` : "none",
+                  background: isFollowing ? 'rgba(226,179,85,0.15)' : 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)',
                   borderRadius: 6,
                   cursor: "pointer",
                   fontSize: 12,
                   fontWeight: 700,
-                  color: isFollowing ? T.txt : "#fff",
+                  color: isFollowing ? '#E2B355' : '#000',
                   flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
@@ -166,12 +166,12 @@ export function UserSuggestions({ onUserClick }) {
                 }}
                 onMouseEnter={(e) => {
                   if (isFollowing) {
-                    e.currentTarget.style.background = T.bg;
+                    e.currentTarget.style.background = 'rgba(226,179,85,0.25)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (isFollowing) {
-                    e.currentTarget.style.background = "#fff";
+                    e.currentTarget.style.background = 'rgba(226,179,85,0.15)';
                   }
                 }}
               >

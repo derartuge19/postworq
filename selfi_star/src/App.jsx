@@ -404,6 +404,27 @@ export default function WerqRoot() {
             font-size: calc(var(--font-size-base) * 0.9375) !important;
           }
           
+          /* Remove ALL blue tap highlights globally - replace with gold brand color */
+          * {
+            -webkit-tap-highlight-color: rgba(226,179,85,0.3) !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+          }
+          
+          /* Allow text selection for inputs and text areas */
+          input, textarea, [contenteditable="true"], .selectable {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+          }
+          
+          /* Gold active states for all interactive elements */
+          button:active, a:active, [role="button"]:active, .clickable:active {
+            background-color: rgba(226,179,85,0.2) !important;
+            transform: scale(0.96) !important;
+            transition: all 0.1s ease !important;
+          }
+          
           /* Buttons and inputs */
           button, input, textarea, select {
             font-family: ${fontSecondary} !important;
