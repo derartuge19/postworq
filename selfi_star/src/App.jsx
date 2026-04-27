@@ -1058,17 +1058,12 @@ export default function WerqRoot() {
                 onBack={() => {
                   setShowProfile(false);
                   const ret = prevNavState.current;
-                  if (ret) {
-                    setActiveTab(ret.activeTab || 'home');
-                    // Clear video detail state to avoid showing random videos
-                    setShowVideoDetail(false);
-                    setVideoDetailId(null);
-                    prevNavState.current = null;
-                    window.history.back();
-                  } else {
-                    setActiveTab('home');
-                    pushHistoryState({ showProfile: false, activeTab: 'home', showVideoDetail: false, videoDetailId: null }, true);
-                  }
+                  const targetTab = ret ? (ret.activeTab || 'reels') : 'reels';
+                  setActiveTab(targetTab);
+                  setShowVideoDetail(false);
+                  setVideoDetailId(null);
+                  prevNavState.current = null;
+                  pushHistoryState({ showProfile: false, activeTab: targetTab, showVideoDetail: false, videoDetailId: null }, true);
                 }}
                 onEditProfile={handleShowEditProfile}
                 onShowSettings={handleShowSettings}
