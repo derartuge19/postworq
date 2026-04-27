@@ -382,8 +382,10 @@ export default function ProfileScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
               {/* Bar */}
-              <GamificationBar userId={user?.id} onShowWallet={() => { setShowGamModal(false); navigation.navigate('Wallet'); }} />
-              <View style={{ height: insets.bottom || 16 }} />
+              <ScrollView style={{ maxHeight: '70%' }} showsVerticalScrollIndicator={false}>
+                <GamificationBar userId={user?.id} onShowWallet={() => { setShowGamModal(false); navigation.navigate('Wallet'); }} />
+                <View style={{ height: insets.bottom || 16 }} />
+              </ScrollView>
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
