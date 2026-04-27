@@ -468,8 +468,12 @@ export default function HomeScreen({ navigation }) {
 
   if (loading && posts.length === 0) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={T.pri} />
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <StatusBar translucent backgroundColor="transparent" style="dark" />
+        {renderHeader()}
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={T.pri} />
+        </View>
       </View>
     );
   }
@@ -477,11 +481,11 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar translucent backgroundColor="transparent" style="dark" />
+      {renderHeader()}
       <FlashList
         data={posts}
         renderItem={renderPost}
         keyExtractor={(item) => item.id.toString()}
-        ListHeaderComponent={renderHeader}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         onRefresh={handleRefresh}
@@ -604,9 +608,11 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   tabsContainer: {
-    paddingTop: 20,
+    paddingTop: 10,
     paddingBottom: 10,
-    marginBottom: 4,
+    backgroundColor: T.bg,
+    borderBottomWidth: 1,
+    borderBottomColor: T.border,
   },
   tabButton: {
     // Matches web: px-18 py-8 rounded-20 chip
