@@ -457,9 +457,9 @@ export function AppShell({
                   }}>
                     <Icon
                       size={24}
-                      strokeWidth={isActive ? 2.5 : 1.8}
+                      strokeWidth={1.8}
                       color='#F9E08B'
-                      fill={isActive ? '#F9E08B' : 'none'}
+                      fill='none'
                     />
                     {badgeCount > 0 && (
                       <div style={{
@@ -489,10 +489,9 @@ export function AppShell({
                   }}>Create</span>
                 ) : label ? (
                   <span
-                    className={isActive ? 'mob-nav-gold-lbl' : ''}
                     style={{
                       fontSize: 10,
-                      fontWeight: isActive ? 700 : 400,
+                      fontWeight: 400,
                       color: '#F9E08B',
                       lineHeight: 1,
                     }}>{label}</span>
