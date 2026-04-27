@@ -227,7 +227,7 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
 // ─────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────
-export default function GamificationBar({ userId }) {
+export default function GamificationBar({ userId, onShowWallet }) {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeModal, setActiveModal] = useState(null); // 'coins', 'streak', 'gift'
@@ -305,7 +305,7 @@ export default function GamificationBar({ userId }) {
           <View style={styles.modalContainer}>
             {activeModal === 'coins' && <CoinsModal coins={coins} onClose={() => setActiveModal(null)} />}
             {activeModal === 'streak' && <StreakModal streak={login_streak} onClaim={handleClaim} onClose={() => setActiveModal(null)} />}
-            {activeModal === 'gift' && <GiftModal coins={coins} onClose={() => setActiveModal(null)} onRefresh={loadStatus} />}
+            {activeModal === 'gift' && <GiftModal coins={coins} onClose={() => setActiveModal(null)} onRefresh={loadStatus} onShowWallet={onShowWallet} />}
           </View>
         </TouchableOpacity>
       </Modal>

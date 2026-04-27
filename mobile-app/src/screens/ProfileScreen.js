@@ -55,6 +55,7 @@ export default function ProfileScreen({ navigation }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
+  const [showGamModal, setShowGamModal] = useState(false);
 
   const fetchProfileData = useCallback(async () => {
     const currentUserId = user?.id;
@@ -353,18 +354,52 @@ export default function ProfileScreen({ navigation }) {
     <View style={styles.root}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Gamification Section (Now at the very top) */}
-        <View style={{ paddingTop: insets.top }}>
-          <GamificationBar userId={user?.id} />
-        </View>
+      {/* ── Gamification rewards bottom-sheet modal ── */}
+      <Modal
+        visible={showGamModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowGamModal(false)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.72)' }}
+          activeOpacity={1}
+          onPress={() => setShowGamModal(false)}
+        >
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
+            <View style={styles.gamModalSheet}>
+              {/* Handle */}
+              <View style={styles.gamModalHandle} />
+              {/* Header row */}
+              <View style={styles.gamModalHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Ionicons name="diamond-outline" size={20} color={BRAND_GOLD} />
+                  <Text style={styles.gamModalTitle}>My Rewards</Text>
+                </View>
+                <TouchableOpacity onPress={() => setShowGamModal(false)} style={{ padding: 4 }}>
+                  <Ionicons name="close" size={22} color="#78716C" />
+                </TouchableOpacity>
+              </View>
+              {/* Bar */}
+              <GamificationBar userId={user?.id} onShowWallet={() => { setShowGamModal(false); navigation.navigate('Wallet'); }} />
+              <View style={{ height: insets.bottom || 16 }} />
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
-        {/* Header (Now inside ScrollView, below Gamification) */}
-        <View style={styles.header}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: insets.top }]}>
           <View style={styles.headerLeft}>
             <Text style={styles.headerUsername}>@{profile?.username || user?.username || 'user'}</Text>
           </View>
           <View style={styles.headerRight}>
+            {/* Treasure chest — opens rewards modal */}
+            <TouchableOpacity onPress={() => setShowGamModal(true)} style={{ marginRight: 12 }}>
+              <Ionicons name="diamond-outline" size={24} color={BRAND_GOLD} />
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={{ marginRight: 12 }}>
               <Ionicons name="wallet-outline" size={24} color="#000" />
             </TouchableOpacity>
@@ -1176,5 +1211,35 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  gamModalSheet: {
+    backgroundColor: '#1A1A1A',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: 1,
+    borderColor: '#262626',
+    borderBottomWidth: 0,
+    paddingTop: 8,
+  },
+  gamModalHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: '#333',
+    borderRadius: 4,
+    alignSelf: 'center',
+    marginBottom: 4,
+  },
+  gamModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  gamModalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#fff',
+    marginLeft: 8,
   },
 });

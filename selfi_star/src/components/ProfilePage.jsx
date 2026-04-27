@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from "react";
-import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2, Wallet } from "lucide-react";
+import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2, Wallet, Gem, X } from "lucide-react";
 import { GamificationBar } from "./GamificationBar";
 import api from "../api";
 import config from "../config";
@@ -59,6 +59,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const isOwnProfile = !userId || userId === user?.id;
+  const [showGamModal, setShowGamModal] = useState(false);
   const targetUserId = userId || user?.id;
   const [mounted, setMounted] = useState(false); // Prevent flash on initial load
 
@@ -449,9 +450,6 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           {/* ── Sticky header: gamification on top, username/nav below ── */}
           <div style={{ position: "sticky", top: 0, zIndex: 10 }}>
 
-            {/* 1. Gamification bar — coin / streak / spin / gifts */}
-            {isOwnProfile && <GamificationBar userId={userId || user?.id} theme={T} onShowWallet={onShowWallet} />}
-
             {/* 2. Navigation row — back ← username · posts ⚙️ */}
             <div style={{
               background: T.bg || "#0D0D0D",
@@ -479,7 +477,19 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 </div>
               </div>
               {isOwnProfile && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {/* Treasure chest — opens gamification modal */}
+                  <button
+                    onClick={() => setShowGamModal(true)}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      padding: 8, display: 'flex', alignItems: 'center', color: T.pri,
+                      position: 'relative',
+                    }}
+                    title="Rewards"
+                  >
+                    <Gem size={24} />
+                  </button>
                   <button
                     onClick={onShowWallet}
                     style={{
@@ -1227,7 +1237,47 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         </>
       )}
 
-      {/* Report User Bottom Sheet */}
+      {/* ── Gamification bottom-sheet modal ── */}
+      {showGamModal && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 4000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          onClick={() => setShowGamModal(false)}
+        >
+          <div
+            style={{
+              width: '100%', maxWidth: 560,
+              background: T.cardBg || '#1A1A1A',
+              borderRadius: '24px 24px 0 0',
+              paddingBottom: 36,
+              boxSizing: 'border-box',
+              border: `1px solid ${T.border}`,
+              borderBottom: 'none',
+              boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
+              animation: 'slideUp 0.28s cubic-bezier(0.32,0.72,0,1)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <style>{`@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+            {/* handle + header */}
+            <div style={{ display: 'flex', alignItems: 'center', padding: '16px 20px 8px' }}>
+              <div style={{ width: 36, height: 4, background: T.border, borderRadius: 4, margin: '0 auto', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, paddingTop: 8 }}>
+                <Gem size={20} color={T.pri} />
+                <span style={{ fontSize: 17, fontWeight: 700, color: T.txt }}>My Rewards</span>
+              </div>
+              <button
+                onClick={() => setShowGamModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.sub, padding: 4, paddingTop: 12 }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            {/* Bar itself */}
+            <GamificationBar userId={userId || user?.id} theme={T} onShowWallet={() => { setShowGamModal(false); onShowWallet?.(); }} />
+          </div>
+        </div>
+      )}
+
       {showReportUser && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 3000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
