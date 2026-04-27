@@ -1246,6 +1246,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           <div
             style={{
               width: '100%', maxWidth: 560,
+              maxHeight: 'calc(100vh - 40px - env(safe-area-inset-top, 0px))',
               background: T.cardBg || '#1A1A1A',
               borderRadius: '24px 24px 0 0',
               paddingBottom: 'calc(36px + env(safe-area-inset-bottom, 0px))',
@@ -1254,6 +1255,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               borderBottom: 'none',
               boxShadow: '0 -8px 40px rgba(0,0,0,0.5)',
               animation: 'slideUp 0.28s cubic-bezier(0.32,0.72,0,1)',
+              overflowY: 'auto',
             }}
             onClick={e => e.stopPropagation()}
           >
