@@ -7,8 +7,8 @@ export const PRESET_THEMES = {
     emoji: '⭐',
     category: 'Premium',
     gradient: true,
-    light: { pri: 'linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%)', priFallback: '#D4AF37', bg: '#FAFAFA', txt: '#1A1A1A', sub: '#666', border: '#E5E5E5', cardBg: '#FFF' },
-    dark: { pri: 'linear-gradient(135deg, #FFD700 0%, #FFED4E 50%, #FFC700 100%)', priFallback: '#FFD700', bg: '#0A0A0A', txt: '#F5F5F5', sub: '#999', border: '#2A2A2A', cardBg: '#1A1A1A' },
+    light: { pri: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)', priFallback: '#E2B355', bg: '#FAFAFA', txt: '#1A1A1A', sub: '#78716C', border: '#E5E5E5', cardBg: '#FFF' },
+    dark: { pri: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)', priFallback: '#E2B355', bg: '#0D0D0D', txt: '#FFFFFF', sub: '#C2994B', border: '#262626', cardBg: '#1A1A1A' },
   },
   chrome: {
     name: 'Chrome Steel',
@@ -189,7 +189,7 @@ export const useLegacyT = () => {
 export const ThemeProvider = ({ children }) => {
   const stored = loadStored();
   const [preset, setPreset] = useState(stored.preset || 'flipstar');
-  const [darkMode, setDarkMode] = useState(stored.darkMode ?? false);
+  const [darkMode, setDarkMode] = useState(stored.darkMode ?? true);
   const [customPrimary, setCustomPrimary] = useState(stored.customPrimary || null);
   const [glassEnabled, setGlassEnabled] = useState(stored.glassEnabled ?? false);
 

@@ -6,7 +6,7 @@ const ThemeContext = createContext();
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
     loadTheme();
@@ -26,12 +26,13 @@ export const ThemeProvider = ({ children }) => {
   };
 
   const colors = {
-    bg: isDarkMode ? '#0A0A0A' : '#F5F5F4',
-    card: isDarkMode ? '#171717' : '#FFFFFF',
-    text: isDarkMode ? '#F5F5F5' : '#1C1917',
-    sub: isDarkMode ? '#A1A1AA' : '#78716C',
-    border: isDarkMode ? '#262626' : '#E7E5E4',
-    pri: '#DA9B2A',
+    bg: isDarkMode ? '#0D0D0D' : '#FAFAFA',
+    card: isDarkMode ? '#1A1A1A' : '#FFFFFF',
+    text: isDarkMode ? '#FFFFFF' : '#1A1A1A',
+    sub: isDarkMode ? '#C2994B' : '#78716C',
+    border: isDarkMode ? '#262626' : '#E5E5E5',
+    pri: '#E2B355',
+    priGradient: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)',
     danger: '#EF4444',
   };
 
