@@ -1220,6 +1220,7 @@ const styles = StyleSheet.create({
     borderColor: '#262626',
     borderBottomWidth: 0,
     paddingTop: 8,
+    maxHeight: '75%',
   },
   gamModalHandle: {
     width: 36,
