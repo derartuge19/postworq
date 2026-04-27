@@ -332,8 +332,7 @@ export default function WerqRoot() {
         root.style.setProperty('--font-weight-body', settings.font_weight_body || '400');
         root.style.setProperty('--letter-spacing', settings.letter_spacing || 'normal');
         root.style.setProperty('--line-height', settings.line_height || '1.5');
-        root.style.setProperty('--color-primary', settings.primary_color || '#8B5CF6');
-        root.style.setProperty('--color-secondary', settings.secondary_color || '#F97316');
+        // Colors managed by ThemeContext — do not override here
         
         // Apply to body
         document.body.style.fontFamily = fontSecondary;
@@ -355,8 +354,6 @@ export default function WerqRoot() {
             --font-secondary: ${fontSecondary};
             --font-username: ${fontUsername};
             --font-caption: ${fontCaption};
-            --color-primary: ${settings.primary_color || '#8B5CF6'};
-            --color-secondary: ${settings.secondary_color || '#F97316'};
             --font-size-base: ${baseFontSize}px;
           }
           
