@@ -771,6 +771,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               cursor: "pointer",
               overflow: "hidden",
               borderRadius: 8,
+              border: "1.5px solid rgba(226,179,85,0.28)",
+              boxSizing: "border-box",
             }}
             onClick={() => setSelectedPost(post)}
             onMouseEnter={(e) => {

@@ -1198,7 +1198,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
             <div style={{
               flex: 1, display: 'flex', flexDirection: 'column',
               height: '100%',
-              background: T.card,
+              background: 'linear-gradient(160deg, #0D0A06 0%, #0D0D0D 60%, #0A0806 100%)',
             }}>
 
               {/* Header */}
@@ -1209,13 +1209,13 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 position: 'relative', zIndex: 1,
               }}>
                 <button className="ep-btn" onClick={onBack}
-                  style={{ background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'rgba(0,0,0,0.08)' }}>
-                  <X size={20} color="#6b7280" />
+                  style={{ background: 'rgba(226,179,85,0.15)', border: '1.5px solid #E2B355', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={20} color="#E2B355" />
                 </button>
-                <span style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>New Post</span>
+                <span style={{ fontSize: 18, fontWeight: 800, background: 'linear-gradient(to bottom, #F9E08B 0%, #D4AF37 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>New Post</span>
                 {drafts.length > 0 ? (
                   <button className="ep-btn" onClick={() => setShowDrafts(true)}
-                    style={{ background: `${T.pri}14`, borderRadius: 20, padding: '8px 14px', color: T.pri, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    style={{ background: 'rgba(226,179,85,0.12)', border: '1.5px solid #E2B355', borderRadius: 20, padding: '7px 13px', color: '#E2B355', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <FileText size={14} /> Drafts ({drafts.length})
                   </button>
                 ) : <div style={{ width: 40 }} />}
@@ -1224,20 +1224,20 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               {/* Hero icon + title */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 24, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
                 <div style={{ position: 'relative', marginBottom: 14 }}>
-                  <div style={{ width: 72, height: 72, background: T.priGradient || T.pri, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 24px ${T.pri}59` }}>
-                    <svg width="30" height="30" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
+                  <div style={{ width: 72, height: 72, background: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 28px rgba(226,179,85,0.45)', border: '2px solid rgba(249,224,139,0.4)' }}>
+                    <svg width="30" height="30" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#000"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#000" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
-                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: '#DA9B2A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, border: `2px solid ${T.cardBg || '#fff'}`, boxShadow: `0 2px 6px rgba(218,155,42,0.5)` }}>??</div>
+                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: 'linear-gradient(to bottom, #F9E08B, #B8860B)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, border: '2px solid #0D0D0D', boxShadow: '0 2px 6px rgba(226,179,85,0.5)' }}>✨</div>
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: T.txt, marginBottom: 4 }}>Create Post</div>
-                <div style={{ fontSize: 13, color: T.sub, textAlign: 'center' }}>Choose how you want to create content</div>
+                <div style={{ fontSize: 22, fontWeight: 800, background: 'linear-gradient(to bottom, #F9E08B 0%, #D4AF37 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 4 }}>Create Post</div>
+                <div style={{ fontSize: 13, color: '#C2994B', textAlign: 'center' }}>Choose how you want to create content</div>
               </div>
 
               {/* Cards */}
               <div style={{ 
                 display: 'flex', 
                 flexDirection: 'column', 
-                gap: 44, 
+                gap: 22, 
                 padding: '28px 20px', 
                 position: 'relative', 
                 zIndex: 1, 
@@ -1252,82 +1252,78 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 <button className="ep-btn" onClick={() => setCaptureMode('camera')}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 14,
-                    background: T.card,
-                    border: `2px solid ${T.pri}20`,
-                    borderRadius: 16,
-                    padding: '20px 16px',
+                    background: 'linear-gradient(135deg, #1A1611 0%, #221C10 100%)',
+                    border: '2px solid #E2B355',
+                    borderRadius: 18,
+                    padding: '20px 20px',
                     cursor: 'pointer',
-                    boxShadow: `${T.dark}0F`,
+                    boxShadow: '0 4px 24px rgba(226,179,85,0.15), 0 1px 0 rgba(255,255,255,0.04) inset',
                     transition: 'box-shadow 0.2s, transform 0.15s',
                     textAlign: 'center',
                     justifyContent: 'center',
                     position: 'relative',
                     overflow: 'hidden',
                     width: '100%',
-                    height: '100px',
+                    height: '108px',
                     minWidth: '280px',
                     maxWidth: '400px',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(226,179,85,0.35)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(226,179,85,0.15)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  {/* Decorative corner dots */}
-                  <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.pri, opacity: 0.6 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.pri, opacity: 0.4 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.pri, opacity: 0.2 }} />
+                  {/* Gold shimmer corner dots */}
+                  <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.8 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E2B355', opacity: 0.5 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#B8860B', opacity: 0.3 }} />
                   </div>
-                  {/* Decorative corner badge */}
-                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: T.pri, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#fff', fontWeight: 800, boxShadow: `0 4px 12px ${T.pri}40` }}>📸</div>
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: T.priGradient || T.pri, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
-                    {/* Icon glow effect */}
-                    <div style={{ position: 'absolute', inset: -4, background: T.pri, borderRadius: 16, opacity: 0.1, filter: 'blur(8px)' }} />
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
+                  {/* Corner badge */}
+                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: 'linear-gradient(to bottom, #F9E08B, #B8860B)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: '0 4px 12px rgba(226,179,85,0.5)' }}>📸</div>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(226,179,85,0.4)' }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#000"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#000" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: T.txt, marginBottom: 2 }}>Take Photo/Video</div>
-                    <div style={{ fontSize: 12.5, color: T.sub }}>Use camera with filters</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#F5E6C8', marginBottom: 3 }}>Take Photo/Video</div>
+                    <div style={{ fontSize: 12.5, color: '#C2994B' }}>Use camera with filters</div>
                   </div>
                 </button>
 
                 {/* ── Upload Image card ── */}
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: 14,
-                  background: T.card,
-                  border: `2px solid ${T.pri}20`,
-                  borderRadius: 16,
-                  padding: '20px 16px',
+                  background: 'linear-gradient(135deg, #1A1611 0%, #221C10 100%)',
+                  border: '2px solid #E2B355',
+                  borderRadius: 18,
+                  padding: '20px 20px',
                   cursor: 'pointer',
-                  boxShadow: `${T.dark}0F`,
+                  boxShadow: '0 4px 24px rgba(226,179,85,0.15), 0 1px 0 rgba(255,255,255,0.04) inset',
                   transition: 'box-shadow 0.2s, transform 0.15s',
                   justifyContent: 'center',
                   textAlign: 'center',
                   position: 'relative',
                   overflow: 'hidden',
                   width: '100%',
-                  height: '100px',
+                  height: '108px',
                   minWidth: '280px',
                   maxWidth: '400px',
                 }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = `${T.dark}1A`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = `${T.dark}0F`; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(226,179,85,0.35)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(226,179,85,0.15)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  {/* Decorative corner dots */}
-                  <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8', opacity: 0.6 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8', opacity: 0.4 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8', opacity: 0.2 }} />
+                  {/* Gold shimmer corner dots */}
+                  <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.8 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E2B355', opacity: 0.5 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#B8860B', opacity: 0.3 }} />
                   </div>
-                  {/* Decorative corner badge */}
-                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: 'linear-gradient(135deg, #818cf8, #6366f1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#fff', fontWeight: 800, boxShadow: '0 4px 12px rgba(129,140,248,0.4)' }}>+</div>
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg, #818cf8, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
-                    {/* Icon glow effect */}
-                    <div style={{ position: 'absolute', inset: -4, background: '#818cf8', borderRadius: 16, opacity: 0.1, filter: 'blur(8px)' }} />
-                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>
+                  {/* Corner badge */}
+                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: 'linear-gradient(to bottom, #F9E08B, #B8860B)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 900, color: '#000', boxShadow: '0 4px 12px rgba(226,179,85,0.5)' }}>+</div>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(226,179,85,0.4)' }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#000" strokeWidth="2.2" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: T.txt, marginBottom: 2 }}>Upload Image</div>
-                    <div style={{ fontSize: 12.5, color: T.sub }}>From gallery or files</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#F5E6C8', marginBottom: 3 }}>Upload Image</div>
+                    <div style={{ fontSize: 12.5, color: '#C2994B' }}>From gallery or files</div>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*,video/*"
                     onChange={handleFileSelect} style={{ display: 'none' }} />

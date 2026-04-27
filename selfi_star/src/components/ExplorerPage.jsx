@@ -142,6 +142,8 @@ function VideoThumb({ reel, rank, index = 0, hero = false, onOpen, T }) {
         overflow: 'hidden',
         cursor: 'pointer',
         gridColumn: hero ? '1 / span 3' : undefined,
+        border: '1.5px solid rgba(226,179,85,0.28)',
+        boxSizing: 'border-box',
         transform: hovered ? 'scale(1.015)' : 'scale(1)',
         transition: 'transform 0.15s',
         zIndex: hovered ? 1 : 0,
