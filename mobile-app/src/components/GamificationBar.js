@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
 
 const { width, height } = Dimensions.get('window');
@@ -228,6 +229,7 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
 // Main Component
 // ─────────────────────────────────────────────────────────────
 export default function GamificationBar({ userId, onShowWallet }) {
+  const insets = useSafeAreaInsets();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeModal, setActiveModal] = useState(null); // 'coins', 'streak', 'gift'
@@ -302,7 +304,7 @@ export default function GamificationBar({ userId, onShowWallet }) {
           activeOpacity={1} 
           onPress={() => setActiveModal(null)}
         >
-          <View style={styles.modalContainer}>
+          <View style={[styles.modalContainer, { paddingBottom: insets.bottom + 20 }]}>
             {activeModal === 'coins' && <CoinsModal coins={coins} onClose={() => setActiveModal(null)} />}
             {activeModal === 'streak' && <StreakModal streak={login_streak} onClaim={handleClaim} onClose={() => setActiveModal(null)} />}
             {activeModal === 'gift' && <GiftModal coins={coins} onClose={() => setActiveModal(null)} onRefresh={loadStatus} onShowWallet={onShowWallet} />}
