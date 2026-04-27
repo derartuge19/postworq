@@ -14,7 +14,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import config from '../config';
-const flipLogo = '/Flip_Star_Final_Logo_v3_side__2_-removebg-preview.png';
+const flipLogo = '/flip-logo.png';
 
 export function AppShell({
   user,
