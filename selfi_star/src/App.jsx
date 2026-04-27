@@ -1168,6 +1168,7 @@ export default function WerqRoot() {
                 onShowExplorer={handleShowExplorer}
                 onShowVideoDetail={handleShowVideoDetail}
                 onShowCampaigns={handleShowCampaigns}
+                onShowWallet={handleShowWallet}
               />
             </Suspense>
           </LazyLoadErrorBoundary>

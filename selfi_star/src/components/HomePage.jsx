@@ -1331,6 +1331,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
         <GiftPage
           username={post.user?.username}
           onClose={() => setShowGiftModal(false)}
+          onShowWallet={onShowWallet}
         />
       )}
     </>
@@ -1339,7 +1340,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
 
 const ALL_TABS = ['For You', 'Explore', 'Campaigns', 'Categories'];
 
-export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail }) {
+export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, onShowExplorer, onShowCampaigns, onShowVideoDetail, onShowWallet }) {
   const { colors: T } = useTheme();
   const [activeTab, setActiveTab] = useState('For You');
   // Seed from cache + merge persisted like/save state so the heart stays

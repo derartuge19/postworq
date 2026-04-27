@@ -19,7 +19,7 @@ const RARITY_COLORS = {
   legendary: '#F59E0B',
 };
 
-export default function GiftPage({ username, onClose }) {
+export default function GiftPage({ username, onClose, onShowWallet }) {
   const { colors: T } = useTheme();
   const [gifts, setGifts] = useState([
     { id: 1, name: 'Rose', description: 'A beautiful red rose', coin_value: 10, rarity: 'common', category: 'flowers' },
@@ -454,7 +454,7 @@ export default function GiftPage({ username, onClose }) {
                     }
                     // Open wallet page for more options
                     setShowRechargeDialog(false);
-                    window.location.href = '/wallet';
+                    onShowWallet?.();
                   }}
                   style={{
                     flex: 1,
