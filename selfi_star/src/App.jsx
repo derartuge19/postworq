@@ -1351,6 +1351,20 @@ export default function WerqRoot() {
           </div>
         </div>
       )}
+      {(showLogin || showRegister) && (
+        <>
+          <img
+            src="/ethio-logo.png"
+            alt="Ethio Telecom"
+            style={{ position: 'fixed', top: 16, left: 24, width: 90, height: 90, objectFit: 'contain', zIndex: 9999, pointerEvents: 'none' }}
+          />
+          <img
+            src="/Flip_Star_Final_Logo_v3_side__2_-removebg-preview.png"
+            alt="FlipStar"
+            style={{ position: 'fixed', top: 16, right: 24, width: 120, height: 60, objectFit: 'contain', zIndex: 9999, pointerEvents: 'none' }}
+          />
+        </>
+      )}
     </div>
   );
 }

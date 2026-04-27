@@ -81,27 +81,6 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
       padding: 20,
       position: "relative",
     }}>
-      {/* Logos - Top Left and Right */}
-      <div style={{
-        position: "absolute",
-        top: 16,
-        left: 24,
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-      }}>
-        <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 90, height: 90, objectFit: "contain" }} onError={(e) => { e.target.style.display = 'none'; }} />
-      </div>
-      <div style={{
-        position: "absolute",
-        top: 16,
-        right: 24,
-        display: "flex",
-        alignItems: "center",
-      }}>
-        <img src="/Flip_Star_Final_Logo_v3_side__2_-removebg-preview.png" alt="FlipStar" style={{ width: 120, height: 60, objectFit: "contain" }} onError={(e) => { e.target.style.display = 'none'; }} />
-      </div>
-
       <div style={{
         width: "100%",
         maxWidth: 440,
