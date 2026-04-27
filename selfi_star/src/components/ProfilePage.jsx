@@ -1249,7 +1249,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               maxHeight: 'calc(100vh - 40px - env(safe-area-inset-top, 0px))',
               background: T.cardBg || '#1A1A1A',
               borderRadius: '24px 24px 0 0',
-              paddingBottom: 'calc(36px + env(safe-area-inset-bottom, 0px))',
+              paddingBottom: 'calc(60px + env(safe-area-inset-bottom, 0px))',
               boxSizing: 'border-box',
               border: `1px solid ${T.border}`,
               borderBottom: 'none',
