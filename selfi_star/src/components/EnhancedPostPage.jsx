@@ -833,6 +833,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
         <style>{`
           .ep-nav-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); border: none; background: transparent; cursor: pointer; }
           .ep-nav-btn:active { transform: scale(0.82) !important; }
+          .ep-nav-btn:active svg { fill: #000 !important; }
         `}</style>
         {bottomNavItems.map(({ id, label, Icon, action, isCreate, badge }) => {
           if (isCreate) return (

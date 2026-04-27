@@ -164,6 +164,7 @@ export function AppShell({
         }
         .appshell-main::-webkit-scrollbar { display: none; }
         .appshell-main { -ms-overflow-style: none; scrollbar-width: none; }
+        .mob-nav-btn:active svg { fill: #000 !important; }
       `}</style>
       {/* 1. Desktop Sidebar */}
       {!isMobile && (
@@ -439,7 +440,7 @@ export function AppShell({
                     size={isCreate ? 20 : 24}
                     strokeWidth={isCreate ? 2.5 : (isActive ? 2.5 : 1.8)}
                     color={isCreate ? '#fff' : '#F9E08B'}
-                    fill={isCreate ? '#fff' : (isActive ? '#F9E08B' : 'none')}
+                    fill={isCreate ? '#fff' : (isActive ? '#000' : 'none')}
                   />
                   {badgeCount > 0 && (
                     <div style={{
