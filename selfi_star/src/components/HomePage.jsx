@@ -670,6 +670,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   const [inlineComments, setInlineComments] = useState(post.recent_comments || []);
   const [commentCount, setCommentCount] = useState(post.comment_count || 0);
   const [showAllInline, setShowAllInline] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   const isOwnPost = currentUser?.id === post.user?.id;
 

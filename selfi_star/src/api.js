@@ -133,7 +133,7 @@ const api = {
       }
 
       // Only add token if it exists AND it's not an auth or public endpoint
-      const currentToken = authToken || localStorage.getItem('authToken');
+      const currentToken = authToken || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
       const isPublicEndpoint = endpoint.includes('/auth/') || endpoint.includes('/settings/public');
       if (currentToken && !isPublicEndpoint) {
         headers['Authorization'] = `Token ${currentToken}`;
@@ -176,7 +176,9 @@ const api = {
             return retryData;
           }
           console.warn('⚠️ Retry also failed — clearing credentials');
-          authToken = null;
+          // Only clear the regular user token; preserve adminToken so admin
+          // panel sessions survive a stale-user-token 401 on a public GET.
+          authToken = localStorage.getItem('adminToken') || null;
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
           console.error('API Error after retry:', retryResponse.status, retryData);

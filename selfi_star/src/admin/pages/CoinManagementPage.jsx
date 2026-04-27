@@ -51,11 +51,14 @@ export function CoinManagementPage({ theme }) {
   async function loadConfig() {
     try {
       setLoading(true);
-      const data = await api.request('/admin/wallet/config/');
-      setConfig(data.config);
+      setError('');
+      const data = await api.request('/admin/wallet/config/', { skipCache: true });
+      setConfig(data.config || data);
     } catch (err) {
       console.error('Config load failed:', err);
-      setError(err.message || 'Failed to load wallet config');
+      let msg = err.message || 'Failed to load wallet config';
+      try { const parsed = JSON.parse(msg); msg = parsed.detail || parsed.error || msg; } catch {}
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -219,6 +222,9 @@ export function CoinManagementPage({ theme }) {
           onSave={saveConfig}
           saving={saving}
           result={adjustResult}
+          loading={loading}
+          error={error}
+          onRetry={loadConfig}
         />
       )}
 
@@ -252,8 +258,9 @@ export function CoinManagementPage({ theme }) {
 // Config Tab
 // ---------------------------------------------------------------
 
-function ConfigTab({ theme: T, config, setConfig, onSave, saving, result }) {
-  if (!config) return <LoadingState theme={T} />;
+function ConfigTab({ theme: T, config, setConfig, onSave, saving, result, loading, error, onRetry }) {
+  if (loading) return <LoadingState theme={T} />;
+  if (!config) return <ErrorState theme={T} error={error} onRetry={onRetry} />;
 
   const updateField = (section, field, value) => {
     setConfig({ ...config, [section]: { ...config[section], [field]: value } });
@@ -674,6 +681,33 @@ function LoadingState({ theme: T }) {
     <div style={{ padding: 40, textAlign: 'center', color: T.sub }}>
       <Loader size={32} className="spin" />
       <div style={{ marginTop: 12 }}>Loading...</div>
+    </div>
+  );
+}
+
+function ErrorState({ theme: T, error, onRetry }) {
+  return (
+    <div style={{ padding: 40, textAlign: 'center' }}>
+      <AlertTriangle size={36} color={T.red || '#EF4444'} style={{ marginBottom: 12 }} />
+      <div style={{ fontSize: 16, fontWeight: 600, color: T.txt, marginBottom: 8 }}>
+        Failed to load configuration
+      </div>
+      <div style={{ fontSize: 13, color: T.sub, marginBottom: 20, maxWidth: 400, margin: '0 auto 20px' }}>
+        {error || 'Could not connect to the server. Please check your connection and try again.'}
+      </div>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '10px 24px', borderRadius: 8, border: 'none',
+            background: T.pri || '#7C3AED', color: 'white',
+            fontSize: 14, fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          <RefreshCw size={16} /> Retry
+        </button>
+      )}
     </div>
   );
 }
