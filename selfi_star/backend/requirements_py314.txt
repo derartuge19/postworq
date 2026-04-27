@@ -9,3 +9,5 @@ gunicorn==23.0.0
 whitenoise==6.8.2
 cloudinary==1.40.0
 django-cloudinary-storage==0.3.0
+cryptography==41.0.7
+requests==2.31.0
