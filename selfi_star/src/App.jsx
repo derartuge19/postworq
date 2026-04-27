@@ -216,6 +216,7 @@ export default function WerqRoot() {
   const [showSettings, setShowSettings] = useState(_historyState.showSettings || false);
   const [showWallet, setShowWallet] = useState(_historyState.showWallet || false);
   const settingsReturnState = useRef(null); // tracks where to go back to when settings closes
+  const walletReturnState = useRef(null); // tracks where to go back to when wallet closes
   const prevNavState = useRef(null); // tracks nav state before any overlay page opens
   const [showNotifications, setShowNotifications] = useState(_historyState.showNotifications || false);
   const [showCampaigns, setShowCampaigns] = useState(_historyState.showCampaigns || false);
@@ -752,6 +753,11 @@ export default function WerqRoot() {
 
   const handleShowWallet = () => {
     if (!authUser) { setShowLogin(true); return; }
+    // Save the current page so back button can restore it
+    walletReturnState.current = {
+      showProfile, profileUserId, activeTab,
+      showSettings, showNotifications,
+    };
     setShowWallet(true);
     setShowSettings(false);
     setShowProfile(false);
@@ -769,6 +775,23 @@ export default function WerqRoot() {
 
   const handleCloseWallet = () => {
     setShowWallet(false);
+    const ret = walletReturnState.current;
+    if (ret) {
+      walletReturnState.current = null;
+      if (ret.showProfile) {
+        setShowProfile(true);
+        setProfileUserId(ret.profileUserId);
+        setActiveTab(ret.activeTab || 'profile');
+        pushHistoryState({ showWallet: false, showProfile: true, profileUserId: ret.profileUserId, activeTab: ret.activeTab || 'profile' }, true);
+        return;
+      }
+      if (ret.showSettings) {
+        setShowSettings(true);
+        setActiveTab(ret.activeTab || 'settings');
+        pushHistoryState({ showWallet: false, showSettings: true, activeTab: ret.activeTab || 'settings' }, true);
+        return;
+      }
+    }
     pushHistoryState({ showWallet: false }, true);
   };
 
@@ -896,6 +919,7 @@ export default function WerqRoot() {
         onTabChange={(tab) => {
           const feedTabs = ['home', 'reels', 'messages', 'following', 'bookmarks', 'search'];
           if (feedTabs.includes(tab)) resetAllPages();
+          else setShowWallet(false); // always close wallet when switching tabs
           startTransition(() => {
             setActiveTab(tab);
             // Normal tab switching must NOT carry a stale deep-link target.
