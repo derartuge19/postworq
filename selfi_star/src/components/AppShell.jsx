@@ -434,6 +434,7 @@ export function AppShell({
                     size={24}
                     strokeWidth={isActive ? 2.5 : 1.8}
                     color={'#F9E08B'}
+                    fill={isActive ? '#F9E08B' : 'none'}
                   />
                   {badgeCount > 0 && (
                     <div style={{
