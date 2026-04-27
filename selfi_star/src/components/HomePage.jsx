@@ -148,7 +148,7 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
             <span style={{ fontWeight: 700, fontSize: isReply ? 12 : 13, color: '#F9E08B' }}>{comment.user?.username}</span>
-            <span style={{ fontSize: isReply ? 12 : 13, color: '#F5E6C8', wordBreak: 'break-word', lineHeight: 1.4 }}>
+            <span style={{ fontSize: isReply ? 12 : 13, color: '#F9E08B', wordBreak: 'break-word', lineHeight: 1.4 }}>
               {comment.text}
             </span>
           </div>
@@ -1243,7 +1243,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
             <div
               onClick={(e) => { e.stopPropagation(); setCaptionExpanded(v => !v); }}
               style={{
-                fontSize: 'calc(var(--font-size-base) * 0.75)', color: '#F5E6C8', marginTop: 1, lineHeight: 1.3,
+                fontSize: 'calc(var(--font-size-base) * 0.75)', color: '#F9E08B', marginTop: 1, lineHeight: 1.3,
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical',
                 WebkitLineClamp: captionExpanded ? 'unset' : 2,
@@ -1274,7 +1274,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   key={c.id}
                   onClick={(e) => { e.stopPropagation(); setShowComments(true); }}
                   style={{
-                    fontSize: 12, color: '#F5E6C8', lineHeight: 1.3,
+                    fontSize: 12, color: '#F9E08B', lineHeight: 1.3,
                     display: '-webkit-box', WebkitBoxOrient: 'vertical',
                     WebkitLineClamp: 1, overflow: 'hidden',
                     wordBreak: 'break-word', cursor: 'pointer',

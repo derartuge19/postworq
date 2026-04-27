@@ -469,10 +469,10 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 <ArrowLeft size={24} />
               </button>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: T.txt }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#F9E08B' }}>
                   {profileUser?.username}
                 </div>
-                <div style={{ fontSize: 12, color: T.sub }}>
+                <div style={{ fontSize: 12, color: '#F9E08B' }}>
                   {posts.length} posts
                 </div>
               </div>
@@ -558,8 +558,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", gap: 20, marginBottom: 12 }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 18, fontWeight: 700, color: T.txt }}>{posts.length}</div>
-                <div style={{ fontSize: 13, color: T.sub }}>Posts</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#F9E08B' }}>{posts.length}</div>
+                <div style={{ fontSize: 13, color: '#F9E08B' }}>Posts</div>
               </div>
               <button
                 onClick={() => onShowFollowers?.(userId || user?.id)}
@@ -571,8 +571,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   textAlign: "center",
                 }}
               >
-                <div style={{ fontSize: 18, fontWeight: 700, color: T.txt }}>{followersCount}</div>
-                <div style={{ fontSize: 13, color: T.sub }}>Followers</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#F9E08B' }}>{followersCount}</div>
+                <div style={{ fontSize: 13, color: '#F9E08B' }}>Followers</div>
               </button>
               <button
                 onClick={() => onShowFollowing?.(userId || user?.id)}
@@ -584,19 +584,19 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   textAlign: "center",
                 }}
               >
-                <div style={{ fontSize: 18, fontWeight: 700, color: T.txt }}>{followingCount}</div>
-                <div style={{ fontSize: 13, color: T.sub }}>Following</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#F9E08B' }}>{followingCount}</div>
+                <div style={{ fontSize: 13, color: '#F9E08B' }}>Following</div>
               </button>
             </div>
           </div>
         </div>
 
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: T.txt, marginBottom: 4 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#F9E08B', marginBottom: 4 }}>
             {profileUser?.first_name} {profileUser?.last_name}
           </div>
           {profileUser?.bio && (
-            <div style={{ fontSize: 14, color: T.txt, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 14, color: '#F9E08B', lineHeight: 1.5 }}>
               {profileUser.bio}
             </div>
           )}
