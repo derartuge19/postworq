@@ -452,7 +452,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
 
             {/* 2. Navigation row — back ← username · posts ⚙️ */}
             <div style={{
-              background: T.bg || "#0D0D0D",
+              background: T.cardBg || T.bg || "#0D0D0D",
               borderBottom: `1px solid ${T.border}`,
               padding: "12px 20px",
               display: "flex",
