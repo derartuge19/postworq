@@ -957,7 +957,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{
-          background: T?.cardBg || '#fff',
+          background: T?.cardBg || '#1A1A1A',
           borderRadius: 16,
           boxShadow: isHovered
             ? `0 16px 48px rgba(0,0,0,0.16), 0 4px 16px rgba(0,0,0,0.10)`
@@ -1608,7 +1608,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const isMobile = window.innerWidth <= 1024;
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: T?.bg || '#fff' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: T?.bg || '#0D0D0D' }}>
     <div 
       ref={containerRef}
       onTouchStart={handleTouchStart}
@@ -1632,7 +1632,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: `linear-gradient(180deg, ${T?.bg || '#fff'} 0%, transparent 100%)`,
+          background: `linear-gradient(180deg, ${T?.bg || '#0D0D0D'} 0%, transparent 100%)`,
           zIndex: 40,
         }}>
           <div style={{
@@ -1681,9 +1681,9 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 border: 'none',
                 cursor: 'pointer',
                 background: isActive
-                  ? (T?.pri || '#DA9B2A')
-                  : (T?.cardBg || '#fff'),
-                color: isActive ? '#fff' : (T?.txt || '#000'),
+                  ? (T?.priGradient || `linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)`)
+                  : (T?.cardBg || '#1A1A1A'),
+                color: isActive ? '#000' : (T?.txt || '#fff'),
                 fontWeight: isActive ? 700 : 600,
                 fontSize: 13,
                 whiteSpace: 'nowrap',

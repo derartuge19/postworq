@@ -377,9 +377,9 @@ export function AppShell({
             position: 'fixed',
             bottom: 0, left: 0, right: 0,
             height: 60,
-            background: T.cardBg === '#fff' || !T.cardBg
-              ? 'rgba(255,255,255,0.97)'
-              : T.cardBg + 'f7',
+            background: (T.cardBg && T.cardBg !== '#fff' && T.cardBg !== '#FFF' && T.cardBg !== '#FFFFFF')
+              ? T.cardBg + 'f7'
+              : 'rgba(13,13,13,0.97)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
             borderTop: `1px solid ${T.border}`,
@@ -415,9 +415,7 @@ export function AppShell({
                 className="mob-nav-btn"
                 onClick={() => handleItemClick(item)}
                 style={{
-                  background: T.priGradient
-                    ? `linear-gradient(135deg, ${T.pri}, ${T.pri}cc)`
-                    : T.pri,
+                  background: T.priGradient || `linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)`,
                   border: 'none',
                   borderRadius: 16,
                   width: 48, height: 32,
