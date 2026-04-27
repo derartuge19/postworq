@@ -429,12 +429,16 @@ export function AppShell({
                 <div style={{
                   position: 'relative',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: isCreate ? 40 : 'auto',
+                  height: isCreate ? 40 : 'auto',
+                  background: isCreate ? '#F9E08B' : 'none',
+                  borderRadius: isCreate ? '50%' : 'none',
                 }}>
                   <Icon
                     size={24}
-                    strokeWidth={isCreate ? 1.8 : (isActive ? 2.5 : 1.8)}
-                    color={'#F9E08B'}
-                    fill={isCreate ? '#F9E08B' : (isActive ? '#F9E08B' : 'none')}
+                    strokeWidth={isCreate ? 2.5 : (isActive ? 2.5 : 1.8)}
+                    color={isCreate ? '#fff' : '#F9E08B'}
+                    fill={isCreate ? '#fff' : (isActive ? '#F9E08B' : 'none')}
                   />
                   {badgeCount > 0 && (
                     <div style={{
