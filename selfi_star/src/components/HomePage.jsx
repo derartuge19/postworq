@@ -6,6 +6,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import realtimeService from '../services/RealtimeService';
 import GiftPage from './GiftPage';
 import { HorizontalUserSuggestions } from './HorizontalUserSuggestions';
+import { UserSuggestions } from './UserSuggestions';
+import { SidebarCampaigns } from './SidebarCampaigns';
 
 const BACKEND = config.API_BASE_URL.replace('/api', '');
 
@@ -1596,13 +1598,16 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     touchStartY.current = 0;
   };
 
+  const isMobile = window.innerWidth <= 1024;
+
   return (
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: T?.bg || '#fff' }}>
     <div 
       ref={containerRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ height: '100vh', background: T?.bg || '#fff', overflowY: 'auto', overflowX: 'hidden', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      style={{ flex: 1, minWidth: 0, height: '100vh', overflowY: 'auto', overflowX: 'hidden', position: 'relative', overscrollBehaviorY: 'contain', touchAction: 'pan-y', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
       <style>{`
         div::-webkit-scrollbar {
@@ -1777,6 +1782,38 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
           </div>
         )}
       </div>
+    </div>
+
+    {/* ── Right Sidebar (desktop only) ── */}
+    {!isMobile && (
+      <div style={{
+        width: 320,
+        minWidth: 320,
+        flexShrink: 0,
+        height: '100vh',
+        overflowY: 'auto',
+        borderLeft: `1px solid ${T?.border || '#e0e0e0'}`,
+        padding: '20px 16px',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}>
+        <div style={{ marginBottom: 24 }}>
+          <UserSuggestions
+            onUserClick={(u) => {
+              if (!user) { onRequireAuth?.(); return; }
+              onShowProfile?.(u.id);
+            }}
+          />
+        </div>
+        <div style={{ height: 1, background: T?.border || '#e0e0e0', marginBottom: 24 }} />
+        <SidebarCampaigns
+          onCampaignClick={() => {
+            if (!user) { onRequireAuth?.(); return; }
+            onShowCampaigns?.();
+          }}
+        />
+      </div>
+    )}
     </div>
   );
 }
