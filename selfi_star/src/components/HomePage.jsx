@@ -1167,8 +1167,13 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 ) : (
                   <Heart
                     size={baseFontSize}
+<<<<<<< HEAD
                     fill={liked ? '#E2B355' : 'none'}
                     color={liked ? '#E2B355' : T?.txt || '#000'}
+=======
+                    fill={liked ? '#F9E08B' : 'none'}
+                    color={liked ? '#F9E08B' : '#F9E08B'}
+>>>>>>> f5d4a56 (fix: update HomePage icons to use #F9E08B with fill states on touch)
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}
@@ -1185,7 +1190,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <MessageCircle size={baseFontSize} color="#F9E08B" style={{ transition: 'transform 0.15s' }} />
+                <MessageCircle size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
                 <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{commentCount > 0 ? commentCount : ''}</span>
               </button>
               {/* Share */}
@@ -1200,7 +1205,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={baseFontSize} color="#F9E08B" style={{ transition: 'transform 0.15s' }} />
+                <Share2 size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
                 <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift - only show on other people's posts */}
@@ -1216,7 +1221,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                     '--hp-hover': (T?.border || '#e0e0e0') + '60',
                   }}
                 >
-                  <Gift size={baseFontSize} color="#F9E08B" style={{ transition: 'transform 0.15s' }} />
+                  <Gift size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
                 </button>
               )}
             </div>
@@ -1873,6 +1878,29 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
     )}
     </div>
   );
+}
+
+// Add CSS for icon hover and active states
+const iconStyles = `
+  .hp-action:hover svg {
+    fill: #F9E08B !important;
+    transition: fill 0.15s ease;
+  }
+  .hp-action:active svg {
+    fill: #F9E08B !important;
+    transform: scale(0.9);
+    transition: all 0.1s ease;
+  }
+  .hp-action svg {
+    transition: fill 0.15s ease, transform 0.15s ease;
+  }
+`;
+
+// Inject styles into document
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = iconStyles;
+  document.head.appendChild(styleElement);
 }
 
 export default HomePage;
