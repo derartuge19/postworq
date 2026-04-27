@@ -856,14 +856,15 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               <div style={{
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 background: '#F9E08B',
                 borderRadius: '50%',
                 flexShrink: 0,
+                border: '2px solid #F9E08B',
               }}>
                 <Icon
-                  size={20}
+                  size={22}
                   strokeWidth={2.5}
                   color={'#fff'}
                   fill={'#fff'}

@@ -430,14 +430,15 @@ export function AppShell({
                 <div style={{
                   position: 'relative',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: isCreate ? 36 : 'auto',
-                  height: isCreate ? 36 : 'auto',
+                  width: isCreate ? 40 : 'auto',
+                  height: isCreate ? 40 : 'auto',
                   background: isCreate ? '#F9E08B' : 'none',
                   borderRadius: isCreate ? '50%' : 'none',
                   flexShrink: 0,
+                  border: isCreate ? '2px solid #F9E08B' : 'none',
                 }}>
                   <Icon
-                    size={isCreate ? 20 : 24}
+                    size={isCreate ? 22 : 24}
                     strokeWidth={isCreate ? 2.5 : (isActive ? 2.5 : 1.8)}
                     color={isCreate ? '#fff' : '#F9E08B'}
                     fill={isCreate ? '#fff' : (isActive ? '#000' : 'none')}
