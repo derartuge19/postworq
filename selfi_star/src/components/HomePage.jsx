@@ -662,6 +662,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   const [liked, setLiked] = useState(() => post.is_liked || readIdSet(LIKES_KEY).has(post.id));
   const [likes, setLikes] = useState(post.votes || 0);
   const [saved, setSaved] = useState(() => post.is_saved || readIdSet(SAVES_KEY).has(post.id));
+  const likeInteracted = useRef(false);
+  const saveInteracted = useRef(false);
   const [imgError, setImgError] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [optionsAnchor, setOptionsAnchor] = useState(null);
@@ -688,8 +690,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   useEffect(() => {
     setLikes(post.votes || 0);
     setCommentCount(post.comment_count || 0);
-    setLiked(prev => prev || !!post.is_liked || readIdSet(LIKES_KEY).has(post.id));
-    setSaved(prev => prev || !!post.is_saved || readIdSet(SAVES_KEY).has(post.id));
+    if (!likeInteracted.current) setLiked(!!post.is_liked || readIdSet(LIKES_KEY).has(post.id));
+    if (!saveInteracted.current) setSaved(!!post.is_saved || readIdSet(SAVES_KEY).has(post.id));
     if (Array.isArray(post.recent_comments) && post.recent_comments.length) {
       setInlineComments(post.recent_comments.slice(0, 3));
     }
@@ -834,8 +836,9 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
     e.stopPropagation();
     if (!api.hasToken()) { onRequireAuth?.(); return; }
     const newLiked = !liked;
-    // Optimistic UI + persist locally so the heart survives feed re-renders,
-    // cache reloads, and navigation roundtrips.
+    // Optimistic UI + persist locally so the heart stays filled
+    // even when the cached feed's `is_liked` is stale.
+    likeInteracted.current = true;
     setLiked(newLiked);
     setLikes(prev => newLiked ? prev + 1 : Math.max(0, prev - 1));
     toggleIdInSet(LIKES_KEY, post.id, newLiked);
@@ -856,6 +859,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
     e.stopPropagation();
     if (!api.hasToken()) { onRequireAuth?.(); return; }
     const newSaved = !saved;
+    saveInteracted.current = true;
     setSaved(newSaved);
     toggleIdInSet(SAVES_KEY, post.id, newSaved);
     setSaveAnim(true);
