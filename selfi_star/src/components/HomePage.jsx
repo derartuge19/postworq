@@ -1643,11 +1643,10 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
       )}
 
       {/* ─── Tab bar: mirrors React Native HomeScreen pill tabs exactly ─── */}
-      <div style={{
+      <div className="home-tab-row" style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
+        justifyContent: 'space-evenly',
         padding: '10px 12px',
         position: 'sticky',
         top: 0,
@@ -1655,12 +1654,13 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
         background: T?.bg || '#f5f5f5',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
       }}>
         <style>{`
-          .home-tab-row::-webkit-scrollbar { display: none; }
+          .home-tab-row button {
+            flex: 1;
+            margin: 0 4px;
+            max-width: 180px;
+          }
           @keyframes shimmer {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }

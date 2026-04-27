@@ -261,16 +261,12 @@ export default function HomeScreen({ navigation }) {
 
   const renderHeader = () => (
     <View style={styles.tabsContainer}>
-      <FlatList
-        horizontal
-        data={ALL_TABS}
-        keyExtractor={item => item}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 8 }}
-        renderItem={({ item }) => {
+      <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', paddingHorizontal: 4 }}>
+        {ALL_TABS.map(item => {
           const isActive = activeTab === item;
           return (
             <TouchableOpacity
+              key={item}
               onPress={() => {
                 if (item === 'Explore') {
                   navigation.navigate('Explore');
@@ -284,15 +280,16 @@ export default function HomeScreen({ navigation }) {
               style={[
                 styles.tabButton,
                 isActive && styles.tabButtonActive,
+                { flex: 1, marginHorizontal: 4, alignItems: 'center' }
               ]}
             >
-              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+              <Text style={[styles.tabText, isActive && styles.tabTextActive]} numberOfLines={1}>
                 {item}
               </Text>
             </TouchableOpacity>
           );
-        }}
-      />
+        })}
+      </View>
     </View>
   );
 
