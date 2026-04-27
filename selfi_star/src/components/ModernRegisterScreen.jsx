@@ -85,6 +85,12 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         width: "100%",
         maxWidth: 440,
       }}>
+        {/* Logos row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
+          <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 80, height: 80, objectFit: 'contain' }} />
+          <img src="/Flip_Star_Final_Logo_v3_side__2_-removebg-preview.png" alt="FlipStar" style={{ width: 110, height: 55, objectFit: 'contain' }} />
+        </div>
+
         {/* Header */}
         <div style={{
           padding: "40px 32px",
