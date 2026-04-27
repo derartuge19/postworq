@@ -7,6 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +21,10 @@ export default function WalletScreen({ navigation }) {
   const [balance, setBalance] = useState(null);
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [loadingPayment, setLoadingPayment] = useState(false);
 
   useEffect(() => {
     loadWalletData();
@@ -37,6 +43,47 @@ export default function WalletScreen({ navigation }) {
       Alert.alert('Error', 'Failed to load wallet data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTelebirrPayment = async () => {
+    if (!selectedPackage || !phoneNumber) {
+      Alert.alert('Error', 'Please select a package and enter your phone number');
+      return;
+    }
+
+    setLoadingPayment(true);
+    try {
+      const response = await api.request('/wallet/telebirr/initiate/', {
+        method: 'POST',
+        body: JSON.stringify({
+          package_id: selectedPackage.id,
+          phone_number: phoneNumber,
+        }),
+      });
+
+      if (response.success && response.payment_url) {
+        Alert.alert(
+          'Payment Initiated',
+          'Telebirr payment page opened. Complete the payment to add coins.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setShowTopUpModal(false);
+                loadWalletData();
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Error', response.error || 'Payment initiation failed');
+      }
+    } catch (error) {
+      console.error('Telebirr payment error:', error);
+      Alert.alert('Error', 'Payment initiation failed. Please try again.');
+    } finally {
+      setLoadingPayment(false);
     }
   };
 
@@ -91,7 +138,7 @@ export default function WalletScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Purchase Coins</Text>
           <Text style={styles.sectionSubtitle}>Get more coins to send gifts and boost posts</Text>
-          
+
           {packages.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>No coin packages available</Text>
@@ -99,7 +146,14 @@ export default function WalletScreen({ navigation }) {
             </View>
           ) : (
             packages.map((pkg) => (
-              <TouchableOpacity key={pkg.id} style={styles.packageCard}>
+              <TouchableOpacity
+                key={pkg.id}
+                style={[styles.packageCard, selectedPackage?.id === pkg.id && styles.packageCardSelected]}
+                onPress={() => {
+                  setSelectedPackage(pkg);
+                  setShowTopUpModal(true);
+                }}
+              >
                 <View>
                   <Text style={styles.packageName}>{pkg.name}</Text>
                   <Text style={styles.packageCoins}>{pkg.coin_amount} coins</Text>
@@ -128,6 +182,62 @@ export default function WalletScreen({ navigation }) {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Telebirr Payment Modal */}
+      <Modal visible={showTopUpModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowTopUpModal(false)}>
+                <Ionicons name="close" size={24} color="#000" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Buy Coins with Telebirr</Text>
+              <View style={{ width: 24 }} />
+            </View>
+
+            {selectedPackage && (
+              <View style={styles.selectedPackagePreview}>
+                <View style={styles.packagePreviewIcon}>
+                  <Ionicons name="cash" size={32} color={BRAND_GOLD} />
+                </View>
+                <View style={styles.packagePreviewInfo}>
+                  <Text style={styles.packagePreviewName}>{selectedPackage.name}</Text>
+                  <Text style={styles.packagePreviewCoins}>{selectedPackage.coin_amount} coins</Text>
+                  {selectedPackage.bonus_coins > 0 && (
+                    <Text style={styles.packagePreviewBonus}>+{selectedPackage.bonus_coins} bonus</Text>
+                  )}
+                </View>
+                <Text style={styles.packagePreviewPrice}>{selectedPackage.price_etb} ETB</Text>
+              </View>
+            )}
+
+            <View style={styles.formGroup}>
+              <Text style={styles.formLabel}>Phone Number (for Telebirr)</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="+251 9xx xxx xxx"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.payButton, (!selectedPackage || !phoneNumber) && styles.payButtonDisabled]}
+              onPress={handleTelebirrPayment}
+              disabled={!selectedPackage || !phoneNumber || loadingPayment}
+            >
+              {loadingPayment ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.payButtonText}>
+                  {selectedPackage ? `Pay ${selectedPackage.price_etb} ETB via Telebirr` : 'Select a package'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -292,5 +402,104 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#78716C',
     lineHeight: 18,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+  },
+  selectedPackagePreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  packagePreviewIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: BRAND_GOLD + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  packagePreviewInfo: {
+    flex: 1,
+  },
+  packagePreviewName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  packagePreviewCoins: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: BRAND_GOLD,
+    marginBottom: 2,
+  },
+  packagePreviewBonus: {
+    fontSize: 12,
+    color: '#10B981',
+    fontWeight: '600',
+  },
+  packagePreviewPrice: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000',
+  },
+  formGroup: {
+    marginBottom: 20,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  textInput: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 14,
+    color: '#000',
+  },
+  payButton: {
+    backgroundColor: BRAND_GOLD,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  payButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  payButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  packageCardSelected: {
+    borderColor: BRAND_GOLD,
+    borderWidth: 2,
   },
 });

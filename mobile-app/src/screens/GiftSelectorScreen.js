@@ -53,7 +53,11 @@ export default function GiftSelectorScreen({ route, navigation }) {
   const [sending, setSending] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
   const [coinBalance, setCoinBalance] = useState(0);
-  
+  const [showRechargeModal, setShowRechargeModal] = useState(false);
+  const [rechargeError, setRechargeError] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [loadingPayment, setLoadingPayment] = useState(false);
+
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -81,8 +85,8 @@ export default function GiftSelectorScreen({ route, navigation }) {
 
   const loadCoinBalance = async () => {
     try {
-      const response = await api.request('/coins/balance/');
-      setCoinBalance(response.coins || 0);
+      const response = await api.request('/wallet/');
+      setCoinBalance(response.balance?.purchased || 0);
     } catch (error) {
       console.error('Error loading coin balance:', error);
     }
@@ -114,7 +118,20 @@ export default function GiftSelectorScreen({ route, navigation }) {
 
   const handleSend = async () => {
     if (!selectedGift) return;
-    
+
+    const totalCost = selectedGift.coin_value * quantity;
+    if (totalCost > coinBalance) {
+      // Show recharge modal with Telebirr options
+      setRechargeError({
+        needs_recharge: true,
+        required_coins: totalCost,
+        current_purchased_coins: coinBalance,
+        current_earned_coins: 0,
+      });
+      setShowRechargeModal(true);
+      return;
+    }
+
     setSending(true);
     try {
       const response = await api.request('/gift-transactions/', {
@@ -127,36 +144,65 @@ export default function GiftSelectorScreen({ route, navigation }) {
           message: message,
         }),
       });
-      
+
       setShowSendModal(false);
       navigation.goBack();
     } catch (error) {
       console.error('Error sending gift:', error);
       const errorData = error.message ? JSON.parse(error.message) : {};
-      
+
       if (errorData.needs_recharge) {
-        // Show recharge alert
+        setRechargeError(errorData);
+        setShowRechargeModal(true);
+      } else {
+        Alert.alert('Error', errorData.error || 'Failed to send gift. Please try again.');
+      }
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleTelebirrPayment = async (packageId, phone) => {
+    if (!phone) {
+      Alert.alert('Error', 'Please enter your phone number');
+      return;
+    }
+
+    setLoadingPayment(true);
+    try {
+      const response = await api.request('/wallet/telebirr/initiate/', {
+        method: 'POST',
+        body: JSON.stringify({
+          package_id: packageId,
+          phone_number: phone,
+        }),
+      });
+
+      if (response.success && response.payment_url) {
+        // Open Telebirr payment URL
         Alert.alert(
-          'Insufficient Purchased Coins',
-          `You need ${errorData.required_coins} purchased coins to send this gift.\n\nYour current balance:\n• Earned coins: ${errorData.current_earned_coins} (cannot be used for gifting)\n• Purchased coins: ${errorData.current_purchased_coins}\n\nOnly purchased coins can be used to send gifts.`,
+          'Payment Initiated',
+          'Opening Telebirr payment page...',
           [
             {
-              text: 'Cancel',
-              style: 'cancel',
-            },
-            {
-              text: 'Get Coins',
+              text: 'OK',
               onPress: () => {
+                setShowRechargeModal(false);
                 navigation.navigate('Wallet');
               },
             },
           ]
         );
+        // Note: React Native can't directly open external URLs like web
+        // You would need to use Linking.openURL or WebView
       } else {
-        alert(errorData.error || 'Failed to send gift. Please try again.');
+        Alert.alert('Error', response.error || 'Payment initiation failed');
       }
+    } catch (error) {
+      console.error('Telebirr payment error:', error);
+      Alert.alert('Error', 'Payment initiation failed. Please try again.');
     } finally {
-      setSending(false);
+      setLoadingPayment(false);
     }
   };
 
@@ -329,6 +375,93 @@ export default function GiftSelectorScreen({ route, navigation }) {
     </Modal>
   );
 
+  const renderRechargeModal = () => (
+    <Modal
+      visible={showRechargeModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowRechargeModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.rechargeModalContent}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowRechargeModal(false)}>
+              <Ionicons name="close" size={24} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Insufficient Coins</Text>
+            <View style={{ width: 24 }} />
+          </View>
+
+          <View style={styles.rechargeInfo}>
+            <Text style={styles.rechargeEmoji}>💰</Text>
+            <Text style={styles.rechargeTitle}>Insufficient Purchased Coins</Text>
+            <Text style={styles.rechargeSubtitle}>
+              You need {rechargeError?.required_coins} purchased coins to send this gift.
+            </Text>
+            <Text style={styles.rechargeBalance}>
+              Your current purchased coins: {rechargeError?.current_purchased_coins}
+            </Text>
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.formLabel}>Phone Number (for Telebirr)</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="+251 9xx xxx xxx"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          <View style={styles.quickRechargeContainer}>
+            <Text style={styles.quickRechargeTitle}>Quick Recharge</Text>
+            <TouchableOpacity
+              style={styles.quickRechargeButton}
+              onPress={() => handleTelebirrPayment(1, phoneNumber)}
+              disabled={loadingPayment}
+            >
+              <Text style={styles.quickRechargeCoins}>100 Coins</Text>
+              <Text style={styles.quickRechargePrice}>~10 ETB</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickRechargeButton}
+              onPress={() => handleTelebirrPayment(2, phoneNumber)}
+              disabled={loadingPayment}
+            >
+              <Text style={styles.quickRechargeCoins}>500 Coins</Text>
+              <Text style={styles.quickRechargePrice}>~50 ETB</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.rechargeButtons}>
+            <TouchableOpacity
+              style={[styles.rechargeButton, styles.rechargeCancelButton]}
+              onPress={() => setShowRechargeModal(false)}
+            >
+              <Text style={styles.rechargeCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.rechargeButton, styles.rechargeWalletButton]}
+              onPress={() => {
+                setShowRechargeModal(false);
+                navigation.navigate('Wallet');
+              }}
+            >
+              <Text style={styles.rechargeWalletText}>More Options</Text>
+            </TouchableOpacity>
+          </View>
+
+          {loadingPayment && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color={BRAND_GOLD} />
+            </View>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -391,6 +524,7 @@ export default function GiftSelectorScreen({ route, navigation }) {
       )}
 
       {renderSendModal()}
+      {renderRechargeModal()}
     </View>
   );
 }
@@ -695,5 +829,119 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  rechargeModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    maxHeight: '80%',
+  },
+  rechargeInfo: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  rechargeEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  rechargeTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 8,
+  },
+  rechargeSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  rechargeBalance: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: BRAND_GOLD,
+  },
+  formGroup: {
+    marginBottom: 20,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  textInput: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 14,
+    color: '#000',
+  },
+  quickRechargeContainer: {
+    marginBottom: 24,
+  },
+  quickRechargeTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 12,
+  },
+  quickRechargeButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+  },
+  quickRechargeCoins: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: BRAND_GOLD,
+  },
+  quickRechargePrice: {
+    fontSize: 14,
+    color: '#666',
+  },
+  rechargeButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  rechargeButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  rechargeCancelButton: {
+    backgroundColor: '#f5f5f5',
+  },
+  rechargeCancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  rechargeWalletButton: {
+    backgroundColor: BRAND_GOLD,
+  },
+  rechargeWalletText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
 });

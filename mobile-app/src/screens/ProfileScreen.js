@@ -356,6 +356,9 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.headerUsername}>@{profile?.username || user?.username || 'user'}</Text>
           </View>
           <View style={styles.headerRight}>
+            <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={{ marginRight: 12 }}>
+              <Ionicons name="wallet-outline" size={24} color="#000" />
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
               <Ionicons name="settings-outline" size={24} color="#000" />
             </TouchableOpacity>
