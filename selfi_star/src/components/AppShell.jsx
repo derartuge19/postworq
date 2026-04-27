@@ -433,7 +433,7 @@ export function AppShell({
                   <Icon
                     size={24}
                     strokeWidth={isActive ? 2.5 : 1.8}
-                    color={isActive ? '#FFD700' : (T?.sub || '#999')}
+                    color={isActive ? '#F9E08B' : (T?.sub || '#999')}
                   />
                   {badgeCount > 0 && (
                     <div style={{
