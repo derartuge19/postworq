@@ -39,10 +39,12 @@ export function WalletPage({ theme, onBack }) {
     try {
       setLoading(true);
       setError('');
+      console.log('Loading wallet data...');
       const [s, c] = await Promise.all([
         api.request('/wallet/'),
         api.request('/wallet/config/'),
       ]);
+      console.log('Wallet data loaded:', { summary: s, config: c });
       setSummary(s);
       setConfig(c);
     } catch (err) {
