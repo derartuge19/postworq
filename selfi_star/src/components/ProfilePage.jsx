@@ -411,7 +411,12 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             borderBottom: `1px solid ${T.border}`,
             display: "flex", alignItems: "center", gap: 16,
           }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#f0f0f0" }} />
+            <button
+              onClick={onBack}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", color: T.txt }}
+            >
+              <ArrowLeft size={24} />
+            </button>
             <div style={{ width: 120, height: 16, background: "#f0f0f0", borderRadius: 8 }} />
           </div>
           {/* Skeleton profile info */}
