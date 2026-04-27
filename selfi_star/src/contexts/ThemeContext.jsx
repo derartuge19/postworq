@@ -167,12 +167,14 @@ export const useLegacyT = () => {
   return {
     pri: colors.pri,
     priGradient: colors.priGradient || colors.pri,
+    priFallback: colors.priFallback || '#E2B355',
     priD: colors.pri,
     priL: colors.bg,
     txt: colors.txt,
     sub: colors.sub,
     bg: colors.bg,
     card: colors.cardBg,
+    cardBg: colors.cardBg,
     dark: colors.dark || '#0C1A12',
     border: colors.border,
     // Non-theme constants kept for backwards compatibility

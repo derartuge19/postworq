@@ -341,9 +341,10 @@ export function VideoDetailPage({ reelId, onBack, onShowProfile, user }) {
       {showComments && (
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          background: '#fff', borderTopLeftRadius: 20,
+          background: T.cardBg || '#1A1A1A', borderTopLeftRadius: 20,
           borderTopRightRadius: 20, maxHeight: '60%',
           display: 'flex', flexDirection: 'column',
+          borderTop: '1.5px solid rgba(226,179,85,0.3)',
         }}>
           <div style={{
             padding: '16px 20px', borderBottom: `1px solid ${T.border}`,
