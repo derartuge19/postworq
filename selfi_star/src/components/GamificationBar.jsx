@@ -503,25 +503,40 @@ export function GamificationBar({ userId, theme, onShowWallet }) {
   };
 
   const handleLoginBonus = async () => {
+    const markClaimed = (s) => s ? {
+      ...s,
+      login_streak: { ...s.login_streak, bonus_available: false }
+    } : s;
+
+    const writeCache = (newStatus) => {
+      try {
+        sessionStorage.setItem('gamification_status', JSON.stringify({ ts: Date.now(), data: newStatus }));
+      } catch {}
+    };
+
     try {
       const res = await api.request('/gamification/login-bonus/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
       });
-      setStatus(prev => prev ? {
-        ...prev,
-        coins:{ ...prev.coins, balance: res.new_balance },
-        login_streak:{ ...prev.login_streak, bonus_available: false, current: res.login_streak }
-      } : prev);
-      // Update cache
-      sessionStorage.setItem('gamification_status', JSON.stringify({
+      const newStatus = status ? {
         ...status,
-        coins:{ ...status?.coins, balance: res.new_balance },
-        login_streak:{ ...status?.login_streak, bonus_available: false, current: res.login_streak }
-      }));
+        coins: { ...status.coins, balance: res.new_balance },
+        login_streak: { ...status.login_streak, bonus_available: false, current: res.login_streak }
+      } : status;
+      setStatus(newStatus);
+      writeCache(newStatus);
       return res;
     } catch (e) {
+      // 400 "already claimed today" — update UI silently so button disappears
+      const msg = e?.message || '';
+      if (msg.includes('already claimed') || msg.includes('already_claimed')) {
+        const newStatus = markClaimed(status);
+        setStatus(newStatus);
+        writeCache(newStatus);
+        return { already_claimed: true };
+      }
       console.error('Login bonus claim failed:', e);
       throw e;
     }
