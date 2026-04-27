@@ -6,9 +6,7 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.flipstar.app"
@@ -24,13 +22,22 @@
       "./plugins/withSuppressKotlinVersionCompatibility.js",
       "expo-secure-store",
       "expo-av",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25",
+            "gradleVersion": "8.10.2"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
-        "projectId": "1e8f59d0-a751-4401-b564-1d82fe146723"
+        "projectId": "607531c9-2fee-4a39-9af0-508b31e67c56"
       }
     },
-    "owner": "eden111310"
+    "owner": "derrr0"
   }
 }
