@@ -137,7 +137,7 @@ export default function WerqRoot() {
   }
 
   const [screen, setScreen] = useState('app');
-  const { applyFromSettings } = useTheme();
+  const { applyFromSettings, colors } = useTheme();
 
   // Global skeleton removal - ultimate fallback to prevent infinite loading
   useEffect(() => {
@@ -938,7 +938,7 @@ export default function WerqRoot() {
         {showWallet && (
           <LazyLoadErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
-              <WalletPage theme={theme} onBack={handleCloseWallet} />
+              <WalletPage theme={colors} onBack={handleCloseWallet} />
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
