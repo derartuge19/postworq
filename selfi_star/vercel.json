@@ -10,6 +10,7 @@
     }
   ],
   "buildCommand": "npm run build",
+  "_comment": "Force cache invalidation - wallet page chunk fix",
   "routes": [
     {
       "src": "/assets/(.*)",
