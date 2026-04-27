@@ -1248,7 +1248,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               width: '100%', maxWidth: 560,
               background: T.cardBg || '#1A1A1A',
               borderRadius: '24px 24px 0 0',
-              paddingBottom: 36,
+              paddingBottom: 'calc(36px + env(safe-area-inset-bottom, 0px))',
               boxSizing: 'border-box',
               border: `1px solid ${T.border}`,
               borderBottom: 'none',
