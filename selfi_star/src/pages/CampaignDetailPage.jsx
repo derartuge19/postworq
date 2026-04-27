@@ -318,7 +318,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   <div style={{
                     padding: '12px 20px',
                     background: 'rgba(16,185,129,0.15)',
-                    border: '2px solid #10B981',
+                    border: '2px solid #F9E08B',
                     borderRadius: 16,
                     color: '#10B981',
                     fontSize: 14,
@@ -334,7 +334,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                   <div style={{
                     padding: '12px 20px',
                     background: 'rgba(239,68,68,0.15)',
-                    border: '2px solid #EF4444',
+                    border: '2px solid #F9E08B',
                     borderRadius: 16,
                     color: '#EF4444',
                     fontSize: 14,
@@ -931,7 +931,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                 padding: '8px 16px',
                 background: 'rgba(16,185,129,0.15)',
                 borderRadius: 20,
-                border: `2px solid #10B981`,
+                border: `2px solid #F9E08B`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
@@ -1125,7 +1125,7 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
               fontSize: 16,
               fontWeight: 700,
               color: '#fff',
-              border: '2px solid #fff',
+              border: '2px solid #F9E08B',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}>
               {entry.user.username[0].toUpperCase()}

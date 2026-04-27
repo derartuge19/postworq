@@ -38,9 +38,9 @@ const mediaUrl = (url) => {
 };
 
 const RANK_STYLES = {
-  1: { bg: '#FFD70020', border: '#FFD700', text: '#B8860B', label: '🥇 #1' },
-  2: { bg: '#C0C0C020', border: '#C0C0C0', text: '#808080', label: '🥈 #2' },
-  3: { bg: '#CD7F3220', border: '#CD7F32', text: '#8B4513', label: '🥉 #3' },
+  1: { bg: 'rgba(249,224,139,0.2)', border: '#F9E08B', text: '#F9E08B', label: '🥇 #1' },
+  2: { bg: 'rgba(249,224,139,0.15)', border: 'rgba(249,224,139,0.7)', text: 'rgba(249,224,139,0.8)', label: '🥈 #2' },
+  3: { bg: 'rgba(249,224,139,0.12)', border: 'rgba(249,224,139,0.6)', text: 'rgba(249,224,139,0.7)', label: '🥉 #3' },
 };
 
 // ── Per-campaign stale-while-revalidate cache ─────────────────────────────

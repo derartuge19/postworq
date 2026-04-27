@@ -1209,13 +1209,13 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 position: 'relative', zIndex: 1,
               }}>
                 <button className="ep-btn" onClick={onBack}
-                  style={{ background: 'rgba(226,179,85,0.15)', border: '1.5px solid #E2B355', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={20} color="#E2B355" />
+                  style={{ background: 'rgba(249,224,139,0.15)', border: '1.5px solid #F9E08B', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={20} color="#F9E08B" />
                 </button>
                 <span style={{ fontSize: 18, fontWeight: 800, background: 'linear-gradient(to bottom, #F9E08B 0%, #D4AF37 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>New Post</span>
                 {drafts.length > 0 ? (
                   <button className="ep-btn" onClick={() => setShowDrafts(true)}
-                    style={{ background: 'rgba(226,179,85,0.12)', border: '1.5px solid #E2B355', borderRadius: 20, padding: '7px 13px', color: '#E2B355', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    style={{ background: 'rgba(249,224,139,0.12)', border: '1.5px solid #F9E08B', borderRadius: 20, padding: '7px 13px', color: '#F9E08B', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <FileText size={14} /> Drafts ({drafts.length})
                   </button>
                 ) : <div style={{ width: 40 }} />}
@@ -1224,10 +1224,10 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               {/* Hero icon + title */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 24, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
                 <div style={{ position: 'relative', marginBottom: 14 }}>
-                  <div style={{ width: 72, height: 72, background: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 28px rgba(226,179,85,0.45)', border: '2px solid rgba(249,224,139,0.4)' }}>
+                  <div style={{ width: 72, height: 72, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 28px rgba(249,224,139,0.45)', border: '2px solid rgba(249,224,139,0.4)' }}>
                     <svg width="30" height="30" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#000"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#000" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
-                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: 'linear-gradient(to bottom, #F9E08B, #B8860B)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, border: '2px solid #0D0D0D', boxShadow: '0 2px 6px rgba(226,179,85,0.5)' }}>✨</div>
+                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, border: '2px solid #0D0D0D', boxShadow: '0 2px 6px rgba(249,224,139,0.5)' }}>✨</div>
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 800, background: 'linear-gradient(to bottom, #F9E08B 0%, #D4AF37 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 4 }}>Create Post</div>
                 <div style={{ fontSize: 13, color: '#C2994B', textAlign: 'center' }}>Choose how you want to create content</div>
@@ -1253,11 +1253,11 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   style={{
                     display: 'flex', alignItems: 'center', gap: 14,
                     background: 'linear-gradient(135deg, #1A1611 0%, #221C10 100%)',
-                    border: '2px solid #E2B355',
+                    border: '2px solid #F9E08B',
                     borderRadius: 18,
                     padding: '20px 20px',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 24px rgba(226,179,85,0.15), 0 1px 0 rgba(255,255,255,0.04) inset',
+                    boxShadow: '0 4px 16px rgba(249,224,139,0.4)',
                     transition: 'box-shadow 0.2s, transform 0.15s',
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -1274,12 +1274,12 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   {/* Gold shimmer corner dots */}
                   <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5 }}>
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.8 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E2B355', opacity: 0.5 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.5 }} />
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#B8860B', opacity: 0.3 }} />
                   </div>
                   {/* Corner badge */}
-                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: 'linear-gradient(to bottom, #F9E08B, #B8860B)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: '0 4px 12px rgba(226,179,85,0.5)' }}>📸</div>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(226,179,85,0.4)' }}>
+                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: '0 4px 12px rgba(249,224,139,0.5)' }}>📸</div>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F9E08B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(249,224,139,0.4)' }}>
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#000"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#000" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>
@@ -1313,12 +1313,12 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   {/* Gold shimmer corner dots */}
                   <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5 }}>
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.8 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E2B355', opacity: 0.5 }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.5 }} />
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#B8860B', opacity: 0.3 }} />
                   </div>
                   {/* Corner badge */}
-                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: 'linear-gradient(to bottom, #F9E08B, #B8860B)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 900, color: '#000', boxShadow: '0 4px 12px rgba(226,179,85,0.5)' }}>+</div>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(226,179,85,0.4)' }}>
+                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 900, color: '#000', boxShadow: '0 4px 12px rgba(249,224,139,0.5)' }}>+</div>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F9E08B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(249,224,139,0.4)' }}>
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#000" strokeWidth="2.2" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>

@@ -406,7 +406,7 @@ export default function WerqRoot() {
           
           /* Remove ALL blue tap highlights globally - replace with gold brand color */
           * {
-            -webkit-tap-highlight-color: rgba(226,179,85,0.3) !important;
+            -webkit-tap-highlight-color: rgba(249,224,139,0.4) !important;
             -webkit-touch-callout: none !important;
             -webkit-user-select: none !important;
             user-select: none !important;
@@ -420,7 +420,7 @@ export default function WerqRoot() {
           
           /* Gold active states for all interactive elements */
           button:active, a:active, [role="button"]:active, .clickable:active {
-            background-color: rgba(226,179,85,0.2) !important;
+            background-color: rgba(249,224,139,0.25) !important;
             transform: scale(0.96) !important;
             transition: all 0.1s ease !important;
           }

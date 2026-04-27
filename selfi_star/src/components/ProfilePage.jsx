@@ -766,7 +766,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             style={{
               width: "100%",
               paddingBottom: "100%",
-              background: (T.border || "#e0e0e0") + "20",
+              background: 'rgba(249,224,139,0.2)',
               position: "relative",
               cursor: "pointer",
               overflow: "hidden",
@@ -1150,7 +1150,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 onClick={() => setEditingPost(null)}
                 style={{
                   flex: 1, padding: '12px 20px',
-                  border: `1px solid ${T.border}`, background: '#fff',
+                  border: '1.5px solid rgba(249,224,139,0.4)', background: T.cardBg || '#1A1A1A',
                   borderRadius: 12, fontSize: 15, fontWeight: 600,
                   cursor: 'pointer', color: T.txt,
                 }}
@@ -1200,7 +1200,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 onClick={() => setConfirmDeleteId(null)}
                 style={{
                   flex: 1, padding: '12px 20px',
-                  border: `1px solid ${T.border}`, background: '#fff',
+                  border: '1.5px solid rgba(249,224,139,0.4)', background: T.cardBg || '#1A1A1A',
                   borderRadius: 12, fontSize: 15, fontWeight: 600,
                   cursor: 'pointer', color: T.txt,
                 }}
@@ -1302,9 +1302,9 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {USER_REPORT_REASONS.map(r => (
                 <button key={r.id} onClick={() => handleReportUser(r.id)}
-                  style={{ padding: '13px 16px', border: '1px solid #F3F4F6', borderRadius: 10, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#111', fontWeight: 500, textAlign: 'left', transition: 'background 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                  style={{ padding: '13px 16px', border: '1.5px solid rgba(249,224,139,0.3)', borderRadius: 10, background: T.cardBg || '#1A1A1A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#F5E6C8', fontWeight: 500, textAlign: 'left', transition: 'background 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,224,139,0.12)'}
+                  onMouseLeave={e => e.currentTarget.style.background = T.cardBg || '#1A1A1A'}
                 >
                   <span style={{ fontSize: 18 }}>{r.icon}</span>
                   {r.label}
@@ -1312,7 +1312,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               ))}
             </div>
             <button onClick={() => setShowReportUser(false)}
-              style={{ marginTop: 12, width: '100%', padding: 12, border: 'none', borderRadius: 10, background: '#F3F4F6', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#374151' }}>
+              style={{ marginTop: 12, width: '100%', padding: 12, border: 'none', borderRadius: 10, background: 'rgba(249,224,139,0.15)', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#F9E08B' }}>
               Cancel
             </button>
           </div>

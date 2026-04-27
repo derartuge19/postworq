@@ -399,91 +399,17 @@ export function AppShell({
             boxShadow: '0 -2px 16px rgba(0,0,0,0.07)',
           }}
         >
-          {/* Gold gradient paint server — referenced by CSS stroke/fill on active icons */}
-          <svg aria-hidden="true" focusable="false" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-            <defs>
-              <linearGradient id="appshell-gold-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#D4AF37" />
-                <stop offset="50%" stopColor="#F9E08B" />
-                <stop offset="100%" stopColor="#B8860B" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <style>{`
-            .mob-nav-btn {
-              transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1),opacity 0.1s;
-              -webkit-tap-highlight-color: transparent !important;
-              outline: none;
-            }
-            .mob-nav-btn:active { transform: scale(0.80) !important; opacity: 0.75; }
-            .mob-nav-btn:focus { outline: none; }
-            /* Gold gradient on active icon strokes */
-            .mob-nav-gold svg path,
-            .mob-nav-gold svg line,
-            .mob-nav-gold svg polyline,
-            .mob-nav-gold svg circle,
-            .mob-nav-gold svg rect,
-            .mob-nav-gold svg ellipse {
-              stroke: url(#appshell-gold-grad) !important;
-            }
-            /* Gradient text on active labels */
-            .mob-nav-gold-lbl {
-              background: linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              background-clip: text;
-              font-weight: 700;
-            }
-            /* Desktop sidebar gradient */
-            .sidebar-nav-gold svg path,
-            .sidebar-nav-gold svg line,
-            .sidebar-nav-gold svg polyline,
-            .sidebar-nav-gold svg circle,
-            .sidebar-nav-gold svg rect,
-            .sidebar-nav-gold svg ellipse {
-              stroke: url(#appshell-gold-grad) !important;
-            }
-          `}</style>
-
-          {MOBILE_BOTTOM_TABS.map(({ item, label, isCreate, badge }) => {
-            const Icon = item.icon;
-            let isActive = activeTab === item.id;
-            if (item.id === 'home' && ['foryou','feed','home'].includes(activeTab)) isActive = true;
-            if (item.id === 'reels' && activeTab === 'reels') isActive = true;
-            if (item.id === 'notifications' && activeTab === 'notifications') isActive = true;
-
-            /* ── Center CREATE button ── */
-            if (isCreate) return (
-              <button
-                key="create"
-                id="mob-nav-create"
-                className="mob-nav-btn"
-                onClick={() => handleItemClick(item)}
-                style={{
-                  background: T.priGradient || `linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)`,
-                  border: 'none',
-                  borderRadius: 16,
-                  width: 48, height: 32,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: `0 4px 16px ${T.pri}55`,
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                }}
-              >
-                <PlusSquare size={22} strokeWidth={2.4} color="#fff" />
-              </button>
-            );
-
-            /* ── Regular tab button ── */
-            const badgeCount = badge ?? (item.id === 'messages' ? unreadDmCount : 0);
+          {MOBILE_BOTTOM_TABS.map(({ id, label, Icon, isCreate, badgeCount }) => {
+            const isActive = activeTab === id;
             return (
               <button
-                key={item.id}
-                id={`mob-nav-${item.id}`}
-                className={`mob-nav-btn${isActive ? ' mob-nav-gold' : ''}`}
-                onClick={() => handleItemClick(item)}
+                key={id}
+                onClick={() => handleItemClick({ id })}
+                className={`mob-nav-btn ${isActive ? 'mob-nav-gold' : ''}`}
                 style={{
-                  background: 'transparent',
+                  flex: 1,
+                  height: '100%',
+                  background: 'none',
                   border: 'none',
                   cursor: 'pointer',
                   display: 'flex',
@@ -491,11 +417,9 @@ export function AppShell({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 2,
-                  padding: '6px 12px',
+                  padding: '4px 8px',
                   position: 'relative',
-                  minWidth: 44,
-                  flex: 1,
-                  WebkitTapHighlightColor: 'transparent',
+                  WebkitTapHighlightColor: 'transparent !important',
                   outline: 'none',
                 }}
               >
@@ -507,7 +431,7 @@ export function AppShell({
                   <Icon
                     size={24}
                     strokeWidth={isActive ? 2.5 : 1.8}
-                    color={isActive ? (T.priFallback || '#E2B355') : (T.sub || '#999')}
+                    color={isActive ? '#F9E08B' : (T?.sub || '#999')}
                   />
                   {badgeCount > 0 && (
                     <div style={{
@@ -539,7 +463,7 @@ export function AppShell({
             );
           })}
         </nav>
-      )}
+)}
 
     </div>
   );
