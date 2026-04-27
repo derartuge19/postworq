@@ -254,7 +254,7 @@ const CampaignFeed = ({ campaignId, onBack }) => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {posts.map((post, idx) => (
-              <PostCard key={post.id} post={post} rank={idx + 1} onVote={handleVote} campaignType={campaign?.campaign_type} isVotingOpen={campaign?.status === 'voting'} />
+              <PostCard key={post.id} post={post} rank={idx + 1} onVote={handleLike} campaignType={campaign?.campaign_type} isVotingOpen={campaign?.status === 'voting'} />
             ))}
           </div>
         )}
@@ -419,10 +419,10 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
         <div style={{ padding: '14px 16px', background: T.bg, borderTop: `1px solid ${T.border}` }}>
           <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: T.txt }}>Score Breakdown</p>
           <div style={{ display: 'grid', gap: 8 }}>
-            {scores.creativity > 0 && <ScoreBar label="Creativity" score={scores.creativity} max={30} />}
-            {scores.engagement > 0 && <ScoreBar label="Engagement" score={scores.engagement} max={25} />}
-            {scores.quality > 0 && <ScoreBar label="Quality" score={scores.quality} max={15} />}
-            {scores.theme_relevance > 0 && <ScoreBar label="Theme Relevance" score={scores.theme_relevance} max={10} />}
+            {scores.creativity > 0 && <ScoreBar label="Creativity" score={scores.creativity} max={30} theme={T} />}
+            {scores.engagement > 0 && <ScoreBar label="Engagement" score={scores.engagement} max={25} theme={T} />}
+            {scores.quality > 0 && <ScoreBar label="Quality" score={scores.quality} max={15} theme={T} />}
+            {scores.theme_relevance > 0 && <ScoreBar label="Theme Relevance" score={scores.theme_relevance} max={10} theme={T} />}
           </div>
         </div>
       )}
@@ -430,7 +430,7 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
   );
 };
 
-const ScoreBar = ({ label, score, max }) => {
+const ScoreBar = ({ label, score, max, theme: T }) => {
   const pct = Math.round((score / max) * 100);
   return (
     <div>

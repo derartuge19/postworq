@@ -399,12 +399,14 @@ export function AppShell({
             boxShadow: '0 -2px 16px rgba(0,0,0,0.07)',
           }}
         >
-          {MOBILE_BOTTOM_TABS.map(({ id, label, Icon, isCreate, badgeCount }) => {
+          {MOBILE_BOTTOM_TABS.map(({ item, label, isCreate, badge }) => {
+            const { id, icon: Icon } = item;
             const isActive = activeTab === id;
+            const badgeCount = badge || 0;
             return (
               <button
                 key={id}
-                onClick={() => handleItemClick({ id })}
+                onClick={() => handleItemClick(item)}
                 className={`mob-nav-btn ${isActive ? 'mob-nav-gold' : ''}`}
                 style={{
                   flex: 1,
