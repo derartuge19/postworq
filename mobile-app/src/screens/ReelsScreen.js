@@ -227,7 +227,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
 
       {/* ── Heart Pop Animation Overlay ── */}
       <Animated.View style={[styles.heartOverlay, { transform: [{ scale: heartScale }] }]}>
-        <Ionicons name="heart" size={100} color="#ff4040" />
+        <Ionicons name="heart" size={100} color={BRAND_GOLD} />
       </Animated.View>
 
       {/* ── Gradient scrim at bottom ── */}
@@ -252,7 +252,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
           <Ionicons
             name={liked ? 'heart' : 'heart-outline'}
             size={36}
-            color={liked ? '#ff4040' : '#fff'}
+            color={liked ? BRAND_GOLD : BRAND_GOLD}
           />
           <Text style={styles.sideBtnLabel}>{likeCount}</Text>
         </TouchableOpacity>
@@ -262,20 +262,20 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
           <Ionicons
             name={muted ? 'volume-mute' : 'volume-high'}
             size={32}
-            color="#fff"
+            color={BRAND_GOLD}
           />
           <Text style={styles.sideBtnLabel}>{muted ? 'Off' : 'On'}</Text>
         </TouchableOpacity>
 
         {/* 3. Comment */}
         <TouchableOpacity style={styles.sideBtn} onPress={onComment}>
-          <Ionicons name="chatbubble-outline" size={32} color="#fff" />
+          <Ionicons name="chatbubble-outline" size={32} color={BRAND_GOLD} />
           <Text style={styles.sideBtnLabel}>{item.comment_count || 0}</Text>
         </TouchableOpacity>
 
         {/* 4. Share */}
         <TouchableOpacity style={styles.sideBtn} onPress={onShare}>
-          <Ionicons name="paper-plane-outline" size={30} color="#fff" />
+          <Ionicons name="paper-plane-outline" size={30} color={BRAND_GOLD} />
           <Text style={styles.sideBtnLabel}>Share</Text>
         </TouchableOpacity>
 
@@ -284,7 +284,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
           <Ionicons 
             name={saved ? 'bookmark' : 'bookmark-outline'} 
             size={30} 
-            color={saved ? BRAND_GOLD : '#fff'} 
+            color={BRAND_GOLD} 
           />
           <Text style={styles.sideBtnLabel}>Save</Text>
         </TouchableOpacity>

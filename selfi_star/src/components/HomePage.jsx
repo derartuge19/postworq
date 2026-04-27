@@ -703,6 +703,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
   const [captionExpanded, setCaptionExpanded] = useState(false);
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [baseFontSize, setBaseFontSize] = useState(16);
+  const [likeAnim, setLikeAnim] = useState(false);
+  const [saveAnim, setSaveAnim] = useState(false);
   const cardRef = useRef(null);
   const videoRef = useRef(null);
 
@@ -1164,8 +1166,8 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                 ) : (
                   <Heart
                     size={baseFontSize}
-                    fill={liked ? '#EF4444' : 'none'}
-                    color={liked ? '#EF4444' : T?.txt || '#000'}
+                    fill={liked ? '#E2B355' : 'none'}
+                    color={liked ? '#E2B355' : T?.txt || '#000'}
                     style={{ transition: 'transform 0.15s' }}
                   />
                 )}

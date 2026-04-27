@@ -410,9 +410,9 @@ export default function HomeScreen({ navigation }) {
         {/* Actions Row */}
         <View style={styles.actionsRow}>
           <View style={styles.leftActions}>
-            <TouchableOpacity style={[styles.actionBtn, votingInProgress[item.id] && { opacity: 0.6 }]} onPress={() => handleVote(item.id, item.has_voted || item.is_liked)} disabled={votingInProgress[item.id]}>
-              <Ionicons name={(item.has_voted || item.is_liked) ? "heart" : "heart-outline"} size={22} color={(item.has_voted || item.is_liked) ? "#EF4444" : T.txt} />
-              <Text style={styles.actionText}>{item.votes || 0}</Text>
+            <TouchableOpacity style={[styles.actionBtn, votingInProgress[item.id] && { opacity: 0.6 }]} onPress={() => handleVote(item.id, currentLiked)} disabled={votingInProgress[item.id]}>
+              <Ionicons name={currentLiked ? "heart" : "heart-outline"} size={22} color={currentLiked ? BRAND_GOLD : T.txt} />
+              <Text style={[styles.actionText, currentLiked && { color: BRAND_GOLD }]}>{item.votes || 0}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.actionBtn} onPress={() => handleComment(item.id)}>
@@ -421,7 +421,7 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item.id)}>
-              <Ionicons name="share-social-outline" size={22} color={T.txt} />
+              <Ionicons name="share-social-outline" size={20} color={T.txt} />
               <Text style={styles.actionText}>{(item.shares || 0) > 0 ? item.shares : ''}</Text>
             </TouchableOpacity>
 
@@ -431,7 +431,7 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           <TouchableOpacity style={styles.actionBtn} onPress={() => handleSave(item.id, item.is_saved)}>
-            <Ionicons name={item.is_saved ? "bookmark" : "bookmark-outline"} size={22} color={item.is_saved ? T.pri : T.txt} />
+            <Ionicons name={item.is_saved ? "bookmark" : "bookmark-outline"} size={22} color={item.is_saved ? BRAND_GOLD : T.txt} />
           </TouchableOpacity>
         </View>
 

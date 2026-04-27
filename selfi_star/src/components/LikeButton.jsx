@@ -48,8 +48,8 @@ export function LikeButton({ liked, count, onLike, size = 24 }) {
       >
         <Heart
           size={size}
-          fill={liked ? "#FF0050" : "none"}
-          stroke={liked ? "#FF0050" : "#fff"}
+          fill={liked ? "#E2B355" : "none"}
+          stroke={liked ? "#E2B355" : "#fff"}
           strokeWidth={2}
         />
       </button>
@@ -58,7 +58,7 @@ export function LikeButton({ liked, count, onLike, size = 24 }) {
         key={burstKey}
         className={`like-burst${burstKey > 0 ? ' active' : ''}`}
       >
-        <Heart size={size * 1.8} fill="#FF0050" stroke="none" />
+        <Heart size={size * 1.8} fill="#E2B355" stroke="none" />
       </div>
 
       <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", textAlign: "center" }}>{count}</div>
