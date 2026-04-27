@@ -1151,7 +1151,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     onTouchEnd={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
                     style={{ background: 'rgba(0,0,0,0.45)', borderRadius: 12, padding: 6, backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)' }}>
                     <div style={{ width: 52, height: 52, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Upload size={22} color="#fff" />
+                      <Upload size={22} color="#F9E08B" />
                     </div>
                   </button>
 
@@ -1203,7 +1203,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                         justifyContent: 'center',
                         border: '2px solid rgba(255,255,255,0.35)',
                       }}>
-                        <Video size={14} color="#fff" strokeWidth={2.5} />
+                        <Video size={14} color="#F9E08B" strokeWidth={2.5} />
                       </div>
                     )}
                   </div>
@@ -1226,7 +1226,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                       setTimeout(() => startCamera(), 100);
                     }}
                     style={{ background: 'rgba(0,0,0,0.45)', borderRadius: '50%', width: 52, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)' }}>
-                    <RefreshCw size={22} color="#fff" />
+                    <RefreshCw size={22} color="#F9E08B" />
                   </button>
                 </div>
 
@@ -1422,7 +1422,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 style={{
                   background: isUploading ? 'rgba(218,155,42,0.4)' : T.pri,
                   borderRadius: 24, padding: '10px 22px',
-                  fontSize: 15, fontWeight: 800, color: '#fff',
+                  fontSize: 15, fontWeight: 800, color: '#F9E08B',
                   opacity: isUploading ? 0.7 : 1,
                 }}>
                 {isUploading ? 'Posting...' : 'Post'}
@@ -1471,7 +1471,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
                     padding: 6,
                   }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#ffffff', background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: 8 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#F9E08B', background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: 8 }}>
                       {activeFilter?.name}
                     </span>
                   </div>
@@ -1545,8 +1545,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     </button>
                     <button className="ep-btn" onClick={() => setShowVolMixer(v => !v)}
                       style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 24, padding: '6px 14px' }}>
-                      <Sliders size={14} color={T.white} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: T.white }}>Mix</span>
+                      <Sliders size={14} color={'#F9E08B'} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#F9E08B' }}>Mix</span>
                     </button>
                   </div>
 
@@ -1559,7 +1559,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                         <div key={label}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                             <span style={{ fontSize: 13, color: T.sub }}>{label}</span>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: T.white }}>{val}%</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: '#F9E08B' }}>{val}%</span>
                           </div>
                           <input type="range" min={0} max={100} value={val}
                             onChange={e => set(+e.target.value)}
@@ -1576,9 +1576,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
             {textOverlays.length > 0 && (
               <div style={{ background: T.card, borderRadius: 16, padding: '16px 20px', border: `1px solid ${T.border}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: T.white }}>Text overlays</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#F9E08B' }}>Text overlays</span>
                   <button className="ep-btn" onClick={() => setShowTextInput(true)}
-                    style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 20, padding: '4px 12px', fontSize: 13, color: T.white }}>
+                    style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 20, padding: '4px 12px', fontSize: 13, color: '#F9E08B' }}>
                     + Add
                   </button>
                 </div>
@@ -1603,9 +1603,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   cursor: 'pointer',
                 }}>
                 <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Type size={18} color={T.white} />
+                  <Type size={18} color={'#F9E08B'} />
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 700, color: T.white }}>Add text overlay</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#F9E08B' }}>Add text overlay</span>
               </button>
             )}
           </div>
@@ -1627,9 +1627,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
           }}>
             <button className="ep-btn" onClick={() => setShowTextInput(false)}
               style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <X size={20} color={T.white} />
+              <X size={20} color={'#F9E08B'} />
             </button>
-            <span style={{ fontSize: 17, fontWeight: 700, color: T.white }}>Add Text</span>
+            <span style={{ fontSize: 17, fontWeight: 700, color: '#F9E08B' }}>Add Text</span>
             <button className="ep-btn" onClick={addTextOverlay}
               style={{ background: T.pri, borderRadius: 20, padding: '10px 20px', fontSize: 14, fontWeight: 700, color: '#000' }}>
               Done
@@ -1665,7 +1665,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               rows={2}
               style={{
                 width: '100%', background: 'rgba(255,255,255,0.08)', border: 'none',
-                borderRadius: 14, padding: '14px 16px', color: T.white,
+                borderRadius: 14, padding: '14px 16px', color: '#F9E08B',
                 fontSize: 16, fontWeight: 600, outline: 'none', resize: 'none', boxSizing: 'border-box',
               }}
             />
@@ -1677,7 +1677,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   style={{
                     width: 48, height: 48, borderRadius: '50%', fontSize: 16, fontWeight: 800,
                     background: textStyle === s ? T.pri : 'rgba(255,255,255,0.1)',
-                    color: textStyle === s ? '#000' : T.white,
+                    color: textStyle === s ? '#000' : '#F9E08B',
                     border: 'none',
                     boxShadow: textStyle === s ? '0 4px 12px rgba(218,155,42,0.4)' : 'none',
                   }}>
@@ -1693,7 +1693,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   style={{
                     width: 40, height: 40, borderRadius: '50%', fontSize: 14,
                     background: textAlign === a ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
-                    color: T.white, border: 'none',
+                    color: '#F9E08B', border: 'none',
                   }}>
                   {lbl}
                 </button>
@@ -1703,7 +1703,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               <input type="range" min={14} max={56} value={textFontSize}
                 onChange={e => setTextFontSize(Number(e.target.value))}
                 style={{ width: 100, accentColor: T.pri }} />
-              <span style={{ color: T.white, fontSize: 12, fontWeight: 600, minWidth: 24 }}>{textFontSize}</span>
+              <span style={{ color: '#F9E08B', fontSize: 12, fontWeight: 600, minWidth: 24 }}>{textFontSize}</span>
             </div>
 
             {/* Color Palette - Perfect Circles */}
@@ -1743,10 +1743,10 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px 16px' }}>
-              <span style={{ fontSize: 18, fontWeight: 800, color: T.white }}>Select Sound</span>
+              <span style={{ fontSize: 18, fontWeight: 800, color: '#F9E08B' }}>Select Sound</span>
               <button className="ep-btn" onClick={() => setShowSoundSheet(false)}
                 style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <X size={18} color={T.white} />
+                <X size={18} color={'#F9E08B'} />
               </button>
             </div>
 
@@ -1760,7 +1760,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   <Upload size={20} color={T.pri} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: T.white }}>Upload your own</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#F9E08B' }}>Upload your own</div>
                   <div style={{ fontSize: 12, color: T.sub }}>MP3, AAC, WAV</div>
                 </div>
                 <input ref={audioFileInputRef} type="file" accept="audio/*"
