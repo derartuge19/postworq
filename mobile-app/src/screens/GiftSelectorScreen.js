@@ -12,6 +12,7 @@ import {
   ScrollView,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -116,7 +117,7 @@ export default function GiftSelectorScreen({ route, navigation }) {
     
     setSending(true);
     try {
-      await api.request('/gift-transactions/', {
+      const response = await api.request('/gift-transactions/', {
         method: 'POST',
         body: JSON.stringify({
           gift_id: selectedGift.id,
@@ -131,7 +132,29 @@ export default function GiftSelectorScreen({ route, navigation }) {
       navigation.goBack();
     } catch (error) {
       console.error('Error sending gift:', error);
-      alert('Failed to send gift. Please try again.');
+      const errorData = error.message ? JSON.parse(error.message) : {};
+      
+      if (errorData.needs_recharge) {
+        // Show recharge alert
+        Alert.alert(
+          'Insufficient Purchased Coins',
+          `You need ${errorData.required_coins} purchased coins to send this gift.\n\nYour current balance:\n• Earned coins: ${errorData.current_earned_coins} (cannot be used for gifting)\n• Purchased coins: ${errorData.current_purchased_coins}\n\nOnly purchased coins can be used to send gifts.`,
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Get Coins',
+              onPress: () => {
+                navigation.navigate('Wallet');
+              },
+            },
+          ]
+        );
+      } else {
+        alert(errorData.error || 'Failed to send gift. Please try again.');
+      }
     } finally {
       setSending(false);
     }

@@ -12,6 +12,8 @@ from .serializers_gift import (
     UserGiftStatsSerializer, GiftLeaderboardSerializer
 )
 from .models import UserProfile, Reel
+from .models_contest import UserCoinBalance
+from .models_wallet import WalletConfig
 
 
 class GiftViewSet(viewsets.ModelViewSet):
@@ -207,25 +209,67 @@ class GiftTransactionViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND
                 )
         
-        # Check sender's coin balance
-        sender_profile = request.user.profile
+        # Check wallet config for gifting policy
+        wallet_config = WalletConfig.get_config()
+        
+        # Get or create sender's coin balance
+        sender_coin_balance, _ = UserCoinBalance.objects.get_or_create(user=request.user)
+        
         total_cost = gift.coin_value * quantity
         
-        if sender_profile.coins < total_cost:
+        # Check if purchased coins can be used for gifting
+        if not wallet_config.purchased_coins_giftable:
             return Response(
-                {'error': f'Insufficient coins. You need {total_cost} coins but have {sender_profile.coins}'}, 
+                {'error': 'Purchased coins cannot be used for gifting at this time.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Deduct coins
-        sender_profile.coins -= total_cost
+        # Check if sender has enough purchased coins
+        if (sender_coin_balance.purchased_balance or 0) < total_cost:
+            return Response(
+                {
+                    'error': f'Insufficient purchased coins. You need {total_cost} purchased coins but have {sender_coin_balance.purchased_balance or 0}. '
+                    f'Your total balance is {sender_coin_balance.balance} (earned: {sender_coin_balance.earned_balance or 0}, purchased: {sender_coin_balance.purchased_balance or 0}). '
+                    f'Only purchased coins can be used for gifting. Please top up your coins.',
+                    'needs_recharge': True,
+                    'required_coins': total_cost,
+                    'current_purchased_coins': sender_coin_balance.purchased_balance or 0,
+                    'current_earned_coins': sender_coin_balance.earned_balance or 0
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Deduct coins from purchased balance (restrict_earned=True for gifting)
+        try:
+            sender_coin_balance.spend_coins(
+                amount=total_cost,
+                transaction_type='gift_sent',
+                restrict_earned=True,  # Only use purchased coins for gifting
+                recipient=recipient,
+                reel=reel,
+                gift=gift
+            )
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Update sender profile stats
+        sender_profile = request.user.profile
         sender_profile.coins_spent_total += total_cost
         sender_profile.gifts_sent_total += 1
         sender_profile.save()
         
-        # Add coins to recipient
+        # Add coins to recipient (earned balance)
+        recipient_coin_balance, _ = UserCoinBalance.objects.get_or_create(user=recipient)
+        recipient_coin_balance.add_earned(
+            amount=total_cost,
+            transaction_type='gift_received',
+            sender=request.user,
+            reel=reel,
+            gift=gift
+        )
+        
+        # Update recipient profile stats
         recipient_profile = recipient.profile
-        recipient_profile.coins += total_cost
         recipient_profile.coins_earned_total += total_cost
         recipient_profile.gifts_received_total += 1
         recipient_profile.save()

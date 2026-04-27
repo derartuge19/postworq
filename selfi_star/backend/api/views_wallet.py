@@ -417,7 +417,7 @@ def admin_wallet_config(request):
     config = WalletConfig.get_config()
 
     if request.method == 'GET':
-        return Response(_serialize_full_config(config))
+        return Response({'config': _serialize_full_config(config)})
 
     # PATCH
     editable_fields = [

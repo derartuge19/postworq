@@ -165,7 +165,7 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,video/*"
           onChange={handleImageSelect}
           style={{ display: "none" }}
         />

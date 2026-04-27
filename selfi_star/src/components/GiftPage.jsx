@@ -21,15 +21,22 @@ const RARITY_COLORS = {
 
 export default function GiftPage({ username, onClose }) {
   const { colors: T } = useTheme();
-  const [gifts, setGifts] = useState([]);
+  const [gifts, setGifts] = useState([
+    { id: 1, name: 'Rose', description: 'A beautiful red rose', coin_value: 10, rarity: 'common', category: 'flowers' },
+    { id: 2, name: 'Heart', description: 'A heart symbol', coin_value: 20, rarity: 'common', category: 'hearts' },
+    { id: 3, name: 'Medal', description: 'A gold medal', coin_value: 50, rarity: 'rare', category: 'special' },
+    { id: 4, name: 'Diamond', description: 'A sparkling diamond', coin_value: 100, rarity: 'epic', category: 'gems' },
+    { id: 5, name: 'Teddy Bear', description: 'A cute teddy bear', coin_value: 30, rarity: 'common', category: 'animals' },
+  ]);
   const [selectedGift, setSelectedGift] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(false);
-  const [loadingGifts, setLoadingGifts] = useState(true);
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [coinBalance, setCoinBalance] = useState(0);
+  const [showRechargeDialog, setShowRechargeDialog] = useState(false);
+  const [rechargeError, setRechargeError] = useState(null);
 
   useEffect(() => {
     loadGifts();
@@ -44,18 +51,7 @@ export default function GiftPage({ username, onClose }) {
       setGifts(giftsData);
     } catch (error) {
       console.error('Error loading gifts:', error);
-      // Fallback to default gifts if API fails
-      const defaultGifts = [
-        { id: 1, name: 'Rose', description: 'A beautiful red rose', coin_value: 10, rarity: 'common', category: 'flowers' },
-        { id: 2, name: 'Heart', description: 'A heart symbol', coin_value: 20, rarity: 'common', category: 'hearts' },
-        { id: 3, name: 'Medal', description: 'A gold medal', coin_value: 50, rarity: 'rare', category: 'special' },
-        { id: 4, name: 'Diamond', description: 'A sparkling diamond', coin_value: 100, rarity: 'epic', category: 'gems' },
-        { id: 5, name: 'Teddy Bear', description: 'A cute teddy bear', coin_value: 30, rarity: 'common', category: 'animals' },
-      ];
-      console.log('Using default gifts:', defaultGifts);
-      setGifts(defaultGifts);
-    } finally {
-      setLoadingGifts(false);
+      // Keep using default gifts if API fails
     }
   };
 
@@ -102,21 +98,18 @@ export default function GiftPage({ username, onClose }) {
       }, 2000);
     } catch (err) {
       console.error('Gift send error:', err);
-      alert(err?.error || 'Failed to send gift');
+      const errorData = err.response?.data || err;
+      
+      if (errorData.needs_recharge) {
+        setRechargeError(errorData);
+        setShowRechargeDialog(true);
+      } else {
+        alert(errorData.error || 'Failed to send gift');
+      }
     } finally {
       setLoading(false);
     }
   };
-
-  if (loadingGifts) {
-    return (
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-        <div style={{ background: T?.cardBg || '#fff', borderRadius: 20, padding: 40, textAlign: 'center' }}>
-          <div style={{ fontSize: 24, color: T?.txt || '#000' }}>Loading gifts...</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
@@ -310,6 +303,63 @@ export default function GiftPage({ username, onClose }) {
               )}
             </button>
           </>
+        )}
+
+        {/* Recharge Dialog */}
+        {showRechargeDialog && rechargeError && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 20000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <div style={{ background: T?.cardBg || '#fff', borderRadius: 20, padding: 32, maxWidth: 450, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+              <div style={{ fontSize: 48, textAlign: 'center', marginBottom: 16 }}>💰</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: T?.txt || '#000', marginBottom: 12, textAlign: 'center' }}>Insufficient Purchased Coins</div>
+              <div style={{ fontSize: 14, color: T?.sub || '#666', marginBottom: 20, lineHeight: 1.6 }}>
+                You need {rechargeError.required_coins} purchased coins to send this gift.
+                <br /><br />
+                <strong>Your current balance:</strong><br />
+                • Earned coins: {rechargeError.current_earned_coins} (cannot be used for gifting)<br />
+                • Purchased coins: {rechargeError.current_purchased_coins}
+                <br /><br />
+                Only purchased coins can be used to send gifts.
+              </div>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => setShowRechargeDialog(false)}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: 10,
+                    border: `1px solid ${T?.border || '#e0e0e0'}`,
+                    background: T?.bg || '#f5f5f5',
+                    color: T?.txt || '#000',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowRechargeDialog(false);
+                    // Navigate to wallet/purchase page when available
+                    alert('Coin purchase feature coming soon! Please contact support to purchase coins.');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: 10,
+                    border: 'none',
+                    background: T?.pri || '#000',
+                    color: '#fff',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Get Coins
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

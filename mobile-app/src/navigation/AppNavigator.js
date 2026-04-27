@@ -31,6 +31,9 @@ import CampaignFeedScreen from '../screens/CampaignFeedScreen';
 import CampaignLeaderboardScreen from '../screens/CampaignLeaderboardScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import FollowListScreen from '../screens/FollowListScreen';
+import WalletScreen from '../screens/WalletScreen';
+import GiftSelectorScreen from '../screens/GiftSelectorScreen';
+import CustomCameraScreen from '../screens/CustomCameraScreen';
 
 // ── Brand theme — keep in sync with web selfi_star theme ──────────────────────
 const BRAND = {
@@ -129,6 +132,9 @@ function MainStack() {
       <Stack.Screen name="CampaignLeaderboard" component={CampaignLeaderboardScreen} options={{ title: 'Leaderboard' }} />
       <Stack.Screen name="Settings"           component={SettingsScreen}           options={{ headerShown: false }} />
       <Stack.Screen name="FollowList"         component={FollowListScreen}         options={{ headerShown: false }} />
+      <Stack.Screen name="Wallet"             component={WalletScreen}             options={{ title: 'Wallet' }} />
+      <Stack.Screen name="GiftSelector"       component={GiftSelectorScreen}       options={{ headerShown: false }} />
+      <Stack.Screen name="CustomCamera"       component={CustomCameraScreen}       options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

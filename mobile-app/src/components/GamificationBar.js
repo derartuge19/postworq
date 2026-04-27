@@ -38,26 +38,26 @@ const CoinsModal = ({ coins, onClose }) => (
     <ScrollView contentContainerStyle={styles.scrollPadding}>
       <View style={styles.balanceHero}>
         <Text style={styles.heroEmoji}>🪙</Text>
-        <Text style={styles.heroAmount}>{coins?.balance ?? 0}</Text>
-        <Text style={styles.heroLabel}>Available Coins</Text>
+        <Text style={styles.heroAmount}>{coins?.balance?.total ?? coins?.balance ?? 0}</Text>
+        <Text style={styles.heroLabel}>Total Balance</Text>
       </View>
       
       <View style={styles.statsGrid}>
         <View style={[styles.statBox, { backgroundColor: '#10B98112', borderColor: '#10B98125' }]}>
-          <Text style={styles.statEmoji}>📈</Text>
-          <Text style={[styles.statValue, { color: '#10B981' }]}>{coins?.earned_total ?? 0}</Text>
-          <Text style={styles.statLabel}>Total Earned</Text>
+          <Text style={styles.statEmoji}>🎁</Text>
+          <Text style={[styles.statValue, { color: '#10B981' }]}>{coins?.balance?.earned ?? coins?.earned_total ?? 0}</Text>
+          <Text style={styles.statLabel}>Earned</Text>
         </View>
-        <View style={[styles.statBox, { backgroundColor: '#EF444412', borderColor: '#EF444425' }]}>
-          <Text style={styles.statEmoji}>📉</Text>
-          <Text style={[styles.statValue, { color: '#EF4444' }]}>{coins?.spent_total ?? 0}</Text>
-          <Text style={styles.statLabel}>Total Spent</Text>
+        <View style={[styles.statBox, { backgroundColor: '#8B5CF612', borderColor: '#8B5CF625' }]}>
+          <Text style={styles.statEmoji}>�</Text>
+          <Text style={[styles.statValue, { color: '#8B5CF6' }]}>{coins?.balance?.purchased ?? 0}</Text>
+          <Text style={styles.statLabel}>Purchased</Text>
         </View>
       </View>
       
       <View style={styles.tipBox}>
         <Text style={styles.tipText}>
-          💡 Earn coins by spinning daily, receiving gifts, and logging in every day!
+          💡 Earned coins come from activities (login, posts, likes). Purchased coins are bought and can be used for gifting.
         </Text>
       </View>
     </ScrollView>

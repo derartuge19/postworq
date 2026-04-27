@@ -490,6 +490,11 @@ const api = {
   getDailySpin: () => api.request('/gamification/daily-spin/'),
   performSpin: () => api.request('/gamification/perform-spin/', { method: 'POST' }),
 
+  // Wallet
+  getWalletBalance: () => api.request('/wallet/'),
+  getWalletConfig: () => api.request('/wallet/config/'),
+  getCoinPackages: () => api.request('/coins/packages/'),
+
 };
 
 // Initialize on load

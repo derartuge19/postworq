@@ -74,7 +74,7 @@ export default function CreateScreen({ navigation }) {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
+      allowsEditing: false,
       aspect: [9, 16],
       quality: 0.85,
       videoMaxDuration: 60,
@@ -86,24 +86,13 @@ export default function CreateScreen({ navigation }) {
     }
   };
 
-  const pickFromCamera = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please allow camera access in Settings.');
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [9, 16],
-      quality: 0.85,
-      videoMaxDuration: 60,
+  const pickFromCamera = () => {
+    navigation.navigate('CustomCamera', {
+      onMediaCaptured: (capturedMedia) => {
+        setMedia({ uri: capturedMedia.uri, type: capturedMedia.type });
+        setStage('edit');
+      }
     });
-    if (!result.canceled && result.assets?.length) {
-      const asset = result.assets[0];
-      setMedia({ uri: asset.uri, type: asset.type || 'image' });
-      setStage('edit');
-    }
   };
 
   // ── Draft logic ───────────────────────────────────────────────────────────
@@ -236,7 +225,7 @@ export default function CreateScreen({ navigation }) {
                   <Ionicons name="cloud-upload-outline" size={24} color="#fff" />
                 </View>
                 <View style={s.cardText}>
-                  <Text style={s.cardTitle}>Upload Image</Text>
+                  <Text style={s.cardTitle}>Upload Photo/Video</Text>
                   <Text style={s.cardSub}>From gallery or files</Text>
                 </View>
               </View>
