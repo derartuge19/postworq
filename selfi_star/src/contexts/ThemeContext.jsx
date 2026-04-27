@@ -102,7 +102,7 @@ export const PRESET_THEMES = {
   },
 };
 
-const STORAGE_KEY = '_platform_theme';
+const STORAGE_KEY = '_platform_theme_v3'; // v3 forces brand dark+gold defaults for all users
 
 function loadStored() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }

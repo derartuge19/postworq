@@ -14,7 +14,7 @@ export const ThemeProvider = ({ children }) => {
 
   const loadTheme = async () => {
     try {
-      const saved = await SecureStore.getItemAsync('isDarkMode');
+      const saved = await SecureStore.getItemAsync('isDarkMode_v2');
       if (saved) setIsDarkMode(saved === 'true');
     } catch (e) {}
   };
@@ -22,7 +22,7 @@ export const ThemeProvider = ({ children }) => {
   const toggleDarkMode = async () => {
     const next = !isDarkMode;
     setIsDarkMode(next);
-    await SecureStore.setItemAsync('isDarkMode', String(next));
+    await SecureStore.setItemAsync('isDarkMode_v2', String(next));
   };
 
   const colors = {
