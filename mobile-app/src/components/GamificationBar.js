@@ -304,7 +304,7 @@ export default function GamificationBar({ userId, onShowWallet }) {
           activeOpacity={1} 
           onPress={() => setActiveModal(null)}
         >
-          <View style={[styles.modalContainer, { paddingBottom: insets.bottom + 20 }]}>
+          <View style={[styles.modalContainer, { paddingBottom: Math.max(80, insets.bottom + 40) }]}>
             {activeModal === 'coins' && <CoinsModal coins={coins} onClose={() => setActiveModal(null)} />}
             {activeModal === 'streak' && <StreakModal streak={login_streak} onClaim={handleClaim} onClose={() => setActiveModal(null)} />}
             {activeModal === 'gift' && <GiftModal coins={coins} onClose={() => setActiveModal(null)} onRefresh={loadStatus} onShowWallet={onShowWallet} />}
