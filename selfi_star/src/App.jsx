@@ -696,20 +696,7 @@ export default function WerqRoot() {
     pushHistoryState({ showPostPage: true, showProfile: false, showEditProfile: false, showFollowersList: false });
   };
 
-  const handleClosePostPage = () => {
-    setShowPostPage(false);
-    const ret = prevNavState.current;
-    if (ret) {
-      setActiveTab(ret.activeTab || 'home');
-      if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); }
-      if (ret.showVideoDetail) { setShowVideoDetail(true); setVideoDetailId(ret.videoDetailId || null); }
-      prevNavState.current = null;
-      window.history.back();
-    } else {
-      setActiveTab('home');
-      pushHistoryState({ showPostPage: false, activeTab: 'home' }, true);
-    }
-  };
+  const handleClosePostPage = () => { goHome(); };
 
   const handlePostSuccess = (reelId) => {
     setShowPostPage(false);
@@ -788,27 +775,7 @@ export default function WerqRoot() {
     pushHistoryState({ showWallet: false }, true);
   };
 
-  const handleCloseSettings = () => {
-    setShowSettings(false);
-    const ret = settingsReturnState.current;
-    if (ret) {
-      setActiveTab(ret.activeTab || 'home');
-      if (ret.showProfile) {
-        setShowProfile(true);
-        setProfileUserId(ret.profileUserId || null);
-      }
-      if (ret.showVideoDetail) {
-        setShowVideoDetail(true);
-        setVideoDetailId(ret.videoDetailId || null);
-      }
-      settingsReturnState.current = null;
-      // Go back in history instead of pushing new state
-      window.history.back();
-    } else {
-      setActiveTab('home');
-      pushHistoryState({ showSettings: false, activeTab: 'home' }, true);
-    }
-  };
+  const handleCloseSettings = () => { goHome(); };
 
   const handleShowCampaigns = () => {
     if (!authUser) {
@@ -917,6 +884,13 @@ export default function WerqRoot() {
     setShowLogin(true);
   };
 
+  const goHome = () => {
+    resetAllPages();
+    prevNavState.current = null;
+    setActiveTab('home');
+    pushHistoryState({ activeTab: 'home', showProfile: false, showPostPage: false, showSettings: false, showNotifications: false, showCampaigns: false, showCampaignDetail: false, showCampaignLeaderboard: false, showCampaignFeed: false, showVideoDetail: false, showEditProfile: false, showFollowersList: false, showExplorer: false }, true);
+  };
+
   return (
     <div className="App">
       <AppShell
@@ -989,20 +963,7 @@ export default function WerqRoot() {
                   setShowNotifications(false);
                   handleShowProfile(userId);
                 }}
-                onBack={() => {
-                  setShowNotifications(false);
-                  const ret = prevNavState.current;
-                  if (ret) { 
-                    setActiveTab(ret.activeTab || 'home'); 
-                    if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); }
-                    if (ret.showVideoDetail) { setShowVideoDetail(true); setVideoDetailId(ret.videoDetailId || null); }
-                    prevNavState.current = null;
-                    window.history.back();
-                  } else { 
-                    setActiveTab('home');
-                    pushHistoryState({ showNotifications: false, activeTab: 'home' }, true);
-                  }
-                }}
+                onBack={() => goHome()}
                 onShowPostPage={handleShowPostPage}
                 onLogout={handleLogout}
                 onShowProfile={() => handleShowProfile(null)}
@@ -1021,10 +982,7 @@ export default function WerqRoot() {
             <Suspense fallback={<PageSkeleton />}>
               <EditProfilePage
                 user={authUser}
-                onBack={() => {
-                  setShowEditProfile(false);
-                  setShowProfile(true);
-                }}
+                onBack={() => goHome()}
                 onSave={handleProfileSaved}
               />
             </Suspense>
@@ -1037,10 +995,7 @@ export default function WerqRoot() {
                 user={authUser}
                 userId={followersListUserId}
                 type={followersListType}
-                onBack={() => {
-                  setShowFollowersList(false);
-                  setShowProfile(true);
-                }}
+                onBack={() => goHome()}
                 onUserClick={(userId) => {
                   const id = typeof userId === 'object' ? userId.id : userId;
                   setShowFollowersList(false);
@@ -1056,16 +1011,7 @@ export default function WerqRoot() {
               <ProfilePage
                 user={authUser}
                 userId={profileUserId}
-                onBack={() => {
-                  setShowProfile(false);
-                  const ret = prevNavState.current;
-                  const targetTab = ret ? (ret.activeTab || 'home') : 'home';
-                  setActiveTab(targetTab);
-                  setShowVideoDetail(false);
-                  setVideoDetailId(null);
-                  prevNavState.current = null;
-                  pushHistoryState({ showProfile: false, activeTab: targetTab, showVideoDetail: false, videoDetailId: null }, true);
-                }}
+                onBack={() => goHome()}
                 onEditProfile={handleShowEditProfile}
                 onShowSettings={handleShowSettings}
                 onShowWallet={handleShowWallet}
@@ -1151,20 +1097,7 @@ export default function WerqRoot() {
                   setShowCampaigns(false);
                   setShowCampaignDetail(true);
                 }}
-                onBack={() => {
-                  setShowCampaigns(false);
-                  const ret = prevNavState.current;
-                  if (ret) { 
-                    setActiveTab(ret.activeTab || 'home'); 
-                    if (ret.showProfile) { setShowProfile(true); setProfileUserId(ret.profileUserId || null); }
-                    if (ret.showVideoDetail) { setShowVideoDetail(true); setVideoDetailId(ret.videoDetailId || null); }
-                    prevNavState.current = null;
-                    window.history.back();
-                  } else { 
-                    setActiveTab('home');
-                    pushHistoryState({ showCampaigns: false, activeTab: 'home' }, true);
-                  }
-                }}
+                onBack={() => goHome()}
               />
             </Suspense>
           </LazyLoadErrorBoundary>
