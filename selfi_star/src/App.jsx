@@ -194,13 +194,14 @@ export default function WerqRoot() {
 
   // ── Read the saved nav snapshot — ONLY restore the active tab, never overlays ──
   // On first launch (no sessionStorage), always start with 'home', ignore localStorage
+  const VALID_TABS = ['home', 'reels', 'messages'];
   const _savedActiveTab = (() => {
     try {
       // Priority: history state > sessionStorage > 'home'
-      if (_historyState.activeTab) return _historyState.activeTab;
-      const navData = sessionStorage.getItem('_nav');
-      if (!navData) return 'home'; // First launch → always home
-      return JSON.parse(navData).activeTab || 'home';
+      const raw = _historyState.activeTab
+        || JSON.parse(sessionStorage.getItem('_nav') || '{}').activeTab
+        || 'home';
+      return VALID_TABS.includes(raw) ? raw : 'home';
     } catch { return 'home'; }
   })();
 
@@ -1247,11 +1248,11 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
-        {screen !== 'landing' && !showWallet && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab !== 'home' && activeTab !== 'messages' && (
+        {screen !== 'landing' && !showWallet && !showSettings && !showNotifications && !showEditProfile && !showFollowersList && !showProfile && !showCampaignDetail && !showCampaigns && !showPostPage && !showVideoDetail && !showExplorer && activeTab === 'reels' && (
           <TikTokLayout
             user={authUser}
             activeTab={activeTab}
-            videosOnly={activeTab === 'reels'}
+            videosOnly={true}
             initialVideoId={videoDetailId}
             onLogout={handleLogout}
             onRequireAuth={handleRequireAuth}
