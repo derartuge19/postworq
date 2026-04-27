@@ -18,7 +18,7 @@ import api from '../api';
  * No dollar signs anywhere — Birr only.
  */
 const CACHE_KEY = 'wallet_cache';
-const CACHE_TTL = 60 * 1000; // 1 minute
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function readCache() {
   try {
