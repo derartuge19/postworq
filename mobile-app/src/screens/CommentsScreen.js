@@ -451,7 +451,7 @@ export default function CommentsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
   },
   header: {
     flexDirection: 'row',
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
   },
   scrollView: {
     flex: 1,
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#666',
+    color: '#F9E08B',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
+    color: '#F9E08B',
     marginBottom: 8,
   },
   emptySubtext: {
@@ -542,10 +542,10 @@ const styles = StyleSheet.create({
   },
   username: {
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
   },
   commentBody: {
-    color: '#000',
+    color: '#F9E08B',
     lineHeight: 18,
   },
   commentActions: {
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 10,
-    color: '#999',
+    color: '#F9E08B',
   },
   actionBtn: {
     flexDirection: 'row',
@@ -565,13 +565,13 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontSize: 10,
-    color: '#666',
+    color: '#F9E08B',
   },
   replyBtn: {
     padding: 0,
   },
   replyText: {
-    color: '#666',
+    color: '#F9E08B',
     fontSize: 11,
     fontWeight: '600',
   },
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     borderTopWidth: 1,
     borderTopColor: '#e5e5e5',
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     paddingHorizontal: 16,
     paddingTop: 10,
   },
@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
   },
   replyingToText: {
     fontSize: 12,
-    color: '#000',
+    color: '#F9E08B',
   },
   replyingToUser: {
     fontWeight: '700',
@@ -621,13 +621,13 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     maxHeight: 80,
     fontSize: 14,
-    color: '#000',
+    color: '#F9E08B',
   },
   sendButton: {
     width: 40,
@@ -647,20 +647,20 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
   },
   mentionSuggestionsContainer: {
     position: 'absolute',
     bottom: '100%',
     left: 16,
     right: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e5e5e5',
     maxHeight: 200,
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -695,6 +695,7 @@ const styles = StyleSheet.create({
   mentionUsername: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
 });
+

@@ -29,7 +29,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#DA9B2A';
 
 // ─────────────────────────────────────────────────────────────
 // Single Reel Item Component
@@ -346,7 +346,6 @@ export default function ReelsScreen({ route, navigation }) {
   const [visibleIdx, setVisibleIdx] = useState(0);
   const [hasMore, setHasMore]       = useState(true);
   const [longPressItem, setLongPressItem] = useState(null);
-  const [showReportModal, setShowReportModal] = useState(null);
 
   const initialId = route?.params?.reelId;
 
@@ -404,26 +403,6 @@ export default function ReelsScreen({ route, navigation }) {
       Alert.alert('Error', error.message || 'Failed to send gift');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const submitReport = async (category) => {
-    setShowReportModal(null);
-    setLongPressItem(null);
-    try {
-      await api.request('/reports/create/', {
-        method: 'POST',
-        body: JSON.stringify({
-          reported_reel_id: showReportModal,
-          report_type: category,
-          description: `Reported as ${category}`,
-        }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-      Alert.alert('Report Submitted', 'Thank you for your report. We will review it shortly.');
-    } catch (error) {
-      console.error('Failed to submit report:', error);
-      Alert.alert('Error', 'Failed to submit report. Please try again.');
     }
   };
 
@@ -584,7 +563,7 @@ export default function ReelsScreen({ route, navigation }) {
             </TouchableOpacity>
             
             <TouchableOpacity style={[styles.sheetItem, { borderBottomColor: T.border }]} onPress={() => {
-              setShowReportModal(longPressItem.id);
+              Alert.alert('Report', 'Post has been reported for review.');
               setLongPressItem(null);
             }}>
               <Ionicons name="flag-outline" size={20} color="#FF3B30" style={{ marginRight: 12 }} />
@@ -596,48 +575,6 @@ export default function ReelsScreen({ route, navigation }) {
               onPress={() => setLongPressItem(null)}
             >
               <Text style={[styles.sheetItemText, { fontWeight: '700', color: T.text, textAlign: 'center', width: '100%' }]}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* ── Report Category Modal ── */}
-      <Modal visible={!!showReportModal} transparent animationType="fade">
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1} 
-          onPress={() => setShowReportModal(null)}
-        >
-          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Report Content</Text>
-            <Text style={styles.sheetSubtitle}>Why are you reporting this content?</Text>
-            
-            <ScrollView style={styles.reportScroll} showsVerticalScrollIndicator={false}>
-              {[
-                { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
-                { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
-                { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
-                { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
-                { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
-                { id: 'other', label: 'Other', icon: 'Ⓜ' },
-              ].map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  onPress={() => submitReport(category.id)}
-                  style={styles.reportCategoryBtn}
-                >
-                  <Text style={styles.reportCategoryIcon}>{category.icon}</Text>
-                  <Text style={styles.reportCategoryText}>{category.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity 
-              style={styles.sheetClose} 
-              onPress={() => setShowReportModal(null)}
-            >
-              <Text style={styles.sheetCloseText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -714,77 +651,20 @@ export default function ReelsScreen({ route, navigation }) {
           </View>
         </TouchableOpacity>
       </Modal>
-
-      {/* ── Report Category Modal ── */}
-      <Modal visible={showReportModal} transparent animationType="fade">
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1} 
-          onPress={() => setShowReportModal(false)}
-        >
-          <View style={[styles.bottomSheet, { backgroundColor: T.card }]} onStartShouldSetResponder={() => true}>
-            <View style={[styles.sheetHandle, { backgroundColor: T.border }]} />
-            <Text style={[styles.sheetTitle, { color: T.text }]}>Report Content</Text>
-            <Text style={[styles.sheetSubtitle, { color: T.sub }]}>Why are you reporting this content?</Text>
-            
-            <ScrollView style={styles.reportScroll} showsVerticalScrollIndicator={false}>
-              {[
-                { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
-                { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
-                { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
-                { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
-                { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
-                { id: 'other', label: 'Other', icon: 'Ⓜ' },
-              ].map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  style={[styles.reportItem, { borderBottomColor: T.border }]}
-                  onPress={async () => {
-                    setShowReportModal(false);
-                    try {
-                      await api.request('/reports/create/', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                          reported_reel_id: reportReelId,
-                          report_type: category.id,
-                          description: `Reported as ${category.id}`,
-                        }),
-                      });
-                      Alert.alert('Success', 'Report submitted successfully. Thank you for helping keep our community safe.');
-                    } catch (error) {
-                      Alert.alert('Error', 'Failed to submit report. Please try again.');
-                    }
-                  }}
-                >
-                  <Text style={styles.reportIcon}>{category.icon}</Text>
-                  <Text style={[styles.reportLabel, { color: T.text }]}>{category.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity 
-              style={[styles.sheetItem, { borderBottomWidth: 0 }]} 
-              onPress={() => setShowReportModal(false)}
-            >
-              <Text style={[styles.sheetItemText, { fontWeight: '700', color: T.text, textAlign: 'center', width: '100%' }]}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000' },
-  loader: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-  slide: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, backgroundColor: '#000' },
+  root: { flex: 1, backgroundcolor: '#F9E08B' },
+  loader: { flex: 1, backgroundcolor: '#F9E08B', alignItems: 'center', justifyContent: 'center' },
+  slide: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, backgroundcolor: '#F9E08B' },
   heartOverlay: { 
     ...StyleSheet.absoluteFillObject, 
     alignItems: 'center', 
     justifyContent: 'center', 
     zIndex: 10,
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 10,
@@ -800,7 +680,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -826,28 +706,23 @@ const styles = StyleSheet.create({
   caption: { color: '#fff', fontSize: 14, lineHeight: 18 },
   moreLabel: { color: 'rgba(255,255,255,0.7)', fontWeight: '700' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  bottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
+  bottomSheet: { backgroundColor: '#0d0d0d', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
   sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15, marginTop: 8 },
   iconCircleGrid: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   iconGrid: { flexDirection: 'row', justifyContent: 'space-around', padding: '8px 16px 16px', gap: 8 },
   iconGridItem: { alignItems: 'center', gap: 4 },
-  iconGridText: { fontSize: 11, color: '#000', marginTop: 4, fontWeight: '500' },
+  iconGridText: { fontSize: 11, color: '#F9E08B', marginTop: 4, fontWeight: '500' },
   sheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
   sheetItemText: { fontSize: 16, fontWeight: '600', color: '#1C1917' },
-  sheetSubtitle: { fontSize: 14, color: '#78716C', textAlign: 'center', paddingHorizontal: 20, marginBottom: 16 },
-  reportScroll: { maxHeight: 300 },
-  reportItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
-  reportIcon: { fontSize: 20, marginRight: 12 },
-  reportLabel: { fontSize: 16, fontWeight: '600', color: '#1C1917' },
-  menuCard: { width: SCREEN_WIDTH * 0.7, backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden' },
+  menuCard: { width: SCREEN_WIDTH * 0.7, backgroundColor: '#0d0d0d', borderRadius: 20, overflow: 'hidden' },
   menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
-  menuItemText: { marginLeft: 12, fontSize: 16, fontWeight: '600', color: '#000' },
+  menuItemText: { marginLeft: 12, fontSize: 16, fontWeight: '600', color: '#F9E08B' },
   header: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 30 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
   
   // Gifting Styles
-  giftBottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '80%' },
+  giftBottomSheet: { backgroundColor: '#0d0d0d', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '80%' },
   sheetHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
   sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15 },
   sheetTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
@@ -862,20 +737,5 @@ const styles = StyleSheet.create({
   giftInput: { backgroundColor: '#FAFAF9', borderWidth: 1.5, borderColor: '#F5F5F4', borderRadius: 12, padding: 14, fontSize: 16, color: '#1C1917', marginBottom: 20 },
   sendGiftBtn: { backgroundColor: BRAND_GOLD, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 10 },
   sendGiftBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  sheetSubtitle: { fontSize: 14, color: '#78716C', textAlign: 'center', marginBottom: 16 },
-  reportScroll: { maxHeight: 400, paddingHorizontal: 20 },
-  reportCategoryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#F5F5F4',
-    backgroundColor: '#FAFAF9',
-    gap: 12,
-  },
-  reportCategoryIcon: { fontSize: 20 },
-  reportCategoryText: { fontSize: 15, fontWeight: '600', color: '#1C1917', flex: 1 },
 });
+

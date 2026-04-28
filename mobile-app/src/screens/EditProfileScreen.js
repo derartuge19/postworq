@@ -225,7 +225,7 @@ export default function EditProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
+  root: { flex: 1, backgroundColor: '#0d0d0d' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#eee',
   },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#000' },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: '#F9E08B' },
   backBtn: { padding: 4 },
   saveBtnText: { fontSize: 16, fontWeight: '800', color: BRAND_GOLD },
   scrollContent: { padding: 20 },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   changePhotoText: { color: BRAND_GOLD, fontSize: 14, fontWeight: '700', marginTop: 12 },
   form: { gap: 20 },
   inputGroup: { gap: 8 },
-  label: { fontSize: 13, fontWeight: '700', color: '#666' },
+  label: { fontSize: 13, fontWeight: '700', color: '#F9E08B' },
   input: {
     backgroundColor: '#f9f9f9',
     borderWidth: 1,
@@ -269,11 +269,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#000',
+    color: '#F9E08B',
   },
   row: { flexDirection: 'row', gap: 12 },
   bioInput: { minHeight: 80, textAlignVertical: 'top' },
-  charCount: { alignSelf: 'flex-end', fontSize: 11, color: '#999', marginTop: 4 },
+  charCount: { alignSelf: 'flex-end', fontSize: 11, color: '#F9E08B', marginTop: 4 },
   logoutBtn: { marginTop: 40, alignItems: 'center' },
   logoutBtnText: { color: '#FF3B30', fontSize: 16, fontWeight: '700' },
 });
+

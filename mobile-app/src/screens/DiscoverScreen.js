@@ -126,7 +126,7 @@ export default function DiscoverScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
   },
   loadingContainer: {
     flex: 1,
@@ -141,13 +141,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 12,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 44,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#000',
+    color: '#F9E08B',
   },
   list: {
     padding: 8,
@@ -166,18 +166,18 @@ const styles = StyleSheet.create({
   reelCard: {
     flex: 1,
     margin: 4,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: 8,
     overflow: 'hidden',
     elevation: 2,
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   thumbnail: {
     aspectRatio: 9/16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
   },
   thumbnailPlaceholder: {
     backgroundColor: '#e5e5e5',
@@ -188,12 +188,12 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 4,
   },
   caption: {
     fontSize: 12,
-    color: '#666',
+    color: '#F9E08B',
     marginBottom: 8,
   },
   stats: {
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 12,
-    color: '#666',
+    color: '#F9E08B',
   },
   emptyContainer: {
     flex: 1,
@@ -217,6 +217,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
+    color: '#F9E08B',
   },
 });
+

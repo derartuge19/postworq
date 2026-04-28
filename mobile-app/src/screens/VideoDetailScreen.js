@@ -87,10 +87,10 @@ export default function VideoDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
   },
   videoContainer: {
-    backgroundColor: '#000',
+    backgroundcolor: '#F9E08B',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     aspectRatio: 9/16,
   },
   placeholder: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -118,28 +118,28 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   avatarPlaceholder: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#999',
+    color: '#F9E08B',
   },
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   time: {
     fontSize: 12,
-    color: '#999',
+    color: '#F9E08B',
     marginTop: 2,
   },
   caption: {
     fontSize: 16,
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 16,
     lineHeight: 22,
   },
@@ -154,6 +154,7 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 14,
-    color: '#666',
+    color: '#F9E08B',
   },
 });
+

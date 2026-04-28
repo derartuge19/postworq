@@ -244,7 +244,7 @@ export default function CreateScreen({ navigation }) {
   // ──────────────────────────────────────────────────────────────────────────
   if (stage === 'edit') {
     return (
-      <View style={{ flex: 1, backgroundColor: '#000' }}>
+      <View style={{ flex: 1, backgroundcolor: '#F9E08B' }}>
         <StatusBar barStyle="light-content" />
 
         {/* Full-screen preview */}
@@ -454,7 +454,7 @@ export default function CreateScreen({ navigation }) {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#0d0d0d' },
 
   header: {
     minHeight: 58,
@@ -479,7 +479,7 @@ const s = StyleSheet.create({
     paddingTop: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
   },
   headerBtn: {
     width: 40,
@@ -532,10 +532,10 @@ const s = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -550,11 +550,11 @@ const s = StyleSheet.create({
     fontSize: 28,
     fontWeight: '800',
     marginBottom: 8,
-    color: '#000',
+    color: '#F9E08B',
   },
   heroSub: {
     fontSize: 15,
-    color: '#666',
+    color: '#F9E08B',
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -564,13 +564,13 @@ const s = StyleSheet.create({
     gap: 16,
   },
   actionCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -598,11 +598,11 @@ const s = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 2,
-    color: '#000',
+    color: '#F9E08B',
   },
   cardSub: {
     fontSize: 13,
-    color: '#666',
+    color: '#F9E08B',
   },
   cardRightBtn: {
     width: 40,
@@ -617,7 +617,7 @@ const s = StyleSheet.create({
   nextPillText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   editTools: { position: 'absolute', top: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 70 : 110, right: 14, gap: 0, zIndex: 10 },
   toolBtn: { alignItems: 'center', marginBottom: 18 },
-  toolLabel: { color: '#fff', fontSize: 11, fontWeight: '700', marginTop: 3, textShadowColor: '#000', textShadowRadius: 4 },
+  toolLabel: { color: '#fff', fontSize: 11, fontWeight: '700', marginTop: 3, textShadowcolor: '#F9E08B', textShadowRadius: 4 },
   filterBar: { position: 'absolute', bottom: 30, left: 0, right: 0, zIndex: 10 },
   filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', marginRight: 8 },
   filterChipActive: { backgroundColor: BRAND, borderColor: BRAND },
@@ -638,21 +638,22 @@ const s = StyleSheet.create({
   modalBtns: { flexDirection: 'row', gap: 40 },
 
   detailsScroll: { padding: 16, gap: 16 },
-  thumb: { width: '100%', height: 200, borderRadius: 16, overflow: 'hidden', backgroundColor: '#000', marginBottom: 8 },
+  thumb: { width: '100%', height: 200, borderRadius: 16, overflow: 'hidden', backgroundcolor: '#F9E08B', marginBottom: 8 },
   videoIcon: { position: 'absolute', top: 10, right: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 6, padding: 4 },
-  captionInput: { fontSize: 15, color: '#000', borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 12, minHeight: 80 },
-  hashRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 12, paddingHorizontal: 12, height: 48 },
+  captionInput: { fontSize: 15, color: '#F9E08B', borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 12, minHeight: 80 },
+  hashRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1a1a', borderRadius: 12, paddingHorizontal: 12, height: 48 },
   hashSymbol: { fontSize: 20, fontWeight: '800', color: BRAND, marginRight: 6 },
-  hashInput: { flex: 1, fontSize: 14, color: '#000' },
+  hashInput: { flex: 1, fontSize: 14, color: '#F9E08B' },
   overlaySummary: { flexDirection: 'row', alignItems: 'center', backgroundColor: BRAND + '15', padding: 12, borderRadius: 10 },
   postBtn: { backgroundColor: BRAND, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20 },
   postBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   draftBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', marginTop: 20, gap: 6 },
-  draftBtnText: { color: '#666', fontSize: 14, fontWeight: '600' },
+  draftBtnText: { color: '#F9E08B', fontSize: 14, fontWeight: '600' },
 
   uploadCard: { alignItems: 'center', padding: 32 },
   uploadTitle: { fontSize: 18, fontWeight: '800', marginTop: 20, marginBottom: 20 },
   progressTrack: { width: width * 0.7, height: 8, backgroundColor: '#eee', borderRadius: 4, overflow: 'hidden', marginBottom: 10 },
   progressFill: { height: '100%', backgroundColor: BRAND },
-  uploadPct: { fontSize: 14, color: '#666', fontWeight: '600' },
+  uploadPct: { fontSize: 14, color: '#F9E08B', fontWeight: '600' },
 });
+

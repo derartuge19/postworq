@@ -298,7 +298,7 @@ export default function CustomCameraScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundcolor: '#F9E08B',
   },
   centered: {
     justifyContent: 'center',
@@ -308,19 +308,19 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: '#F9E08B',
   },
   errorTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginTop: 16,
     marginBottom: 8,
     textAlign: 'center',
   },
   errorText: {
     fontSize: 14,
-    color: '#666',
+    color: '#F9E08B',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -437,13 +437,13 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
   },
   captureBtnInnerVideo: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
   },
   captureBtnInnerRecording: {
     width: 24,
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
   },
   previewContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundcolor: '#F9E08B',
   },
   preview: {
     flex: 1,

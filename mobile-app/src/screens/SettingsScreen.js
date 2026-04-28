@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -464,3 +464,4 @@ const styles = StyleSheet.create({
   saveBtn: { borderRadius: 14, padding: 18, alignItems: 'center', marginTop: 32 },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });
+
