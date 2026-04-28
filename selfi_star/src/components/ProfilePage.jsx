@@ -681,24 +681,49 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         )}
 
         {isOwnProfile && (
-          <button
-            className="pp-btn"
-            onClick={() => setShowEditModal(true)}
-            style={{
-              background: "transparent",
-              border: `1px solid ${T.pri || '#E2B355'}`,
-              borderRadius: 8,
-              padding: "8px 16px",
-              color: '#F9E08B',
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-            }}
-          >
-            <Edit size={16} color={'#F9E08B'} />
-            Edit Profile
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="pp-btn"
+              onClick={() => setShowEditModal(true)}
+              style={{
+                background: "transparent",
+                border: `1px solid ${T.pri || '#E2B355'}`,
+                borderRadius: 8,
+                padding: "8px 16px",
+                color: '#F9E08B',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            >
+              <Edit size={16} color={'#F9E08B'} />
+              Edit Profile
+            </button>
+            <button
+              className="pp-btn"
+              onClick={() => {
+                const url = window.location.origin + '/profile/' + (userId || user?.id);
+                navigator.clipboard?.writeText(url).catch(() => {});
+                alert('Profile link copied!');
+              }}
+              style={{
+                background: "transparent",
+                border: `1px solid ${T.pri || '#E2B355'}`,
+                borderRadius: 8,
+                padding: "8px 16px",
+                color: '#F9E08B',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+              title="Share profile"
+            >
+              <Share2 size={16} color={'#F9E08B'} />
+              Share
+            </button>
+          </div>
         )}
       </div>
 
