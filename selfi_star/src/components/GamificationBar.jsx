@@ -57,20 +57,29 @@ const ModalHeader = memo(function ModalHeader({ title, onClose }) {
 });
 
 /* ─── COINS MODAL ────────────────────────────── */
-const CoinsModal = memo(function CoinsModal({ coins, onClose }) {
+const CoinsModal = memo(function CoinsModal({ coins, points, onClose }) {
   return (
     <Modal onClose={onClose}>
-      <ModalHeader title="💰 Coin Balance" onClose={onClose}/>
+      <ModalHeader title="💰 Balance" onClose={onClose}/>
       <div style={{padding:'12px 20px'}}>
+        {/* Coins Balance */}
         <div style={{background:'linear-gradient(135deg,#F9E08B,#F59E0B)',borderRadius:20,padding:'28px 20px',textAlign:'center',marginBottom:20,boxShadow:'0 8px 32px rgba(249,224,139,0.3)'}}>
           <div style={{fontSize:56,marginBottom:4}}>🪙</div>
           <div style={{fontSize:48,fontWeight:900,color:'#000',lineHeight:1}}>{coins?.balance ?? 0}</div>
           <div style={{fontSize:14,color:'rgba(0,0,0,.75)',marginTop:4,fontWeight:600}}>Available Coins</div>
         </div>
+        {/* Points Balance */}
+        <div style={{background:'linear-gradient(135deg,#8B5CF6,#6D28D9)',borderRadius:20,padding:'28px 20px',textAlign:'center',marginBottom:20,boxShadow:'0 8px 32px rgba(139,92,246,0.3)'}}>
+          <div style={{fontSize:56,marginBottom:4}}>⭐</div>
+          <div style={{fontSize:48,fontWeight:900,color:'#000',lineHeight:1}}>{points ?? 0}</div>
+          <div style={{fontSize:14,color:'rgba(0,0,0,.75)',marginTop:4,fontWeight:600}}>Available Points (Withdrawable)</div>
+        </div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
           {[
-            {label:'Total Earned',value:coins?.earned_total??0,color:'#10B981',emoji:'📈'},
-            {label:'Total Spent',value:coins?.spent_total??0,color:'#EF4444',emoji:'📉'},
+            {label:'Total Coins Earned',value:coins?.earned_total??0,color:'#10B981',emoji:'📈'},
+            {label:'Total Coins Spent',value:coins?.spent_total??0,color:'#EF4444',emoji:'📉'},
+            {label:'Total Points Earned',value:points?.earned_total??0,color:'#8B5CF6',emoji:'⭐'},
+            {label:'Total Points Withdrawn',value:points?.withdrawn_total??0,color:'#F59E0B',emoji:'💸'},
           ].map(s=>(
             <div key={s.label} style={{background:s.color+'12',border:`1.5px solid ${s.color}30`,borderRadius:14,padding:'14px 16px',textAlign:'center'}}>
               <div style={{fontSize:24,marginBottom:4}}>{s.emoji}</div>
@@ -79,8 +88,8 @@ const CoinsModal = memo(function CoinsModal({ coins, onClose }) {
             </div>
           ))}
         </div>
-        <div style={{marginTop:16,background:'rgba(249,224,139,0.08)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#78716C',textAlign:'center',border:'1px solid rgba(249,224,139,0.15)'}}>
-          💡 Earn coins by spinning daily, receiving gifts, and logging in every day!
+        <div style={{marginTop:16,background:'rgba(139,92,246,0.08)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#78716C',textAlign:'center',border:'1px solid rgba(139,92,246,0.15)'}}>
+          💡 Gifts convert to points. Points can be withdrawn as birr!
         </div>
       </div>
     </Modal>
@@ -547,7 +556,7 @@ export function GamificationBar({ userId, theme, onShowWallet }) {
 
   // Spin was removed — only Coins / Streak / Gifts shown.  Keep destructure
   // so an old cache shape doesn't throw on missing keys.
-  const { coins={}, login_streak={}, gifts={} } = status || {};
+  const { coins={}, login_streak={}, gifts={}, points={} } = status || {};
 
   if (loading && !status) return (
     <div style={{display:'flex',justifyContent:'space-around',padding:'12px 0',
@@ -596,7 +605,7 @@ export function GamificationBar({ userId, theme, onShowWallet }) {
       </div>
 
       {/* Modals — spin modal intentionally removed. */}
-      {modal === 'coins'  && <CoinsModal  coins={coins}  onClose={()=>setModal(null)}/>}
+      {modal === 'coins'  && <CoinsModal  coins={coins} points={points} onClose={()=>setModal(null)}/>}
       {modal === 'streak' && <StreakModal streak={login_streak} onClaim={handleLoginBonus} onClose={()=>setModal(null)}/>}
       {modal === 'gift'   && <GiftModal  coins={coins} onClose={()=>setModal(null)} onRefresh={load} onShowWallet={onShowWallet}/>}
     </>

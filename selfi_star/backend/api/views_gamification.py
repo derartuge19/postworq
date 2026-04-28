@@ -137,6 +137,11 @@ def get_gamification_status(request):
             'received_today': profile.gifts_received_today,
             'sent_total': profile.gifts_sent_total,
             'received_total': profile.gifts_received_total,
+        },
+        'points': {
+            'balance': profile.points,
+            'earned_total': profile.points_earned_total,
+            'withdrawn_total': profile.points_withdrawn_total,
         }
     })
     except Exception as e:
@@ -145,7 +150,8 @@ def get_gamification_status(request):
             'coins': {'balance': 0, 'earned_total': 0, 'spent_total': 0},
             'spin': {'can_spin': False, 'rewards_preview': SPIN_REWARDS},
             'login_streak': {'current': 0, 'longest': 0, 'bonus_available': False},
-            'gifts': {'sent_today': 0, 'received_today': 0, 'sent_total': 0, 'received_total': 0}
+            'gifts': {'sent_today': 0, 'received_today': 0, 'sent_total': 0, 'received_total': 0},
+            'points': {'balance': 0, 'earned_total': 0, 'withdrawn_total': 0}
         })
 
 
