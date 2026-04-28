@@ -701,6 +701,7 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
   const isOwn = currentUser?.id === post.user?.id;
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const menuRef = useRef(null);
 
   // Calculate position: appear to the left of the button, align top
@@ -765,8 +766,27 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
   };
   const handleReport = async () => {
     if (!api.hasToken()) { onRequireAuth?.(); onClose(); return; }
-    try { await api.request('/reports/create/', { method: 'POST', body: JSON.stringify({ reel: post.id, reason: 'inappropriate' }), headers: { 'Content-Type': 'application/json' } }); } catch {}
+    setShowReportModal(true);
+  };
+
+  const submitReport = async (category) => {
+    setShowReportModal(false);
     onClose();
+    try {
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_reel_id: post.id,
+          report_type: category,
+          description: `Reported as ${category}`,
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      alert('Report submitted successfully. Thank you for helping keep our community safe.');
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      alert('Failed to submit report. Please try again.');
+    }
   };
   const handleDelete = async () => {
     if (!api.hasToken()) return;
@@ -840,6 +860,119 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
         ))}
       </div>
       {showInfo && <PostInfoSheet post={post} onClose={() => { setShowInfo(false); onClose(); }} T={T} />}
+      
+      {/* Report Category Modal */}
+      {showReportModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+          }}
+          onClick={() => setShowReportModal(false)}
+        >
+          <div
+            style={{
+              background: T?.cardBg || '#1A1A1A',
+              borderRadius: 16,
+              padding: '24px',
+              maxWidth: 400,
+              width: '90%',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                fontSize: 20,
+                fontWeight: 700,
+                color: T?.txt,
+                marginBottom: 8,
+              }}
+            >
+              Report Content
+            </h3>
+            <p
+              style={{
+                fontSize: 14,
+                color: T?.sub,
+                marginBottom: 20,
+              }}
+            >
+              Why are you reporting this content?
+            </p>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
+              {[
+                { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
+                {
+                  id: 'inappropriate',
+                  label: 'Inappropriate Content',
+                  icon: '😢',
+                },
+                { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
+                { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
+                { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
+                { id: 'other', label: 'Other', icon: 'Ⓜ' },
+              ].map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => submitReport(category.id)}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    marginBottom: 8,
+                    border: `1px solid ${T?.border}`,
+                    borderRadius: 8,
+                    background: T?.cardBg || '#1A1A1A',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    fontSize: 14,
+                    color: T?.txt,
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.target.style.background = 'rgba(226,179,85,0.12)')}
+                  onMouseLeave={(e) => (e.target.style.background = T?.cardBg || '#1A1A1A')}
+                >
+                  <span style={{ fontSize: 20 }}>{category.icon}</span>
+                  <span style={{ fontWeight: 500 }}>{category.label}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowReportModal(false)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                marginTop: 12,
+                borderRadius: 8,
+                border: `1px solid ${T?.border}`,
+                background: 'transparent',
+                color: T?.txt,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 });

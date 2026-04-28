@@ -67,6 +67,7 @@ export default function HomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [giftPost, setGiftPost] = useState(null); // Post being gifted
   const [showPostMenu, setShowPostMenu] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(null);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   
@@ -79,6 +80,8 @@ export default function HomeScreen({ navigation }) {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [followStates, setFollowStates] = useState({}); // { userId: boolean }
   const [suggestionTriggerUserId, setSuggestionTriggerUserId] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportPostId, setReportPostId] = useState(null);
 
   const toggleCaption = (postId) => {
     setExpandedCaptions(prev => ({ ...prev, [postId]: !prev[postId] }));
@@ -133,6 +136,26 @@ export default function HomeScreen({ navigation }) {
       Alert.alert('Error', error.message || 'Failed to send gift');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitReport = async (category) => {
+    setShowReportModal(null);
+    setShowPostMenu(null);
+    try {
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_reel_id: showReportModal,
+          report_type: category,
+          description: `Reported as ${category}`,
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      Alert.alert('Report Submitted', 'Thank you for your report. We will review it shortly.');
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      Alert.alert('Error', 'Failed to submit report. Please try again.');
     }
   };
 
@@ -578,7 +601,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.sheetItemText}>Post Info</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.sheetItem} onPress={() => { setShowPostMenu(null); alert('Reported'); }}>
+            <TouchableOpacity style={styles.sheetItem} onPress={() => { setShowReportModal(showPostMenu.id); }}>
               <Ionicons name="flag-outline" size={20} color="#EF4444" />
               <Text style={[styles.sheetItemText, { color: '#EF4444' }]}>Report Post</Text>
             </TouchableOpacity>
@@ -648,6 +671,102 @@ export default function HomeScreen({ navigation }) {
               </TouchableOpacity>
               <View style={{ height: 40 }} />
             </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ── Report Category Modal ── */}
+      <Modal visible={showReportModal} transparent animationType="fade">
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowReportModal(false)}
+        >
+          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Report Content</Text>
+            <Text style={styles.sheetSubtitle}>Why are you reporting this content?</Text>
+            
+            <ScrollView style={styles.reportScroll} showsVerticalScrollIndicator={false}>
+              {[
+                { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
+                { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
+                { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
+                { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
+                { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
+                { id: 'other', label: 'Other', icon: 'Ⓜ' },
+              ].map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={styles.reportItem}
+                  onPress={async () => {
+                    setShowReportModal(false);
+                    try {
+                      await api.request('/reports/create/', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                          reported_reel_id: reportPostId,
+                          report_type: category.id,
+                          description: `Reported as ${category.id}`,
+                        }),
+                      });
+                      Alert.alert('Success', 'Report submitted successfully. Thank you for helping keep our community safe.');
+                    } catch (error) {
+                      Alert.alert('Error', 'Failed to submit report. Please try again.');
+                    }
+                  }}
+                >
+                  <Text style={styles.reportIcon}>{category.icon}</Text>
+                  <Text style={styles.reportLabel}>{category.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity style={styles.sheetClose} onPress={() => setShowReportModal(false)}>
+              <Text style={styles.sheetCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ── Report Category Modal ── */}
+      <Modal visible={!!showReportModal} transparent animationType="fade">
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowReportModal(null)}
+        >
+          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Report Content</Text>
+            <Text style={styles.sheetSubtitle}>Why are you reporting this content?</Text>
+            
+            <ScrollView style={styles.reportScroll} showsVerticalScrollIndicator={false}>
+              {[
+                { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
+                { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
+                { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
+                { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
+                { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
+                { id: 'other', label: 'Other', icon: 'Ⓜ' },
+              ].map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  onPress={() => submitReport(category.id)}
+                  style={styles.reportCategoryBtn}
+                >
+                  <Text style={styles.reportCategoryIcon}>{category.icon}</Text>
+                  <Text style={styles.reportCategoryText}>{category.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity 
+              style={styles.sheetClose} 
+              onPress={() => setShowReportModal(null)}
+            >
+              <Text style={styles.sheetCloseText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -925,6 +1044,25 @@ const styles = StyleSheet.create({
   sendGiftBtn: { backgroundColor: BRAND_GOLD, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 10 },
   sendGiftBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   sheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
-  sheetItemText: { fontSize: 16, fontWeight: '600', marginLeft: 12, color: T.txt },
+  sheetItemText: { fontSize: 16, fontWeight: 600, marginLeft: 12, color: T.txt },
   sheetClose: { marginTop: 10, paddingVertical: 15, alignItems: 'center' },
+  sheetSubtitle: { fontSize: 14, color: T.sub, textAlign: 'center', marginBottom: 16 },
+  reportScroll: { maxHeight: 400, paddingHorizontal: 20 },
+  reportCategoryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#F5F5F4',
+    backgroundColor: '#FAFAF9',
+    gap: 12,
+  },
+  reportCategoryIcon: { fontSize: 20 },
+  reportCategoryText: { fontSize: 15, fontWeight: '600', color: T.txt, flex: 1 },
+  reportItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
+  reportIcon: { fontSize: 20, marginRight: 12 },
+  reportLabel: { fontSize: 16, fontWeight: '600', color: T.txt },
 });

@@ -240,6 +240,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
   const [hashtags, setHashtags]   = useState([]);
   const [hashLoading, setHashLoading] = useState(true);
   const [selectedReel, setSelectedReel] = useState(null);
+  const [showHashtagDropdown, setShowHashtagDropdown] = useState(false);
 
   // ── Search state ───────────────────────────────────────────────────────────
   const [query, setQuery]             = useState('');
@@ -642,25 +643,53 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
         {!inSearchMode && (
           <div style={{ padding: '12px 16px 32px' }}>
 
-            {/* ── Trending hashtags strip ─────────────────────────────── */}
+            {/* ── Trending hashtags dropdown ─────────────────────────────── */}
             {!hashLoading && hashtags.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#F9E08B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <TrendingUp size={13} /> TRENDING HASHTAGS
-                </div>
-                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 4 }}>
-                  {hashtags.map(h => (
-                    <button key={h.tag} onClick={() => handleHashtagClick(h.tag)} style={{
-                      flexShrink: 0, padding: '7px 14px', borderRadius: 20,
-                      background: T.pri + '12', border: `1px solid ${T.pri}35`,
-                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                      cursor: 'pointer', gap: 1,
-                    }}>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: T.pri }}>#{h.tag}</span>
-                      <span style={{ fontSize: 10, color: T.sub }}>{fmt(h.posts)} posts</span>
-                    </button>
-                  ))}
-                </div>
+                <button
+                  onClick={() => setShowHashtagDropdown(!showHashtagDropdown)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    background: T.pri + '15',
+                    border: `1px solid ${T.pri}35`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    marginBottom: showHashtagDropdown ? 10 : 0,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <TrendingUp size={13} color={T.pri} />
+                    <span style={{ fontSize: 13, fontWeight: 800, color: '#F9E08B' }}>TRENDING HASHTAGS</span>
+                  </div>
+                  <ChevronDown size={16} color={T.pri} style={{ 
+                    transform: showHashtagDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s'
+                  }} />
+                </button>
+                
+                {showHashtagDropdown && (
+                  <div style={{
+                    display: 'flex',
+                    gap: 8,
+                    flexWrap: 'wrap',
+                    padding: '4px 0',
+                  }}>
+                    {hashtags.map(h => (
+                      <button key={h.tag} onClick={() => handleHashtagClick(h.tag)} style={{
+                        padding: '7px 14px', borderRadius: 20,
+                        background: T.pri + '12', border: `1px solid ${T.pri}35`,
+                        cursor: 'pointer', gap: 1,
+                      }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: T.pri }}>#{h.tag}</span>
+                        <span style={{ fontSize: 10, color: T.sub }}>{fmt(h.posts)} posts</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             {hashLoading && (
