@@ -80,7 +80,6 @@ export default function HomeScreen({ navigation }) {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [followStates, setFollowStates] = useState({}); // { userId: boolean }
   const [suggestionTriggerUserId, setSuggestionTriggerUserId] = useState(null);
-  const [showReportModal, setShowReportModal] = useState(false);
   const [reportPostId, setReportPostId] = useState(null);
 
   const toggleCaption = (postId) => {
