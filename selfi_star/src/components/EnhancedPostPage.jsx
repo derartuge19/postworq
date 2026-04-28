@@ -1289,7 +1289,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               {/* Hero icon + title */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 24, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
                 <div style={{ position: 'relative', marginBottom: 14 }}>
-                  <div style={{ width: 72, height: 72, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(249,224,139,0.4)' }}>
+                  <div style={{ width: 72, height: 72, background: 'linear-gradient(145deg, #D4A017 0%, #8B6914 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(249,224,139,0.4)' }}>
                     <svg width="30" height="30" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#000"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#000" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
                   <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, border: '2px solid #0D0D0D', boxShadow: '0 2px 6px rgba(249,224,139,0.5)' }}>✨</div>
@@ -1316,80 +1316,63 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 {/* ── Take Photo/Video card ── */}
                 <button className="ep-btn" onClick={() => setCaptureMode('camera')}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 14,
-                    background: '#000',
-                    border: '2px solid rgba(255,255,255,0.3)',
-                    borderRadius: 18,
-                    padding: '20px 20px',
+                    display: 'flex', alignItems: 'center', gap: 16,
+                    background: '#1a1a1a',
+                    border: '1.5px solid #C9922A',
+                    borderRadius: 16,
+                    padding: '18px 20px',
                     cursor: 'pointer',
                     boxShadow: 'none',
-                    transition: 'box-shadow 0.2s, transform 0.15s',
-                    textAlign: 'center',
-                    justifyContent: 'center',
+                    transition: 'transform 0.15s',
+                    textAlign: 'left',
                     position: 'relative',
                     overflow: 'hidden',
                     width: '100%',
-                    height: '108px',
+                    height: '88px',
                     minWidth: '280px',
                     maxWidth: '400px',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  {/* Gold shimmer corner dots */}
-                  <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.8 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.5 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#B8860B', opacity: 0.3 }} />
+                  <div style={{ width: 52, height: 52, borderRadius: 12, background: '#111', border: '1px solid #C9922A33', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#C9922A"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#C9922A" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
-                  {/* Corner badge */}
-                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: 'none' }}>📸</div>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F9E08B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'none' }}>
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#000"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#000" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
-                  </div>
-                  <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#F5E6C8', marginBottom: 3 }}>Take Photo/Video</div>
-                    <div style={{ fontSize: 12.5, color: '#C2994B' }}>Use camera with filters</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#F5E6C8', marginBottom: 3 }}>Take Photo/Video</div>
+                    <div style={{ fontSize: 12.5, color: '#8a7a5a' }}>Use camera with filters</div>
                   </div>
                 </button>
 
                 {/* ── Upload Image card ── */}
                 <label style={{
-                  display: 'flex', alignItems: 'center', gap: 14,
-                  background: '#000',
-                  border: '2px solid rgba(255,255,255,0.3)',
-                  borderRadius: 18,
-                  padding: '20px 20px',
+                  display: 'flex', alignItems: 'center', gap: 16,
+                  background: '#1a1a1a',
+                  border: '1.5px solid #C9922A',
+                  borderRadius: 16,
+                  padding: '18px 20px',
                   cursor: 'pointer',
                   boxShadow: 'none',
-                  transition: 'box-shadow 0.2s, transform 0.15s',
-                  justifyContent: 'center',
-                  textAlign: 'center',
+                  transition: 'transform 0.15s',
+                  textAlign: 'left',
                   position: 'relative',
                   overflow: 'hidden',
                   width: '100%',
-                  height: '108px',
+                  height: '88px',
                   minWidth: '280px',
                   maxWidth: '400px',
                 }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  {/* Gold shimmer corner dots */}
-                  <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.8 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9E08B', opacity: 0.5 }} />
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#B8860B', opacity: 0.3 }} />
+                  <div style={{ width: 52, height: 52, borderRadius: 12, background: '#111', border: '1px solid #C9922A33', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#C9922A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#C9922A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#C9922A" strokeWidth="2.2" strokeLinecap="round"/></svg>
                   </div>
-                  {/* Corner badge */}
-                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 900, color: '#000', boxShadow: 'none' }}>+</div>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F9E08B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'none' }}>
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#000" strokeWidth="2.2" strokeLinecap="round"/></svg>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#F5E6C8', marginBottom: 3 }}>Upload Image</div>
+                    <div style={{ fontSize: 12.5, color: '#8a7a5a' }}>From gallery or files</div>
                   </div>
-                  <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#F5E6C8', marginBottom: 3 }}>Upload Image</div>
-                    <div style={{ fontSize: 12.5, color: '#C2994B' }}>From gallery or files</div>
-                  </div>
+                  <div style={{ color: '#C9922A', fontSize: 22, fontWeight: 300, marginRight: 4 }}>+</div>
                   <input ref={fileInputRef} type="file" accept="image/*,video/*"
                     onChange={handleFileSelect} style={{ display: 'none' }} />
                 </label>
