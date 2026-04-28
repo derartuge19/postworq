@@ -74,14 +74,13 @@ export function AppShell({
     },
   ];
 
-  // Mobile bottom-bar: Home | Discover | [+] | Notifications | Profile
-  // Matches the React Native AppNavigator tab order exactly.
+  // Mobile bottom-bar: Home | Reels | [+] | Messages | Profile
   const MOBILE_BOTTOM_TABS = [
-    { item: menuItems[0], label: 'Home',          iconName: 'home' },
-    { item: menuItems[1], label: 'Reels',          iconName: 'discover' },
-    { item: menuItems[5], label: '',               isCreate: true },
-    { item: menuItems[3], label: 'Alerts',         iconName: 'bell',    badge: unreadNotifCount },
-    { item: menuItems[6], label: 'Profile',        iconName: 'profile' },
+    { item: menuItems[0], label: 'Home',     iconName: 'home' },
+    { item: menuItems[1], label: 'Reels',    iconName: 'discover' },
+    { item: menuItems[5], label: '',         isCreate: true },
+    { item: menuItems[4], label: 'Messages', iconName: 'message', badge: unreadDmCount },
+    { item: menuItems[6], label: 'Profile',  iconName: 'profile' },
   ];
 
   const handleItemClick = (item) => {
