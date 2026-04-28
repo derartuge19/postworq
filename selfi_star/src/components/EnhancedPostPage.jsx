@@ -1448,8 +1448,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               {/* Media preview */}
               <div style={{
                 width: 100, height: 138, borderRadius: 14, overflow: 'hidden',
-                background: T.cardBg || '#fff', flexShrink: 0, position: 'relative',
-                border: `1px solid ${T.border}`,
+                background: '#000', flexShrink: 0, position: 'relative',
+                border: '1px solid rgba(255,255,255,0.2)',
               }}>
                 {preview && (
                   isVideoFile
@@ -1492,7 +1492,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   rows={5}
                   style={{
                     width: '100%', background: 'transparent', border: 'none', outline: 'none',
-                    color: T.txt, fontSize: 15, lineHeight: 1.5, resize: 'none',
+                    color: '#F9E08B', fontSize: 15, lineHeight: 1.5, resize: 'none',
                     boxSizing: 'border-box',
                   }}
                 />
@@ -1501,9 +1501,9 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
 
             {/* Hashtags */}
             <div style={{
-              background: T.cardBg || '#fff', borderRadius: 16, padding: '14px 16px',
+              background: '#000', borderRadius: 16, padding: '14px 16px',
               display: 'flex', alignItems: 'center', gap: 10,
-              border: `1px solid ${T.border}`,
+              border: '1px solid rgba(255,255,255,0.2)',
             }}>
               <span style={{ color: T.pri, fontSize: 18, fontWeight: 800 }}>#</span>
               <input
@@ -1512,13 +1512,13 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 placeholder="Add hashtags..."
                 style={{
                   flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                  color: T.txt, fontSize: 14,
+                  color: '#F9E08B', fontSize: 14,
                 }}
               />
             </div>
 
             {/* Sound section */}
-            <div style={{ background: T.card, borderRadius: 16, overflow: 'hidden', border: `1px solid ${T.border}` }}>
+            <div style={{ background: '#000', borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
               <button className="ep-btn" onClick={() => setShowSoundSheet(true)}
                 style={{
                   width: '100%', padding: '16px 20px', background: 'transparent',
@@ -1529,10 +1529,10 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     <Music size={18} color={T.pri} />
                   </div>
                   <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: T.txt }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#F9E08B' }}>
                       {backgroundSound ? backgroundSound.name : 'Add Sound'}
                     </div>
-                    <div style={{ fontSize: 12, color: T.sub }}>
+                    <div style={{ fontSize: 12, color: '#F9E08B' }}>
                       {backgroundSound ? backgroundSound.artist : 'Pick background music'}
                     </div>
                   </div>
@@ -1563,7 +1563,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                       ].map(({ label, val, set }) => (
                         <div key={label}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                            <span style={{ fontSize: 13, color: T.sub }}>{label}</span>
+                            <span style={{ fontSize: 13, color: '#F9E08B' }}>{label}</span>
                             <span style={{ fontSize: 13, fontWeight: 700, color: '#F9E08B' }}>{val}%</span>
                           </div>
                           <input type="range" min={0} max={100} value={val}
@@ -1579,7 +1579,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
 
             {/* Text overlays summary */}
             {textOverlays.length > 0 && (
-              <div style={{ background: T.card, borderRadius: 16, padding: '16px 20px', border: `1px solid ${T.border}` }}>
+              <div style={{ background: '#000', borderRadius: 16, padding: '16px 20px', border: '1px solid rgba(255,255,255,0.2)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: '#F9E08B' }}>Text overlays</span>
                   <button className="ep-btn" onClick={() => setShowTextInput(true)}
@@ -1603,7 +1603,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
             {textOverlays.length === 0 && (
               <button className="ep-btn" onClick={() => setShowTextInput(true)}
                 style={{
-                  padding: '16px', background: T.card, border: `1px dashed ${T.border}`,
+                  padding: '16px', background: '#000', border: '1px dashed rgba(255,255,255,0.2)',
                   borderRadius: 16, display: 'flex', alignItems: 'center', gap: 12,
                   cursor: 'pointer',
                 }}>
