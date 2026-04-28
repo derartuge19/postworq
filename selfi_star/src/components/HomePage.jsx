@@ -1322,7 +1322,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <Share2 size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
+                <ArrowUpRight size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
                 <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift - only show on other people's posts */}
