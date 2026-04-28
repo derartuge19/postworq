@@ -794,10 +794,10 @@ const styles = StyleSheet.create({
   bioSection: { marginTop: 15 },
   fullName: { fontSize: 15, fontWeight: '700', color: '#000' },
   bioText: { fontSize: 14, color: '#333', marginTop: 4, lineHeight: 20 },
-  actionButtons: { flexDirection: 'row', gap: 8, marginTop: 20 },
-  editBtn: { flex: 1, height: 36, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  actionButtons: { flexDirection: 'row', gap: 10, marginTop: 20, paddingHorizontal: 0 },
+  editBtn: { flex: 1, height: 38, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0 },
   editBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
-  shareBtn: { flex: 1, height: 36, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  shareBtn: { flex: 1, height: 38, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0 },
   shareBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
   tabs: {
     flexDirection: 'row',
