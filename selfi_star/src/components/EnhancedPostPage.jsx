@@ -1295,7 +1295,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, border: '2px solid #0D0D0D', boxShadow: '0 2px 6px rgba(249,224,139,0.5)' }}>✨</div>
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 800, background: 'linear-gradient(to bottom, #F9E08B 0%, #D4AF37 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 4 }}>Create Post</div>
-                <div style={{ fontSize: 13, color: '#C2994B', textAlign: 'center' }}>Choose how you want to create content</div>
+                <div style={{ fontSize: 13, color: '#F9E08B', opacity: 0.7, textAlign: 'center' }}>Choose how you want to create content</div>
               </div>
 
               {/* Cards */}
@@ -1318,7 +1318,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   style={{
                     display: 'flex', alignItems: 'center', gap: 16,
                     background: '#1a1a1a',
-                    border: '1.5px solid #C9922A',
+                    border: '1.5px solid #F9E08B',
                     borderRadius: 16,
                     padding: '18px 20px',
                     cursor: 'pointer',
@@ -1335,12 +1335,12 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  <div style={{ width: 52, height: 52, borderRadius: 12, background: '#111', border: '1px solid #C9922A33', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#C9922A"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#C9922A" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
+                  <div style={{ width: 52, height: 52, borderRadius: 12, background: '#111', border: '1px solid #F9E08B44', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#F9E08B"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#F9E08B" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#F5E6C8', marginBottom: 3 }}>Take Photo/Video</div>
-                    <div style={{ fontSize: 12.5, color: '#8a7a5a' }}>Use camera with filters</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#F9E08B', marginBottom: 3 }}>Take Photo/Video</div>
+                    <div style={{ fontSize: 12.5, color: '#F9E08B', opacity: 0.6 }}>Use camera with filters</div>
                   </div>
                 </button>
 
@@ -1348,7 +1348,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: 16,
                   background: '#1a1a1a',
-                  border: '1.5px solid #C9922A',
+                  border: '1.5px solid #F9E08B',
                   borderRadius: 16,
                   padding: '18px 20px',
                   cursor: 'pointer',
@@ -1365,14 +1365,14 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  <div style={{ width: 52, height: 52, borderRadius: 12, background: '#111', border: '1px solid #C9922A33', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#C9922A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#C9922A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#C9922A" strokeWidth="2.2" strokeLinecap="round"/></svg>
+                  <div style={{ width: 52, height: 52, borderRadius: 12, background: '#111', border: '1px solid #F9E08B44', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#F9E08B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#F9E08B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#F9E08B" strokeWidth="2.2" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#F5E6C8', marginBottom: 3 }}>Upload Image</div>
-                    <div style={{ fontSize: 12.5, color: '#8a7a5a' }}>From gallery or files</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#F9E08B', marginBottom: 3 }}>Upload Image</div>
+                    <div style={{ fontSize: 12.5, color: '#F9E08B', opacity: 0.6 }}>From gallery or files</div>
                   </div>
-                  <div style={{ color: '#C9922A', fontSize: 22, fontWeight: 300, marginRight: 4 }}>+</div>
+                  <div style={{ color: '#F9E08B', fontSize: 22, fontWeight: 300, marginRight: 4 }}>+</div>
                   <input ref={fileInputRef} type="file" accept="image/*,video/*"
                     onChange={handleFileSelect} style={{ display: 'none' }} />
                 </label>
