@@ -181,14 +181,14 @@ export default function NotificationsScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#0d0d0d" />
       
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View style={styles.headerTop}>
           <Text style={styles.headerTitle}>Notifications</Text>
           <TouchableOpacity onPress={() => fetchNotifications(true)}>
-            <Ionicons name="refresh" size={20} color="#666" />
+            <Ionicons name="refresh" size={20} color="#F9E08B" />
           </TouchableOpacity>
         </View>
 
@@ -207,7 +207,7 @@ export default function NotificationsScreen({ navigation }) {
               <Ionicons 
                 name={f.icon} 
                 size={14} 
-                color={activeFilter === f.id ? '#fff' : '#666'} 
+                color={activeFilter === f.id ? '#000' : '#F9E08B'} 
               />
               <Text style={[styles.filterLabel, activeFilter === f.id && styles.activeLabel]}>
                 {f.label}
@@ -228,7 +228,7 @@ export default function NotificationsScreen({ navigation }) {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="notifications-off-outline" size={60} color="#ccc" />
+            <Ionicons name="notifications-off-outline" size={60} color="#F9E08B" />
             <Text style={styles.emptyText}>No notifications yet</Text>
           </View>
         }
