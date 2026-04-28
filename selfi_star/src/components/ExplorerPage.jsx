@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search, X, TrendingUp, Flame, Music, Laugh, Dumbbell, Utensils,
   Plane, Palette, Play, Heart, Eye, Hash, User, Clock, ChevronRight,
-  Gamepad2, Sparkles, BookOpen, Baby, Shirt, ChevronLeft,
+  Gamepad2, Sparkles, BookOpen, Baby, Shirt, ChevronLeft, ChevronDown,
 } from 'lucide-react';
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
