@@ -20,7 +20,7 @@ import { useAuth } from '../contexts/AuthContext';
 import config from '../config';
 
 const { width } = Dimensions.get('window');
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -30,12 +30,12 @@ const mediaUrl = (url) => {
 
 const getIcon = (type) => {
   switch (type) {
-    case 'like':    return { name: 'heart', color: '#EF4444', bg: '#FEE2E2' };
-    case 'comment': return { name: 'chatbubble', color: '#3B82F6', bg: '#DBEAFE' };
-    case 'follow':  return { name: 'person-add', color: '#10B981', bg: '#D1FAE5' };
-    case 'mention': return { name: 'at', color: '#7C3AED', bg: '#EDE9FE' };
-    case 'campaign':return { name: 'trophy', color: '#CA8A04', bg: '#FEF9C3' };
-    default:        return { name: 'notifications', color: BRAND_GOLD, bg: '#F3F4F6' };
+    case 'like':    return { name: 'heart', color: '#F9E08B', bg: '#F9E08B20' };
+    case 'comment': return { name: 'chatbubble', color: '#F9E08B', bg: '#F9E08B20' };
+    case 'follow':  return { name: 'person-add', color: '#F9E08B', bg: '#F9E08B20' };
+    case 'mention': return { name: 'at', color: '#F9E08B', bg: '#F9E08B20' };
+    case 'campaign':return { name: 'trophy', color: '#F9E08B', bg: '#F9E08B20' };
+    default:        return { name: 'notifications', color: BRAND_GOLD, bg: '#F9E08B20' };
   }
 };
 
@@ -248,12 +248,12 @@ function getRelativeTime(date) {
 
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  root: { flex: 1, backgroundColor: '#0d0d0d' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0d0d0d' },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#F9E08B30',
     paddingBottom: 10,
   },
   headerTop: {
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 15,
   },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#000' },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: '#F9E08B' },
   filterBar: { paddingHorizontal: 16, gap: 8 },
   filterChip: {
     flexDirection: 'row',
@@ -271,12 +271,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     gap: 6,
   },
   activeChip: { backgroundColor: BRAND_GOLD },
-  filterLabel: { fontSize: 13, fontWeight: '600', color: '#666' },
-  activeLabel: { color: '#fff' },
+  filterLabel: { fontSize: 13, fontWeight: '600', color: '#F9E08B' },
+  activeLabel: { color: '#000' },
   list: { paddingBottom: 100 },
   notifItem: {
     flexDirection: 'row',
@@ -284,11 +284,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f9f9f9',
+    borderBottomColor: '#F9E08B15',
   },
-  unreadItem: { backgroundColor: BRAND_GOLD + '08' },
+  unreadItem: { backgroundColor: '#F9E08B08' },
   avatarWrap: { position: 'relative' },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#f0f0f0' },
+  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#1a1a1a' },
   avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND_GOLD + '20' },
   avatarInitial: { fontSize: 18, fontWeight: 'bold', color: BRAND_GOLD },
   typeBadge: {
@@ -301,14 +301,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: '#0d0d0d',
   },
   content: { flex: 1, marginLeft: 15 },
-  message: { fontSize: 14, color: '#333', lineHeight: 18 },
-  username: { fontWeight: '800', color: '#000' },
-  comment: { fontSize: 12, color: '#666', marginTop: 4, fontStyle: 'italic' },
-  time: { fontSize: 11, color: '#999', marginTop: 4 },
-  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', marginLeft: 10 },
+  message: { fontSize: 14, color: '#F9E08B', lineHeight: 18 },
+  username: { fontWeight: '800', color: '#F9E08B' },
+  comment: { fontSize: 12, color: '#F9E08B', opacity: 0.6, marginTop: 4, fontStyle: 'italic' },
+  time: { fontSize: 11, color: '#F9E08B', opacity: 0.5, marginTop: 4 },
+  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#F9E08B', marginLeft: 10 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100 },
-  emptyText: { color: '#999', marginTop: 15, fontSize: 16 },
+  emptyText: { color: '#F9E08B', opacity: 0.5, marginTop: 15, fontSize: 16 },
 });
