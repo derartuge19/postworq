@@ -55,19 +55,19 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: BRAND.pri,
-        tabBarInactiveTintColor: BRAND.inactive,
+        tabBarActiveTintColor: '#F9E08B',
+        tabBarInactiveTintColor: '#ffffff',
         tabBarStyle: {
-          backgroundColor: BRAND.cardBg,
+          backgroundColor: '#0d0d0d',
           borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: BRAND.border,
+          borderTopColor: '#F9E08B30',
           height: 60,
           paddingBottom: 8,
           paddingTop: 6,
           elevation: 8,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.06,
+          shadowOpacity: 0.3,
           shadowRadius: 8,
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
@@ -75,7 +75,7 @@ function MainTabs() {
           const icons = {
             Home:          focused ? 'home'          : 'home-outline',
             Reels:         focused ? 'film'          : 'film-outline',
-            Create:        focused ? 'add-circle'    : 'add-circle-outline',
+            Create:        'add',
             Notifications: focused ? 'notifications' : 'notifications-outline',
             Profile:       focused ? 'person'        : 'person-outline',
           };
@@ -83,11 +83,17 @@ function MainTabs() {
           if (isCreate) {
             return (
               <View style={{
-                width: 40, height: 26, borderRadius: 13,
-                backgroundColor: BRAND.pri,
+                width: 44, height: 44, borderRadius: 22,
+                backgroundColor: '#F9E08B',
                 justifyContent: 'center', alignItems: 'center',
+                marginBottom: 4,
+                shadowColor: '#F9E08B',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.5,
+                shadowRadius: 8,
+                elevation: 8,
               }}>
-                <Ionicons name="add" size={20} color="#fff" />
+                <Ionicons name="add" size={24} color="#000" />
               </View>
             );
           }
