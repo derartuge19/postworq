@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2, User, Gift } from 'lucide-react';
+import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2, User, Gift, AtSign } from 'lucide-react';
 import api from '../api';
 import config from '../config';
 import { useTheme } from '../contexts/ThemeContext';
@@ -205,6 +205,32 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [showGiftModal, setShowGiftModal] = useState(false);
+  const [reelUsername, setReelUsername] = useState(post.user?.username || '');
+
+  // Mention autocomplete
+  useEffect(() => {
+    const match = text.match(/@(\w*)$/);
+    if (match) {
+      const query = match[1];
+      setMentionQuery(query);
+      setShowMentionSuggestions(true);
+      if (query.length >= 2) {
+        api.search(query).then(d => {
+          setMentionSuggestions(d?.users?.slice(0, 5) || []);
+        }).catch(() => setMentionSuggestions([]));
+      } else {
+        setMentionSuggestions([]);
+      }
+    } else {
+      setShowMentionSuggestions(false);
+      setMentionQuery('');
+      setMentionSuggestions([]);
+    }
+  }, [text]);
 
   useEffect(() => {
     let cancelled = false;
@@ -294,15 +320,17 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
       });
       setComments(prev => swapDeep(prev));
       
-      // Secondary safety fetch: get latest tree from server to ensure perfect sync
-      setTimeout(() => {
-        api.request(`/reels/${post.id}/comments/?include_replies=true&depth=2`)
-          .then(d => {
-            const latest = Array.isArray(d) ? d : (d?.results || []);
-            setComments(buildCommentTree(latest));
-          })
-          .catch(() => {});
-      }, 800);
+      // Only refetch if not in reply mode to preserve reply state
+      if (!replyingTo) {
+        setTimeout(() => {
+          api.request(`/reels/${post.id}/comments/?include_replies=true&depth=2`)
+            .then(d => {
+              const latest = Array.isArray(d) ? d : (d?.results || []);
+              setComments(buildCommentTree(latest));
+            })
+            .catch(() => {});
+        }, 800);
+      }
     } catch (err) {
       // Roll back
       const removeDeep = (list) => list.filter(c => c.id !== tempId).map(c => ({
@@ -346,11 +374,22 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
 
   const handleReply = (comment) => {
     setReplyingTo(comment);
-    setTimeout(() => inputRef.current?.focus(), 50);
+    inputRef.current?.focus();
   };
 
   const handleCancelReply = () => {
     setReplyingTo(null);
+  };
+
+  const handleSelectMention = (username) => {
+    const match = text.match(/@(\w*)$/);
+    if (match) {
+      const newText = text.replace(/@\w*$/, `@${username} `);
+      setText(newText);
+      setShowMentionSuggestions(false);
+      setMentionQuery('');
+      setMentionSuggestions([]);
+    }
   };
 
   return (
@@ -438,6 +477,22 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
               style={{ flex: 1, padding: '10px 14px', borderRadius: 24, border: `1.5px solid rgba(226,179,85,0.35)`, background: '#111', color: '#F5E6C8', fontSize: 16, outline: 'none' }}
             />
             <button
+              type="button"
+              onClick={() => { inputRef.current?.focus(); setText(prev => prev + '@'); }}
+              disabled={!api.hasToken()}
+              style={{ background: 'none', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#F9E08B', flexShrink: 0 }}
+            >
+              <AtSign size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowGiftModal(true)}
+              disabled={!api.hasToken()}
+              style={{ background: 'none', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#F9E08B', flexShrink: 0 }}
+            >
+              <Gift size={18} />
+            </button>
+            <button
               type="submit"
               disabled={!text.trim() || sending || !api.hasToken()}
               style={{ background: T?.pri || '#000', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0 }}
@@ -448,7 +503,71 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
             </button>
           </div>
         </form>
+
+        {/* Mention Suggestions Dropdown */}
+        {showMentionSuggestions && mentionSuggestions.length > 0 && (
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
+            left: 16,
+            right: 16,
+            background: T?.cardBg || '#1A1A1A',
+            borderRadius: 12,
+            border: `1px solid ${T?.border || '#333'}`,
+            maxHeight: 200,
+            overflowY: 'auto',
+            zIndex: 100,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          }}>
+            {mentionSuggestions.map(u => (
+              <button
+                key={u.id}
+                onClick={() => handleSelectMention(u.username)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  color: T?.txt || '#fff',
+                  fontSize: 14,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = (T?.border || '#333')}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              >
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: T?.pri + '30',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  {u.profile_photo ? (
+                    <img src={mediaUrl(u.profile_photo)} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : '👤'}
+                </div>
+                <span style={{ fontWeight: 600 }}>@{u.username}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Gift Modal */}
+      {showGiftModal && (
+        <GiftPage
+          username={post.user?.username}
+          onClose={() => setShowGiftModal(false)}
+          onShowWallet={() => setShowGiftModal(false)}
+        />
+      )}
     </div>
   );
 });

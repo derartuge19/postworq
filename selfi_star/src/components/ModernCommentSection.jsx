@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
-import { X, Heart, MessageCircle, Send, Loader, Flag } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Heart, MessageCircle, Send, Loader, Flag, AtSign, Gift } from "lucide-react";
 import api from "../api";
 import { AlertModal } from "./AlertModal";
 import { getRelativeTime } from "../utils/timeUtils";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import GiftPage from "./GiftPage";
 import "./ModernCommentSection.css";
 
 const mediaUrl = (url) => {
@@ -191,6 +192,33 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
   const [alertModal, setAlertModal] = useState({ isOpen: false, title: "", message: "", type: "info" });
   const [reportingComment, setReportingComment] = useState(null);
   const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [showGiftModal, setShowGiftModal] = useState(false);
+  const [reelUsername, setReelUsername] = useState('');
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const inputRef = useRef(null);
+
+  // Mention autocomplete
+  useEffect(() => {
+    const match = newComment.match(/@(\w*)$/);
+    if (match) {
+      const query = match[1];
+      setMentionQuery(query);
+      setShowMentionSuggestions(true);
+      if (query.length >= 2) {
+        api.search(query).then(d => {
+          setMentionSuggestions(d?.users?.slice(0, 5) || []);
+        }).catch(() => setMentionSuggestions([]));
+      } else {
+        setMentionSuggestions([]);
+      }
+    } else {
+      setShowMentionSuggestions(false);
+      setMentionQuery('');
+      setMentionSuggestions([]);
+    }
+  }, [newComment]);
 
   const COMMENT_REPORT_REASONS = [
     { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
@@ -227,6 +255,12 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
 
   useEffect(() => {
     fetchComments();
+    // Fetch reel data to get username for gift modal
+    api.request(`/reels/${reelId}/`)
+      .then(d => {
+        setReelUsername(d.user?.username || '');
+      })
+      .catch(() => {});
   }, [reelId]);
 
   const fetchComments = async () => {
@@ -306,6 +340,17 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
       });
     } finally {
       setPosting(false);
+    }
+  };
+
+  const handleSelectMention = (username) => {
+    const match = newComment.match(/@(\w*)$/);
+    if (match) {
+      const newText = newComment.replace(/@\w*$/, `@${username} `);
+      setNewComment(newText);
+      setShowMentionSuggestions(false);
+      setMentionQuery('');
+      setMentionSuggestions([]);
     }
   };
 
@@ -433,6 +478,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
             👤
           </div>
           <input
+            ref={inputRef}
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
@@ -454,6 +500,44 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
             }}
           />
           <button
+            type="button"
+            onClick={() => { inputRef.current?.focus(); setNewComment(prev => prev + '@'); }}
+            style={{
+              background: "none",
+              border: "none",
+              borderRadius: "50%",
+              width: 36,
+              height: 36,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#F9E08B",
+              flexShrink: 0,
+            }}
+          >
+            <AtSign size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowGiftModal(true)}
+            style={{
+              background: "none",
+              border: "none",
+              borderRadius: "50%",
+              width: 36,
+              height: 36,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#F9E08B",
+              flexShrink: 0,
+            }}
+          >
+            <Gift size={18} />
+          </button>
+          <button
             onClick={handlePostComment}
             disabled={posting || !newComment.trim()}
             style={{
@@ -474,6 +558,61 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
             {posting ? <Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> : <Send size={18} />}
           </button>
         </div>
+
+        {/* Mention Suggestions Dropdown */}
+        {showMentionSuggestions && mentionSuggestions.length > 0 && (
+          <div style={{
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
+            left: 16,
+            right: 16,
+            background: T.cardBg || '#1A1A1A',
+            borderRadius: 12,
+            border: `1px solid ${T.border || '#333'}`,
+            maxHeight: 200,
+            overflowY: 'auto',
+            zIndex: 100,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          }}>
+            {mentionSuggestions.map(u => (
+              <button
+                key={u.id}
+                onClick={() => handleSelectMention(u.username)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  color: T.txt || '#fff',
+                  fontSize: 14,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = (T.border || '#333')}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              >
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: T.pri + '30',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  {u.profile_photo ? (
+                    <img src={mediaUrl(u.profile_photo)} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : '👤'}
+                </div>
+                <span style={{ fontWeight: 600 }}>@{u.username}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <AlertModal
@@ -518,6 +657,15 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
             </button>
           </div>
         </div>
+      )}
+
+      {/* Gift Modal */}
+      {showGiftModal && (
+        <GiftPage
+          username={reelUsername}
+          onClose={() => setShowGiftModal(false)}
+          onShowWallet={() => setShowGiftModal(false)}
+        />
       )}
     </div>
     </>
