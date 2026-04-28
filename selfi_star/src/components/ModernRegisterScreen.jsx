@@ -10,7 +10,7 @@ const inputStyle = (T, focused) => ({
   width: "100%",
   padding: "13px 16px 13px 46px",
   background: T.cardBg || "#1A1A1A",
-  border: `1.5px solid ${focused ? "#E2B355" : T.border || "#262626"}`,
+  border: `1.5px solid ${focused ? "#F9E08B" : T.border || "#262626"}`,
   borderRadius: 10,
   fontSize: 15,
   color: T.txt || "#fff",
@@ -21,7 +21,7 @@ const inputStyle = (T, focused) => ({
 
 function IconWrap({ children }) {
   return (
-    <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#C2994B", display: "flex" }}>
+    <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}>
       {children}
     </div>
   );
@@ -30,7 +30,7 @@ function IconWrap({ children }) {
 function Field({ label, icon, children }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#C2994B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>
         {label}
       </label>
       <div style={{ position: "relative" }}>
@@ -76,7 +76,7 @@ function StepDot({ active, done }) {
     <div style={{
       width: done ? 22 : active ? 22 : 10, height: done ? 22 : active ? 22 : 10,
       borderRadius: "50%",
-      background: done ? "#E2B355" : active ? GOLD : "#262626",
+      background: done ? "#F9E08B" : active ? GOLD : "#262626",
       display: "flex", alignItems: "center", justifyContent: "center",
       transition: "all 0.3s",
       fontSize: 11, color: "#000", fontWeight: 700,
@@ -115,8 +115,8 @@ function OtpInput({ value, onChange }) {
             width: 46, height: 54, borderRadius: 10, textAlign: "center",
             fontSize: 22, fontWeight: 800, color: "#fff",
             background: "#1A1A1A",
-            border: `2px solid ${d.trim() ? "#E2B355" : "#262626"}`,
-            outline: "none", caretColor: "#E2B355",
+            border: `2px solid ${d.trim() ? "#F9E08B" : "#262626"}`,
+            outline: "none", caretColor: "#F9E08B",
           }}
         />
       ))}
@@ -232,22 +232,22 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         {/* Step indicator */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 28 }}>
           <StepDot active={step === 1} done={step > 1} />
-          <div style={{ width: 32, height: 2, background: step > 1 ? "#E2B355" : "#262626", borderRadius: 1, transition: "background 0.3s" }} />
+          <div style={{ width: 32, height: 2, background: step > 1 ? "#F9E08B" : "#262626", borderRadius: 1, transition: "background 0.3s" }} />
           <StepDot active={step === 2} done={step > 2} />
-          <div style={{ width: 32, height: 2, background: step > 2 ? "#E2B355" : "#262626", borderRadius: 1, transition: "background 0.3s" }} />
+          <div style={{ width: 32, height: 2, background: step > 2 ? "#F9E08B" : "#262626", borderRadius: 1, transition: "background 0.3s" }} />
           <StepDot active={step === 3} done={false} />
         </div>
 
         {/* Card */}
-        <div style={{ background: T.cardBg || "#1A1A1A", borderRadius: 18, padding: "28px 24px", border: "1px solid #E2B35530" }}>
+        <div style={{ background: T.cardBg || "#1A1A1A", borderRadius: 18, padding: "28px 24px", border: "1px solid #F9E08B30" }}>
 
           {/* ── STEP 1: Phone ── */}
           {step === 1 && (
             <>
               <div style={{ textAlign: "center", marginBottom: 24 }}>
                 <div style={{ fontSize: 36, marginBottom: 8 }}>📱</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: "#E2B355", marginBottom: 4 }}>Enter Your Phone</div>
-                <div style={{ fontSize: 13, color: "#C2994B" }}>Ethiopian number — an OTP will be sent via SMS</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>Enter Your Phone</div>
+                <div style={{ fontSize: 13, color: "#F9E08B" }}>Ethiopian number — an OTP will be sent via SMS</div>
               </div>
               <ErrorBox msg={error} />
               <Field label="Phone Number" icon={<Phone size={17} />}>
@@ -271,8 +271,8 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
             <>
               <div style={{ textAlign: "center", marginBottom: 8 }}>
                 <div style={{ fontSize: 36, marginBottom: 8 }}>🔐</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: "#E2B355", marginBottom: 4 }}>Verify Code</div>
-                <div style={{ fontSize: 13, color: "#C2994B" }}>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>Verify Code</div>
+                <div style={{ fontSize: 13, color: "#F9E08B" }}>
                   Code sent to <strong style={{ color: "#fff" }}>{verifiedPhone}</strong>
                 </div>
               </div>
@@ -286,13 +286,13 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
               <GoldBtn loading={loading} onClick={handleVerifyOtp} disabled={otp.length < 6}>Verify Code →</GoldBtn>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <button onClick={() => { setStep(1); setOtp(""); setError(""); }}
-                  style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                  style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
                   <ChevronLeft size={14} /> Change number
                 </button>
                 {resendTimer > 0 ? (
                   <span style={{ color: "#666", fontSize: 12 }}>Resend in {resendTimer}s</span>
                 ) : (
-                  <button onClick={handleSendOtp} style={{ background: "none", border: "none", color: "#E2B355", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                  <button onClick={handleSendOtp} style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
                     Resend OTP
                   </button>
                 )}
@@ -304,9 +304,9 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
           {step === 3 && (
             <>
               <div style={{ textAlign: "center", marginBottom: 20 }}>
-                <CheckCircle size={36} color="#E2B355" style={{ margin: "0 auto 8px" }} />
-                <div style={{ fontSize: 22, fontWeight: 900, color: "#E2B355", marginBottom: 4 }}>Create Account</div>
-                <div style={{ fontSize: 13, color: "#C2994B" }}>Phone verified ✓ — choose your username & PIN</div>
+                <CheckCircle size={36} color="#F9E08B" style={{ margin: "0 auto 8px" }} />
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>Create Account</div>
+                <div style={{ fontSize: 13, color: "#F9E08B" }}>Phone verified ✓ — choose your username & PIN</div>
               </div>
               <ErrorBox msg={error} />
               <Field label="Username" icon={<User size={17} />}>
@@ -332,7 +332,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
                   onFocus={() => setFocusedPwd(true)} onBlur={() => setFocusedPwd(false)}
                 />
                 <button type="button" onClick={() => setShowPwd(v => !v)}
-                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}>
+                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}>
                   {showPwd ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </Field>
@@ -345,7 +345,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
                   onFocus={() => setFocusedConfirm(true)} onBlur={() => setFocusedConfirm(false)}
                 />
                 <button type="button" onClick={() => setShowConfirm(v => !v)}
-                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}>
+                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}>
                   {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </Field>
@@ -359,7 +359,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
           {/* Footer */}
           <div style={{ textAlign: "center", fontSize: 13, color: "#666", marginTop: 4 }}>
             Already have an account?{" "}
-            <button onClick={onLogin} style={{ background: "none", border: "none", color: "#E2B355", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+            <button onClick={onLogin} style={{ background: "none", border: "none", color: "#F9E08B", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
               Log in
             </button>
           </div>

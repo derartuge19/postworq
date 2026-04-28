@@ -54,17 +54,17 @@ function FaqModal({ onClose }) {
   return (
     <Overlay onClose={onClose}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div style={{ fontSize: 20, fontWeight: 900, color: "#E2B355" }}>FAQ</div>
-        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}><X size={22} /></button>
+        <div style={{ fontSize: 20, fontWeight: 900, color: "#F9E08B" }}>FAQ</div>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}><X size={22} /></button>
       </div>
       {FAQ_ITEMS.map((item, i) => (
         <div key={i} style={{ borderBottom: "1px solid #262626", marginBottom: 2 }}>
           <button onClick={() => setOpen(open === i ? null : i)}
             style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "14px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", textAlign: "left" }}>{item.q}</span>
-            {open === i ? <ChevronUp size={16} color="#E2B355" /> : <ChevronDown size={16} color="#C2994B" />}
+            {open === i ? <ChevronUp size={16} color="#F9E08B" /> : <ChevronDown size={16} color="#F9E08B" />}
           </button>
-          {open === i && <div style={{ fontSize: 13, color: "#C2994B", paddingBottom: 14, lineHeight: 1.6 }}>{item.a}</div>}
+          {open === i && <div style={{ fontSize: 13, color: "#F9E08B", paddingBottom: 14, lineHeight: 1.6 }}>{item.a}</div>}
         </div>
       ))}
     </Overlay>
@@ -75,10 +75,10 @@ function TermsModal({ onClose }) {
   return (
     <Overlay onClose={onClose}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div style={{ fontSize: 20, fontWeight: 900, color: "#E2B355" }}>Terms & Conditions</div>
-        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}><X size={22} /></button>
+        <div style={{ fontSize: 20, fontWeight: 900, color: "#F9E08B" }}>Terms & Conditions</div>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}><X size={22} /></button>
       </div>
-      <pre style={{ fontSize: 12, color: "#C2994B", whiteSpace: "pre-wrap", lineHeight: 1.7, fontFamily: "inherit" }}>{TERMS}</pre>
+      <pre style={{ fontSize: 12, color: "#F9E08B", whiteSpace: "pre-wrap", lineHeight: 1.7, fontFamily: "inherit" }}>{TERMS}</pre>
     </Overlay>
   );
 }
@@ -124,17 +124,17 @@ function ForgotModal({ onClose }) {
   return (
     <Overlay onClose={onClose}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div style={{ fontSize: 20, fontWeight: 900, color: "#E2B355" }}>
+        <div style={{ fontSize: 20, fontWeight: 900, color: "#F9E08B" }}>
           {fpStep === 1 ? "Forgot Password" : fpStep === 2 ? "Enter Reset Code" : "Password Reset!"}
         </div>
-        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}><X size={22} /></button>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}><X size={22} /></button>
       </div>
       {error && <div style={{ padding: "10px 14px", background: "#2D1010", border: "1px solid #EF4444", borderRadius: 8, color: "#EF4444", fontSize: 13, marginBottom: 12 }}>⚠️ {error}</div>}
       {msg && <div style={{ padding: "10px 14px", background: "#1A2A1A", border: "1px solid #22C55E", borderRadius: 8, color: "#22C55E", fontSize: 13, marginBottom: 12 }}>{msg}</div>}
 
       {fpStep === 1 && (
         <>
-          <div style={{ fontSize: 13, color: "#C2994B", marginBottom: 16 }}>Enter the email you registered with. A 6-digit reset code will be sent to it.</div>
+          <div style={{ fontSize: 13, color: "#F9E08B", marginBottom: 16 }}>Enter the email you registered with. A 6-digit reset code will be sent to it.</div>
           <input type="email" placeholder="your@email.com" value={fpEmail} onChange={e => setFpEmail(e.target.value)} style={inp} onKeyDown={e => e.key === "Enter" && sendCode()} />
           <button onClick={sendCode} disabled={loading} style={{ width: "100%", padding: "13px", background: GOLD, border: "none", borderRadius: 10, color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             {loading ? <><Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> Sending…</> : "Send Reset Code"}
@@ -144,17 +144,17 @@ function ForgotModal({ onClose }) {
 
       {fpStep === 2 && (
         <>
-          <div style={{ fontSize: 13, color: "#C2994B", marginBottom: 16 }}>Enter the 6-digit code sent to <strong style={{ color: "#fff" }}>{fpEmail}</strong> and your new 6-digit PIN.</div>
+          <div style={{ fontSize: 13, color: "#F9E08B", marginBottom: 16 }}>Enter the 6-digit code sent to <strong style={{ color: "#fff" }}>{fpEmail}</strong> and your new 6-digit PIN.</div>
           <input type="text" inputMode="numeric" maxLength={6} placeholder="6-digit code from email" value={fpCode} onChange={e => setFpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} style={inp} />
           <div style={{ position: "relative" }}>
             <input type={showPwd ? "text" : "password"} inputMode="numeric" maxLength={6} placeholder="New 6-digit PIN" value={fpPwd} onChange={e => setFpPwd(e.target.value.replace(/\D/g, "").slice(0, 6))} style={{ ...inp, paddingRight: 44 }} />
-            <button type="button" onClick={() => setShowPwd(v => !v)} style={{ position: "absolute", right: 12, top: 12, background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}>{showPwd ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+            <button type="button" onClick={() => setShowPwd(v => !v)} style={{ position: "absolute", right: 12, top: 12, background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}>{showPwd ? <EyeOff size={16} /> : <Eye size={16} />}</button>
           </div>
           <input type="password" inputMode="numeric" maxLength={6} placeholder="Confirm new PIN" value={fpConfirm} onChange={e => setFpConfirm(e.target.value.replace(/\D/g, "").slice(0, 6))} style={inp} />
           <button onClick={confirmReset} disabled={loading} style={{ width: "100%", padding: "13px", background: GOLD, border: "none", borderRadius: 10, color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             {loading ? <><Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> Resetting…</> : "Reset Password"}
           </button>
-          <button onClick={() => { setFpStep(1); setFpCode(""); setError(""); setMsg(""); }} style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", marginTop: 12, display: "block", marginLeft: "auto", marginRight: "auto", display: "flex", alignItems: "center", gap: 4 }}>
+          <button onClick={() => { setFpStep(1); setFpCode(""); setError(""); setMsg(""); }} style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 13, cursor: "pointer", marginTop: 12, display: "block", marginLeft: "auto", marginRight: "auto", display: "flex", alignItems: "center", gap: 4 }}>
             <ChevronLeft size={14} /> Back
           </button>
         </>
@@ -163,8 +163,8 @@ function ForgotModal({ onClose }) {
       {fpStep === 3 && (
         <div style={{ textAlign: "center", padding: "20px 0" }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#E2B355", marginBottom: 8 }}>Password Reset!</div>
-          <div style={{ fontSize: 13, color: "#C2994B", marginBottom: 24 }}>You can now log in with your new PIN.</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#F9E08B", marginBottom: 8 }}>Password Reset!</div>
+          <div style={{ fontSize: 13, color: "#F9E08B", marginBottom: 24 }}>You can now log in with your new PIN.</div>
           <button onClick={onClose} style={{ padding: "12px 32px", background: GOLD, border: "none", borderRadius: 10, color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>Go to Login</button>
         </div>
       )}
@@ -234,7 +234,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
   const inp = (focused) => ({
     width: "100%", padding: "13px 16px 13px 46px",
     background: T.cardBg || "#1A1A1A",
-    border: `1.5px solid ${focused ? "#E2B355" : T.border || "#262626"}`,
+    border: `1.5px solid ${focused ? "#F9E08B" : T.border || "#262626"}`,
     borderRadius: 10, fontSize: 15, color: T.txt || "#fff", outline: "none", boxSizing: "border-box",
   });
 
@@ -252,10 +252,10 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
         </div>
 
         {/* Card */}
-        <div style={{ background: T.cardBg || "#1A1A1A", borderRadius: 18, padding: "28px 24px", border: "1px solid #E2B35530" }}>
+        <div style={{ background: T.cardBg || "#1A1A1A", borderRadius: 18, padding: "28px 24px", border: "1px solid #F9E08B30" }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ fontSize: 26, fontWeight: 900, color: "#E2B355", marginBottom: 4 }}>Welcome Back!</div>
-            <div style={{ fontSize: 13, color: "#C2994B" }}>Log in to continue to FLIPSTAR</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>Welcome Back!</div>
+            <div style={{ fontSize: 13, color: "#F9E08B" }}>Log in to continue to FLIPSTAR</div>
           </div>
 
         {/* Form */}
@@ -268,13 +268,13 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
 
           {/* Username field */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#C2994B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>Username</label>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>Username</label>
             <div style={{ position: "relative" }}>
-              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#C2994B", display: "flex" }}><User size={17} /></div>
+              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><User size={17} /></div>
               <input type="text" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="Enter your username"
                 style={inp(false)}
-                onFocus={e => e.target.style.border = "1.5px solid #E2B355"}
+                onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
                 onBlur={e => e.target.style.border = "1.5px solid #262626"}
               />
             </div>
@@ -282,20 +282,20 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
 
           {/* Password field */}
           <div style={{ marginBottom: 8 }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#C2994B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>6-Digit PIN</label>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>6-Digit PIN</label>
             <div style={{ position: "relative" }}>
-              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#C2994B", display: "flex" }}><Lock size={17} /></div>
+              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><Lock size={17} /></div>
               <input
                 type={showPassword ? "text" : "password"}
                 inputMode="numeric" maxLength={6}
                 value={password} onChange={e => setPassword(e.target.value)}
                 placeholder="••••••"
                 style={{ ...inp(false), paddingRight: 46 }}
-                onFocus={e => e.target.style.border = "1.5px solid #E2B355"}
+                onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
                 onBlur={e => e.target.style.border = "1.5px solid #262626"}
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#C2994B" }}>
+                style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}>
                 {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
             </div>
@@ -304,7 +304,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
           {/* Forgot password */}
           <div style={{ textAlign: "right", marginBottom: 20 }}>
             <button type="button" onClick={() => setModal("forgot")}
-              style={{ background: "none", border: "none", color: "#E2B355", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
               Forgot password?
             </button>
           </div>
@@ -318,16 +318,16 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
           {/* Sign up */}
           <div style={{ textAlign: "center", fontSize: 13, color: "#666", marginBottom: 0 }}>
             Don't have an account?{" "}
-            <button type="button" onClick={onRegister} style={{ background: "none", border: "none", color: "#E2B355", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>Sign up free</button>
+            <button type="button" onClick={onRegister} style={{ background: "none", border: "none", color: "#F9E08B", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>Sign up free</button>
           </div>
         </form>
         </div>
 
         {/* Footer links */}
         <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 20, paddingBottom: 20 }}>
-          <button onClick={() => setModal("faq")} style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>FAQ</button>
+          <button onClick={() => setModal("faq")} style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>FAQ</button>
           <span style={{ color: "#262626" }}>|</span>
-          <button onClick={() => setModal("terms")} style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>Terms & Conditions</button>
+          <button onClick={() => setModal("terms")} style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>Terms & Conditions</button>
         </div>
       </div>
 
