@@ -165,10 +165,10 @@ export function AppShell({
         }
         .appshell-main::-webkit-scrollbar { display: none; }
         .appshell-main { -ms-overflow-style: none; scrollbar-width: none; }
-        .mob-nav-btn svg { color: #ffffff !important; }
-        .mob-nav-btn span { color: #ffffff !important; }
-        .mob-nav-gold svg { color: #F9E08B !important; }
-        .mob-nav-gold span { color: #F9E08B !important; }
+        .mob-nav-btn svg { color: #F9E08B !important; }
+        .mob-nav-btn span { color: #F9E08B !important; }
+        .mob-nav-gold svg { color: #F9E08B !important; filter: drop-shadow(0 0 6px #F9E08B); }
+        .mob-nav-gold span { color: #F9E08B !important; text-shadow: 0 0 8px #F9E08B; }
       `}</style>
       {/* 1. Desktop Sidebar */}
       {!isMobile && (

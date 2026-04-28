@@ -56,7 +56,7 @@ function MainTabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: '#F9E08B',
-        tabBarInactiveTintColor: '#ffffff',
+        tabBarInactiveTintColor: '#F9E08B',
         tabBarStyle: {
           backgroundColor: '#0d0d0d',
           borderTopWidth: StyleSheet.hairlineWidth,
@@ -97,7 +97,7 @@ function MainTabs() {
               </View>
             );
           }
-          return <Ionicons name={icons[route.name]} size={size} color={color} />;
+          return <Ionicons name={icons[route.name]} size={size} color={color} style={focused ? { textShadowColor: '#F9E08B', textShadowRadius: 8 } : {}} />;
         },
         tabBarLabel: ({ focused, color }) => {
           const label = route.name === 'Notifications' ? 'Alerts' : route.name;
