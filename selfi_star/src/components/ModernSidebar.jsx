@@ -60,7 +60,7 @@ export function ModernSidebar({ user, activeTab, onTabChange, onShowPostPage, on
           alignItems: "center",
           gap: 10,
         }}>
-          <img src="/final_logo.jpg" alt="FlipStar" style={{ width: 120, height: 50, objectFit: "contain", flexShrink: 0 }} />
+          <img src="/final_logo.jpg" alt="FlipStar" style={{ width: '100%', height: 80, objectFit: 'contain', flexShrink: 0 }} />
           <div style={{
             fontSize: 18,
             fontWeight: 900,

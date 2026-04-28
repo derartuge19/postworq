@@ -186,19 +186,19 @@ export function AppShell({
           }}
         >
           <div style={{ 
-            padding: '20px 16px', 
+            padding: '20px 0', 
             marginBottom: 32, 
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: 'flex-start',
-            minHeight: 60
+            justifyContent: 'center',
+            minHeight: 80
           }}>
             <img 
               src="/final_logo.jpg" 
               alt="FlipStar" 
               style={{ 
-                height: 60, 
-                width: 180, 
+                height: 80, 
+                width: '100%', 
                 objectFit: 'contain', 
                 display: 'block',
               }}
