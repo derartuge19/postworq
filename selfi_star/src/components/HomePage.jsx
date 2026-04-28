@@ -413,7 +413,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
       >
         {/* Handle bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px', borderBottom: `1px solid ${T?.border || '#e0e0e0'}` }}>
-          <span style={{ fontSize: 15, fontWeight: 700, background: 'linear-gradient(to bottom, #D4AF37, #F9E08B)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Comments</span>
+          <span style={{ fontSize: 15, fontWeight: 700, background: 'linear-gradient(to right, #D4AF37, #F9E08B)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Comments</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T?.sub || '#666' }}><X size={20} /></button>
         </div>
         {/* Comments list */}
@@ -1841,7 +1841,7 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
                 border: 'none',
                 cursor: 'pointer',
                 background: isActive
-                  ? (T?.priGradient || `linear-gradient(to bottom, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)`)
+                  ? (T?.priGradient || `linear-gradient(to right, #D4AF37 0%, #F9E08B 50%, #B8860B 100%)`)
                   : (T?.cardBg || '#1A1A1A'),
                 color: isActive ? '#000' : '#F9E08B',
                 fontWeight: isActive ? 700 : 600,
