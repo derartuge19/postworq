@@ -56,7 +56,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return T.pri;
-      case 'voting': return '#3B82F6';
+      case 'voting': return '#F9E08B';
       case 'upcoming': return '#F97316';
       case 'completed': return T.sub;
       default: return T.sub;
@@ -108,7 +108,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
         textAlign: 'center',
         marginBottom: 32,
         padding: '32px 20px',
-        background: `linear-gradient(135deg, ${T.pri}15, #F59E0B15)`,
+        background: `linear-gradient(135deg, #F9E08B15, #F9E08B15)`,
         borderRadius: 16,
         position: 'relative',
         overflow: 'hidden',
@@ -120,9 +120,9 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
           width: 56,
           height: 56,
           margin: '0 auto 16px',
-          background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
+          background: `linear-gradient(135deg, #F9E08B, #F9E08B)`,
           borderRadius: '50%',
-          boxShadow: `0 4px 16px ${T.pri}40`,
+          boxShadow: `0 4px 16px #F9E08B40`,
         }}>
           <Trophy size={28} color="#fff" strokeWidth={2.5} />
         </div>
@@ -130,7 +130,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
           margin: 0,
           fontSize: 28,
           fontWeight: 900,
-          background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
+          background: `linear-gradient(135deg, #F9E08B, #F9E08B)`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -159,10 +159,10 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
         marginBottom: 28,
       }}>
           {[
-            { id: 'all', label: 'All', icon: Trophy, color: '#DA9B2A' },
-            { id: 'active', label: 'Active Now', icon: Trophy, color: '#10B981' },
-            { id: 'voting', label: 'Voting Open', icon: Award, color: '#3B82F6' },
-            { id: 'upcoming', label: 'Coming Soon', icon: Clock, color: '#F59E0B' },
+            { id: 'all', label: 'All', icon: Trophy, color: '#F9E08B' },
+            { id: 'active', label: 'Active Now', icon: Trophy, color: '#F9E08B' },
+            { id: 'voting', label: 'Voting Open', icon: Award, color: '#F9E08B' },
+            { id: 'upcoming', label: 'Coming Soon', icon: Clock, color: '#F9E08B' },
             { id: 'completed', label: 'Completed', icon: Calendar, color: T.sub },
           ].map(tab => {
             const Icon = tab.icon;
@@ -176,7 +176,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                   background: isActive ? `linear-gradient(135deg, ${tab.color}, ${tab.color}dd)` : T.cardBg,
                   border: `2px solid ${isActive ? tab.color : T.border}`,
                   borderRadius: 16,
-                  color: isActive ? '#fff' : T.txt,
+                  color: isActive ? '#000' : '#F9E08B',
                   fontSize: 15,
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -357,7 +357,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                     <div style={{
                       width: '100%',
                       height: 160,
-                      background: `linear-gradient(135deg, ${T.pri}25, #F59E0B25)`,
+                      background: `linear-gradient(135deg, #F9E08B25, #F9E08B25)`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -369,7 +369,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                         width: 200,
                         height: 200,
                         borderRadius: '50%',
-                        background: `radial-gradient(circle, ${T.pri}15, transparent)`,
+                        background: `radial-gradient(circle, #F9E08B15, transparent)`,
                         animation: 'pulse 3s ease-in-out infinite',
                       }} />
                       <Trophy size={48} color={T.pri} opacity={0.4} strokeWidth={1.5} />
@@ -402,7 +402,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                     }}>
                       <span style={{
                         padding: '2px 8px',
-                        background: `${T.pri}15`,
+                        background: `#F9E08B15`,
                         color: T.pri,
                         borderRadius: 12,
                         fontSize: 10,
@@ -443,10 +443,10 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                     {/* Prize */}
                     <div style={{
                       padding: 10,
-                      background: `linear-gradient(135deg, ${T.pri}12, #F59E0B12)`,
+                      background: `linear-gradient(135deg, #F9E08B12, #F9E08B12)`,
                       borderRadius: 8,
                       marginBottom: 12,
-                      border: `1px solid ${T.pri}25`,
+                      border: `1px solid #F9E08B25`,
                       position: 'relative',
                       overflow: 'hidden',
                     }}>
@@ -460,11 +460,11 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                           width: 36,
                           height: 36,
                           borderRadius: '50%',
-                          background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
+                          background: `linear-gradient(135deg, #F9E08B, #F9E08B)`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          boxShadow: `0 2px 8px ${T.pri}40`,
+                          boxShadow: `0 2px 8px #F9E08B40`,
                         }}>
                           <Award size={18} color="#fff" strokeWidth={2.5} />
                         </div>
@@ -482,7 +482,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                           <div style={{
                             fontSize: 18,
                             fontWeight: 900,
-                            background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
+                            background: `linear-gradient(135deg, #F9E08B, #F9E08B)`,
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             backgroundClip: 'text',
@@ -530,7 +530,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                         <div style={{
                           fontSize: 16,
                           fontWeight: 700,
-                          color: '#3B82F6',
+                          color: '#F9E08B',
                         }}>
                           {campaign.total_entries || 0}
                         </div>
@@ -590,7 +590,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                       style={{
                         width: '100%',
                         padding: '14px',
-                        background: `linear-gradient(135deg, ${T.pri}, #F59E0B)`,
+                        background: `linear-gradient(135deg, #F9E08B, #F9E08B)`,
                         border: 'none',
                         borderRadius: 12,
                         color: '#fff',
@@ -601,7 +601,7 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 8,
-                        boxShadow: `0 4px 16px ${T.pri}40`,
+                        boxShadow: `0 4px 16px #F9E08B40`,
                         transition: 'all 0.3s',
                       }}
                       onMouseEnter={(e) => {
