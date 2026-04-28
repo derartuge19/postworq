@@ -64,7 +64,7 @@ export function CommentSection({ reelId, user, onClose, onCommentPosted }) {
       <div style={{
         width: "100%",
         maxWidth: 600,
-        height: "70vh",
+        height: "85vh",
         background: T.cardBg,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,

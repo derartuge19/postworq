@@ -239,7 +239,7 @@ export function EditCampaignModal({ theme, campaign, onClose, onSuccess, selecte
                   required
                   style={{...inp, cursor: 'pointer'}}
                 >
-                  <option value="daily">Daily Campaign (Scoring + Random)</option>
+                  <option value="daily">Daily Campaign (Scoring Only)</option>
                   <option value="weekly">Weekly Campaign (Scoring Only)</option>
                   <option value="monthly">Monthly Campaign (Scoring Only)</option>
                   <option value="grand">Grand Campaign (Voting + Scoring)</option>
