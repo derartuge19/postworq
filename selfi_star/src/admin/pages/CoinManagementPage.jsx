@@ -95,6 +95,15 @@ export function CoinManagementPage({ theme }) {
         min_balance_to_post: config.thresholds.min_balance_to_post,
         min_balance_to_join_campaign: config.thresholds.min_balance_to_join_campaign,
         earned_coins_expire_days: config.expiry.earned_coins_expire_days,
+        coins_to_points_conversion: config.points?.coins_to_points_conversion || 1,
+        points_per_birr: config.points?.points_per_birr || 10,
+        withdrawal_min_points: config.points?.withdrawal_min_points || 100,
+        withdrawal_max_points_per_request: config.points?.withdrawal_max_points_per_request || 10000,
+        daily_winner_points: config.points?.daily_winner_points || 500,
+        weekly_winner_points: config.points?.weekly_winner_points || 2000,
+        monthly_winner_points: config.points?.monthly_winner_points || 10000,
+        grand_finalist_points: config.points?.grand_finalist_points || 5000,
+        grand_winner_points: config.points?.grand_winner_points || 50000,
       };
       await api.request('/admin/wallet/config/', {
         method: 'PATCH',
@@ -323,6 +332,29 @@ function ConfigTab({ theme: T, config, setConfig, onSave, saving, result, loadin
           <FieldRow theme={T} label="Coins per Birr" value={config.withdrawal.coins_per_birr} onChange={(v) => updateField('withdrawal', 'coins_per_birr', parseInt(v) || 0)} />
           <FieldRow theme={T} label="Fee Percent" value={config.withdrawal.fee_percent} onChange={(v) => updateField('withdrawal', 'fee_percent', parseFloat(v) || 0)} />
           <FieldRow theme={T} label="Processing Days" value={config.withdrawal.processing_days} onChange={(v) => updateField('withdrawal', 'processing_days', parseInt(v) || 0)} />
+        </SectionCard>
+
+        {/* Points System */}
+        <SectionCard theme={T} title="Points System (Points → Birr)" icon={<Coins size={20} color="#8B5CF6" />}>
+          <div style={{ fontSize: 12, color: T.sub, marginBottom: 12, fontStyle: 'italic' }}>
+            Points are separate from coins. Gifts convert to points. Withdrawals use points only.
+          </div>
+          <FieldRow theme={T} label="Coins to Points Conversion (1 point per X coins)" value={config.points?.coins_to_points_conversion || 1} onChange={(v) => updateNested('points', '', 'coins_to_points_conversion', parseInt(v) || 1)} />
+          <FieldRow theme={T} label="Points per Birr" value={config.points?.points_per_birr || 10} onChange={(v) => updateNested('points', '', 'points_per_birr', parseInt(v) || 10)} />
+          <FieldRow theme={T} label="Min Points to Withdraw" value={config.points?.withdrawal_min_points || 100} onChange={(v) => updateNested('points', '', 'withdrawal_min_points', parseInt(v) || 100)} />
+          <FieldRow theme={T} label="Max Points per Request" value={config.points?.withdrawal_max_points_per_request || 10000} onChange={(v) => updateNested('points', '', 'withdrawal_max_points_per_request', parseInt(v) || 10000)} />
+        </SectionCard>
+
+        {/* Campaign Winner Point Rewards */}
+        <SectionCard theme={T} title="Campaign Winner Point Rewards" icon={<Trophy size={20} color="#F59E0B" />}>
+          <div style={{ fontSize: 12, color: T.sub, marginBottom: 12, fontStyle: 'italic' }}>
+            Points awarded to winners of each campaign type.
+          </div>
+          <FieldRow theme={T} label="Daily Winner Points" value={config.points?.daily_winner_points || 500} onChange={(v) => updateNested('points', '', 'daily_winner_points', parseInt(v) || 500)} />
+          <FieldRow theme={T} label="Weekly Winner Points" value={config.points?.weekly_winner_points || 2000} onChange={(v) => updateNested('points', '', 'weekly_winner_points', parseInt(v) || 2000)} />
+          <FieldRow theme={T} label="Monthly Winner Points" value={config.points?.monthly_winner_points || 10000} onChange={(v) => updateNested('points', '', 'monthly_winner_points', parseInt(v) || 10000)} />
+          <FieldRow theme={T} label="Grand Finalist Points" value={config.points?.grand_finalist_points || 5000} onChange={(v) => updateNested('points', '', 'grand_finalist_points', parseInt(v) || 5000)} />
+          <FieldRow theme={T} label="Grand Winner Points" value={config.points?.grand_winner_points || 50000} onChange={(v) => updateNested('points', '', 'grand_winner_points', parseInt(v) || 50000)} />
         </SectionCard>
 
         {/* Gifting Policy */}

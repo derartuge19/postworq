@@ -258,19 +258,14 @@ class GiftTransactionViewSet(viewsets.ModelViewSet):
         sender_profile.gifts_sent_total += 1
         sender_profile.save()
         
-        # Add coins to recipient (earned balance)
-        recipient_coin_balance, _ = UserCoinBalance.objects.get_or_create(user=recipient)
-        recipient_coin_balance.add_earned(
-            amount=total_cost,
-            transaction_type='gift_received',
-            sender=request.user,
-            reel=reel,
-            gift=gift
-        )
+        # Convert coins to points for recipient (gifts convert to points, not coins)
+        wallet_config = WalletConfig.get_config()
+        points_received = wallet_config.coins_to_points(total_cost)
         
-        # Update recipient profile stats
+        # Add points to recipient (not coins)
         recipient_profile = recipient.profile
-        recipient_profile.coins_earned_total += total_cost
+        recipient_profile.points += points_received
+        recipient_profile.points_earned_total += points_received
         recipient_profile.gifts_received_total += 1
         recipient_profile.save()
         

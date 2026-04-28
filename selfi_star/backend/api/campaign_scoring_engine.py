@@ -120,6 +120,7 @@ class CampaignScoringEngine:
         """
         Select winners based on top scorers only.
         Enforces 7-day win limit.
+        Awards points to winners.
         """
         if total_winners is None:
             total_winners = self.campaign.winner_count
@@ -148,13 +149,25 @@ class CampaignScoringEngine:
         
         winners = []
         
-        # Select top scorers
+        # Get point reward from wallet config
+        from .models_wallet import WalletConfig
+        wallet_config = WalletConfig.get_config()
+        point_reward = wallet_config.daily_winner_points
+        
+        # Select top scorers and award points
         for idx, entry in enumerate(eligible_entries[:total_winners], start=1):
+            # Award points to winner
+            user_profile = entry.user.profile
+            user_profile.points += point_reward
+            user_profile.points_earned_total += point_reward
+            user_profile.save()
+            
             winners.append({
                 'rank': idx,
                 'user': entry.user,
                 'score': entry.score,
-                'method': 'top_scorer'
+                'method': 'top_scorer',
+                'points_awarded': point_reward
             })
         
         return winners
@@ -278,6 +291,7 @@ class CampaignScoringEngine:
         """
         Select top scorers as winners.
         Enforces one win per weekly cycle.
+        Awards points to winners.
         """
         if winner_count is None:
             winner_count = self.campaign.winner_count
@@ -294,13 +308,25 @@ class CampaignScoringEngine:
         # Sort by score (highest first)
         eligible_entries.sort(key=lambda x: x.score, reverse=True)
         
+        # Get point reward from wallet config
+        from .models_wallet import WalletConfig
+        wallet_config = WalletConfig.get_config()
+        point_reward = wallet_config.weekly_winner_points
+        
         winners = []
         for idx, entry in enumerate(eligible_entries[:winner_count], start=1):
+            # Award points to winner
+            user_profile = entry.user.profile
+            user_profile.points += point_reward
+            user_profile.points_earned_total += point_reward
+            user_profile.save()
+            
             winners.append({
                 'rank': idx,
                 'user': entry.user,
                 'score': entry.score,
-                'method': 'top_scorer'
+                'method': 'top_scorer',
+                'points_awarded': point_reward
             })
             
             # Mark user as having won this cycle
@@ -456,6 +482,7 @@ class CampaignScoringEngine:
         """
         Select top scorers as winners.
         Enforces one win per monthly cycle.
+        Awards points to winners.
         """
         if winner_count is None:
             winner_count = self.campaign.winner_count
@@ -472,13 +499,25 @@ class CampaignScoringEngine:
         # Sort by score
         eligible_entries.sort(key=lambda x: x.score, reverse=True)
         
+        # Get point reward from wallet config
+        from .models_wallet import WalletConfig
+        wallet_config = WalletConfig.get_config()
+        point_reward = wallet_config.monthly_winner_points
+        
         winners = []
         for idx, entry in enumerate(eligible_entries[:winner_count], start=1):
+            # Award points to winner
+            user_profile = entry.user.profile
+            user_profile.points += point_reward
+            user_profile.points_earned_total += point_reward
+            user_profile.save()
+            
             winners.append({
                 'rank': idx,
                 'user': entry.user,
                 'score': entry.score,
-                'method': 'top_scorer'
+                'method': 'top_scorer',
+                'points_awarded': point_reward
             })
             
             # Mark user as having won this cycle
@@ -608,6 +647,7 @@ class CampaignScoringEngine:
     def select_grand_finalists(self, entries):
         """
         Select top X% of users to qualify for finals based on qualification score.
+        Awards points to finalists.
         """
         config = self.type_config['phase1_qualification']
         qualification_pct = config['qualification_percentage'] / 100.0
@@ -619,11 +659,24 @@ class CampaignScoringEngine:
         sorted_entries = sorted(entries, key=lambda x: x.score, reverse=True)
         finalists = sorted_entries[:finalists_count]
         
+        # Get point reward from wallet config
+        from .models_wallet import WalletConfig
+        wallet_config = WalletConfig.get_config()
+        point_reward = wallet_config.grand_finalist_points
+        
+        # Award points to finalists
+        for entry in finalists:
+            user_profile = entry.user.profile
+            user_profile.points += point_reward
+            user_profile.points_earned_total += point_reward
+            user_profile.save()
+        
         return [
             {
                 'rank': idx + 1,
                 'user': entry.user,
-                'qualification_score': entry.score
+                'qualification_score': entry.score,
+                'points_awarded': point_reward
             }
             for idx, entry in enumerate(finalists)
         ]
@@ -631,6 +684,7 @@ class CampaignScoringEngine:
     def select_grand_winners(self, entries, winner_count=None):
         """
         Select winners based on final scores (Phase 2).
+        Awards points to winners.
         """
         if winner_count is None:
             winner_count = self.campaign.winner_count
@@ -638,13 +692,25 @@ class CampaignScoringEngine:
         # Sort by final score
         sorted_entries = sorted(entries, key=lambda x: x.score, reverse=True)
         
+        # Get point reward from wallet config
+        from .models_wallet import WalletConfig
+        wallet_config = WalletConfig.get_config()
+        point_reward = wallet_config.grand_winner_points
+        
         winners = []
         for idx, entry in enumerate(sorted_entries[:winner_count], start=1):
+            # Award points to winner
+            user_profile = entry.user.profile
+            user_profile.points += point_reward
+            user_profile.points_earned_total += point_reward
+            user_profile.save()
+            
             winners.append({
                 'rank': idx,
                 'user': entry.user,
                 'final_score': entry.score,
-                'method': 'final_score'
+                'method': 'final_score',
+                'points_awarded': point_reward
             })
         
         return winners

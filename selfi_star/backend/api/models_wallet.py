@@ -59,6 +59,20 @@ class WalletConfig(models.Model):
     withdrawal_fee_percent = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('5.00'), help_text='Service fee % on withdrawal')
     withdrawal_processing_days = models.PositiveIntegerField(default=3, help_text='Days to process withdrawal')
 
+    # ============ POINTS SYSTEM (Points -> Birr only) ============
+    # Points are separate from coins and can only be withdrawn/transferred as birr
+    coins_to_points_conversion = models.PositiveIntegerField(default=1, help_text='How many coins = 1 point (gift conversion)')
+    points_per_birr = models.PositiveIntegerField(default=10, help_text='How many points = 1 ETB (withdrawal)')
+    withdrawal_min_points = models.PositiveIntegerField(default=100, help_text='Minimum points required to withdraw')
+    withdrawal_max_points_per_request = models.PositiveIntegerField(default=10000)
+
+    # ============ CAMPAIGN WINNER POINT REWARDS ============
+    daily_winner_points = models.PositiveIntegerField(default=500, help_text='Points awarded to daily campaign winners')
+    weekly_winner_points = models.PositiveIntegerField(default=2000, help_text='Points awarded to weekly campaign winners')
+    monthly_winner_points = models.PositiveIntegerField(default=10000, help_text='Points awarded to monthly campaign winners')
+    grand_finalist_points = models.PositiveIntegerField(default=5000, help_text='Points awarded to grand campaign finalists')
+    grand_winner_points = models.PositiveIntegerField(default=50000, help_text='Points awarded to grand campaign winners')
+
     # ============ GIFTING POLICY ============
     earned_coins_giftable = models.BooleanField(default=False, help_text='Can earned coins be sent as gifts?')
     purchased_coins_giftable = models.BooleanField(default=True)
@@ -92,6 +106,18 @@ class WalletConfig(models.Model):
             return Decimal('0')
         return Decimal(coins) / Decimal(self.coins_per_birr)
 
+    def points_to_birr(self, points):
+        """Convert point amount to ETB"""
+        if self.points_per_birr <= 0:
+            return Decimal('0')
+        return Decimal(points) / Decimal(self.points_per_birr)
+
+    def coins_to_points(self, coins):
+        """Convert coins to points (for gift conversion)"""
+        if self.coins_to_points_conversion <= 0:
+            return 0
+        return coins // self.coins_to_points_conversion
+
     def calculate_withdrawal(self, coins):
         """Calculate net Birr after fees for a coin withdrawal"""
         gross_birr = self.coins_to_birr(coins)
@@ -99,6 +125,19 @@ class WalletConfig(models.Model):
         net_birr = gross_birr - fee
         return {
             'coins': coins,
+            'gross_birr': gross_birr,
+            'fee_birr': fee,
+            'net_birr': net_birr,
+            'fee_percent': self.withdrawal_fee_percent,
+        }
+
+    def calculate_points_withdrawal(self, points):
+        """Calculate net Birr after fees for a points withdrawal"""
+        gross_birr = self.points_to_birr(points)
+        fee = gross_birr * (self.withdrawal_fee_percent / Decimal('100'))
+        net_birr = gross_birr - fee
+        return {
+            'points': points,
             'gross_birr': gross_birr,
             'fee_birr': fee,
             'net_birr': net_birr,
@@ -132,12 +171,13 @@ class WithdrawalRequest(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='withdrawal_requests')
 
-    # Amounts
-    coin_amount = models.PositiveIntegerField(help_text='Coins to convert')
+    # Amounts (supports both coins and points)
+    coin_amount = models.PositiveIntegerField(default=0, help_text='Coins to convert (legacy, use point_amount instead)')
+    point_amount = models.PositiveIntegerField(default=0, help_text='Points to convert to birr')
     gross_birr = models.DecimalField(max_digits=12, decimal_places=2)
     fee_birr = models.DecimalField(max_digits=12, decimal_places=2)
     net_birr = models.DecimalField(max_digits=12, decimal_places=2, help_text='Final amount sent to user')
-    conversion_rate = models.PositiveIntegerField(help_text='Coins per Birr at time of request')
+    conversion_rate = models.PositiveIntegerField(help_text='Coins/Points per Birr at time of request')
 
     # Payout details
     payout_method = models.CharField(max_length=20, choices=PAYOUT_METHODS, default='telebirr')

@@ -218,8 +218,8 @@ def withdrawal_info(request):
 @permission_classes([IsAuthenticated])
 def request_withdrawal(request):
     """
-    Create a withdrawal request.
-    Body: { coin_amount, payout_method, payout_account, payout_account_name }
+    Create a withdrawal request using points (not coins).
+    Body: { point_amount, payout_method, payout_account, payout_account_name }
     """
     config = WalletConfig.get_config()
 
@@ -230,22 +230,22 @@ def request_withdrawal(request):
         )
 
     try:
-        coin_amount = int(request.data.get('coin_amount', 0))
+        point_amount = int(request.data.get('point_amount', 0))
     except (TypeError, ValueError):
-        return Response({'error': 'Invalid coin_amount'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Invalid point_amount'}, status=status.HTTP_400_BAD_REQUEST)
 
     payout_method = request.data.get('payout_method', 'telebirr')
     payout_account = (request.data.get('payout_account') or '').strip()
     payout_account_name = (request.data.get('payout_account_name') or '').strip()
 
-    if coin_amount < config.withdrawal_min_coins:
+    if point_amount < config.withdrawal_min_points:
         return Response(
-            {'error': f'Minimum withdrawal is {config.withdrawal_min_coins} coins'},
+            {'error': f'Minimum withdrawal is {config.withdrawal_min_points} points'},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if coin_amount > config.withdrawal_max_coins_per_request:
+    if point_amount > config.withdrawal_max_points_per_request:
         return Response(
-            {'error': f'Maximum per request is {config.withdrawal_max_coins_per_request} coins'},
+            {'error': f'Maximum per request is {config.withdrawal_max_points_per_request} points'},
             status=status.HTTP_400_BAD_REQUEST,
         )
     if payout_method not in dict(WithdrawalRequest.PAYOUT_METHODS):
@@ -256,28 +256,28 @@ def request_withdrawal(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    balance = _get_or_create_balance(request.user)
-    if balance.earned_balance < coin_amount:
+    # Check user's point balance
+    user_profile = request.user.profile
+    if user_profile.points < point_amount:
         return Response(
-            {'error': f'Insufficient earned coins. You have {balance.earned_balance}.'},
+            {'error': f'Insufficient points. You have {user_profile.points} points.'},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    breakdown = config.calculate_withdrawal(coin_amount)
+    breakdown = config.calculate_points_withdrawal(point_amount)
 
-    # Deduct coins now (refunded if rejected)
-    try:
-        balance.withdraw_to_birr(coin_amount)
-    except ValueError as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    # Deduct points now (refunded if rejected)
+    user_profile.points -= point_amount
+    user_profile.points_withdrawn_total += point_amount
+    user_profile.save()
 
     withdrawal = WithdrawalRequest.objects.create(
         user=request.user,
-        coin_amount=coin_amount,
+        point_amount=point_amount,
         gross_birr=breakdown['gross_birr'],
         fee_birr=breakdown['fee_birr'],
         net_birr=breakdown['net_birr'],
-        conversion_rate=config.coins_per_birr,
+        conversion_rate=config.points_per_birr,
         payout_method=payout_method,
         payout_account=payout_account,
         payout_account_name=payout_account_name,
@@ -289,9 +289,9 @@ def request_withdrawal(request):
             'message': 'Withdrawal request submitted successfully',
             'withdrawal': _serialize_withdrawal(withdrawal),
             'new_balance': {
-                'total': balance.balance,
-                'earned': balance.earned_balance,
-                'purchased': balance.purchased_balance,
+                'points': user_profile.points,
+                'points_earned_total': user_profile.points_earned_total,
+                'points_withdrawn_total': user_profile.points_withdrawn_total,
             },
         },
         status=status.HTTP_201_CREATED,

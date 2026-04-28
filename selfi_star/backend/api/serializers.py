@@ -116,7 +116,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserProfile
-        fields = ['id', 'user', 'username', 'profile_photo', 'bio', 'xp', 'level', 'streak', 'last_checkin']
+        fields = ['id', 'user', 'username', 'profile_photo', 'bio', 'xp', 'level', 'streak', 'last_checkin', 
+                  'coins', 'coins_earned_total', 'coins_spent_total', 
+                  'points', 'points_earned_total', 'points_withdrawn_total']
 
 class ReelSerializer(serializers.ModelSerializer):
     # FeedUserSerializer is intentionally used here — it skips the per-user

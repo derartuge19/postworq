@@ -34,6 +34,11 @@ class UserProfile(models.Model):
     coins_earned_total = models.IntegerField(default=0, help_text='Total coins earned lifetime')
     coins_spent_total = models.IntegerField(default=0, help_text='Total coins spent lifetime')
     
+    # Gamification - Points (for withdrawals and transfers as birr)
+    points = models.IntegerField(default=0, help_text='User point balance (convertible to birr)')
+    points_earned_total = models.IntegerField(default=0, help_text='Total points earned lifetime')
+    points_withdrawn_total = models.IntegerField(default=0, help_text='Total points withdrawn lifetime')
+    
     # Gamification - Daily Spin
     last_spin_date = models.DateField(null=True, blank=True, help_text='Last daily spin date')
     spins_total = models.IntegerField(default=0, help_text='Total spins done')
