@@ -636,6 +636,7 @@ const styles = StyleSheet.create({
     backgroundColor: BRAND_GOLD,
     justifyContent: 'center',
     alignItems: 'center',
+    flexShrink: 0,
   },
   sendButtonDisabled: {
     opacity: 0.5,

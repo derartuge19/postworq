@@ -5,7 +5,7 @@ import {
   Image as ImageIcon, Video, Hash, Type, Upload, Music, Volume2, VolumeX, 
   Play, Pause, RotateCw, RefreshCw, Camera, Mic, MicOff, Sparkles, Palette, 
   ChevronDown, ChevronLeft, ChevronRight, Check, AlertCircle, Trash2,
-  Zap, ZapOff, Square, FileText, ArrowLeft, Eye, Bookmark, Share2
+  Zap, ZapOff, Square, FileText, Eye, Bookmark, Share2
 } from 'lucide-react';
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';

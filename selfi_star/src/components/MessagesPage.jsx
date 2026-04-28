@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import {
-  ArrowLeft, Send, Search, Edit3, Trash2, MoreVertical, X, PenSquare,
+  ChevronLeft, Send, Search, Edit3, Trash2, MoreVertical, X, PenSquare,
   Paperclip, Mic, Image as ImageIcon, FileText, Play, Pause, Download,
   Trash,
 } from 'lucide-react';
@@ -1162,7 +1162,7 @@ function ThreadView({ conversation, onBack, user, T, priColor, onShowProfile, on
           background: 'none', border: 'none', cursor: 'pointer',
           color: T.txt, padding: 6, display: 'flex',
         }}>
-          <ArrowLeft size={22} />
+          <ChevronLeft size={22} />
         </button>
         <Avatar user={other} size={40} />
         <div style={{ flex: 1, minWidth: 0 }}>

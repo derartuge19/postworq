@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Phone, Lock, User, Eye, EyeOff, Loader, ArrowLeft, CheckCircle, Mail } from "lucide-react";
+import { Phone, Lock, User, Eye, EyeOff, Loader, ChevronLeft, CheckCircle, Mail } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -287,7 +287,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <button onClick={() => { setStep(1); setOtp(""); setError(""); }}
                   style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                  <ArrowLeft size={14} /> Change number
+                  <ChevronLeft size={14} /> Change number
                 </button>
                 {resendTimer > 0 ? (
                   <span style={{ color: "#666", fontSize: 12 }}>Resend in {resendTimer}s</span>

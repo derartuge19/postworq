@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, Loader, User, ChevronDown, ChevronUp, X, ArrowLeft } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader, User, ChevronDown, ChevronUp, X, ChevronLeft } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -155,7 +155,7 @@ function ForgotModal({ onClose }) {
             {loading ? <><Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> Resetting…</> : "Reset Password"}
           </button>
           <button onClick={() => { setFpStep(1); setFpCode(""); setError(""); setMsg(""); }} style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", marginTop: 12, display: "block", marginLeft: "auto", marginRight: "auto", display: "flex", alignItems: "center", gap: 4 }}>
-            <ArrowLeft size={14} /> Back
+            <ChevronLeft size={14} /> Back
           </button>
         </>
       )}

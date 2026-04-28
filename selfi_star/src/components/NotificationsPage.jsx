@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Heart, MessageCircle, UserPlus, Trophy, Bell, Check, AtSign, Reply, RefreshCw, ArrowLeft } from "lucide-react";
+import { Heart, MessageCircle, UserPlus, Trophy, Bell, Check, AtSign, Reply, RefreshCw, ChevronLeft } from "lucide-react";
 import api from "../api";
 import config from "../config.js";
 import { getRelativeTime } from "../utils/timeUtils";
@@ -173,51 +173,50 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
         padding: '16px 20px 0',
       }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {onBack && (
                 <button onClick={onBack} style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: 6, borderRadius: '50%', color: T.txt,
+                  padding: 4, borderRadius: '50%', color: T.txt,
                 }}>
-                  <ArrowLeft size={22} strokeWidth={2.5} />
+                  <ChevronLeft size={20} strokeWidth={2.5} />
                 </button>
               )}
               <div style={{ position: 'relative' }}>
-                <Bell size={22} color={T.pri} strokeWidth={2.5} />
+                <Bell size={20} color={T.pri} strokeWidth={2.5} />
                 {hasUnread && (
                   <div style={{
-                    position: 'absolute', top: -3, right: -3,
-                    width: 8, height: 8, borderRadius: '50%',
+                    position: 'absolute', top: -2, right: -2,
+                    width: 6, height: 6, borderRadius: '50%',
                     background: '#EF4444', border: '1.5px solid #fff',
                     animation: 'notif-pulse 2s infinite',
                   }} />
                 )}
               </div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: T.txt, margin: 0 }}>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txt, margin: 0 }}>
                 Notifications
               </h1>
-              {refreshing && <RefreshCw size={14} color={T.sub} style={{ animation: 'spin 1s linear infinite' }} />}
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
               {hasUnread && (
                 <button onClick={handleMarkAllRead} style={{
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '6px 12px', background: 'none',
-                  border: `1px solid ${T.border}`, borderRadius: 20,
-                  color: T.pri, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  padding: '4px 10px', background: 'none',
+                  border: `1px solid ${T.border}`, borderRadius: 16,
+                  color: T.pri, fontSize: 11, fontWeight: 600, cursor: 'pointer',
                 }}>
-                  <Check size={12} /> Mark all read
+                  <Check size={10} /> Mark all read
                 </button>
               )}
               <button onClick={() => fetchNotifications(false)} style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '6px 12px', background: 'none',
-                border: `1px solid ${T.border}`, borderRadius: 20,
-                color: T.sub, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: 6, background: 'none',
+                border: `1px solid ${T.border}`, borderRadius: 16,
+                color: T.sub, cursor: 'pointer',
               }}>
-                <RefreshCw size={12} />
+                <RefreshCw size={14} />
               </button>
             </div>
           </div>
