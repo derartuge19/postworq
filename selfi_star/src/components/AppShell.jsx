@@ -192,7 +192,7 @@ export function AppShell({
             marginRight: -12,
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             minHeight: 80
           }}>
             <img 
