@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import api from "../api";
 import { useLegacyT } from "../contexts/ThemeContext";
 import realtimeService from "../services/RealtimeService";
@@ -232,9 +233,12 @@ export function PostPage({ user, onBack }) {
           borderRadius: 10,
           backdropFilter: "blur(6px)",
           boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        ←
+        <ArrowLeft size={20} />
       </button>
 
       {!selectedFile ? (

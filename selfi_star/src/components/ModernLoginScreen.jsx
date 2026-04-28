@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, Loader, User, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader, User, ChevronDown, ChevronUp, X, ArrowLeft } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -154,7 +154,9 @@ function ForgotModal({ onClose }) {
           <button onClick={confirmReset} disabled={loading} style={{ width: "100%", padding: "13px", background: GOLD, border: "none", borderRadius: 10, color: "#000", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             {loading ? <><Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> Resetting…</> : "Reset Password"}
           </button>
-          <button onClick={() => { setFpStep(1); setFpCode(""); setError(""); setMsg(""); }} style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", marginTop: 12, display: "block", marginLeft: "auto", marginRight: "auto" }}>← Back</button>
+          <button onClick={() => { setFpStep(1); setFpCode(""); setError(""); setMsg(""); }} style={{ background: "none", border: "none", color: "#C2994B", fontSize: 13, cursor: "pointer", marginTop: 12, display: "block", marginLeft: "auto", marginRight: "auto", display: "flex", alignItems: "center", gap: 4 }}>
+            <ArrowLeft size={14} /> Back
+          </button>
         </>
       )}
 

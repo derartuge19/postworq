@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2, User, Gift, AtSign } from 'lucide-react';
+import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2, User, Gift, AtSign, ArrowUpRight } from 'lucide-react';
 import api from '../api';
 import config from '../config';
 import { useTheme } from '../contexts/ThemeContext';
@@ -467,7 +467,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
               </button>
             </div>
           )}
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <input
               ref={inputRef}
               value={text}
@@ -480,7 +480,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
               type="button"
               onClick={() => { inputRef.current?.focus(); setText(prev => prev + '@'); }}
               disabled={!api.hasToken()}
-              style={{ background: 'none', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#F9E08B', flexShrink: 0 }}
+              style={{ background: 'none', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#F9E08B', flexShrink: 0, zIndex: 10 }}
             >
               <AtSign size={18} />
             </button>
@@ -488,14 +488,14 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
               type="button"
               onClick={() => setShowGiftModal(true)}
               disabled={!api.hasToken()}
-              style={{ background: 'none', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#F9E08B', flexShrink: 0 }}
+              style={{ background: 'none', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#F9E08B', flexShrink: 0, zIndex: 10 }}
             >
               <Gift size={18} />
             </button>
             <button
               type="submit"
               disabled={!text.trim() || sending || !api.hasToken()}
-              style={{ background: T?.pri || '#000', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0 }}
+              style={{ background: T?.pri || '#000', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0, zIndex: 10 }}
               onMouseDown={e => e.currentTarget.style.transform = 'scale(0.9)'}
               onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             >

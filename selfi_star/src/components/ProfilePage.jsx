@@ -613,14 +613,14 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 {reportUserMsg.text}
               </div>
             )}
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <button
                 onClick={handleFollowToggle}
                 style={{
                   flex: 1,
                   padding: "10px 20px",
                   border: isFollowing ? `1px solid ${T.border}` : "none",
-                  background: isFollowing ? "#fff" : T.pri,
+                  background: isFollowing ? T.cardBg || '#1A1A1A' : T.pri,
                   borderRadius: 8,
                   cursor: "pointer",
                   fontSize: 14,
@@ -631,6 +631,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   justifyContent: "center",
                   gap: 8,
                   transition: "all 0.2s",
+                  height: 40,
                 }}
               >
                 {isFollowing ? <UserCheck size={18} /> : <UserPlus size={18} />}
@@ -645,13 +646,14 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 style={{
                   padding: "10px 14px",
                   border: `1px solid ${T.border}`,
-                  background: "#fff",
+                  background: T.cardBg || '#1A1A1A',
                   borderRadius: 8,
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: '#F9E08B',
+                  height: 40,
                 }}
                 title="Share profile"
               >
@@ -663,7 +665,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                 style={{
                   padding: "10px 14px",
                   border: `1px solid ${T.border}`,
-                  background: "#fff",
+                  background: T.cardBg || '#1A1A1A',
                   borderRadius: 8,
                   cursor: "pointer",
                   display: "flex",
@@ -671,6 +673,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   justifyContent: "center",
                   color: '#EF4444',
                   opacity: reportingUser ? 0.5 : 1,
+                  height: 40,
                 }}
                 title="Report user"
               >
@@ -681,49 +684,27 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
         )}
 
         {isOwnProfile && (
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              className="pp-btn"
-              onClick={() => setShowEditModal(true)}
-              style={{
-                background: "transparent",
-                border: `1px solid ${T.pri || '#E2B355'}`,
-                borderRadius: 8,
-                padding: "8px 16px",
-                color: '#F9E08B',
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              <Edit size={16} color={'#F9E08B'} />
-              Edit Profile
-            </button>
-            <button
-              className="pp-btn"
-              onClick={() => {
-                const url = window.location.origin + '/profile/' + (userId || user?.id);
-                navigator.clipboard?.writeText(url).catch(() => {});
-                alert('Profile link copied!');
-              }}
-              style={{
-                background: "transparent",
-                border: `1px solid ${T.pri || '#E2B355'}`,
-                borderRadius: 8,
-                padding: "8px 16px",
-                color: '#F9E08B',
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-              title="Share profile"
-            >
-              <Share2 size={16} color={'#F9E08B'} />
-              Share
-            </button>
-          </div>
+          <button
+            onClick={() => onEditProfile?.()}
+            style={{
+              width: "100%",
+              padding: "10px 20px",
+              border: `1px solid ${T.pri || '#E2B355'}`,
+              background: "transparent",
+              borderRadius: 8,
+              cursor: "pointer",
+              fontSize: 14,
+              fontWeight: 700,
+              color: T.pri || '#E2B355',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              height: 40,
+            }}>
+            <Edit size={16} color={T.pri || '#E2B355'} />
+            Edit Profile
+          </button>
         )}
       </div>
 
@@ -1362,8 +1343,8 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
           <div
             style={{
               position: 'relative',
-              maxWidth: '90vw',
-              maxHeight: '90vh',
+              maxWidth: '70vw',
+              maxHeight: '70vh',
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -1373,34 +1354,12 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               style={{
                 width: '100%',
                 height: 'auto',
-                maxHeight: '85vh',
+                maxHeight: '65vh',
                 borderRadius: 12,
                 objectFit: 'contain',
                 boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
               }}
             />
-            <button
-              onClick={() => setShowProfileZoom(false)}
-              style={{
-                position: 'absolute',
-                top: -16,
-                right: -16,
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.9)',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 24,
-                color: '#000',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              }}
-            >
-              ✕
-            </button>
           </div>
         </div>
       )}
