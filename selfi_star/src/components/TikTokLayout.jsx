@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Play,
   Pause,
+  ArrowUpRight,
 } from 'lucide-react';
 import api from '../api';
 import config from '../config';
@@ -34,7 +35,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import realtimeService from '../services/RealtimeService';
 import './TikTokLayout.css';
 const ShareIconFilled = ({ size = 26, color = '#fff', style = {} }) => (
-  <Share2 size={size} color={color} style={style} />
+  <ArrowUpRight size={size} color={color} style={style} />
 );
 
 // Helper to shuffle array for randomized feed

@@ -1275,7 +1275,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               }}>
                 <button className="ep-btn" onClick={onBack}
                   style={{ background: 'rgba(249,224,139,0.15)', border: '1.5px solid #F9E08B', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={20} color="#F9E08B" />
+                  <ArrowLeft size={20} color="#F9E08B" />
                 </button>
                 <span style={{ fontSize: 18, fontWeight: 800, background: 'linear-gradient(to bottom, #F9E08B 0%, #D4AF37 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>New Post</span>
                 {drafts.length > 0 ? (

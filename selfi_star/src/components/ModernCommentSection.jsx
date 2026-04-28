@@ -361,7 +361,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
         style={{
           position: "fixed",
           top: 0,
-          left: 0,
+          left: window.innerWidth <= 1024 ? 0 : 260,
           right: 0,
           bottom: window.innerWidth <= 1024 ? 68 : 0,
           background: "rgba(0,0,0,0.7)",
@@ -378,7 +378,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
           style={{
             width: "100%",
             maxWidth: 600,
-            background: "#fff",
+            background: T.cardBg || '#1A1A1A',
             borderRadius: "20px 20px 0 0",
             display: "flex",
             flexDirection: "column",
@@ -460,9 +460,10 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
           display: "flex",
           gap: 10,
           alignItems: "center",
-          background: "#fff",
+          background: T.cardBg || '#1A1A1A',
           boxSizing: "border-box",
           width: "100%",
+          position: 'relative',
         }}>
           <div style={{
             width: 36,
@@ -514,6 +515,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
               cursor: "pointer",
               color: "#F9E08B",
               flexShrink: 0,
+              zIndex: 10,
             }}
           >
             <AtSign size={18} />
@@ -533,6 +535,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
               cursor: "pointer",
               color: "#F9E08B",
               flexShrink: 0,
+              zIndex: 10,
             }}
           >
             <Gift size={18} />
@@ -553,6 +556,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
               cursor: posting || !newComment.trim() ? "not-allowed" : "pointer",
               color: "#fff",
               flexShrink: 0,
+              zIndex: 10,
             }}
           >
             {posting ? <Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> : <Send size={18} />}
@@ -630,21 +634,21 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
           onClick={() => setReportingComment(null)}
         >
           <div
-            style={{ width: "100%", maxWidth: 600, background: "#fff", borderRadius: "20px 20px 0 0", padding: "20px 20px 32px", boxSizing: "border-box" }}
+            style={{ width: "100%", maxWidth: 600, background: T.cardBg || '#1A1A1A', borderRadius: "20px 20px 0 0", padding: "20px 20px 32px", boxSizing: "border-box" }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ width: 36, height: 4, background: "#E5E7EB", borderRadius: 4, margin: "0 auto 16px" }} />
+            <div style={{ width: 36, height: 4, background: T.border || '#333', borderRadius: 4, margin: "0 auto 16px" }} />
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
               <Flag size={18} color="#EF4444" />
-              <span style={{ fontSize: 17, fontWeight: 700, color: "#111" }}>Report Comment</span>
+              <span style={{ fontSize: 17, fontWeight: 700, color: T.txt || '#fff' }}>Report Comment</span>
             </div>
-            <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 16 }}>Why are you reporting this comment?</p>
+            <p style={{ fontSize: 13, color: T.sub || '#999', marginBottom: 16 }}>Why are you reporting this comment?</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {COMMENT_REPORT_REASONS.map(r => (
                 <button key={r.id} onClick={() => handleReportComment(reportingComment, r.id)} disabled={reportSubmitting}
-                  style={{ padding: "13px 16px", border: "1px solid #F3F4F6", borderRadius: 10, background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: "#111", fontWeight: 500, textAlign: "left", transition: "background 0.15s" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#F9FAFB"}
-                  onMouseLeave={e => e.currentTarget.style.background = "#fff"}
+                  style={{ padding: "13px 16px", border: `1px solid ${T.border || '#333'}`, borderRadius: 10, background: T.cardBg || '#1A1A1A', cursor: "pointer", display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: T.txt || '#fff', fontWeight: 500, textAlign: "left", transition: "background 0.15s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = (T.border || '#333')}
+                  onMouseLeave={e => e.currentTarget.style.background = (T.cardBg || '#1A1A1A')}
                 >
                   <span style={{ fontSize: 18 }}>{r.icon}</span>
                   {r.label}
@@ -652,7 +656,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
               ))}
             </div>
             <button onClick={() => setReportingComment(null)}
-              style={{ marginTop: 12, width: "100%", padding: 12, border: "none", borderRadius: 10, background: "#F3F4F6", cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#374151" }}>
+              style={{ marginTop: 12, width: "100%", padding: 12, border: "none", borderRadius: 10, background: T.border || '#333', cursor: "pointer", fontSize: 14, fontWeight: 600, color: T.txt || '#fff' }}>
               Cancel
             </button>
           </div>
