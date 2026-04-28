@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Wallet, Coins, ArrowUpFromLine, Settings, RefreshCw,
   CheckCircle2, XCircle, Clock, Loader, Search, Filter,
-  TrendingUp, TrendingDown, User, Save, AlertTriangle, ChevronRight, Gift
+  TrendingUp, TrendingDown, User, Save, AlertTriangle, ChevronRight, Gift, Trophy
 } from 'lucide-react';
 import api from '../../api';
 
