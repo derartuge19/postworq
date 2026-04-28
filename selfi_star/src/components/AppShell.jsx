@@ -186,8 +186,8 @@ export function AppShell({
           }}
         >
           <div style={{ 
-            padding: '20px 0', 
-            marginBottom: 32, 
+            padding: '8px 0', 
+            marginBottom: 8, 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
