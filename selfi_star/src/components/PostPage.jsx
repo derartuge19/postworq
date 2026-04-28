@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import api from "../api";
 import { useLegacyT } from "../contexts/ThemeContext";
 import realtimeService from "../services/RealtimeService";
@@ -238,7 +238,7 @@ export function PostPage({ user, onBack }) {
           justifyContent: "center",
         }}
       >
-        <ArrowLeft size={20} />
+        <ChevronLeft size={20} />
       </button>
 
       {!selectedFile ? (

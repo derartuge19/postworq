@@ -196,7 +196,7 @@ export default function ProfileDetailScreen({ route, navigation }) {
                 <Ionicons name="arrow-back" size={18} color="#000" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconBtn} onPress={() => {/* Share functionality */}}>
-                <Ionicons name="share-social-outline" size={18} color="#000" />
+                <Ionicons name="share-social" size={18} color="#000" />
               </TouchableOpacity>
               <TouchableOpacity style={[styles.iconBtn, styles.reportBtn]} onPress={() => {/* Report functionality */}}>
                 <Ionicons name="flag-outline" size={18} color="#EF4444" />

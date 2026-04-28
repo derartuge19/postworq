@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, UserPlus, UserCheck } from "lucide-react";
+import { ChevronLeft, UserPlus, UserCheck } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -123,7 +123,7 @@ export function FollowersListPage({ user, userId, type = "followers", onBack, on
             color: T.txt,
           }}
         >
-          <ArrowLeft size={24} />
+          <ChevronLeft size={24} />
         </button>
         <div style={{ flex: 1, fontSize: 18, fontWeight: 700, color: T.txt }}>
           {type === "followers" ? "Followers" : "Following"}

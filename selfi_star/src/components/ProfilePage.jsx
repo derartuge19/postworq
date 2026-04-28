@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from "react";
-import { Grid, Film, Bookmark, Settings, ArrowLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2, Wallet, Gem, X } from "lucide-react";
+import { Grid, Film, Bookmark, Settings, ChevronLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2, Wallet, Gem, X } from "lucide-react";
 import { GamificationBar } from "./GamificationBar";
 import api from "../api";
 import config from "../config";
@@ -417,7 +417,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
               onClick={onBack}
               style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "flex", alignItems: "center", color: '#F9E08B' }}
             >
-              <ArrowLeft size={24} />
+              <ChevronLeft size={24} />
             </button>
             <div style={{ width: 120, height: 16, background: "#f0f0f0", borderRadius: 8 }} />
           </div>

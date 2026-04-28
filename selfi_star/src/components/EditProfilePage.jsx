@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Camera, Save } from "lucide-react";
+import { ChevronLeft, Camera, Save } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -154,7 +154,7 @@ export function EditProfilePage({ user, onBack, onSave }) {
             flexShrink: 0,
           }}
         >
-          <ArrowLeft size={22} />
+          <ChevronLeft size={22} />
         </button>
         <div style={{ flex: 1, fontSize: 17, fontWeight: 700, color: T.txt, minWidth: 0 }}>
           Edit Profile

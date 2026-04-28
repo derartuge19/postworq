@@ -421,7 +421,7 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionBtn} onPress={() => handleShare(item.id)}>
-              <Ionicons name="share-social-outline" size={20} color={T.txt} />
+              <Ionicons name="share-social" size={20} color={T.txt} />
               <Text style={styles.actionText}>{(item.shares || 0) > 0 ? item.shares : ''}</Text>
             </TouchableOpacity>
 

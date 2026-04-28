@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { Inp } from "./Inp";
 import { GradBtn } from "./GradBtn";
 import api from "../api";
@@ -77,7 +77,7 @@ export function RegisterScreen({ onSuccess, onLogin, onBack }) {
     <div style={{ minHeight:"100vh", background:T.dark, display:"flex", flexDirection:"column" }}>
       <div style={{ padding:"50px 24px 0" }}>
         <button onClick={step===0?onBack:()=>setStep(step-1)} style={{ background:"rgba(255,255,255,0.12)", border:"none", borderRadius:"50%", width:36, height:36, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff" }}>
-          <ArrowLeft size={20} />
+          <ChevronLeft size={20} />
         </button>
         <div style={{ marginTop:14, padding:"0 4px" }}>
           <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", fontWeight:600, marginBottom:7 }}>STEP {step+1} OF {steps.length}</div>

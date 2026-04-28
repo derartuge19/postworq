@@ -244,7 +244,7 @@ export default function CampaignFeedScreen({ route, navigation }) {
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.actionItem}>
-            <Ionicons name="share-social-outline" size={24} color="#000" />
+            <Ionicons name="share-social" size={24} color="#000" />
           </TouchableOpacity>
         </View>
 

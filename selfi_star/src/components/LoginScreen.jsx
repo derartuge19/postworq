@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { Inp } from "./Inp";
 import { GradBtn } from "./GradBtn";
 import api from "../api";
@@ -50,7 +50,7 @@ export function LoginScreen({ onSuccess, onRegister, onBack }) {
     <div style={{ minHeight:"100vh", background:T.dark, display:"flex", flexDirection:"column" }}>
       <div style={{ padding:"52px 24px 0" }}>
         <button onClick={onBack} style={{ background:"rgba(255,255,255,0.12)", border:"none", borderRadius:"50%", width:36, height:36, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff" }}>
-          <ArrowLeft size={20} />
+          <ChevronLeft size={20} />
         </button>
         <div style={{ textAlign:"center", marginTop:20 }}>
           <div style={{ fontSize:34, marginBottom:6 }}>⭐</div>

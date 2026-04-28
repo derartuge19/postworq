@@ -550,6 +550,7 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
               width: 38,
               height: 38,
               minWidth: 38,
+              minHeight: 38,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

@@ -29,7 +29,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#DA9B2A';
 
 // ─────────────────────────────────────────────────────────────
 // Single Reel Item Component
@@ -252,7 +252,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
           <Ionicons
             name={liked ? 'heart' : 'heart-outline'}
             size={36}
-            color='#F9E08B'
+            color={liked ? BRAND_GOLD : BRAND_GOLD}
           />
           <Text style={styles.sideBtnLabel}>{likeCount}</Text>
         </TouchableOpacity>
@@ -262,20 +262,20 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
           <Ionicons
             name={muted ? 'volume-mute' : 'volume-high'}
             size={32}
-            color='#F9E08B'
+            color={BRAND_GOLD}
           />
           <Text style={styles.sideBtnLabel}>{muted ? 'Off' : 'On'}</Text>
         </TouchableOpacity>
 
         {/* 3. Comment */}
         <TouchableOpacity style={styles.sideBtn} onPress={onComment}>
-          <Ionicons name="chatbubble-outline" size={32} color='#F9E08B' />
+          <Ionicons name="chatbubble-outline" size={32} color={BRAND_GOLD} />
           <Text style={styles.sideBtnLabel}>{item.comment_count || 0}</Text>
         </TouchableOpacity>
 
         {/* 4. Share */}
         <TouchableOpacity style={styles.sideBtn} onPress={onShare}>
-          <Ionicons name="share-social-outline" size={30} color='#F9E08B' />
+          <Ionicons name="share-social" size={30} color={BRAND_GOLD} />
           <Text style={styles.sideBtnLabel}>Share</Text>
         </TouchableOpacity>
 
@@ -284,15 +284,15 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
           <Ionicons 
             name={saved ? 'bookmark' : 'bookmark-outline'} 
             size={30} 
-            color='#F9E08B'
+            color={BRAND_GOLD} 
           />
           <Text style={styles.sideBtnLabel}>Save</Text>
         </TouchableOpacity>
 
         {/* 6. Gift (Gamification) */}
         <TouchableOpacity style={styles.sideBtn} onPress={() => onGift(item)}>
-          <Ionicons name="gift-outline" size={32} color='#F9E08B' />
-          <Text style={[styles.sideBtnLabel, { color: '#F9E08B' }]}>Gift</Text>
+          <Ionicons name="gift-outline" size={32} color={BRAND_GOLD} />
+          <Text style={[styles.sideBtnLabel, { color: BRAND_GOLD }]}>Gift</Text>
         </TouchableOpacity>
 
       </View>
@@ -547,7 +547,7 @@ export default function ReelsScreen({ route, navigation }) {
                 setLongPressItem(null);
               }}>
                 <View style={[styles.iconCircleGrid, { backgroundColor: '#8B5CF615' }]}>
-                  <Ionicons name="share-social-outline" size={24} color="#8B5CF6" />
+                  <Ionicons name="share-social" size={24} color="#8B5CF6" />
                 </View>
                 <Text style={[styles.iconGridText, { color: T.text }]}>Share</Text>
               </TouchableOpacity>

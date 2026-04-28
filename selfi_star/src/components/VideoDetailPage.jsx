@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Heart, MessageCircle, Share2, Bookmark, MoreVertical } from 'lucide-react';
+import { ChevronLeft, Heart, MessageCircle, Share2, Bookmark, MoreVertical } from 'lucide-react';
 import api from '../api';
 import config from '../config';
 import { useLegacyT } from '../contexts/ThemeContext';
@@ -207,7 +207,7 @@ export function VideoDetailPage({ reelId, onBack, onShowProfile, user }) {
             padding: 8, display: 'flex', alignItems: 'center',
           }}
         >
-          <ArrowLeft size={24} color="#fff" />
+          <ChevronLeft size={24} color="#fff" />
         </button>
         <div
           onClick={() => onShowProfile?.(reel.user.id)}

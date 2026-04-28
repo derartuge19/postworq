@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Image as ImageIcon, Video, Hash, Type, Upload, X } from "lucide-react";
+import { ChevronLeft, Image as ImageIcon, Video, Hash, Type, Upload, X } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -220,7 +220,7 @@ export function ModernPostPage({ user, onBack }) {
             opacity: isUploading ? 0.5 : 1,
           }}
         >
-          <ArrowLeft size={24} />
+          <ChevronLeft size={24} />
         </button>
         <div style={{ flex: 1, fontSize: 18, fontWeight: 700, color: T.txt }}>
           Create Post

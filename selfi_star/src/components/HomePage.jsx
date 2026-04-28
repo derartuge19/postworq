@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2, User, Gift, AtSign, ArrowUpRight } from 'lucide-react';
+import { Heart, Trophy, MessageCircle, Share2, Bookmark, MoreHorizontal, Eye, CheckCircle, Play, X, Send, Info, Link2, Download, Flag, Trash2, User, Gift, AtSign } from 'lucide-react';
 import api from '../api';
 import config from '../config';
 import { useTheme } from '../contexts/ThemeContext';
@@ -495,7 +495,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
             <button
               type="submit"
               disabled={!text.trim() || sending || !api.hasToken()}
-              style={{ background: T?.pri || '#000', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0, zIndex: 10 }}
+              style={{ background: T?.pri || '#000', border: 'none', borderRadius: '50%', width: 40, height: 40, minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (!text.trim() || sending) ? 0.5 : 1, transition: 'opacity 0.2s, transform 0.1s', flexShrink: 0, zIndex: 10 }}
               onMouseDown={e => e.currentTarget.style.transform = 'scale(0.9)'}
               onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             >
@@ -1322,7 +1322,7 @@ const PostCard = memo(function PostCard({ post, index, currentUser, T, onShowPro
                   '--hp-hover': (T?.border || '#e0e0e0') + '60',
                 }}
               >
-                <ArrowUpRight size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
+                <Share2 size={baseFontSize} color="#F9E08B" fill="none" style={{ transition: 'transform 0.15s, fill 0.15s' }} />
                 <span style={{ fontSize: 'calc(var(--font-size-base) * 0.6875)', color: '#F9E08B', fontWeight: 600 }}>{post.shares > 0 ? post.shares : ''}</span>
               </button>
               {/* Gift - only show on other people's posts */}

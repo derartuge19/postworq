@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search, X, TrendingUp, Flame, Music, Laugh, Dumbbell, Utensils,
   Plane, Palette, Play, Heart, Eye, Hash, User, Clock, ChevronRight,
-  Gamepad2, Sparkles, BookOpen, Baby, Shirt, ArrowLeft,
+  Gamepad2, Sparkles, BookOpen, Baby, Shirt, ChevronLeft,
 } from 'lucide-react';
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
@@ -437,7 +437,7 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
               color: T.txt, flexShrink: 0,
             }}
           >
-            <ArrowLeft size={22} strokeWidth={2.5} />
+            <ChevronLeft size={22} strokeWidth={2.5} />
           </button>
           
           {inSearchMode || searchFocused ? null : (
