@@ -160,7 +160,7 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
             {api.hasToken() && (
               <>
                 <button
-                  onClick={() => onLike(comment)}
+                  onClick={() => onLike(comment, isReply)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
                 >
                   <Heart size={14} fill={comment.is_liked ? '#E2B355' : 'none'} color={comment.is_liked ? '#E2B355' : (T?.sub || '#999')} />
@@ -400,7 +400,7 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
     } finally { setSending(false); }
   };
 
-  const handleLikeComment = async (comment) => {
+  const handleLikeComment = async (comment, isReply = false) => {
     if (!api.hasToken()) return;
     // Don't allow liking comments with temporary IDs (not yet saved to database)
     if (String(comment.id).startsWith('temp-')) {
@@ -422,7 +422,11 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
     setComments(prev => updateLikesDeep(prev));
 
     try {
-      await api.likeComment(comment.id);
+      if (isReply) {
+        await api.likeReply(comment.id);
+      } else {
+        await api.likeComment(comment.id);
+      }
     } catch (err) {
       // Roll back on error (optional, but good for UX)
       setComments(prev => updateLikesDeep(prev));

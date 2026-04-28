@@ -528,6 +528,11 @@ const api = {
       method: 'POST',
     }),
 
+  likeReply: (replyId) =>
+    api.request(`/comment-replies/${replyId}/like/`, {
+      method: 'POST',
+    }),
+
   replyToComment: (commentId, text) =>
     api.request(`/comments/${commentId}/reply/`, {
       method: 'POST',
@@ -579,6 +584,26 @@ const api = {
   // Get saved posts
   getSavedPosts: () => api.request('/reels/?saved=true'),
   getUserSavedPosts: () => api.request('/reels/?saved=true'),
+
+  // Settings
+  changePassword: (currentPassword, newPassword) =>
+    api.request('/auth/change-password/', {
+      method: 'POST',
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    }),
+
+  deleteAccount: () =>
+    api.request('/auth/delete-account/', {
+      method: 'POST',
+    }),
+
+  downloadUserData: () =>
+    api.request('/auth/download-data/', {
+      method: 'GET',
+    }),
 };
 
 export default api;

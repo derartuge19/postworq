@@ -4,14 +4,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from .views import (
-    register, login, reset_password,
+    register, login, reset_password, change_password, delete_account, download_data,
     send_phone_otp, verify_phone_otp, register_with_phone,
     forgot_password_request, forgot_password_confirm,
     create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
     get_user_notifications, mark_notifications_read, get_unread_notification_count,
     mark_single_notification_read, create_report, admin_reports_list, admin_report_detail,
-    admin_reports_stats, admin_moderate_report, get_trending_reels, mark_not_interested, undo_not_interested, 
+    admin_reports_stats, admin_moderate_report, get_trending_reels, mark_not_interested, undo_not_interested,
     get_trending_hashtags, get_reels_by_hashtag, track_view
 )
 from .views_master_campaign import (
@@ -214,6 +214,9 @@ urlpatterns = [
     path('auth/register/', register, name='auth-register'),
     path('auth/login/', login, name='auth-login'),
     path('auth/reset-password/', reset_password, name='auth-reset-password'),
+    path('auth/change-password/', change_password, name='auth-change-password'),
+    path('auth/delete-account/', delete_account, name='auth-delete-account'),
+    path('auth/download-data/', download_data, name='auth-download-data'),
     path('auth/send-otp/', send_phone_otp, name='auth-send-otp'),
     path('auth/verify-otp/', verify_phone_otp, name='auth-verify-otp'),
     path('auth/register-phone/', register_with_phone, name='auth-register-phone'),

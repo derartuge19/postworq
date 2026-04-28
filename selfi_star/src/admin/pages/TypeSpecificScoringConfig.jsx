@@ -38,7 +38,7 @@ function getTypeIcon(type) {
 
 function getTypeDescription(type) {
   const desc = {
-    daily: 'Lightweight & gamified. Hybrid winner selection (top scorers + random). No voting.',
+    daily: 'Lightweight & gamified. Top scorer selection. No voting.',
     weekly: 'Cumulative & competitive. Streak bonuses + decay. Top scorers only. No randomness.',
     monthly: 'Deep weighting with multipliers. Weekly winner bonuses. Top performers only.',
     grand: 'Two-phase: Qualification scoring → Final judging + public voting (70/30 split).'
@@ -51,14 +51,10 @@ function DailyConfig({ config, updateField, updateSimple, theme }) {
   if (!config) return null;
   return (
     <div style={{ background: theme.card, borderRadius: 16, padding: 24 }}>
-      <Section theme={theme} icon="🏆" title="Winner Selection (Hybrid)" color="#10B981">
+      <Section theme={theme} icon="🏆" title="Winner Selection" color="#10B981">
         <p style={{ fontSize: 13, color: theme.sub, marginBottom: 16 }}>
-          Daily campaigns use a hybrid approach: top scorers + random participants. No voting allowed.
+          Daily campaigns use top scorer selection. No voting allowed.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-          <NumberInput label="Top Scorer %" value={config?.top_scorer_percentage} onChange={v => updateSimple('top_scorer_percentage', v)} suffix="%" theme={theme} />
-          <NumberInput label="Random Selection %" value={config?.random_percentage} onChange={v => updateSimple('random_percentage', v)} suffix="%" theme={theme} />
-        </div>
       </Section>
 
       <Section theme={theme} icon="🚫" title="Win Protection" color="#EF4444">

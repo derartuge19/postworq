@@ -4,7 +4,6 @@ export function AdminSidebar({ theme, currentPage, onPageChange, adminUser, onLo
   const menuItems = [
     { id: 'dashboard',   icon: LayoutDashboard, label: 'Dashboard' },
     { id: 'mobile-app',  icon: Smartphone,      label: '📱 Mobile App' },
-    { id: 'contest', icon: Award, label: '90-Day Contest' },
     { id: 'judging', icon: Target, label: 'Judging Portal' },
     { id: 'anti-cheat', icon: Zap, label: 'Anti-Cheat' },
     { id: 'gifts', icon: GiftIcon, label: 'Gifts' },

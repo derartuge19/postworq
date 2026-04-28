@@ -64,8 +64,8 @@ export function CommentSection({ reelId, user, onClose, onCommentPosted }) {
       <div style={{
         width: "100%",
         maxWidth: 600,
-        height: "70vh",
-        background: "#fff",
+        height: "85vh",
+        background: T.cardBg,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         display: "flex",
@@ -163,7 +163,7 @@ export function CommentSection({ reelId, user, onClose, onCommentPosted }) {
         {/* Comment Input */}
         {user ? (
           <div style={{
-            padding: "16px 20px",
+            padding: "12px 20px 8px 20px",
             borderTop: `1px solid ${T.border}`,
             display: "flex",
             gap: 12,
@@ -195,6 +195,8 @@ export function CommentSection({ reelId, user, onClose, onCommentPosted }) {
                   borderRadius: 20,
                   fontSize: 14,
                   outline: "none",
+                  background: T.bg,
+                  color: T.txt,
                 }}
               />
             </div>

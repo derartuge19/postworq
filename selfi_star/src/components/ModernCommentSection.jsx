@@ -86,7 +86,7 @@ const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, rep
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <button
-              onClick={() => onLike(comment.id)}
+              onClick={() => onLike(comment.id, isReply)}
               style={{
                 background: "none", border: "none", cursor: "pointer", padding: 0,
                 display: "flex", alignItems: "center", gap: 4,
@@ -357,16 +357,33 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
     }
   };
 
-  const handleLikeComment = async (commentId) => {
+  const handleLikeComment = async (commentId, isReply = false) => {
     try {
-      const response = await api.likeComment(commentId);
-      setComments(comments.map(c => 
-        c.id === commentId 
-          ? { ...c, is_liked: response.liked, likes_count: response.likes_count }
-          : c
-      ));
+      const response = isReply 
+        ? await api.likeReply(commentId)
+        : await api.likeComment(commentId);
+      
+      if (isReply) {
+        // Update reply likes
+        const updateDeep = (list) => list.map(c => {
+          const updatedReplies = c.replies?.map(r => 
+            String(r.id) === String(commentId)
+              ? { ...r, is_liked: response.liked, likes_count: response.likes_count }
+              : r
+          ) || [];
+          return { ...c, replies: updatedReplies };
+        });
+        setComments(updateDeep(comments));
+      } else {
+        // Update comment likes
+        setComments(comments.map(c => 
+          c.id === commentId 
+            ? { ...c, is_liked: response.liked, likes_count: response.likes_count }
+            : c
+        ));
+      }
     } catch (error) {
-      console.error("Failed to like comment:", error);
+      console.error("Failed to like comment/reply:", error);
     }
   };
 

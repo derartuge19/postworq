@@ -144,7 +144,7 @@ class CommentReplyViewSet(viewsets.ModelViewSet):
         return context
     
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'like']:
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     
@@ -179,6 +179,18 @@ class CommentReplyViewSet(viewsets.ModelViewSet):
         reply.text = ''
         reply.save()
         return Response({'ok': True})
+    
+    @action(detail=True, methods=['post'])
+    def like(self, request, pk=None):
+        reply = self.get_object()
+        like, created = CommentLike.objects.get_or_create(
+            user=request.user,
+            reply=reply
+        )
+        if not created:
+            like.delete()
+            return Response({'liked': False, 'likes_count': reply.likes_count})
+        return Response({'liked': True, 'likes_count': reply.likes_count})
 
 class SavedPostViewSet(viewsets.ModelViewSet):
     serializer_class = SavedPostSerializer

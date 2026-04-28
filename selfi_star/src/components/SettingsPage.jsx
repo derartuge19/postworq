@@ -102,7 +102,7 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEdit
       return;
     }
     try {
-      // API call would go here
+      await api.changePassword(password.current, password.new);
       setModal({
         isOpen: true,
         title: t('success'),
@@ -134,29 +134,50 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEdit
           title: t('finalConfirm'),
           message: t('deleteWarning'),
           type: 'warning',
-          onConfirm: () => {
-            // API call would go here
-            setModal({
-              isOpen: true,
-              title: t('accountDeleted'),
-              message: t('accountDeleting'),
-              type: 'info',
-              onConfirm: () => onLogout()
-            });
+          onConfirm: async () => {
+            try {
+              await api.deleteAccount();
+              setModal({
+                isOpen: true,
+                title: t('accountDeleted'),
+                message: t('accountDeleting'),
+                type: 'info',
+                onConfirm: () => onLogout()
+              });
+            } catch (error) {
+              setModal({
+                isOpen: true,
+                title: t('error'),
+                message: 'Failed to delete account. Please try again.',
+                type: 'error',
+                onConfirm: null
+              });
+            }
           }
         });
       }
     });
   };
 
-  const handleDownloadData = () => {
-    setModal({
-      isOpen: true,
-      title: t('downloadInitiated'),
-      message: t('downloadEmail'),
-      type: 'info',
-      onConfirm: null
-    });
+  const handleDownloadData = async () => {
+    try {
+      await api.downloadUserData();
+      setModal({
+        isOpen: true,
+        title: t('downloadInitiated'),
+        message: t('downloadEmail'),
+        type: 'info',
+        onConfirm: null
+      });
+    } catch (error) {
+      setModal({
+        isOpen: true,
+        title: t('error'),
+        message: 'Failed to request data download. Please try again.',
+        type: 'error',
+        onConfirm: null
+      });
+    }
   };
 
   // ─── MOBILE UI (mimics mobile app SettingsScreen) ────────────────────────────
@@ -334,8 +355,8 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEdit
           <SectionLabel>{t('help')}</SectionLabel>
           <SectionCard>
             <Row icon={HelpCircle} title={t('helpCenter')} onPress={() => setModal({ isOpen: true, title: 'Help', message: 'Contact support@flipstar.com', type: 'info', onConfirm: null })} />
-            <Row icon={Shield} title={t('privacyPolicy')} />
-            <Row icon={FileText} title={t('termsOfService')} />
+            <Row icon={Shield} title={t('privacyPolicy')} onPress={() => window.open('/legal/privacy-policy', '_blank')} />
+            <Row icon={FileText} title={t('termsOfService')} onPress={() => window.open('/legal/terms-of-service', '_blank')} />
           </SectionCard>
 
           {/* Danger Zone */}
@@ -1039,7 +1060,7 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEdit
                   <ChevronRight size={20} color={T.sub} />
                 </button>
 
-                <button style={{
+                <button onClick={() => window.open('/legal/terms-of-service', '_blank')} style={{
                   padding: isSmallMobile ? "12px 16px" : "16px 20px",
                   background: T.bg,
                   border: `1px solid ${T.border}`,
@@ -1054,7 +1075,7 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEdit
                   <ChevronRight size={20} color={T.sub} />
                 </button>
 
-                <button style={{
+                <button onClick={() => window.open('/legal/privacy-policy', '_blank')} style={{
                   padding: isSmallMobile ? "12px 16px" : "16px 20px",
                   background: T.bg,
                   border: `1px solid ${T.border}`,

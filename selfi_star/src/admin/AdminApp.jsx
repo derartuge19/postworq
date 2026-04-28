@@ -12,7 +12,6 @@ import { SystemLogsPage } from './pages/SystemLogsPage';
 import { PerformancePage } from './pages/PerformancePage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { AdminManagementPage } from './pages/AdminManagementPage';
-import { ContestDashboardPage } from './pages/ContestDashboardPage';
 import { JudgingPortalPage } from './pages/JudgingPortalPage';
 import { AntiCheatPage } from './pages/AntiCheatPage';
 import { CampaignManagementPage } from './pages/CampaignManagementPage';
@@ -196,8 +195,6 @@ export function AdminApp() {
         return <CampaignThemeManagement campaignId={selectedCampaignId} onBack={() => setCurrentPage('campaigns')} />;
       case 'campaign-moderation':
         return <CampaignPostModeration campaignId={selectedCampaignId} onBack={() => setCurrentPage('campaigns')} />;
-      case 'contest':
-        return <ContestDashboardPage theme={T} />;
       case 'judging':
         return <JudgingPortalPage theme={T} />;
       case 'anti-cheat':

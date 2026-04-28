@@ -118,19 +118,13 @@ class CampaignScoringEngine:
     
     def select_daily_winners(self, entries, total_winners=None):
         """
-        Select winners using 70/30 hybrid approach:
-        - 70% from top scorers
-        - 30% random from remaining participants
+        Select winners based on top scorers only.
         Enforces 7-day win limit.
         """
         if total_winners is None:
             total_winners = self.campaign.winner_count
         
         config = self.type_config
-        top_percentage = config['winner_selection']['top_percentage'] / 100.0
-        
-        top_count = int(total_winners * top_percentage)
-        random_count = total_winners - top_count
         
         # Filter out users who won in the last 7 days
         cooldown_days = config['win_cooldown_days']
@@ -155,28 +149,12 @@ class CampaignScoringEngine:
         winners = []
         
         # Select top scorers
-        top_entries = eligible_entries[:top_count]
-        for idx, entry in enumerate(top_entries, start=1):
+        for idx, entry in enumerate(eligible_entries[:total_winners], start=1):
             winners.append({
                 'rank': idx,
                 'user': entry.user,
                 'score': entry.score,
                 'method': 'top_scorer'
-            })
-        
-        # Select random from remaining
-        remaining = eligible_entries[top_count:]
-        if len(remaining) > random_count:
-            random_entries = random.sample(remaining, random_count)
-        else:
-            random_entries = remaining
-        
-        for idx, entry in enumerate(random_entries, start=top_count + 1):
-            winners.append({
-                'rank': idx,
-                'user': entry.user,
-                'score': entry.score,
-                'method': 'random'
             })
         
         return winners
