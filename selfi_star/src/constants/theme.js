@@ -62,3 +62,4 @@ export const PLANS = [
     features:["Everything in Star","Custom branding","Direct messaging","Exclusive events"]
   },
 ];
+

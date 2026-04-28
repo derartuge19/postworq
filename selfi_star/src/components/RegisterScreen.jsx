@@ -178,3 +178,4 @@ export function RegisterScreen({ onSuccess, onLogin, onBack }) {
     </div>
   );
 }
+

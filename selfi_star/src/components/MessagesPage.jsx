@@ -1669,3 +1669,4 @@ export function MessagesPage({ user, onShowProfile }) {
     </div>
   );
 }
+

@@ -891,3 +891,4 @@ export function GiftManagementPage({ theme }) {
     </div>
   );
 }
+

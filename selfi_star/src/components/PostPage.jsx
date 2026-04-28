@@ -677,3 +677,4 @@ export function PostPage({ user, onBack }) {
     </div>
   );
 }
+

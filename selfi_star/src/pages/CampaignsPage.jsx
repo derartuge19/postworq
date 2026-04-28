@@ -491,3 +491,4 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
     </div>
   );
 }
+

@@ -262,3 +262,4 @@ export function CreateVideoModal({ onClose, onVideoCreated }) {
     </div>
   );
 }
+

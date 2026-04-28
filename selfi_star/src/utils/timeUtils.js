@@ -44,3 +44,4 @@ export const formatDate = (timestamp) => {
     year: 'numeric' 
   });
 };
+

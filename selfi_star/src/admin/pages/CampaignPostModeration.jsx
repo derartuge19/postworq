@@ -271,3 +271,4 @@ const ModerationModal = ({ post, onClose, onModerate }) => {
 };
 
 export default CampaignPostModeration;
+

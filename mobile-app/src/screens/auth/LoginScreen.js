@@ -13,7 +13,7 @@ const CARD = '#222222';
 const INPUT_BG = '#2a2a2a';
 
 const ethioLogo = require('../../image/Ethio telecom Logo PNG format.png');
-const flipLogo  = require('../../image/Flip Star Final Logo v3 side (2).png');
+const flipLogo  = require('../../image/final_logo.jpg');
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');

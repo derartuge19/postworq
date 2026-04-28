@@ -291,3 +291,4 @@ export function ContestDashboardPage({ theme }) {
     </div>
   );
 }
+

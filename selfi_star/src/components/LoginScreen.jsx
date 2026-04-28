@@ -73,3 +73,4 @@ export function LoginScreen({ onSuccess, onRegister, onBack }) {
     </div>
   );
 }
+

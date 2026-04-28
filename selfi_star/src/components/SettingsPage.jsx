@@ -1185,3 +1185,4 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEdit
     </div>
   );
 }
+

@@ -34,3 +34,4 @@ setTimeout(() => {
     setTimeout(() => skeleton.remove(), 220);
   }
 }, 2000);
+

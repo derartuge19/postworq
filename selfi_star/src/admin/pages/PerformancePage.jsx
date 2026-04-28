@@ -274,3 +274,4 @@ const cellStyle = {
   padding: '12px 16px',
   fontSize: 14,
 };
+

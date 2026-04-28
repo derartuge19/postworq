@@ -184,3 +184,4 @@ export function UserProfilePage({ user, onClose }) {
     </div>
   );
 }
+

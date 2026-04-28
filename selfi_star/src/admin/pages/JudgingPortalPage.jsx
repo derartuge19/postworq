@@ -373,3 +373,4 @@ export function JudgingPortalPage({ theme }) {
     </div>
   );
 }
+

@@ -273,3 +273,4 @@ export function SystemLogsPage({ theme }) {
     </div>
   );
 }
+
