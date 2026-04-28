@@ -24,6 +24,7 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     if (!username || !password) { Alert.alert('Error', 'Please fill in all fields'); return; }
+    if (password.length !== 6) { Alert.alert('Error', 'PIN must be 6 digits'); return; }
     setLoading(true);
     try { await login(username, password); }
     catch (e) { Alert.alert('Login Failed', e.message || 'Invalid credentials'); }
@@ -49,20 +50,21 @@ export default function LoginScreen({ navigation }) {
 
         {/* Form */}
         <View style={styles.form}>
-          <Text style={styles.label}>USERNAME</Text>
+          <Text style={styles.label}>PHONE NUMBER</Text>
           <View style={styles.inputWrapper}>
-            <Ionicons name="person-outline" size={18} color={GOLD} style={styles.inputIcon} />
+            <Ionicons name="call-outline" size={18} color={GOLD} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Enter your username"
+              placeholder="Enter your phone number"
               placeholderTextColor="#666"
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
+              keyboardType="phone-pad"
             />
           </View>
 
-          <Text style={styles.label}>PASSWORD</Text>
+          <Text style={styles.label}>6-DIGIT PIN</Text>
           <View style={styles.inputWrapper}>
             <Ionicons name="lock-closed-outline" size={18} color={GOLD} style={styles.inputIcon} />
             <TextInput
@@ -70,8 +72,10 @@ export default function LoginScreen({ navigation }) {
               placeholder="••••••"
               placeholderTextColor="#666"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(t) => setPassword(t.slice(0, 6))}
               secureTextEntry={!showPass}
+              keyboardType="number-pad"
+              maxLength={6}
             />
             <TouchableOpacity onPress={() => setShowPass(!showPass)} style={styles.eyeBtn}>
               <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={18} color={GOLD} />
