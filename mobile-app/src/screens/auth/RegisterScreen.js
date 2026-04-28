@@ -7,10 +7,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 
-const BRAND = { pri: '#DA9B2A', bg: '#fff', txt: '#1a1a1a', sub: '#888', border: '#f0e6d0' };
+const GOLD     = '#F9E08B';
+const BG       = '#1a1a1a';
+const INPUT_BG = '#2a2a2a';
 
-const ethioLogo  = require('../../image/Ethio telecom Logo PNG format.png');
-const flipLogo   = require('../../image/Flip Star Final Logo v3 side (2).png');
+const ethioLogo = require('../../image/Ethio telecom Logo PNG format.png');
+const flipLogo  = require('../../image/Flip Star Final Logo v3 side (2).png');
 
 export default function RegisterScreen({ navigation }) {
   const [username, setUsername]   = useState('');
@@ -30,116 +32,109 @@ export default function RegisterScreen({ navigation }) {
     finally { setLoading(false); }
   };
 
-  const Field = ({ icon, placeholder, value, onChangeText, keyboardType, autoCapitalize, secure, showToggle, onToggle, show }) => (
-    <View style={styles.inputWrapper}>
-      <Ionicons name={icon} size={18} color={BRAND.pri} style={styles.inputIcon} />
-      <TextInput
-        style={[styles.input, { flex: 1 }]}
-        placeholder={placeholder}
-        placeholderTextColor={BRAND.sub}
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType || 'default'}
-        autoCapitalize={autoCapitalize || 'sentences'}
-        secureTextEntry={secure && !show}
-      />
-      {showToggle && (
-        <TouchableOpacity onPress={onToggle} style={styles.eyeBtn}>
-          <Ionicons name={show ? 'eye-off-outline' : 'eye-outline'} size={18} color={BRAND.sub} />
-        </TouchableOpacity>
-      )}
+  const Field = ({ label, icon, placeholder, value, onChangeText, keyboardType, autoCapitalize, secure, showToggle, onToggle, show }) => (
+    <View>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.inputWrapper}>
+        <Ionicons name={icon} size={18} color={GOLD} style={styles.inputIcon} />
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          placeholder={placeholder}
+          placeholderTextColor="#666"
+          value={value}
+          onChangeText={onChangeText}
+          keyboardType={keyboardType || 'default'}
+          autoCapitalize={autoCapitalize || 'sentences'}
+          secureTextEntry={secure && !show}
+        />
+        {showToggle && (
+          <TouchableOpacity onPress={onToggle} style={styles.eyeBtn}>
+            <Ionicons name={show ? 'eye-off-outline' : 'eye-outline'} size={18} color={GOLD} />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <StatusBar barStyle="dark-content" backgroundColor={BRAND.bg} />
+      <StatusBar barStyle="light-content" backgroundColor={BG} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* Logos row */}
+        {/* Logos */}
         <View style={styles.logosRow}>
-          <Image source={ethioLogo} style={styles.logoLeft} resizeMode="contain" />
+          <Image source={ethioLogo} style={styles.logoLeft}  resizeMode="contain" />
           <Image source={flipLogo}  style={styles.logoRight} resizeMode="contain" />
         </View>
 
         {/* Title */}
         <View style={styles.titleArea}>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join FLIPSTAR today</Text>
+          <Text style={styles.subtitle}>Join Flip Star today</Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
-          <Field icon="person-outline"   placeholder="Username *"   value={username}   onChangeText={setUsername}   autoCapitalize="none" />
-          <Field icon="mail-outline"     placeholder="Email *"      value={email}      onChangeText={setEmail}      keyboardType="email-address" autoCapitalize="none" />
-          <Field icon="text-outline"     placeholder="First Name"   value={firstName}  onChangeText={setFirstName} />
-          <Field icon="text-outline"     placeholder="Last Name"    value={lastName}   onChangeText={setLastName} />
-          <Field
-            icon="lock-closed-outline" placeholder="Password *" value={password} onChangeText={setPassword}
-            secure showToggle onToggle={() => setShowPass(!showPass)} show={showPass}
-          />
+          <Field label="USERNAME *"   icon="person-outline"  placeholder="Enter your username" value={username}  onChangeText={setUsername}  autoCapitalize="none" />
+          <Field label="EMAIL *"      icon="mail-outline"    placeholder="Enter your email"    value={email}     onChangeText={setEmail}     keyboardType="email-address" autoCapitalize="none" />
+          <Field label="FIRST NAME"   icon="text-outline"    placeholder="First name"          value={firstName} onChangeText={setFirstName} />
+          <Field label="LAST NAME"    icon="text-outline"    placeholder="Last name"           value={lastName}  onChangeText={setLastName} />
+          <Field label="PASSWORD *"   icon="lock-closed-outline" placeholder="••••••"         value={password}  onChangeText={setPassword}
+            secure showToggle onToggle={() => setShowPass(!showPass)} show={showPass} />
 
           <TouchableOpacity style={[styles.btn, loading && { opacity: 0.7 }]} onPress={handleRegister} disabled={loading} activeOpacity={0.85}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Create Account</Text>}
+            {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.btnText}>Create Account</Text>}
           </TouchableOpacity>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
-          </View>
 
           <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.linkRow}>
             <Text style={styles.linkText}>Already have an account? </Text>
             <Text style={styles.link}>Login</Text>
           </TouchableOpacity>
         </View>
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BRAND.bg },
+  container: { flex: 1, backgroundColor: BG },
   scroll: { flexGrow: 1 },
 
   logosRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingTop: 52, paddingBottom: 4, width: '100%',
+    paddingTop: 52, paddingBottom: 4,
   },
   logoLeft:  { width: 148, height: 40, marginLeft: 12 },
   logoRight: { width: 148, height: 40, marginRight: 4 },
 
   titleArea: { alignItems: 'center', paddingVertical: 28, marginTop: 24 },
-  title: { fontSize: 26, fontWeight: '800', color: BRAND.txt, letterSpacing: 0.5 },
-  subtitle: { fontSize: 14, color: BRAND.sub, marginTop: 4 },
+  title:    { fontSize: 26, fontWeight: '800', color: GOLD },
+  subtitle: { fontSize: 14, color: GOLD, opacity: 0.7, marginTop: 6 },
 
-  form: { paddingHorizontal: 28, paddingBottom: 40 },
+  form: { paddingHorizontal: 24, paddingBottom: 40 },
+
+  label: { fontSize: 12, fontWeight: '700', color: GOLD, marginBottom: 8, letterSpacing: 1 },
 
   inputWrapper: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#fdf8f0', borderRadius: 14,
-    borderWidth: 1.5, borderColor: BRAND.border,
-    paddingHorizontal: 14, marginBottom: 12, height: 52,
+    backgroundColor: INPUT_BG, borderRadius: 12,
+    borderWidth: 1, borderColor: '#333',
+    paddingHorizontal: 14, marginBottom: 20, height: 54,
   },
   inputIcon: { marginRight: 10 },
-  input: { fontSize: 15, color: BRAND.txt },
+  input: { fontSize: 15, color: GOLD },
   eyeBtn: { padding: 4 },
 
   btn: {
-    backgroundColor: BRAND.pri, borderRadius: 14,
-    height: 54, justifyContent: 'center', alignItems: 'center',
-    marginTop: 8, marginBottom: 20,
-    shadowColor: BRAND.pri, shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35, shadowRadius: 12, elevation: 8,
+    borderRadius: 14, height: 54,
+    justifyContent: 'center', alignItems: 'center',
+    marginTop: 4, marginBottom: 24,
+    backgroundColor: GOLD,
   },
-  btnText: { color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
-
-  divider: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: BRAND.border },
-  dividerText: { marginHorizontal: 12, color: BRAND.sub, fontSize: 13 },
+  btnText: { color: '#000', fontSize: 16, fontWeight: '800' },
 
   linkRow: { flexDirection: 'row', justifyContent: 'center' },
-  linkText: { fontSize: 14, color: BRAND.sub },
-  link: { fontSize: 14, color: BRAND.pri, fontWeight: '700' },
+  linkText: { fontSize: 14, color: '#888' },
+  link: { fontSize: 14, color: GOLD, fontWeight: '700' },
 });
