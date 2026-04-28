@@ -346,8 +346,7 @@ export default function ReelsScreen({ route, navigation }) {
   const [visibleIdx, setVisibleIdx] = useState(0);
   const [hasMore, setHasMore]       = useState(true);
   const [longPressItem, setLongPressItem] = useState(null);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [reportReelId, setReportReelId] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(null);
 
   const initialId = route?.params?.reelId;
 
@@ -405,6 +404,26 @@ export default function ReelsScreen({ route, navigation }) {
       Alert.alert('Error', error.message || 'Failed to send gift');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitReport = async (category) => {
+    setShowReportModal(null);
+    setLongPressItem(null);
+    try {
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_reel_id: showReportModal,
+          report_type: category,
+          description: `Reported as ${category}`,
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      Alert.alert('Report Submitted', 'Thank you for your report. We will review it shortly.');
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      Alert.alert('Error', 'Failed to submit report. Please try again.');
     }
   };
 
