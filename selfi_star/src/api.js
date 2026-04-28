@@ -241,6 +241,13 @@ const api = {
       }),
     }),
 
+  // Phone/PIN login method
+  loginWithPhone: (phone, pin) =>
+    api.request('/auth/login-phone/', {
+      method: 'POST',
+      body: JSON.stringify({ phone, pin }),
+    }),
+
   login: (username, password) =>
     api.request('/auth/login/', {
       method: 'POST',

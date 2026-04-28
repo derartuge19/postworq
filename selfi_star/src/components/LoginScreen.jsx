@@ -27,7 +27,7 @@ export function LoginScreen({ onSuccess, onRegister, onBack }) {
       console.log('Attempting login with:', { phone: cleanPhone, pin });
       
       try {
-        const res = await api.login(cleanPhone, pin);
+        const res = await api.loginWithPhone(cleanPhone, pin);
         console.log('Login successful:', res);
         api.setToken(res.token);
         onSuccess({
