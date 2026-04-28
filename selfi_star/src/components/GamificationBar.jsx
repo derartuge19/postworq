@@ -48,9 +48,9 @@ const Modal = memo(function Modal({ onClose, children }) {
 const ModalHeader = memo(function ModalHeader({ title, onClose }) {
   return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px 8px'}}>
-      <span style={{fontSize:18,fontWeight:800,color:'#1C1917'}}>{title}</span>
-      <button onClick={onClose} style={{background:'#F5F5F4',border:'none',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
-        <X size={16} color='#78716C'/>
+      <span style={{fontSize:18,fontWeight:700,color:'#F9E08B'}}>{title}</span>
+      <button onClick={onClose} style={{background:'rgba(249,224,139,0.1)',border:'1px solid rgba(249,224,139,0.2)',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+        <X size={16} color='#F9E08B'/>
       </button>
     </div>
   );
@@ -62,24 +62,24 @@ const CoinsModal = memo(function CoinsModal({ coins, onClose }) {
     <Modal onClose={onClose}>
       <ModalHeader title="💰 Coin Balance" onClose={onClose}/>
       <div style={{padding:'12px 20px'}}>
-        <div style={{background:'linear-gradient(135deg,#DA9B2A,#F59E0B)',borderRadius:20,padding:'28px 20px',textAlign:'center',marginBottom:20}}>
+        <div style={{background:'linear-gradient(135deg,#F9E08B,#F59E0B)',borderRadius:20,padding:'28px 20px',textAlign:'center',marginBottom:20,boxShadow:'0 8px 32px rgba(249,224,139,0.3)'}}>
           <div style={{fontSize:56,marginBottom:4}}>🪙</div>
-          <div style={{fontSize:48,fontWeight:900,color:'#fff',lineHeight:1}}>{coins?.balance ?? 0}</div>
-          <div style={{fontSize:14,color:'rgba(255,255,255,.85)',marginTop:4}}>Available Coins</div>
+          <div style={{fontSize:48,fontWeight:900,color:'#000',lineHeight:1}}>{coins?.balance ?? 0}</div>
+          <div style={{fontSize:14,color:'rgba(0,0,0,.75)',marginTop:4,fontWeight:600}}>Available Coins</div>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
           {[
             {label:'Total Earned',value:coins?.earned_total??0,color:'#10B981',emoji:'📈'},
             {label:'Total Spent',value:coins?.spent_total??0,color:'#EF4444',emoji:'📉'},
           ].map(s=>(
-            <div key={s.label} style={{background:s.color+'12',border:`1.5px solid ${s.color}25`,borderRadius:14,padding:'14px 16px',textAlign:'center'}}>
+            <div key={s.label} style={{background:s.color+'12',border:`1.5px solid ${s.color}30`,borderRadius:14,padding:'14px 16px',textAlign:'center'}}>
               <div style={{fontSize:24,marginBottom:4}}>{s.emoji}</div>
               <div style={{fontSize:22,fontWeight:800,color:s.color}}>{s.value}</div>
               <div style={{fontSize:11,color:'#78716C',marginTop:2}}>{s.label}</div>
             </div>
           ))}
         </div>
-        <div style={{marginTop:16,background:'#FFF8F0',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#78716C',textAlign:'center'}}>
+        <div style={{marginTop:16,background:'rgba(249,224,139,0.08)',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#78716C',textAlign:'center',border:'1px solid rgba(249,224,139,0.15)'}}>
           💡 Earn coins by spinning daily, receiving gifts, and logging in every day!
         </div>
       </div>
@@ -129,12 +129,12 @@ const StreakModal = memo(function StreakModal({ streak, onClaim, onClose }) {
     <Modal onClose={onClose}>
       <ModalHeader title="🔥 Login Streak" onClose={onClose}/>
       <div style={{padding:'8px 20px 0'}}>
-        <div style={{background:'linear-gradient(135deg,#EF4444,#F97316)',borderRadius:20,padding:'24px 20px',textAlign:'center',marginBottom:20}}>
+        <div style={{background:'linear-gradient(135deg,#F9E08B,#F59E0B)',borderRadius:20,padding:'24px 20px',textAlign:'center',marginBottom:20,boxShadow:'0 8px 32px rgba(249,224,139,0.3)'}}>
           <div style={{fontSize:52}}>🔥</div>
-          <div style={{fontSize:44,fontWeight:900,color:'#fff',lineHeight:1}}>{cur}</div>
-          <div style={{fontSize:14,color:'rgba(255,255,255,.9)',marginTop:4}}>Day Streak</div>
+          <div style={{fontSize:44,fontWeight:900,color:'#000',lineHeight:1}}>{cur}</div>
+          <div style={{fontSize:14,color:'rgba(0,0,0,.75)',marginTop:4,fontWeight:600}}>Day Streak</div>
           {(streak?.longest??0) > 0 && (
-            <div style={{fontSize:12,color:'rgba(255,255,255,.75)',marginTop:6}}>Best: {streak.longest} days 🏆</div>
+            <div style={{fontSize:12,color:'rgba(0,0,0,.65)',marginTop:6}}>Best: {streak.longest} days 🏆</div>
           )}
         </div>
 
@@ -149,17 +149,17 @@ const StreakModal = memo(function StreakModal({ streak, onClaim, onClose }) {
               <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
                 <div style={{
                   width:36,height:36,borderRadius:'50%',
-                  background: active ? 'linear-gradient(135deg,#EF4444,#F97316)' : isToday ? '#FFF8F0' : '#F5F5F4',
-                  border: isToday ? '2.5px solid #EF4444' : active ? 'none' : '2px solid transparent',
+                  background: active ? 'linear-gradient(135deg,#F9E08B,#F59E0B)' : isToday ? 'rgba(249,224,139,0.1)' : '#F5F5F4',
+                  border: isToday ? '2.5px solid #F9E08B' : active ? 'none' : '2px solid transparent',
                   display:'flex',alignItems:'center',justifyContent:'center',
                   fontSize: isToday ? 12 : 14,
                   fontWeight: 700,
-                  color: active ? '#fff' : isToday ? '#EF4444' : '#A8A29E',
-                  boxShadow: active ? '0 2px 8px rgba(239,68,68,.35)' : isToday ? '0 2px 8px rgba(239,68,68,.2)' : 'none'
+                  color: active ? '#000' : isToday ? '#F9E08B' : '#A8A29E',
+                  boxShadow: active ? '0 2px 8px rgba(249,224,139,.35)' : isToday ? '0 2px 8px rgba(249,224,139,.2)' : 'none'
                 }}>
                   {active ? '✓' : day.date}
                 </div>
-                <span style={{fontSize:10,color: active || isToday ? '#EF4444' : '#A8A29E',fontWeight:600}}>{day.name}</span>
+                <span style={{fontSize:10,color: active || isToday ? '#F9E08B' : '#A8A29E',fontWeight:600}}>{day.name}</span>
               </div>
             );
           })}
@@ -168,12 +168,12 @@ const StreakModal = memo(function StreakModal({ streak, onClaim, onClose }) {
         {(streak?.bonus_available && !claimed) ? (
           <button onClick={handleClaim} disabled={claiming} style={{
             width:'100%',padding:'16px',borderRadius:14,border:'none',
-            background: claiming ? '#E7E5E4' : 'linear-gradient(135deg,#10B981,#059669)',
-            color: claiming ? '#78716C' : '#fff',fontSize:17,fontWeight:700,
+            background: claiming ? 'rgba(249,224,139,0.5)' : '#F9E08B',
+            color: '#000',fontSize:17,fontWeight:700,
             cursor: claiming ? 'not-allowed' : 'pointer',
-            boxShadow: claiming ? 'none' : '0 4px 16px rgba(16,185,129,.4)'
+            boxShadow: claiming ? 'none' : '0 4px 16px rgba(249,224,139,0.4)'
           }}>
-            {claiming ? '⏳ Claiming...' : `🎁 Claim Day ${cur + 1} Bonus!`}
+            {claiming ? 'Claiming...' : `Claim +${streak.next_bonus?.coins ?? 0} Coins`}
           </button>
         ) : claimed ? (
           <div style={{textAlign:'center',padding:'16px',background:'#ECFDF5',borderRadius:14,color:'#10B981',fontWeight:700}}>
@@ -329,39 +329,39 @@ const GiftModal = memo(function GiftModal({ coins, onClose, onRefresh, onShowWal
         {done ? (
           <div style={{textAlign:'center',padding:'24px 0'}}>
             <div style={{fontSize:64,marginBottom:12}}>🎉</div>
-            <div style={{fontSize:20,fontWeight:800,color:'#1C1917',marginBottom:4}}>Gift Sent!</div>
+            <div style={{fontSize:20,fontWeight:800,color:'#F9E08B',marginBottom:4}}>Gift Sent!</div>
             <div style={{fontSize:14,color:'#78716C',marginBottom:24}}>
-              You sent <b>{done.amount} coins</b> to <b>@{done.recipient?.username}</b>
+              You sent <b style={{color:'#F9E08B'}}>{done.amount} coins</b> to <b>@{done.recipient?.username}</b>
             </div>
-            <button onClick={onClose} style={{width:'100%',padding:'16px',borderRadius:14,border:'none',background:'linear-gradient(135deg,#8B5CF6,#7C3AED)',color:'#fff',fontSize:16,fontWeight:700,cursor:'pointer'}}>
+            <button onClick={onClose} style={{width:'100%',padding:'16px',borderRadius:14,border:'none',background:'#F9E08B',color:'#000',fontSize:16,fontWeight:700,cursor:'pointer',boxShadow:'0 4px 16px rgba(249,224,139,0.4)'}}>
               Done 🎊
             </button>
           </div>
         ) : (
           <>
             {/* balance chip */}
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#FFF8F0',borderRadius:12,padding:'10px 14px',marginBottom:16}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(249,224,139,0.1)',borderRadius:12,padding:'10px 14px',marginBottom:16,border:'1px solid rgba(249,224,139,0.2)'}}>
               <span style={{fontSize:13,color:'#78716C'}}>Your balance</span>
-              <span style={{fontWeight:800,color:'#DA9B2A',fontSize:16}}>🪙 {coins?.balance ?? 0}</span>
+              <span style={{fontWeight:800,color:'#F9E08B',fontSize:16}}>🪙 {coins?.balance ?? 0}</span>
             </div>
 
             <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Recipient Username</label>
             <input value={recipientId} onChange={e=>setRecipientId(e.target.value)}
               placeholder="e.g. johndoe"
-              style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid #E7E5E4',fontSize:15,marginBottom:14,boxSizing:'border-box',outline:'none'}}
+              style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid rgba(249,224,139,0.3)',fontSize:15,marginBottom:14,boxSizing:'border-box',outline:'none'}}
             />
 
             <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:8}}>Amount</label>
             <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
               <button onClick={()=>setAmount(a=>Math.max(1,a-5))}
-                style={{width:40,height:40,borderRadius:10,border:'1.5px solid #E7E5E4',background:'#F5F5F4',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>
+                style={{width:40,height:40,borderRadius:10,border:'1.5px solid rgba(249,224,139,0.3)',background:'rgba(249,224,139,0.1)',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,color:'#F9E08B'}}>
                 −
               </button>
-              <div style={{flex:1,textAlign:'center',fontSize:28,fontWeight:800,color:'#DA9B2A'}}>
+              <div style={{flex:1,textAlign:'center',fontSize:28,fontWeight:800,color:'#F9E08B'}}>
                 🪙 {amount}
               </div>
               <button onClick={()=>setAmount(a=>Math.min(coins?.balance??100,a+5))}
-                style={{width:40,height:40,borderRadius:10,border:'1.5px solid #E7E5E4',background:'#F5F5F4',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>
+                style={{width:40,height:40,borderRadius:10,border:'1.5px solid rgba(249,224,139,0.3)',background:'rgba(249,224,139,0.1)',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,color:'#F9E08B'}}>
                 +
               </button>
             </div>
@@ -369,7 +369,7 @@ const GiftModal = memo(function GiftModal({ coins, onClose, onRefresh, onShowWal
             <div style={{display:'flex',gap:8,marginBottom:14}}>
               {[10,25,50,100].map(v=>(
                 <button key={v} onClick={()=>setAmount(Math.min(v,coins?.balance??0))}
-                  style={{flex:1,padding:'8px 0',borderRadius:8,border:`1.5px solid ${amount===v?'#DA9B2A':'#E7E5E4'}`,background:amount===v?'#FFF8F0':'#fff',color:amount===v?'#DA9B2A':'#78716C',fontWeight:600,cursor:'pointer',fontSize:13}}>
+                  style={{flex:1,padding:'8px 0',borderRadius:8,border:`1.5px solid ${amount===v?'#F9E08B':'rgba(249,224,139,0.3)'}`,background:amount===v?'rgba(249,224,139,0.15)':'#fff',color:amount===v?'#F9E08B':'#78716C',fontWeight:600,cursor:'pointer',fontSize:13}}>
                   {v}
                 </button>
               ))}
@@ -378,16 +378,16 @@ const GiftModal = memo(function GiftModal({ coins, onClose, onRefresh, onShowWal
             <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Message (optional)</label>
             <input value={message} onChange={e=>setMessage(e.target.value)}
               placeholder="Say something nice ✨"
-              style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid #E7E5E4',fontSize:15,marginBottom:16,boxSizing:'border-box',outline:'none'}}
+              style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid rgba(249,224,139,0.3)',fontSize:15,marginBottom:16,boxSizing:'border-box',outline:'none'}}
             />
 
             {error && <div style={{color:'#EF4444',fontSize:13,marginBottom:12,padding:'10px 14px',background:'#FEF2F2',borderRadius:10}}>{error}</div>}
 
             <button onClick={send} disabled={sending}
               style={{width:'100%',padding:'16px',borderRadius:14,border:'none',
-                background: sending ? '#E7E5E4' : 'linear-gradient(135deg,#8B5CF6,#7C3AED)',
-                color: sending ? '#78716C':'#fff',fontSize:16,fontWeight:700,cursor:sending?'not-allowed':'pointer',
-                boxShadow: sending?'none':'0 4px 20px rgba(139,92,246,.4)'}}>
+                background: sending ? 'rgba(249,224,139,0.5)' : '#F9E08B',
+                color: '#000',fontSize:16,fontWeight:700,cursor:sending?'not-allowed':'pointer',
+                boxShadow: sending?'none':'0 4px 20px rgba(249,224,139,.4)'}}>
               {sending ? 'Sending...' : `🎁 Send ${amount} Coins`}
             </button>
           </>

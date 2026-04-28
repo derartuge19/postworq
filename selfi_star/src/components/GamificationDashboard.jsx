@@ -310,7 +310,7 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0,0,0,0.7)',
+      background: 'rgba(0,0,0,0.8)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -319,17 +319,18 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
     }} onClick={onClose}>
       <div style={{
         background: theme.card,
-        borderRadius: 24,
-        padding: 32,
-        maxWidth: 400,
+        borderRadius: 20,
+        padding: 28,
+        maxWidth: 420,
         width: '100%',
-        textAlign: 'center'
+        textAlign: 'center',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
       }} onClick={e => e.stopPropagation()}>
-        <div style={{ marginBottom: 24 }}>
-          <h2 style={{ margin: '0 0 8px 0', color: theme.txt, fontSize: 24 }}>
+        <div style={{ marginBottom: 20 }}>
+          <h2 style={{ margin: '0 0 6px 0', color: '#F9E08B', fontSize: 22, fontWeight: 700 }}>
             Daily Spin 🎰
           </h2>
-          <p style={{ margin: 0, color: theme.sub, fontSize: 14 }}>
+          <p style={{ margin: 0, color: theme.sub, fontSize: 13 }}>
             {result ? 'Congratulations!' : 'Spin the wheel to win coins!'}
           </p>
         </div>
@@ -338,9 +339,9 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
           <>
             {/* Wheel Visual */}
             <div style={{
-              width: 280,
-              height: 280,
-              margin: '0 auto 24px',
+              width: 260,
+              height: 260,
+              margin: '0 auto 20',
               position: 'relative'
             }}>
               <div style={{
@@ -348,7 +349,7 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
                 height: '100%',
                 borderRadius: '50%',
                 background: `conic-gradient(
-                  ${theme.pri} 0deg 60deg,
+                  #F9E08B 0deg 60deg,
                   #3B82F6 60deg 120deg,
                   #10B981 120deg 180deg,
                   #F59E0B 180deg 240deg,
@@ -357,7 +358,7 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
                 )`,
                 transform: `rotate(${rotation}deg)`,
                 transition: spinning ? 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)' : 'none',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
               }} />
               {/* Pointer */}
               <div style={{
@@ -369,7 +370,7 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
                 height: 0,
                 borderLeft: '15px solid transparent',
                 borderRight: '15px solid transparent',
-                borderTop: '30px solid ' + theme.txt
+                borderTop: '30px solid #F9E08B'
               }} />
               {/* Center with spinning icon */}
               <div style={{
@@ -377,18 +378,18 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: 60,
-                height: 60,
+                width: 56,
+                height: 56,
                 borderRadius: '50%',
                 background: theme.card,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+                boxShadow: '0 4px 16px rgba(0,0,0,0.15)'
               }}>
                 <RefreshCw 
-                  size={28} 
-                  color={theme.pri}
+                  size={26} 
+                  color="#F9E08B"
                   style={{
                     transform: `rotate(${rotation}deg)`,
                     transition: spinning ? 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)' : 'none'
@@ -402,17 +403,18 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
               gap: 8,
-              marginBottom: 24
+              marginBottom: 20
             }}>
               {rewards?.slice(0, 6).map((reward, idx) => (
                 <div key={idx} style={{
                   background: theme.bg,
-                  borderRadius: 8,
-                  padding: 8,
+                  borderRadius: 10,
+                  padding: 10,
                   fontSize: 12,
-                  color: theme.sub
+                  color: theme.sub,
+                  border: '1px solid ' + theme.border
                 }}>
-                  <div style={{ fontSize: 20, marginBottom: 4 }}>{reward.emoji}</div>
+                  <div style={{ fontSize: 22, marginBottom: 6 }}>{reward.emoji}</div>
                   {reward.label}
                 </div>
               ))}
@@ -423,14 +425,15 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
               disabled={!canSpin || spinning}
               style={{
                 width: '100%',
-                padding: 16,
+                padding: 14,
                 borderRadius: 12,
                 border: 'none',
-                background: canSpin ? theme.pri : theme.border,
-                color: canSpin ? 'white' : theme.sub,
-                fontSize: 18,
-                fontWeight: 600,
-                cursor: canSpin ? 'pointer' : 'not-allowed'
+                background: canSpin ? '#F9E08B' : theme.border,
+                color: canSpin ? '#000' : theme.sub,
+                fontSize: 16,
+                fontWeight: 700,
+                cursor: canSpin ? 'pointer' : 'not-allowed',
+                boxShadow: canSpin ? '0 4px 16px rgba(249, 224, 139, 0.4)' : 'none'
               }}
             >
               {spinning ? 'Spinning...' : canSpin ? 'SPIN!' : 'Already Spun Today'}
@@ -438,20 +441,21 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
           </>
         ) : (
           <div style={{
-            padding: '40px 20px',
-            background: `linear-gradient(135deg, ${theme.pri}15, ${theme.pri}05)`,
+            padding: '36px 20px',
+            background: 'linear-gradient(135deg, rgba(249, 224, 139, 0.15), rgba(249, 224, 139, 0.05))',
             borderRadius: 16,
-            marginBottom: 20
+            marginBottom: 20,
+            border: '1px solid rgba(249, 224, 139, 0.2)'
           }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>
+            <div style={{ fontSize: 56, marginBottom: 14 }}>
               {result.reward.emoji}
             </div>
             <div 
               style={{ 
-                fontSize: 28, 
+                fontSize: 26, 
                 fontWeight: 700, 
-                color: theme.pri, 
-                marginBottom: 8,
+                color: '#F9E08B', 
+                marginBottom: 6,
                 transform: `rotate(${nameRotation}deg)`,
                 transition: 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)',
                 display: 'inline-block'
@@ -459,11 +463,11 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
             >
               {result.reward.label}
             </div>
-            <div style={{ fontSize: 16, color: theme.txt, marginBottom: 16 }}>
+            <div style={{ fontSize: 15, color: theme.txt, marginBottom: 14 }}>
               +{result.coins_earned} coins added!
             </div>
-            <div style={{ fontSize: 14, color: theme.sub }}>
-              New balance: <strong>{result.new_balance}</strong> coins
+            <div style={{ fontSize: 13, color: theme.sub }}>
+              New balance: <strong style={{ color: '#F9E08B' }}>{result.new_balance}</strong> coins
             </div>
           </div>
         )}
@@ -472,19 +476,20 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
           <>
             {/* Upsell Section */}
             <div style={{
-              background: `linear-gradient(135deg, ${theme.pri}15, ${theme.pri}05)`,
+              background: 'linear-gradient(135deg, rgba(249, 224, 139, 0.1), rgba(249, 224, 139, 0.05))',
               borderRadius: 12,
               padding: 16,
               marginBottom: 20,
-              textAlign: 'left'
+              textAlign: 'left',
+              border: '1px solid rgba(249, 224, 139, 0.15)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Crown size={20} color={theme.pri} />
-                <h4 style={{ margin: 0, fontSize: 16, color: theme.txt, fontWeight: 600 }}>
+                <Crown size={18} color="#F9E08B" />
+                <h4 style={{ margin: 0, fontSize: 15, color: theme.txt, fontWeight: 700 }}>
                   Want More Spins?
                 </h4>
               </div>
-              <p style={{ margin: '0 0 12px 0', fontSize: 13, color: theme.sub, lineHeight: 1.4 }}>
+              <p style={{ margin: '0 0 12px 0', fontSize: 12, color: theme.sub, lineHeight: 1.4 }}>
                 Get unlimited spins and bonus rewards with our premium features!
               </p>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -493,19 +498,18 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
                     flex: 1,
                     padding: 8,
                     borderRadius: 8,
-                    border: `1px solid ${theme.pri}`,
-                    background: 'white',
-                    color: theme.pri,
+                    border: '1px solid #F9E08B',
+                    background: theme.card,
+                    color: '#F9E08B',
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: 'pointer'
                   }}
                   onClick={() => {
-                    // Navigate to coin purchase
                     window.location.href = '/coins';
                   }}
                 >
-                  <Coins size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                  <Coins size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
                   Buy Coins
                 </button>
                 <button
@@ -514,18 +518,17 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
                     padding: 8,
                     borderRadius: 8,
                     border: 'none',
-                    background: theme.pri,
-                    color: 'white',
+                    background: '#F9E08B',
+                    color: '#000',
                     fontSize: 12,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     cursor: 'pointer'
                   }}
                   onClick={() => {
-                    // Navigate to subscription
                     window.location.href = '/subscription';
                   }}
                 >
-                  <Star size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                  <Star size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
                   Go Premium
                 </button>
               </div>
@@ -535,12 +538,13 @@ function SpinModal({ theme, onClose, onSpin, spinning, result, canSpin, rewards 
               onClick={onClose}
               style={{
                 width: '100%',
-                padding: 14,
+                padding: 12,
                 borderRadius: 10,
-                border: `1px solid ${theme.border}`,
-                background: 'white',
+                border: '1px solid ' + theme.border,
+                background: theme.card,
                 color: theme.txt,
-                fontSize: 16,
+                fontSize: 15,
+                fontWeight: 600,
                 cursor: 'pointer'
               }}
             >
@@ -595,7 +599,7 @@ function GiftModal({ theme, onClose, onSuccess, coins, onShowWallet }) {
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0,0,0,0.7)',
+      background: 'rgba(0,0,0,0.8)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -607,36 +611,37 @@ function GiftModal({ theme, onClose, onSuccess, coins, onShowWallet }) {
         borderRadius: 20,
         padding: 24,
         maxWidth: 400,
-        width: '100%'
+        width: '100%',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
       }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ margin: 0, color: theme.txt, fontSize: 20 }}>Send Coin Gift 🎁</h2>
+          <h2 style={{ margin: 0, color: '#F9E08B', fontSize: 18, fontWeight: 700 }}>Send Coin Gift 🎁</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-            <X size={24} color={theme.sub} />
+            <X size={20} color={theme.sub} />
           </button>
         </div>
 
         {result ? (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <div style={{ textAlign: 'center', padding: '24px 0' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
-            <div style={{ fontSize: 18, color: theme.txt, marginBottom: 8 }}>
+            <div style={{ fontSize: 16, color: theme.txt, marginBottom: 6, fontWeight: 600 }}>
               Gift sent to {result.recipient.username}!
             </div>
-            <div style={{ color: theme.sub }}>{result.amount} coins</div>
+            <div style={{ color: '#F9E08B', fontSize: 18, fontWeight: 700 }}>{result.amount} coins</div>
           </div>
         ) : (
           <>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 13, color: theme.sub, marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
                 Your Balance
               </label>
-              <div style={{ fontSize: 24, fontWeight: 600, color: theme.pri }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: '#F9E08B' }}>
                 {coins} coins
               </div>
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 13, color: theme.sub, marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
                 Recipient Username
               </label>
               <input
@@ -647,15 +652,17 @@ function GiftModal({ theme, onClose, onSuccess, coins, onShowWallet }) {
                 style={{
                   width: '100%',
                   padding: 12,
-                  border: `1px solid ${theme.border}`,
-                  borderRadius: 8,
-                  fontSize: 14
+                  border: '1px solid ' + theme.border,
+                  borderRadius: 10,
+                  fontSize: 14,
+                  background: theme.bg,
+                  color: theme.txt
                 }}
               />
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 13, color: theme.sub, marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
                 Amount (1-100)
               </label>
               <input
@@ -667,15 +674,17 @@ function GiftModal({ theme, onClose, onSuccess, coins, onShowWallet }) {
                 style={{
                   width: '100%',
                   padding: 12,
-                  border: `1px solid ${theme.border}`,
-                  borderRadius: 8,
-                  fontSize: 14
+                  border: '1px solid ' + theme.border,
+                  borderRadius: 10,
+                  fontSize: 14,
+                  background: theme.bg,
+                  color: theme.txt
                 }}
               />
             </div>
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, color: theme.sub, marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 12, color: theme.sub, marginBottom: 6, fontWeight: 600 }}>
                 Message (optional)
               </label>
               <input
@@ -686,15 +695,17 @@ function GiftModal({ theme, onClose, onSuccess, coins, onShowWallet }) {
                 style={{
                   width: '100%',
                   padding: 12,
-                  border: `1px solid ${theme.border}`,
-                  borderRadius: 8,
-                  fontSize: 14
+                  border: '1px solid ' + theme.border,
+                  borderRadius: 10,
+                  fontSize: 14,
+                  background: theme.bg,
+                  color: theme.txt
                 }}
               />
             </div>
 
             {error && (
-              <div style={{ color: theme.red, fontSize: 13, marginBottom: 16 }}>
+              <div style={{ color: '#EF4444', fontSize: 12, marginBottom: 16 }}>
                 {error}
               </div>
             )}
@@ -707,12 +718,13 @@ function GiftModal({ theme, onClose, onSuccess, coins, onShowWallet }) {
                 padding: 14,
                 borderRadius: 10,
                 border: 'none',
-                background: theme.pri,
-                color: 'white',
-                fontSize: 16,
-                fontWeight: 600,
+                background: '#F9E08B',
+                color: '#000',
+                fontSize: 15,
+                fontWeight: 700,
                 cursor: sending ? 'not-allowed' : 'pointer',
-                opacity: sending ? 0.7 : 1
+                opacity: sending ? 0.7 : 1,
+                boxShadow: '0 4px 16px rgba(249, 224, 139, 0.4)'
               }}
             >
               {sending ? 'Sending...' : `Send ${amount} Coins`}

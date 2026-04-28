@@ -130,15 +130,14 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
   };
 
   const getIcon = (type) => {
-    const s = { width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 };
+    const s = { width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
     switch (type) {
-      case 'like':    return <div style={{ ...s, background: '#FEE2E2' }}><Heart size={18} color="#EF4444" fill="#EF4444" /></div>;
-      case 'comment': return <div style={{ ...s, background: '#DBEAFE' }}><MessageCircle size={18} color="#3B82F6" /></div>;
-      case 'follow':  return <div style={{ ...s, background: '#D1FAE5' }}><UserPlus size={18} color="#10B981" /></div>;
-      case 'mention': return <div style={{ ...s, background: '#EDE9FE' }}><AtSign size={18} color="#7C3AED" /></div>;
-      case 'reply':   return <div style={{ ...s, background: '#FEF3C7' }}><Reply size={18} color="#F9E08B" /></div>;
+      case 'like':     return <div style={{ ...s, background: '#FEF3C7' }}><Heart size={18} color="#F59E0B" /></div>;
+      case 'comment':  return <div style={{ ...s, background: '#DBEAFE' }}><MessageCircle size={18} color="#3B82F6" /></div>;
+      case 'follow':   return <div style={{ ...s, background: '#D1FAE5' }}><UserPlus size={18} color="#10B981" /></div>;
+      case 'mention':  return <div style={{ ...s, background: '#F3E8FF' }}><AtSign size={18} color="#8B5CF6" /></div>;
       case 'campaign':return <div style={{ ...s, background: '#FEF9C3' }}><Trophy size={18} color="#F9E08B" /></div>;
-      default:        return <div style={{ ...s, background: T.bg }}><Bell size={18} color={T.pri} /></div>;
+      default:        return <div style={{ ...s, background: T.bg }}><Bell size={18} color="#F9E08B" /></div>;
     }
   };
 
@@ -170,91 +169,89 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
         position: 'sticky', top: 0, zIndex: 10,
         background: T.cardBg || '#fff',
         borderBottom: `1px solid ${T.border}`,
-        padding: '16px 20px 0',
+        padding: '12px 16px 0',
       }}>
-        <div style={{ maxWidth: 680, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {onBack && (
-                <button onClick={onBack} style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: 4, borderRadius: '50%', color: T.txt,
-                }}>
-                  <ChevronLeft size={20} strokeWidth={2.5} />
-                </button>
-              )}
-              <div style={{ position: 'relative' }}>
-                <Bell size={20} color={T.pri} strokeWidth={2.5} />
-                {hasUnread && (
-                  <div style={{
-                    position: 'absolute', top: -2, right: -2,
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: '#EF4444', border: '1.5px solid #fff',
-                    animation: 'notif-pulse 2s infinite',
-                  }} />
-                )}
-              </div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txt, margin: 0 }}>
-                Notifications
-              </h1>
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {hasUnread && (
-                <button onClick={handleMarkAllRead} style={{
-                  display: 'flex', alignItems: 'center', gap: 4,
-                  padding: '4px 10px', background: 'none',
-                  border: `1px solid ${T.border}`, borderRadius: 16,
-                  color: T.pri, fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                }}>
-                  <Check size={10} /> Mark all read
-                </button>
-              )}
-              <button onClick={() => fetchNotifications(false)} style={{
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {onBack && (
+              <button onClick={onBack} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: 6, background: 'none',
-                border: `1px solid ${T.border}`, borderRadius: 16,
-                color: T.sub, cursor: 'pointer',
+                padding: 4, borderRadius: '50%', color: T.txt,
               }}>
-                <RefreshCw size={14} />
+                <ChevronLeft size={20} strokeWidth={2.5} />
               </button>
+            )}
+            <div style={{ position: 'relative' }}>
+              <Bell size={18} color="#F9E08B" strokeWidth={2.5} />
+              {hasUnread && (
+                <div style={{
+                  position: 'absolute', top: -2, right: -2,
+                  width: 6, height: 6, borderRadius: '50%',
+                  background: '#EF4444', border: '1.5px solid #fff',
+                  animation: 'notif-pulse 2s infinite',
+                }} />
+              )}
             </div>
+            <h1 style={{ fontSize: 16, fontWeight: 700, color: T.txt, margin: 0 }}>
+              Notifications
+            </h1>
           </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {hasUnread && (
+              <button onClick={handleMarkAllRead} style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                padding: '4px 10px', background: 'none',
+                border: `1px solid ${T.border}`, borderRadius: 16,
+                color: '#F9E08B', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+              }}>
+                <Check size={10} /> Mark all read
+              </button>
+            )}
+            <button onClick={() => fetchNotifications(false)} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 6, background: 'none',
+              border: `1px solid ${T.border}`, borderRadius: 16,
+              color: T.sub, cursor: 'pointer',
+            }}>
+              <RefreshCw size={14} />
+            </button>
+          </div>
+        </div>
 
-          {/* Filter Tabs */}
-          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 1 }}>
-            {FILTERS.map(({ id, label, Icon }) => {
-              const isActive = activeFilter === id;
-              const typeCount = id === 'all' ? notifications.filter(n => !n.read).length
-                : notifications.filter(n => n.type === id && !n.read).length;
-              return (
-                <button key={id} onClick={() => setActiveFilter(id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '7px 14px', flexShrink: 0,
-                  border: 'none', borderBottom: isActive ? `2px solid ${T.pri}` : '2px solid transparent',
-                  background: 'transparent', cursor: 'pointer',
-                  fontSize: 13, fontWeight: isActive ? 700 : 500,
-                  color: isActive ? T.pri : T.sub,
-                  transition: 'all 0.15s', position: 'relative',
-                }}>
-                  <Icon size={14} />
-                  {label}
-                  {typeCount > 0 && (
-                    <span style={{
-                      background: '#EF4444', color: '#fff',
-                      fontSize: 9, fontWeight: 800, borderRadius: 8,
-                      padding: '1px 4px', lineHeight: 1.4,
-                    }}>{typeCount}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        {/* Filter Tabs */}
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 1 }}>
+          {FILTERS.map(({ id, label, Icon }) => {
+            const isActive = activeFilter === id;
+            const typeCount = id === 'all' ? notifications.filter(n => !n.read).length
+              : notifications.filter(n => n.type === id && !n.read).length;
+            return (
+              <button key={id} onClick={() => setActiveFilter(id)} style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '6px 12px', flexShrink: 0,
+                border: 'none', borderBottom: isActive ? `2px solid #F9E08B` : '2px solid transparent',
+                background: 'transparent', cursor: 'pointer',
+                fontSize: 12, fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#F9E08B' : T.sub,
+                transition: 'all 0.15s', position: 'relative',
+              }}>
+                <Icon size={13} />
+                {label}
+                {typeCount > 0 && (
+                  <span style={{
+                    background: '#EF4444', color: '#fff',
+                    fontSize: 9, fontWeight: 800, borderRadius: 8,
+                    padding: '1px 4px', lineHeight: 1.4,
+                  }}>{typeCount}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Body */}
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '8px 0 40px' }}>
+      <div style={{ padding: '8px 16px 40px' }}>
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {[80, 65, 72, 58, 70].map((w, i) => (
@@ -295,8 +292,8 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '12px 20px',
-                  background: notif.read ? 'transparent' : (T.pri + '0a'),
-                  borderLeft: notif.read ? '3px solid transparent' : `3px solid ${T.pri}`,
+                  background: notif.read ? 'transparent' : '#F9E08B0a',
+                  borderLeft: notif.read ? '3px solid transparent' : '3px solid #F9E08B',
                   cursor: 'pointer', transition: 'background 0.2s',
                 }}
               >
