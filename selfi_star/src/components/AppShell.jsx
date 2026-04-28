@@ -462,7 +462,7 @@ export function AppShell({
                     <Icon
                       size={24}
                       strokeWidth={1.8}
-                      color={isActive ? '#F9E08B' : '#ffffff'}
+                      color='#F9E08B'
                       fill='none'
                     />
                     {badgeCount > 0 && (
@@ -496,7 +496,7 @@ export function AppShell({
                     style={{
                       fontSize: 10,
                       fontWeight: isActive ? 700 : 400,
-                      color: isActive ? '#F9E08B' : '#ffffff',
+                      color: '#F9E08B',
                       lineHeight: 1,
                     }}>{label}</span>
                 ) : null}
