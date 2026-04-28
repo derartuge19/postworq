@@ -145,10 +145,44 @@ export default function CommentsScreen({ route, navigation }) {
   const [replyingTo, setReplyingTo] = useState(null);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showGiftModal, setShowGiftModal] = useState(false);
+  const [reelUsername, setReelUsername] = useState('');
+  const [reelUserId, setReelUserId] = useState('');
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
 
   useEffect(() => {
     loadComments();
+    // Fetch reel data to get username for gift modal
+    api.request(`/reels/${reelId}/`)
+      .then(d => {
+        setReelUsername(d.user?.username || '');
+        setReelUserId(d.user?.id || '');
+      })
+      .catch(() => {});
   }, [reelId]);
+
+  // Mention autocomplete
+  useEffect(() => {
+    const match = text.match(/@(\w*)$/);
+    if (match) {
+      const query = match[1];
+      setMentionQuery(query);
+      setShowMentionSuggestions(true);
+      if (query.length >= 2) {
+        api.search(query).then(d => {
+          setMentionSuggestions(d?.users?.slice(0, 5) || []);
+        }).catch(() => setMentionSuggestions([]));
+      } else {
+        setMentionSuggestions([]);
+      }
+    } else {
+      setShowMentionSuggestions(false);
+      setMentionQuery('');
+      setMentionSuggestions([]);
+    }
+  }, [text]);
 
   const loadComments = async () => {
     try {
@@ -222,15 +256,17 @@ export default function CommentsScreen({ route, navigation }) {
       });
       setComments(prev => swapDeep(prev));
       
-      // Secondary safety fetch
-      setTimeout(() => {
-        api.request(`/reels/${reelId}/comments/?include_replies=true&depth=2`)
-          .then(d => {
-            const latest = Array.isArray(d) ? d : (d?.results || []);
-            setComments(buildCommentTree(latest));
-          })
-          .catch(() => {});
-      }, 800);
+      // Only refetch if not in reply mode to preserve reply state
+      if (!replyingTo) {
+        setTimeout(() => {
+          api.request(`/reels/${reelId}/comments/?include_replies=true&depth=2`)
+            .then(d => {
+              const latest = Array.isArray(d) ? d : (d?.results || []);
+              setComments(buildCommentTree(latest));
+            })
+            .catch(() => {});
+        }, 800);
+      }
     } catch (err) {
       // Roll back
       const removeDeep = (list) => list.filter(c => c.id !== tempId).map(c => ({
@@ -279,6 +315,17 @@ export default function CommentsScreen({ route, navigation }) {
 
   const handleCancelReply = () => {
     setReplyingTo(null);
+  };
+
+  const handleSelectMention = (username) => {
+    const match = text.match(/@(\w*)$/);
+    if (match) {
+      const newText = text.replace(/@\w*$/, `@${username} `);
+      setText(newText);
+      setShowMentionSuggestions(false);
+      setMentionQuery('');
+      setMentionSuggestions([]);
+    }
   };
 
   return (
@@ -341,6 +388,26 @@ export default function CommentsScreen({ route, navigation }) {
             maxLength={500}
           />
           <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => setText(prev => prev + '@')}
+          >
+            <Ionicons name="at" size={20} color={BRAND_GOLD} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => {
+              if (reelUserId && reelUsername) {
+                navigation.navigate('GiftSelector', {
+                  recipientId: reelUserId,
+                  recipientUsername: reelUsername,
+                  reelId: reelId,
+                });
+              }
+            }}
+          >
+            <Ionicons name="gift" size={20} color={BRAND_GOLD} />
+          </TouchableOpacity>
+          <TouchableOpacity
             style={[styles.sendButton, (!text.trim() || sending) && styles.sendButtonDisabled]}
             onPress={handleSend}
             disabled={!text.trim() || sending}
@@ -352,6 +419,30 @@ export default function CommentsScreen({ route, navigation }) {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Mention Suggestions Dropdown */}
+        {showMentionSuggestions && mentionSuggestions.length > 0 && (
+          <View style={styles.mentionSuggestionsContainer}>
+            <ScrollView style={styles.mentionSuggestionsList} keyboardShouldPersistTaps="handled">
+              {mentionSuggestions.map(u => (
+                <TouchableOpacity
+                  key={u.id}
+                  style={styles.mentionSuggestionItem}
+                  onPress={() => handleSelectMention(u.username)}
+                >
+                  <View style={styles.mentionAvatar}>
+                    {u.profile_photo ? (
+                      <Image source={{ uri: mediaUrl(u.profile_photo) }} style={styles.mentionAvatarImage} />
+                    ) : (
+                      <Text style={styles.mentionAvatarText}>{u.username[0]?.toUpperCase() || 'U'}</Text>
+                    )}
+                  </View>
+                  <Text style={styles.mentionUsername}>@{u.username}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -548,5 +639,61 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     opacity: 0.5,
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  mentionSuggestionsContainer: {
+    position: 'absolute',
+    bottom: '100%',
+    left: 16,
+    right: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    maxHeight: 200,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  mentionSuggestionsList: {
+    maxHeight: 200,
+  },
+  mentionSuggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    gap: 10,
+  },
+  mentionAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: BRAND_GOLD + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  mentionAvatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  mentionAvatarText: {
+    fontWeight: 'bold',
+    color: BRAND_GOLD,
+  },
+  mentionUsername: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
   },
 });
