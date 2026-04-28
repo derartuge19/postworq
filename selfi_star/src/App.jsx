@@ -992,6 +992,7 @@ export default function WerqRoot() {
                 onClose={handleCloseSettings}
                 onLogout={handleLogout}
                 onShowWallet={handleShowWallet}
+                onShowEditProfile={handleShowEditProfile}
               />
             </Suspense>
           </LazyLoadErrorBoundary>

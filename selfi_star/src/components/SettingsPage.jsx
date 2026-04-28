@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
-import { X, User, Bell, Lock, Globe, HelpCircle, LogOut, ChevronRight, Moon, Sun, Wallet } from "lucide-react";
+import {
+  X, User, Bell, Lock, Globe, HelpCircle, LogOut, ChevronRight, Moon, Sun, Wallet,
+  ChevronLeft, MessageCircle, Heart, Users as UsersIcon, Mail, Eye, EyeOff, Activity,
+  Download, Trash2, Shield, FileText, Check
+} from "lucide-react";
 import api from "../api";
+import config from "../config";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 
-export function SettingsPage({ user, onClose, onLogout, onShowWallet }) {
+export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEditProfile }) {
   const { darkMode, toggleDarkMode, colors: T } = useTheme();
   const { language, changeLanguage, t } = useLanguage();
   const [activeSection, setActiveSection] = useState("account");
@@ -154,6 +159,321 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet }) {
     });
   };
 
+  // ─── MOBILE UI (mimics mobile app SettingsScreen) ────────────────────────────
+  const [showPassModal, setShowPassModal] = useState(false);
+  const [showLangModal, setShowLangModal] = useState(false);
+
+  if (isMobile) {
+    const Switch = ({ value, onChange }) => (
+      <label style={{ position: 'relative', display: 'inline-block', width: 44, height: 26, flexShrink: 0 }}>
+        <input type="checkbox" checked={value} onChange={onChange} style={{ opacity: 0, width: 0, height: 0 }} />
+        <span style={{
+          position: 'absolute', cursor: 'pointer', inset: 0,
+          background: value ? T.pri : (T.border || '#3F3F46'),
+          borderRadius: 26, transition: '0.25s',
+        }}>
+          <span style={{
+            position: 'absolute', height: 20, width: 20,
+            left: value ? 22 : 2, top: 3,
+            background: '#fff', borderRadius: '50%', transition: '0.25s',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+          }} />
+        </span>
+      </label>
+    );
+
+    const Row = ({ icon: Icon, title, subtitle, type = 'chevron', value, onToggle, onPress, color, danger }) => {
+      const c = danger ? '#EF4444' : (color || T.txt);
+      return (
+        <div
+          onClick={type === 'switch' ? undefined : onPress}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '14px 16px', borderBottom: `1px solid ${T.border}`,
+            cursor: type === 'switch' ? 'default' : 'pointer',
+            background: 'transparent',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: c + '20',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginRight: 12, flexShrink: 0,
+            }}>
+              <Icon size={18} color={c} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: danger ? '#EF4444' : T.txt }}>{title}</div>
+              {subtitle && <div style={{ fontSize: 12, color: T.sub, marginTop: 2 }}>{subtitle}</div>}
+            </div>
+          </div>
+          {type === 'switch' ? (
+            <Switch value={value} onChange={onToggle} />
+          ) : (
+            <ChevronRight size={18} color={T.sub} />
+          )}
+        </div>
+      );
+    };
+
+    const SectionLabel = ({ children }) => (
+      <div style={{
+        fontSize: 12, fontWeight: 700, color: T.sub,
+        textTransform: 'uppercase', letterSpacing: 1.2,
+        margin: '20px 20px 8px',
+      }}>{children}</div>
+    );
+
+    const SectionCard = ({ children }) => (
+      <div style={{
+        margin: '0 16px', borderRadius: 16, overflow: 'hidden',
+        border: `1px solid ${T.border}`, background: T.cardBg,
+      }}>
+        {children}
+      </div>
+    );
+
+    const handleNotificationToggle = async (key) => {
+      const newVal = !notifications[key];
+      const next = { ...notifications, [key]: newVal };
+      setNotifications(next);
+      try { await api.updateNotificationSettings({ [key]: newVal }); } catch {}
+    };
+
+    const handlePrivacyToggle = async (key) => {
+      const newVal = !privacy[key];
+      const next = { ...privacy, [key]: newVal };
+      setPrivacy(next);
+      try { await api.updatePrivacySettings({ [key]: newVal }); } catch {
+        setPrivacy({ ...privacy, [key]: !newVal });
+      }
+    };
+
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 4000,
+        background: T.bg, display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 16px', background: T.cardBg,
+          borderBottom: `1px solid ${T.border}`, flexShrink: 0,
+        }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: T.txt }}>
+            <ChevronLeft size={26} />
+          </button>
+          <div style={{ fontSize: 17, fontWeight: 700, color: T.txt }}>{t('settings')}</div>
+          <div style={{ width: 34 }} />
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {/* Profile Summary */}
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            padding: '28px 16px', background: T.cardBg, marginBottom: 8,
+          }}>
+            <div style={{
+              width: 80, height: 80, borderRadius: '50%', background: T.pri,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              overflow: 'hidden',
+            }}>
+              {user?.profile_photo ? (
+                <img
+                  src={user.profile_photo.startsWith('http') ? user.profile_photo : `${config.API_BASE_URL.replace('/api', '')}${user.profile_photo}`}
+                  alt={user.username}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <span style={{ fontSize: 32, fontWeight: 800, color: '#000' }}>
+                  {user?.username?.[0]?.toUpperCase() || 'U'}
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>@{user?.username}</div>
+            <div style={{ fontSize: 13, color: T.sub, marginTop: 2 }}>{user?.email}</div>
+          </div>
+
+          {/* Account */}
+          <SectionLabel>{t('account')}</SectionLabel>
+          <SectionCard>
+            <Row icon={User} title={t('editProfile')} subtitle="Change bio and photo" onPress={() => { onClose?.(); onShowEditProfile?.(); }} />
+            <Row icon={Wallet} title="Wallet" subtitle="Coins & transactions" onPress={() => { onClose?.(); onShowWallet?.(); }} />
+            <Row icon={Lock} title={t('changePassword')} onPress={() => setShowPassModal(true)} />
+            <Row icon={Download} title={t('downloadData')} subtitle={t('downloadDataDesc')} onPress={handleDownloadData} />
+          </SectionCard>
+
+          {/* Notifications */}
+          <SectionLabel>{t('notificationsSettings')}</SectionLabel>
+          <SectionCard>
+            <Row icon={Heart} title={t('likes') || 'Likes'} type="switch" value={notifications.likes} onToggle={() => handleNotificationToggle('likes')} />
+            <Row icon={MessageCircle} title={t('comments') || 'Comments'} type="switch" value={notifications.comments} onToggle={() => handleNotificationToggle('comments')} />
+            <Row icon={UsersIcon} title={t('follows') || 'Follows'} type="switch" value={notifications.follows} onToggle={() => handleNotificationToggle('follows')} />
+            <Row icon={Mail} title={t('messages') || 'Messages'} type="switch" value={notifications.messages} onToggle={() => handleNotificationToggle('messages')} />
+          </SectionCard>
+
+          {/* Privacy */}
+          <SectionLabel>{t('privacy')}</SectionLabel>
+          <SectionCard>
+            <Row icon={EyeOff} title={t('privateAccount') || 'Private Account'} subtitle={t('privateAccountDesc')} type="switch" value={privacy.privateAccount} onToggle={() => handlePrivacyToggle('privateAccount')} />
+            <Row icon={Activity} title={t('showActivity') || 'Show Activity'} subtitle={t('showActivityDesc')} type="switch" value={privacy.showActivity} onToggle={() => handlePrivacyToggle('showActivity')} />
+            <Row icon={Mail} title={t('allowMessages') || 'Allow Messages'} subtitle={t('allowMessagesDesc')} type="switch" value={privacy.allowMessages} onToggle={() => handlePrivacyToggle('allowMessages')} />
+          </SectionCard>
+
+          {/* Appearance */}
+          <SectionLabel>{t('appearance')}</SectionLabel>
+          <SectionCard>
+            <Row icon={darkMode ? Moon : Sun} title={t('darkMode')} type="switch" value={darkMode} onToggle={toggleDarkMode} />
+            <Row icon={Globe} title={t('language')} subtitle={language === 'en' ? 'English' : language === 'am' ? 'አማርኛ' : language} onPress={() => setShowLangModal(true)} />
+          </SectionCard>
+
+          {/* Help */}
+          <SectionLabel>{t('help')}</SectionLabel>
+          <SectionCard>
+            <Row icon={HelpCircle} title={t('helpCenter')} onPress={() => setModal({ isOpen: true, title: 'Help', message: 'Contact support@flipstar.com', type: 'info', onConfirm: null })} />
+            <Row icon={Shield} title={t('privacyPolicy')} />
+            <Row icon={FileText} title={t('termsOfService')} />
+          </SectionCard>
+
+          {/* Danger Zone */}
+          <SectionLabel>{t('dangerZone')}</SectionLabel>
+          <SectionCard>
+            <Row icon={Trash2} title={t('deleteAccount')} danger onPress={handleDeleteAccount} />
+          </SectionCard>
+
+          {/* Logout */}
+          <button
+            onClick={onLogout}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 10, margin: '24px 16px 0', padding: 16,
+              background: T.cardBg, border: `1px solid ${T.border}`,
+              borderRadius: 16, cursor: 'pointer',
+              color: '#EF4444', fontSize: 15, fontWeight: 800, width: 'calc(100% - 32px)',
+            }}
+          >
+            <LogOut size={20} />
+            {t('logout')}
+          </button>
+
+          <div style={{ textAlign: 'center', padding: '32px 0' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: T.sub }}>{t('version')} 1.0.0</div>
+            <div style={{ fontSize: 10, color: T.sub, opacity: 0.6, marginTop: 4 }}>© 2024 FlipStar Inc.</div>
+          </div>
+        </div>
+
+        {/* Language Bottom Sheet */}
+        {showLangModal && (
+          <div onClick={() => setShowLangModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 4500, display: 'flex', alignItems: 'flex-end' }}>
+            <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: T.cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottom: `1px solid ${T.border}` }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>{t('chooseLanguage')}</div>
+                <button onClick={() => setShowLangModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.txt }}>
+                  <X size={22} />
+                </button>
+              </div>
+              <div style={{ padding: '8px 20px' }}>
+                {[
+                  { id: 'en', label: 'English' },
+                  { id: 'am', label: 'አማርኛ (Amharic)' },
+                  { id: 'es', label: 'Español' },
+                  { id: 'fr', label: 'Français' },
+                  { id: 'ar', label: 'العربية' },
+                ].map(l => (
+                  <button
+                    key={l.id}
+                    onClick={() => { changeLanguage(l.id); setShowLangModal(false); }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '16px 4px', background: 'none', border: 'none', cursor: 'pointer',
+                      borderBottom: `1px solid ${T.border}`,
+                    }}
+                  >
+                    <span style={{ fontSize: 16, fontWeight: 600, color: language === l.id ? T.pri : T.txt }}>{l.label}</span>
+                    {language === l.id && <Check size={20} color={T.pri} />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Password Bottom Sheet */}
+        {showPassModal && (
+          <div onClick={() => setShowPassModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 4500, display: 'flex', alignItems: 'flex-end' }}>
+            <div onClick={e => e.stopPropagation()} style={{ width: '100%', background: T.cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 32 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottom: `1px solid ${T.border}` }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: T.txt }}>{t('changePassword')}</div>
+                <button onClick={() => setShowPassModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.txt }}>
+                  <X size={22} />
+                </button>
+              </div>
+              <div style={{ padding: 20 }}>
+                {[
+                  { key: 'current', label: t('currentPassword') },
+                  { key: 'new', label: t('newPassword') },
+                  { key: 'confirm', label: t('confirmPassword') },
+                ].map(f => (
+                  <div key={f.key} style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 700, color: T.txt, display: 'block', marginBottom: 6 }}>{f.label}</label>
+                    <input
+                      type="password"
+                      value={password[f.key]}
+                      onChange={(e) => setPassword({ ...password, [f.key]: e.target.value })}
+                      style={{
+                        width: '100%', padding: 14, borderRadius: 12,
+                        border: `1px solid ${T.border}`, background: T.bg, color: T.txt,
+                        fontSize: 15, boxSizing: 'border-box', outline: 'none',
+                      }}
+                    />
+                  </div>
+                ))}
+                <button
+                  onClick={async () => { await handlePasswordChange(); setShowPassModal(false); }}
+                  style={{
+                    width: '100%', marginTop: 12, padding: 16, borderRadius: 14,
+                    background: T.pri, color: '#000', border: 'none',
+                    fontSize: 15, fontWeight: 800, cursor: 'pointer',
+                    boxShadow: `0 4px 16px ${T.pri}40`,
+                  }}
+                >
+                  {t('updatePassword')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Modal (alerts) */}
+        {modal.isOpen && (
+          <div onClick={() => setModal({ ...modal, isOpen: false })} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5000, padding: 16 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: T.cardBg, borderRadius: 16, padding: 20, maxWidth: 360, width: '100%' }}>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: modal.type === 'error' ? '#EF4444' : modal.type === 'warning' ? '#F59E0B' : modal.type === 'success' ? '#10B981' : T.txt, marginBottom: 8 }}>{modal.title}</h3>
+              <p style={{ margin: 0, fontSize: 14, color: T.txt, lineHeight: 1.5, marginBottom: 16 }}>{modal.message}</p>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                {modal.onConfirm && (
+                  <button onClick={() => setModal({ ...modal, isOpen: false })} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${T.border}`, background: T.cardBg, color: T.txt, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                    {t('cancel')}
+                  </button>
+                )}
+                <button
+                  onClick={() => { if (modal.onConfirm) modal.onConfirm(); setModal({ ...modal, isOpen: false }); }}
+                  style={{ padding: '10px 16px', borderRadius: 10, border: 'none', background: modal.type === 'error' ? '#EF4444' : modal.type === 'warning' ? '#F59E0B' : modal.type === 'success' ? '#10B981' : T.pri, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {modal.onConfirm ? t('confirm') : t('ok')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─── DESKTOP UI ──────────────────────────────────────────────────────────────
   return (
     <div style={{
       position: "fixed",

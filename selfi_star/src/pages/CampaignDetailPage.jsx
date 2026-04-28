@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Calendar, Award, Users, Clock, Upload, Video, Check, X, Heart, Share2, ArrowLeft, AlertCircle, Star, Zap, TrendingUp, Medal, Crown, Target, Flame, List, BarChart3 } from 'lucide-react';
+import { Trophy, Calendar, Award, Users, Clock, Upload, Video, Check, X, Heart, Share2, ArrowLeft, AlertCircle, Star, Zap, TrendingUp, Medal, Crown, Target, Flame, List, BarChart3, FileText, MessageCircle, ChevronDown } from 'lucide-react';
 import api from '../api';
 import config from '../config.js';
 import { useTheme } from '../contexts/ThemeContext';
@@ -17,6 +17,14 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
   const [loading, setLoading] = useState(true);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [userEntry, setUserEntry] = useState(null);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 768);
+  const [openSections, setOpenSections] = useState({ desc: true, reqs: false, timeline: false, scoring: false });
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (campaignId) {
@@ -126,7 +134,6 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: '240px',
       }}>
         <div style={{ color: T.sub }}>Loading campaign...</div>
       </div>
@@ -141,7 +148,6 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: '240px',
       }}>
         <div style={{ textAlign: 'center' }}>
           <AlertCircle size={48} color={T.red} style={{ marginBottom: 16 }} />
@@ -169,838 +175,510 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
     );
   }
 
+  const BRAND = '#F9E08B';
+  const toggleSection = (k) => setOpenSections(s => ({ ...s, [k]: !s[k] }));
+
+  const Accordion = ({ id, icon: Icon, title, subtitle, children, defaultColor }) => {
+    const open = openSections[id];
+    return (
+      <div style={{
+        background: T.cardBg || '#fff',
+        borderRadius: 12,
+        border: `1px solid ${T.border}`,
+        overflow: 'hidden',
+        marginBottom: 10,
+      }}>
+        <button
+          onClick={() => toggleSection(id)}
+          style={{
+            width: '100%',
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '14px 16px',
+            background: 'none', border: 'none', cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <div style={{
+            width: 32, height: 32, borderRadius: 10,
+            background: (defaultColor || BRAND) + '22',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <Icon size={16} color={defaultColor || BRAND} strokeWidth={2.5} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: T.txt }}>{title}</div>
+            {subtitle && <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>{subtitle}</div>}
+          </div>
+          <div style={{
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.25s ease',
+            color: T.sub,
+            display: 'flex',
+          }}>
+            <ChevronDown size={18} />
+          </div>
+        </button>
+        {open && (
+          <div style={{ padding: '0 16px 16px', borderTop: `1px solid ${T.border}` }}>
+            <div style={{ paddingTop: 12 }}>{children}</div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const hasRequirements = (campaign.min_followers > 0 || campaign.min_level > 0 || campaign.min_votes_per_reel > 0 || campaign.required_hashtags || campaign.winner_count > 0);
+
+  const CTAButton = () => {
+    if (canSubmit()) {
+      return (
+        <button
+          onClick={() => {
+            if (!api.hasToken()) { alert('Please log in to submit an entry.'); return; }
+            setShowSubmitModal(true);
+          }}
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: `linear-gradient(135deg, ${BRAND}, #F59E0B)`,
+            border: 'none', borderRadius: 12,
+            color: '#000', fontSize: 15, fontWeight: 800,
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: `0 6px 20px ${BRAND}55`,
+          }}
+        >
+          <Upload size={18} strokeWidth={2.5} />
+          Join Campaign
+        </button>
+      );
+    }
+    if (userEntry) {
+      return (
+        <div style={{
+          width: '100%', padding: '12px 16px',
+          background: 'rgba(16,185,129,0.15)',
+          border: '1.5px solid #10B981',
+          borderRadius: 12,
+          color: '#10B981',
+          fontSize: 14, fontWeight: 700,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          <Check size={16} strokeWidth={3} />
+          You're in! Rank #{userEntry.rank || '—'}
+        </div>
+      );
+    }
+    return (
+      <div style={{
+        width: '100%', padding: '12px 16px',
+        background: T.bg,
+        border: `1.5px solid ${T.border}`,
+        borderRadius: 12,
+        color: T.sub,
+        fontSize: 14, fontWeight: 700,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      }}>
+        <AlertCircle size={16} />
+        {campaign.status === 'completed' ? 'Campaign Ended' : campaign.status === 'upcoming' ? 'Starts Soon' : 'Not Accepting Entries'}
+      </div>
+    );
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
       background: T.bg,
-      padding: '24px 32px 60px 32px',
+      padding: isMobile ? '0 0 100px' : '16px 24px 80px',
       boxSizing: 'border-box',
     }}>
-      <div style={{
-        maxWidth: 1200,
-        margin: '0 auto',
-      }}>
-        {/* Back Button */}
-        <button
-          onClick={onBack}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '8px 16px',
-            background: 'transparent',
-            border: 'none',
-            color: T.sub,
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: 'pointer',
-            marginBottom: 24,
-          }}
-        >
-          <ArrowLeft size={18} />
-          Back to Campaigns
-        </button>
-
-        {/* Campaign Header */}
+      <div style={{ maxWidth: 820, margin: '0 auto' }}>
+        {/* Sticky Header */}
         <div style={{
-          background: T.cardBg || '#fff',
-          borderRadius: 16,
-          overflow: 'hidden',
-          border: `1px solid ${T.border}`,
-          marginBottom: 32,
+          position: 'sticky', top: 0, zIndex: 20,
+          background: T.bg,
+          padding: isMobile ? '10px 12px' : '0 0 12px',
+          borderBottom: isMobile ? `1px solid ${T.border}` : 'none',
+          display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          {campaign.image && (
+          <button
+            onClick={onBack}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: 4, display: 'flex', color: T.txt, flexShrink: 0,
+            }}
+          >
+            <ArrowLeft size={22} strokeWidth={2.5} />
+          </button>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              width: '100%',
-              height: 300,
-              background: `url(${mediaUrl(campaign.image)}) center/cover`,
-            }} />
-          )}
-          
-          <div style={{ padding: 32 }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              marginBottom: 16,
-              flexWrap: 'wrap',
-              gap: 16,
+              fontSize: isMobile ? 15 : 17, fontWeight: 800, color: T.txt,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              {campaign.title}
+            </div>
+          </div>
+          <div style={{
+            padding: '4px 10px', borderRadius: 10,
+            background: campaign.status === 'active' ? 'rgba(16,185,129,0.15)' :
+                        campaign.status === 'voting' ? 'rgba(59,130,246,0.15)' :
+                        campaign.status === 'upcoming' ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.15)',
+            color: campaign.status === 'active' ? '#10B981' :
+                   campaign.status === 'voting' ? '#3B82F6' :
+                   campaign.status === 'upcoming' ? '#F59E0B' : '#94A3B8',
+            fontSize: 10, fontWeight: 800,
+            textTransform: 'uppercase', letterSpacing: '0.5px',
+            flexShrink: 0,
+          }}>
+            {campaign.status}
+          </div>
+        </div>
+
+        <div style={{ padding: isMobile ? '12px' : '0' }}>
+          {/* HERO: Image + Prize overlay */}
+          <div style={{
+            position: 'relative',
+            borderRadius: 16,
+            overflow: 'hidden',
+            marginBottom: 14,
+            border: `1px solid ${T.border}`,
+            background: campaign.image ? '#000' : `linear-gradient(135deg, ${BRAND}30, #F59E0B30)`,
+            aspectRatio: isMobile ? '16/10' : '16/7',
+          }}>
+            {campaign.image ? (
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: `url(${mediaUrl(campaign.image)}) center/cover`,
+              }} />
+            ) : (
+              <div style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Trophy size={64} color={BRAND} opacity={0.4} strokeWidth={1.5} />
+              </div>
+            )}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.75) 100%)',
+            }} />
+            {/* Prize overlay */}
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0,
+              padding: '14px 16px',
+              display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{
+                width: 42, height: 42, borderRadius: '50%',
+                background: `linear-gradient(135deg, ${BRAND}, #F59E0B)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: `0 4px 16px ${BRAND}70`,
+                flexShrink: 0,
+              }}>
+                <Award size={22} color="#000" strokeWidth={2.5} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 10, color: 'rgba(255,255,255,0.8)',
+                  fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px',
+                }}>
+                  Prize Pool
+                </div>
+                <div style={{
+                  fontSize: 22, fontWeight: 900,
+                  color: BRAND, lineHeight: 1.1,
+                }}>
+                  {campaign.prize_value ? `${campaign.prize_value} ETB` : (campaign.prize_title || '—')}
+                </div>
+              </div>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '6px 10px', borderRadius: 10,
+                background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+                color: '#fff', fontSize: 11, fontWeight: 800,
+                flexShrink: 0,
+              }}>
+                <Clock size={12} strokeWidth={2.5} />
+                {getTimeRemaining(campaign.voting_end || campaign.entry_deadline)}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Stats Row */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 8, marginBottom: 14,
+          }}>
+            {[
+              { label: 'Entries',    value: campaign.total_entries || 0, color: '#3B82F6', icon: Users },
+              { label: 'Total Votes', value: campaign.total_votes || 0,   color: '#EF4444', icon: Flame },
+              { label: 'Winners',    value: campaign.winner_count || 1,  color: BRAND,     icon: Crown },
+            ].map((s, i) => {
+              const I = s.icon;
+              return (
+                <div key={i} style={{
+                  padding: '10px 8px',
+                  background: T.cardBg || '#fff',
+                  borderRadius: 10,
+                  border: `1px solid ${T.border}`,
+                  textAlign: 'center',
+                }}>
                   <div style={{
-                    display: 'inline-block',
-                    padding: '6px 12px',
-                    borderRadius: 8,
-                    background: T.pri + '20',
-                    color: T.pri,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    gap: 4, marginBottom: 4,
                   }}>
-                    {campaign.status}
+                    <I size={11} color={s.color} strokeWidth={2.5} />
+                    <span style={{ fontSize: 9, color: T.sub, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {s.label}
+                    </span>
                   </div>
-                  <div style={{
-                    display: 'inline-block',
-                    padding: '6px 12px',
-                    borderRadius: 8,
-                    background: 'rgba(59,130,246,0.2)',
-                    color: '#3B82F6',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                  }}>
-                    {campaign.campaign_type === 'grand' ? 'Grand Campaign' : 
-                     campaign.campaign_type === 'daily' ? 'Daily Campaign' : 
-                     campaign.campaign_type === 'weekly' ? 'Weekly Campaign' : 'Monthly Campaign'}
+                  <div style={{ fontSize: 16, fontWeight: 900, color: s.color }}>
+                    {s.value}
                   </div>
                 </div>
-                
-                <h1 style={{
-                  margin: 0,
-                  fontSize: 36,
-                  fontWeight: 800,
-                  color: T.txt,
-                  marginBottom: 12,
-                }}>
-                  {campaign.title}
-                </h1>
-                
-                <p style={{
-                  margin: 0,
-                  fontSize: 16,
-                  color: T.sub,
-                  lineHeight: 1.6,
-                }}>
-                  {campaign.description}
-                </p>
-              </div>
+              );
+            })}
+          </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {canSubmit() ? (
-                  <button
-                    onClick={() => {
-                      if (!api.hasToken()) {
-                        alert('Please log in to submit a campaign entry.');
-                        return;
-                      }
-                      setShowSubmitModal(true);
-                    }}
-                    style={{
-                      padding: '16px 32px',
-                      background: 'linear-gradient(135deg, #DA9B2A, #F97316)',
-                      border: 'none',
-                      borderRadius: 16,
-                      color: '#fff',
-                      fontSize: 18,
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      boxShadow: '0 8px 24px rgba(218,155,42,0.6)',
-                      transition: 'all 0.3s ease',
-                      animation: 'pulse 2s ease-in-out infinite',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(218,155,42,0.8)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(218,155,42,0.6)';
-                    }}
-                  >
-                    <Upload size={22} strokeWidth={2.5} />
-                    🎯 Join Campaign
-                  </button>
-                ) : userEntry ? (
-                  <div style={{
-                    padding: '12px 20px',
-                    background: 'rgba(16,185,129,0.15)',
-                    border: '2px solid #F9E08B',
-                    borderRadius: 16,
-                    color: '#10B981',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                  }}>
-                    <Check size={18} strokeWidth={3} />
-                    Already Entered
-                  </div>
-                ) : (
-                  <div style={{
-                    padding: '12px 20px',
-                    background: 'rgba(239,68,68,0.15)',
-                    border: '2px solid #F9E08B',
-                    borderRadius: 16,
-                    color: '#EF4444',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                  }}>
-                    <AlertCircle size={18} strokeWidth={3} />
-                    Cannot Submit
+          {/* Primary CTA */}
+          <div style={{ marginBottom: 14 }}>
+            <CTAButton />
+          </div>
+
+          {/* Secondary actions */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <button
+              onClick={() => onShowLeaderboard?.()}
+              style={{
+                flex: 1, padding: '10px 12px',
+                background: T.cardBg || '#fff',
+                border: `1px solid ${T.border}`,
+                borderRadius: 10,
+                color: T.txt, fontSize: 13, fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+            >
+              <BarChart3 size={15} />
+              Leaderboard
+            </button>
+            <button
+              onClick={() => onShowFeed?.()}
+              style={{
+                flex: 1, padding: '10px 12px',
+                background: T.cardBg || '#fff',
+                border: `1px solid ${T.border}`,
+                borderRadius: 10,
+                color: T.txt, fontSize: 13, fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+            >
+              <List size={15} />
+              Feed
+            </button>
+          </div>
+
+          {/* Your entry (compact) */}
+          {userEntry && (
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(249,224,139,0.08))',
+              border: '1.5px solid #10B981',
+              borderRadius: 12,
+              padding: 14,
+              marginBottom: 14,
+              display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: '50%',
+                background: '#10B981',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <Check size={18} color="#fff" strokeWidth={3} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: T.txt }}>
+                  Your Entry is Live 🎉
+                </div>
+                <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>
+                  {userEntry.vote_count || 0} votes · Rank #{userEntry.rank || '—'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ─── ACCORDIONS ──────────────────────────── */}
+
+          <Accordion id="desc" icon={FileText} title="About this Campaign" subtitle="Description & rules" defaultColor={BRAND}>
+            <p style={{ margin: 0, fontSize: 13, color: T.sub, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+              {campaign.description || 'No description provided.'}
+            </p>
+            <div style={{
+              marginTop: 12, padding: 10,
+              background: `${BRAND}15`, borderRadius: 8,
+              fontSize: 11, color: T.txt, lineHeight: 1.5,
+              display: 'flex', alignItems: 'flex-start', gap: 8,
+            }}>
+              <Target size={14} color={BRAND} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span>
+                Type: <b>{campaign.campaign_type === 'grand' ? 'Grand Campaign' : campaign.campaign_type === 'daily' ? 'Daily' : campaign.campaign_type === 'weekly' ? 'Weekly' : 'Monthly'}</b>
+                {campaign.prize_title && <> · <b>{campaign.prize_title}</b></>}
+              </span>
+            </div>
+          </Accordion>
+
+          {hasRequirements && (
+            <Accordion id="reqs" icon={Target} title="Entry Requirements" subtitle="What you need to qualify" defaultColor="#3B82F6">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {campaign.required_hashtags && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: T.bg, borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, color: T.sub, fontWeight: 600, minWidth: 110 }}>Required tags</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: BRAND }}>{campaign.required_hashtags}</span>
                   </div>
                 )}
-                
-                {/* Quick Actions */}
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    onClick={() => onShowLeaderboard?.()}
-                    style={{
-                      flex: 1,
-                      padding: '10px 16px',
-                      background: T.cardBg || '#fff',
-                      border: `1px solid ${T.border}`,
-                      borderRadius: 8,
-                      color: T.txt,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8
-                    }}
-                  >
-                    <BarChart3 size={18} />
-                    Leaderboard
-                  </button>
-                  <button
-                    onClick={() => onShowFeed?.()}
-                    style={{
-                      flex: 1,
-                      padding: '10px 16px',
-                      background: T.cardBg || '#fff',
-                      border: `1px solid ${T.border}`,
-                      borderRadius: 8,
-                      color: T.txt,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8
-                    }}
-                  >
-                    <List size={18} />
-                    Feed
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Prize Section */}
-            <div style={{
-              padding: 24,
-              background: 'linear-gradient(135deg, rgba(218,155,42,0.15), rgba(249,115,22,0.15))',
-              borderRadius: 12,
-              border: '2px solid rgba(218,155,42,0.3)',
-              marginBottom: 24,
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 16,
-              }}>
-                <div style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: '50%',
-                  background: T.pri,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <Trophy size={32} color="#fff" />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{
-                    fontSize: 14,
-                    color: T.sub,
-                    marginBottom: 4,
-                  }}>
-                    Prize
+                {campaign.min_followers > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: T.bg, borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, color: T.sub, fontWeight: 600, minWidth: 110 }}>Min followers</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: '#3B82F6' }}>{campaign.min_followers}+</span>
                   </div>
-                  <div style={{
-                    fontSize: 28,
-                    fontWeight: 800,
-                    color: T.pri,
-                    marginBottom: 4,
-                  }}>
-                    {campaign.prize_value} ETB
+                )}
+                {campaign.min_level > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: T.bg, borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, color: T.sub, fontWeight: 600, minWidth: 110 }}>Min level</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: '#F97316' }}>Level {campaign.min_level}</span>
                   </div>
-                  <div style={{
-                    fontSize: 15,
-                    color: T.txt,
-                  }}>
-                    {campaign.prize_title}
+                )}
+                {campaign.min_votes_per_reel > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: T.bg, borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, color: T.sub, fontWeight: 600, minWidth: 110 }}>Min votes/reel</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: '#EF4444' }}>{campaign.min_votes_per_reel}+</span>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Gamification Stats */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: 12,
-              marginBottom: 24,
-            }}>
-              <div style={{
-                padding: 16,
-                background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.05))',
-                borderRadius: 12,
-                border: '2px solid rgba(59,130,246,0.3)',
-                position: 'relative',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: -10,
-                  right: -10,
-                  width: 60,
-                  height: 60,
-                  borderRadius: '50%',
-                  background: 'rgba(59,130,246,0.1)',
-                }} />
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 8,
-                }}>
-                  <Users size={18} color="#3B82F6" />
-                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
-                    Participants
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: 28,
-                  fontWeight: 800,
-                  color: T.blue,
-                }}>
-                  {campaign.total_entries || 0}
-                </div>
-              </div>
-
-              <div style={{
-                padding: 16,
-                background: 'linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))',
-                borderRadius: 12,
-                border: '2px solid rgba(239,68,68,0.3)',
-                position: 'relative',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: -10,
-                  right: -10,
-                  width: 60,
-                  height: 60,
-                  borderRadius: '50%',
-                  background: 'rgba(239,68,68,0.1)',
-                }} />
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 8,
-                }}>
-                  <Flame size={18} color={T.red} />
-                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
-                    Total Votes
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: 28,
-                  fontWeight: 800,
-                  color: T.red,
-                }}>
-                  {campaign.total_votes || 0}
-                </div>
-              </div>
-
-              <div style={{
-                padding: 16,
-                background: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(249,115,22,0.05))',
-                borderRadius: 12,
-                border: '2px solid rgba(249,115,22,0.3)',
-                position: 'relative',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: -10,
-                  right: -10,
-                  width: 60,
-                  height: 60,
-                  borderRadius: '50%',
-                  background: 'rgba(249,115,22,0.1)',
-                }} />
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 8,
-                }}>
-                  <Clock size={18} color={T.orange} />
-                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
-                    Time Left
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: 18,
-                  fontWeight: 800,
-                  color: T.orange,
-                }}>
-                  {getTimeRemaining(campaign.voting_end || campaign.entry_deadline)}
-                </div>
-              </div>
-
-              {/* Engagement Score */}
-              <div style={{
-                padding: 16,
-                background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))',
-                borderRadius: 12,
-                border: '2px solid rgba(139,92,246,0.3)',
-                position: 'relative',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: -10,
-                  right: -10,
-                  width: 60,
-                  height: 60,
-                  borderRadius: '50%',
-                  background: 'rgba(139,92,246,0.1)',
-                }} />
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 8,
-                }}>
-                  <TrendingUp size={18} color="#8B5CF6" />
-                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600 }}>
-                    Engagement
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: 28,
-                  fontWeight: 800,
-                  color: T.purple,
-                }}>
-                  {campaign.total_entries > 0 ? Math.round((campaign.total_votes / campaign.total_entries) * 10) / 10 : 0}
-                </div>
-              </div>
-            </div>
-
-            {/* Entry Requirements */}
-            {(campaign.min_followers > 0 || campaign.min_level > 0 || campaign.min_votes_per_reel > 0 || campaign.required_hashtags) && (
-              <div style={{
-                padding: 20,
-                background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1))',
-                borderRadius: 12,
-                border: '2px solid rgba(59,130,246,0.3)',
-                marginBottom: 24,
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  marginBottom: 16,
-                }}>
-                  <div style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    background: '#3B82F6',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <Target size={20} color="#fff" strokeWidth={2.5} />
+                )}
+                {campaign.winner_count > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: T.bg, borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, color: T.sub, fontWeight: 600, minWidth: 110 }}>Winners</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: '#10B981' }}>{campaign.winner_count}</span>
                   </div>
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: 18,
-                    fontWeight: 700,
-                    color: T.txt,
-                  }}>
-                    Entry Requirements
-                  </h3>
-                </div>
-                
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: 16,
-                }}>
-                  {campaign.required_hashtags && (
-                    <div style={{
-                      padding: 16,
-                      background: T.cardBg || '#fff',
-                      borderRadius: 10,
-                      border: `1px solid ${T.border}`,
-                    }}>
-                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
-                        Required Hashtags
-                      </div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: T.pri }}>
-                        {campaign.required_hashtags}
-                      </div>
-                    </div>
-                  )}
-                  {campaign.min_followers > 0 && (
-                    <div style={{
-                      padding: 16,
-                      background: T.cardBg || '#fff',
-                      borderRadius: 10,
-                      border: `1px solid ${T.border}`,
-                    }}>
-                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
-                        Minimum Followers
-                      </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#3B82F6' }}>
-                        {campaign.min_followers}+
-                      </div>
-                    </div>
-                  )}
-                  {campaign.min_level > 0 && (
-                    <div style={{
-                      padding: 16,
-                      background: T.cardBg || '#fff',
-                      borderRadius: 10,
-                      border: `1px solid ${T.border}`,
-                    }}>
-                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
-                        Minimum Level
-                      </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#F97316' }}>
-                        Level {campaign.min_level}
-                      </div>
-                    </div>
-                  )}
-                  {campaign.min_votes_per_reel > 0 && (
-                    <div style={{
-                      padding: 16,
-                      background: T.cardBg || '#fff',
-                      borderRadius: 10,
-                      border: `1px solid ${T.border}`,
-                    }}>
-                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
-                        Minimum Votes per Reel
-                      </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#EF4444' }}>
-                        {campaign.min_votes_per_reel}+
-                      </div>
-                    </div>
-                  )}
-                  {campaign.winner_count > 0 && (
-                    <div style={{
-                      padding: 16,
-                      background: T.cardBg || '#fff',
-                      borderRadius: 10,
-                      border: `1px solid ${T.border}`,
-                    }}>
-                      <div style={{ fontSize: 12, color: T.sub, marginBottom: 6, fontWeight: 600 }}>
-                        Number of Winners
-                      </div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: '#10B981' }}>
-                        {campaign.winner_count}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
-            )}
+            </Accordion>
+          )}
 
-            {/* Timeline */}
-            <div style={{
-              padding: 20,
-              background: T.bg,
-              borderRadius: 12,
-              border: `1px solid ${T.border}`,
-            }}>
-              <h3 style={{
-                margin: 0,
-                fontSize: 18,
-                fontWeight: 700,
-                color: T.txt,
-                marginBottom: 16,
-              }}>
-                Campaign Timeline
-              </h3>
-              
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: 16,
-              }}>
-                <div>
-                  <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>
-                    Start Date
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
-                    {formatDate(campaign.start_date)}
-                  </div>
+          <Accordion id="timeline" icon={Calendar} title="Timeline" subtitle="Key dates" defaultColor="#8B5CF6">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                { label: 'Starts',          date: campaign.start_date,      color: '#10B981' },
+                { label: 'Entry Deadline',  date: campaign.entry_deadline,  color: '#F59E0B' },
+                { label: 'Voting Begins',   date: campaign.voting_start,    color: '#3B82F6' },
+                { label: 'Voting Ends',     date: campaign.voting_end,      color: '#EF4444' },
+              ].map((t, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: t.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: T.sub, fontWeight: 600, minWidth: 110 }}>{t.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: T.txt }}>{formatDate(t.date)}</span>
                 </div>
-                <div>
-                  <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>
-                    Entry Deadline
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
-                    {formatDate(campaign.entry_deadline)}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>
-                    Voting Period
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: T.txt }}>
-                    {formatDate(campaign.voting_start)} - {formatDate(campaign.voting_end)}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* User's Entry with Gamification */}
-        {userEntry && (
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(218,155,42,0.1))',
-            borderRadius: 16,
-            padding: 24,
-            border: '2px solid #10B981',
-            marginBottom: 32,
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: -20,
-              right: -20,
-              width: 100,
-              height: 100,
-              borderRadius: '50%',
-              background: 'rgba(218,155,42,0.1)',
-            }} />
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 16,
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-              }}>
-                <div style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: '50%',
-                  background: '#10B981',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <Check size={24} color="#fff" strokeWidth={3} />
-                </div>
-                <div>
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: 20,
-                    fontWeight: 700,
-                    color: T.txt,
-                  }}>
-                    Your Entry Submitted!
-                  </h3>
-                  <p style={{
-                    margin: 0,
-                    fontSize: 13,
-                    color: T.sub,
-                  }}>
-                    Good luck! 🍀
-                  </p>
-                </div>
-              </div>
-              {userEntry.rank && userEntry.rank <= 3 && (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 16px',
-                  background: userEntry.rank === 1 ? '#FFD700' : userEntry.rank === 2 ? '#C0C0C0' : '#CD7F32',
-                  borderRadius: 20,
-                }}>
-                  <Crown size={18} color="#fff" />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>#{userEntry.rank}</span>
-                </div>
-              )}
-            </div>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 12,
-            }}>
-              <div style={{
-                padding: 12,
-                background: T.cardBg || '#fff',
-                borderRadius: 8,
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>Votes</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: T.pri }}>{userEntry.vote_count || 0}</div>
-              </div>
-              <div style={{
-                padding: 12,
-                background: T.cardBg || '#fff',
-                borderRadius: 8,
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>Rank</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#3B82F6' }}>#{userEntry.rank || '-'}</div>
-              </div>
-              <div style={{
-                padding: 12,
-                background: T.cardBg || '#fff',
-                borderRadius: 8,
-                textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 12, color: T.sub, marginBottom: 4 }}>Status</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#10B981' }}>✓ Active</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Leaderboard Section */}
-        <div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 24,
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-            }}>
-              <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #DA9B2A, #F97316)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <Trophy size={24} color="#fff" strokeWidth={2.5} />
-              </div>
-              <div>
-                <h2 style={{
-                  margin: 0,
-                  fontSize: 24,
-                  fontWeight: 800,
-                  color: T.txt,
-                }}>
-                  {canVote() ? '🔥 Vote for Your Favorites' : '🏆 Leaderboard'}
-                </h2>
-                <p style={{
-                  margin: 0,
-                  fontSize: 13,
-                  color: T.sub,
-                }}>
-                  {entries.length} entries competing for {campaign.prize_value} ETB
-                </p>
-              </div>
-            </div>
-            {canVote() && (
-              <div style={{
-                padding: '8px 16px',
-                background: 'rgba(16,185,129,0.15)',
-                borderRadius: 20,
-                border: `2px solid #F9E08B`,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}>
-                <Zap size={16} color="#10B981" />
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#10B981' }}>Voting Open</span>
-              </div>
-            )}
-          </div>
-
-          {entries.length === 0 ? (
-            <div style={{
-              background: T.cardBg || '#fff',
-              borderRadius: 16,
-              padding: 60,
-              textAlign: 'center',
-              border: `1px solid ${T.border}`,
-            }}>
-              <Video size={48} color={T.sub} style={{ marginBottom: 16 }} />
-              <h3 style={{
-                margin: 0,
-                fontSize: 20,
-                fontWeight: 600,
-                color: T.txt,
-                marginBottom: 8,
-              }}>
-                No entries yet
-              </h3>
-              <p style={{
-                margin: 0,
-                fontSize: 14,
-                color: T.sub,
-              }}>
-                Be the first to submit your entry!
-              </p>
-            </div>
-          ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: 24,
-            }}>
-              {entries.map(entry => (
-                <CampaignEntryCard
-                  key={entry.id}
-                  entry={entry}
-                  theme={theme}
-                  canVote={canVote()}
-                  onVote={() => handleVote(entry.id)}
-                />
               ))}
             </div>
-          )}
-        </div>
-      </div>
+          </Accordion>
 
-      {/* Submit Modal */}
-      {showSubmitModal && (
-        <SubmitEntryModal
-          theme={theme}
-          campaign={campaign}
-          campaignId={campaignId}
-          onClose={() => setShowSubmitModal(false)}
-          onSuccess={() => {
-            setShowSubmitModal(false);
-            loadCampaignDetails();
-          }}
-        />
-      )}
+          <Accordion id="scoring" icon={TrendingUp} title="How Scoring Works" subtitle="Engagement + votes" defaultColor="#EC4899">
+            <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.6 }}>
+              <p style={{ margin: '0 0 8px' }}>
+                Your total score is calculated from <b style={{ color: T.txt }}>likes, comments, shares, and votes</b> on your entry during the campaign period.
+              </p>
+              <div style={{
+                display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginTop: 10,
+              }}>
+                {[
+                  { label: 'Likes',    icon: Heart,         color: '#EF4444' },
+                  { label: 'Comments', icon: MessageCircle, color: '#3B82F6' },
+                  { label: 'Shares',   icon: Share2,        color: '#8B5CF6' },
+                  { label: 'Votes',    icon: Award,         color: BRAND     },
+                ].map((m, i) => {
+                  const I = m.icon;
+                  return (
+                    <div key={i} style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '8px 10px', background: T.bg, borderRadius: 8,
+                    }}>
+                      <I size={14} color={m.color} />
+                      <span style={{ fontSize: 12, color: T.txt, fontWeight: 600 }}>{m.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Accordion>
+
+          {/* ─── LEADERBOARD ────────────────────────── */}
+          <div style={{ marginTop: 20 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: 12,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Trophy size={18} color={BRAND} strokeWidth={2.5} />
+                <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: T.txt }}>
+                  {canVote() ? 'Vote for Favorites' : 'Leaderboard'}
+                </h2>
+              </div>
+              <div style={{ fontSize: 11, color: T.sub, fontWeight: 600 }}>
+                {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+              </div>
+            </div>
+
+            {entries.length === 0 ? (
+              <div style={{
+                padding: '36px 20px',
+                textAlign: 'center',
+                background: T.cardBg || '#fff',
+                borderRadius: 12,
+                border: `1px dashed ${T.border}`,
+              }}>
+                <Video size={36} color={T.sub} style={{ opacity: 0.4, marginBottom: 10 }} />
+                <div style={{ fontSize: 14, fontWeight: 700, color: T.txt, marginBottom: 4 }}>
+                  No entries yet
+                </div>
+                <div style={{ fontSize: 12, color: T.sub }}>
+                  Be the first to submit!
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: 14,
+              }}>
+                {entries.map(entry => (
+                  <CampaignEntryCard
+                    key={entry.id}
+                    entry={entry}
+                    theme={T}
+                    canVote={canVote()}
+                    onVote={() => handleVote(entry.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Submit Modal */}
+        {showSubmitModal && (
+          <SubmitEntryModal
+            theme={T}
+            campaign={campaign}
+            campaignId={campaignId}
+            onClose={() => setShowSubmitModal(false)}
+            onSuccess={() => {
+              setShowSubmitModal(false);
+              loadCampaignDetails();
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -1020,9 +698,9 @@ function CampaignEntryCard({ entry, theme, canVote, onVote }) {
   const getRankBadge = () => {
     if (!entry.rank || entry.rank > 3) return null;
     const badges = {
-      1: { color: '#FFD700', icon: '🥇', label: '1st Place' },
-      2: { color: '#C0C0C0', icon: '🥈', label: '2nd Place' },
-      3: { color: '#CD7F32', icon: '🥉', label: '3rd Place' },
+      1: { color: '#FFD700', icon: 'ðŸ¥‡', label: '1st Place' },
+      2: { color: '#C0C0C0', icon: 'ðŸ¥ˆ', label: '2nd Place' },
+      3: { color: '#CD7F32', icon: 'ðŸ¥‰', label: '3rd Place' },
     };
     return badges[entry.rank];
   };
@@ -1513,7 +1191,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               cursor: 'pointer',
             }}
           >
-            📚 Use Existing
+            ðŸ“š Use Existing
           </button>
           <button
             onClick={() => setShowCreateNew(true)}
@@ -1529,7 +1207,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               cursor: 'pointer',
             }}
           >
-            🎬 Create New
+            ðŸŽ¬ Create New
           </button>
         </div>
 
@@ -1559,7 +1237,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                 marginBottom: 20,
               }}>
                 <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: T.txt, marginBottom: 12 }}>
-                  📋 Campaign Requirements
+                  ðŸ“‹ Campaign Requirements
                 </h4>
                 <div style={{ fontSize: 13, color: T.sub, lineHeight: 1.8 }}>
                   {campaign.required_hashtags && (
@@ -1743,7 +1421,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                   color: T.sub,
                   marginTop: 6,
                 }}>
-                  💡 Tip: Copy and paste: {campaign.required_hashtags}
+                  ðŸ’¡ Tip: Copy and paste: {campaign.required_hashtags}
                 </div>
               )}
             </div>
@@ -1781,7 +1459,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
                 boxShadow: '0 4px 12px rgba(218,155,42,0.4)',
               }}
             >
-              🎬 Create Reel Now
+              ðŸŽ¬ Create Reel Now
             </button>
           </div>
         ) : (
@@ -1884,7 +1562,7 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
               cursor: ((showCreateNew ? newReelFile : selectedReel) && !submitting) ? 'pointer' : 'not-allowed',
             }}
           >
-            {submitting ? 'Submitting...' : showCreateNew ? '🚀 Create & Submit' : 'Submit Entry'}
+            {submitting ? 'Submitting...' : showCreateNew ? 'ðŸš€ Create & Submit' : 'Submit Entry'}
           </button>
         </div>
       </div>

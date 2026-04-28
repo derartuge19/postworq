@@ -13,7 +13,7 @@ import api from '../api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 const PERIODS = [
   { id: 'overall', label: 'All Time' },

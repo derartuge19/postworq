@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../api';
 import config from '../config';
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 const mediaUrl = (url) => {
   if (!url) return null;

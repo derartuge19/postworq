@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
 import config from '../config';
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 export default function FollowListScreen({ route, navigation }) {
   const { userId, type } = route.params; // type: 'followers' | 'following'

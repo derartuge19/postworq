@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
 
 const { width, height } = Dimensions.get('window');
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 // ─────────────────────────────────────────────────────────────
 // Components: Modal Header
@@ -26,7 +26,7 @@ const ModalHeader = ({ title, onClose }) => (
   <View style={styles.modalHeader}>
     <Text style={styles.modalTitle}>{title}</Text>
     <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-      <Ionicons name="close" size={24} color="#78716C" />
+      <Ionicons name="close" size={20} color="#F9E08B" />
     </TouchableOpacity>
   </View>
 );
@@ -38,10 +38,10 @@ const CoinsModal = ({ coins, onClose }) => (
   <View style={styles.modalContent}>
     <ModalHeader title="💰 Coin Balance" onClose={onClose} />
     <ScrollView contentContainerStyle={styles.scrollPadding}>
-      <View style={styles.balanceHero}>
+      <View style={[styles.balanceHero, { backgroundColor: '#F9E08B' }]}>
         <Text style={styles.heroEmoji}>🪙</Text>
-        <Text style={styles.heroAmount}>{coins?.balance?.total ?? coins?.balance ?? 0}</Text>
-        <Text style={styles.heroLabel}>Total Balance</Text>
+        <Text style={[styles.heroAmount, { color: '#000' }]}>{coins?.balance?.total ?? coins?.balance ?? 0}</Text>
+        <Text style={[styles.heroLabel, { color: 'rgba(0,0,0,0.75)' }]}>Total Balance</Text>
       </View>
       
       <View style={styles.statsGrid}>
@@ -91,22 +91,22 @@ const StreakModal = ({ streak, onClaim, onClose }) => {
     <View style={styles.modalContent}>
       <ModalHeader title="🔥 Login Streak" onClose={onClose} />
       <ScrollView contentContainerStyle={styles.scrollPadding}>
-        <View style={[styles.balanceHero, { backgroundColor: '#EF4444', borderBottomWidth: 0 }]}>
+        <View style={[styles.balanceHero, { backgroundColor: '#F9E08B', borderBottomWidth: 0 }]}>
           <Text style={styles.heroEmoji}>🔥</Text>
-          <Text style={[styles.heroAmount, { color: '#fff' }]}>{cur}</Text>
-          <Text style={[styles.heroLabel, { color: 'rgba(255,255,255,0.9)' }]}>Day Streak</Text>
+          <Text style={[styles.heroAmount, { color: '#000' }]}>{cur}</Text>
+          <Text style={[styles.heroLabel, { color: 'rgba(0,0,0,0.75)' }]}>Day Streak</Text>
         </View>
         
         {streak?.bonus_available && !claimed ? (
           <TouchableOpacity 
-            style={styles.claimBtn} 
+            style={[styles.claimBtn, { backgroundColor: '#F9E08B' }]} 
             onPress={handleClaim}
             disabled={claiming}
           >
             {claiming ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color="#000" />
             ) : (
-              <Text style={styles.claimBtnText}>🎁 Claim Day {cur + 1} Bonus!</Text>
+              <Text style={[styles.claimBtnText, { color: '#000' }]}>🎁 Claim Day {cur + 1} Bonus!</Text>
             )}
           </TouchableOpacity>
         ) : claimed ? (
@@ -154,10 +154,10 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
         <ModalHeader title="🎁 Gift Sent!" onClose={onClose} />
         <View style={styles.doneContainer}>
           <Text style={styles.doneEmoji}>🎉</Text>
-          <Text style={styles.doneTitle}>Gift Sent Successfully!</Text>
+          <Text style={[styles.doneTitle, { color: '#F9E08B' }]}>Gift Sent Successfully!</Text>
           <Text style={styles.doneSub}>You sent {amount} coins to @{recipient}</Text>
-          <TouchableOpacity style={styles.doneBtn} onPress={onClose}>
-            <Text style={styles.doneBtnText}>Awesome! 🎊</Text>
+          <TouchableOpacity style={[styles.doneBtn, { backgroundColor: '#F9E08B' }]} onPress={onClose}>
+            <Text style={[styles.doneBtnText, { color: '#000' }]}>Awesome! 🎊</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -171,12 +171,12 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
         <View style={styles.balanceRow}>
           <Text style={styles.balanceLabel}>Your balance</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={styles.balanceValue}>🪙 {coins?.balance ?? 0}</Text>
+            <Text style={[styles.balanceValue, { color: '#F9E08B' }]}>🪙 {coins?.balance ?? 0}</Text>
             <TouchableOpacity
               onPress={() => { onClose(); navigation.navigate('Wallet'); }}
-              style={styles.topUpBtn}
+              style={[styles.topUpBtn, { borderColor: '#F9E08B' }]}
             >
-              <Text style={styles.topUpBtnText}>+ Top Up</Text>
+              <Text style={[styles.topUpBtnText, { color: '#F9E08B' }]}>+ Top Up</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -192,12 +192,12 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
         
         <Text style={styles.inputLabel}>Amount</Text>
         <View style={styles.amountPicker}>
-          <TouchableOpacity onPress={() => setAmount(Math.max(1, amount - 5))} style={styles.amtBtn}>
-            <Text style={styles.amtBtnText}>−</Text>
+          <TouchableOpacity onPress={() => setAmount(Math.max(1, amount - 5))} style={[styles.amtBtn, { borderColor: '#F9E08B' }]}>
+            <Text style={[styles.amtBtnText, { color: '#F9E08B' }]}>−</Text>
           </TouchableOpacity>
-          <Text style={styles.amtText}>🪙 {amount}</Text>
-          <TouchableOpacity onPress={() => setAmount(amount + 5)} style={styles.amtBtn}>
-            <Text style={styles.amtBtnText}>+</Text>
+          <Text style={[styles.amtText, { color: '#F9E08B' }]}>🪙 {amount}</Text>
+          <TouchableOpacity onPress={() => setAmount(amount + 5)} style={[styles.amtBtn, { borderColor: '#F9E08B' }]}>
+            <Text style={[styles.amtBtnText, { color: '#F9E08B' }]}>+</Text>
           </TouchableOpacity>
         </View>
         
@@ -210,14 +210,14 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
         />
         
         <TouchableOpacity 
-          style={[styles.sendBtn, !recipient && styles.sendBtnDisabled]} 
+          style={[styles.sendBtn, !recipient && styles.sendBtnDisabled, { backgroundColor: '#F9E08B' }]} 
           onPress={handleSend}
           disabled={sending || !recipient}
         >
           {sending ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color="#000" />
           ) : (
-            <Text style={styles.sendBtnText}>🎁 Send {amount} Coins</Text>
+            <Text style={[styles.sendBtnText, { color: '#000' }]}>🎁 Send {amount} Coins</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

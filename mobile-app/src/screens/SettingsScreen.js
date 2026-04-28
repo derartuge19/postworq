@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   modalBody: { padding: 24 },
   langOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 18, paddingHorizontal: 4 },
   langText: { fontSize: 16, fontWeight: '600' },
-  langTextActive: { color: '#DA9B2A' },
+  langTextActive: { color: '#F9E08B' },
   inputLabel: { fontSize: 14, fontWeight: '700', marginBottom: 8, marginTop: 16 },
   input: { borderRadius: 12, padding: 16, fontSize: 16, borderWidth: 1 },
   saveBtn: { borderRadius: 14, padding: 18, alignItems: 'center', marginTop: 32 },

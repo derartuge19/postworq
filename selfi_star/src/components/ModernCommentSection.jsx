@@ -41,13 +41,16 @@ function buildCommentTree(flatList) {
   return roots;
 }
 
-const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, replyText, onReplyTextChange, onPostReply, posting, depth = 0 }) => {
+const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, replyText, onReplyTextChange, onPostReply, posting, depth = 0, expandedReplies, onToggleReplies }) => {
   const isReply = depth > 0;
   const avatarSize = isReply ? 28 : 36;
+  const hasReplies = comment.replies && comment.replies.length > 0;
+  const isExpanded = expandedReplies?.has(comment.id);
+  const showRepliesToggle = !isReply && hasReplies; // Only show toggle at top level
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: "flex", gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: "flex", gap: 12, position: 'relative' }}>
         <div style={{
           width: avatarSize,
           height: avatarSize,
@@ -58,7 +61,8 @@ const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, rep
           justifyContent: "center",
           fontSize: isReply ? 12 : 16,
           flexShrink: 0,
-          overflow: "hidden"
+          overflow: "hidden",
+          zIndex: 1,
         }}>
           {comment.user?.profile_photo ? (
             <img 
@@ -68,7 +72,7 @@ const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, rep
             />
           ) : "👤"}
         </div>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
             <span style={{ fontSize: isReply ? 13 : 14, fontWeight: 700, color: T.txt }}>
               {comment.user?.username || "User"}
@@ -122,15 +126,17 @@ const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, rep
 
       {/* Reply Input */}
       {replyTo === comment.id && (
-        <div style={{ marginLeft: depth === 0 ? 44 : 20, display: "flex", gap: 8 }}>
+        <div style={{ marginLeft: depth === 0 ? 48 : 40, display: "flex", gap: 8 }}>
           <input
             type="text"
             value={replyText}
             onChange={(e) => onReplyTextChange(e.target.value)}
-            placeholder="Write a reply..."
+            placeholder={`Reply to ${comment.user?.username || 'user'}...`}
+            autoFocus
             style={{
               flex: 1, padding: "8px 12px", border: `1px solid ${T.border}`,
-              borderRadius: 20, fontSize: 16, outline: "none",
+              borderRadius: 20, fontSize: 14, outline: "none",
+              background: T.bg, color: T.txt,
             }}
             onKeyPress={(e) => {
               if (e.key === "Enter" && !posting) {
@@ -146,17 +152,45 @@ const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, rep
               border: "none", borderRadius: "50%", width: 32, height: 32,
               display: "flex", alignItems: "center", justifyContent: "center",
               cursor: posting || !replyText.trim() ? "not-allowed" : "pointer",
-              color: "#fff", flexShrink: 0
+              color: "#000", flexShrink: 0
             }}
           >
-            <Send size={16} />
+            <Send size={14} />
           </button>
         </div>
       )}
 
-      {/* Recursive Replies */}
-      {comment.replies && comment.replies.length > 0 && (
-        <div style={{ marginLeft: depth === 0 ? 48 : 20, display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* "View replies" toggle — only at top level */}
+      {showRepliesToggle && (
+        <button
+          onClick={() => onToggleReplies(comment.id)}
+          style={{
+            alignSelf: 'flex-start',
+            marginLeft: 48,
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '4px 0',
+            color: T.sub, fontSize: 12, fontWeight: 600,
+          }}
+        >
+          <span style={{
+            display: 'inline-block', width: 24, height: 1,
+            background: T.sub, opacity: 0.5,
+          }} />
+          {isExpanded
+            ? `Hide ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`
+            : `View ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`}
+        </button>
+      )}
+
+      {/* Recursive Replies — with tree line */}
+      {hasReplies && (isReply || isExpanded) && (
+        <div style={{
+          marginLeft: depth === 0 ? 18 : 14,
+          paddingLeft: depth === 0 ? 30 : 20,
+          borderLeft: `2px solid ${T.border}`,
+          display: "flex", flexDirection: "column", gap: 14,
+        }}>
           {comment.replies.map(reply => (
             <CommentItem
               key={reply.id}
@@ -172,6 +206,8 @@ const CommentItem = ({ comment, T, user, onLike, onReply, onReport, replyTo, rep
               onPostReply={onPostReply}
               posting={posting}
               depth={depth + 1}
+              expandedReplies={expandedReplies}
+              onToggleReplies={onToggleReplies}
             />
           ))}
         </div>
@@ -189,6 +225,28 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
   const [replyText, setReplyText] = useState("");
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState(() => new Set());
+
+  const toggleReplies = (commentId) => {
+    setExpandedReplies(prev => {
+      const next = new Set(prev);
+      if (next.has(commentId)) next.delete(commentId);
+      else next.add(commentId);
+      return next;
+    });
+  };
+
+  // Helper: find the top-level ancestor id of a given comment id in the tree
+  const findRootId = (list, targetId) => {
+    for (const c of list) {
+      if (String(c.id) === String(targetId)) return c.id;
+      if (c.replies?.length) {
+        const found = findRootId(c.replies, targetId);
+        if (found !== null) return c.id; // return top-level ancestor
+      }
+    }
+    return null;
+  };
   const [alertModal, setAlertModal] = useState({ isOpen: false, title: "", message: "", type: "info" });
   const [reportingComment, setReportingComment] = useState(null);
   const [reportSubmitting, setReportSubmitting] = useState(false);
@@ -318,8 +376,9 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
     try {
       setPosting(true);
       const reply = await api.replyToComment(commentId, replyText);
+      if (reply && !reply.replies) reply.replies = [];
       const updateDeep = (list) => list.map(c => {
-        if (c.id === commentId) {
+        if (String(c.id) === String(commentId)) {
           return { ...c, replies: [...(c.replies || []), reply], replies_count: (c.replies_count || 0) + 1 };
         }
         if (c.replies && c.replies.length) {
@@ -327,7 +386,19 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
         }
         return c;
       });
-      setComments(updateDeep(comments));
+      setComments(prev => {
+        const updated = updateDeep(prev);
+        // Auto-expand the top-level ancestor so the new reply is visible
+        const rootId = findRootId(updated, commentId);
+        if (rootId != null) {
+          setExpandedReplies(p => {
+            const next = new Set(p);
+            next.add(rootId);
+            return next;
+          });
+        }
+        return updated;
+      });
       setReplyText("");
       setReplyTo(null);
     } catch (error) {
@@ -438,13 +509,26 @@ export function ModernCommentSection({ reelId, user, onClose, onCommentPosted })
                   T={T}
                   user={user}
                   onLike={handleLikeComment}
-                  onReply={(c) => setReplyTo(replyTo === c.id ? null : c.id)}
+                  onReply={(c) => {
+                    setReplyTo(replyTo === c.id ? null : c.id);
+                    // Auto-expand the top-level ancestor so user sees existing replies + input
+                    const rootId = findRootId(comments, c.id);
+                    if (rootId != null) {
+                      setExpandedReplies(prev => {
+                        const next = new Set(prev);
+                        next.add(rootId);
+                        return next;
+                      });
+                    }
+                  }}
                   onReport={setReportingComment}
                   replyTo={replyTo}
                   replyText={replyText}
                   onReplyTextChange={setReplyText}
                   onPostReply={handlePostReply}
                   posting={posting}
+                  expandedReplies={expandedReplies}
+                  onToggleReplies={toggleReplies}
                 />
               ))}
             </div>

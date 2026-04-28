@@ -318,10 +318,10 @@ def user_campaigns_list(request):
         campaigns = Campaign.objects.exclude(status='cancelled').order_by('-created_at')
     
     # Annotate with live counts
-    campaigns = campaigns.annotate(
+    campaigns = list(campaigns.annotate(
         live_entries=Count('entries', distinct=True),
         live_votes=Sum('entries__vote_count'),
-    )
+    ))
 
     # Check if user is authenticated
     is_authenticated = request.user and request.user.is_authenticated
@@ -331,23 +331,39 @@ def user_campaigns_list(request):
 
     # Bulk-check entered campaigns for this user to avoid N+1
     entered_ids = set()
-    if is_authenticated:
+    if is_authenticated and campaigns:
         entered_ids = set(
-            CampaignEntry.objects.filter(user=user, campaign__in=campaigns)
-            .values_list('campaign_id', flat=True)
+            CampaignEntry.objects.filter(
+                user=user,
+                campaign_id__in=[c.id for c in campaigns]
+            ).values_list('campaign_id', flat=True)
         )
+
+    # Compute now once for all is_active / is_voting_open checks
+    now = timezone.now()
     
     data = []
     for c in campaigns:
         # Check if user is eligible (only if authenticated)
         is_eligible = True
-        
         if is_authenticated:
             if c.min_followers > 0 and follower_count < c.min_followers:
                 is_eligible = False
             if user_profile and c.min_level > user_profile.level:
                 is_eligible = False
-        
+
+        # Inline is_active / is_voting_open without extra now() calls
+        c_is_active = (
+            c.status == 'active' and
+            c.start_date and c.entry_deadline and
+            c.start_date <= now <= c.entry_deadline
+        )
+        c_is_voting = (
+            c.status == 'voting' and
+            c.voting_start and c.voting_end and
+            c.voting_start <= now <= c.voting_end
+        )
+
         image_url = get_image_url(c.image, request)
         
         data.append({
@@ -367,8 +383,8 @@ def user_campaigns_list(request):
             'total_votes': c.live_votes or 0,
             'is_eligible': is_eligible,
             'has_entered': c.id in entered_ids,
-            'is_active': c.is_active(),
-            'is_voting_open': c.is_voting_open(),
+            'is_active': c_is_active,
+            'is_voting_open': c_is_voting,
         })
     
     return Response(data)
@@ -524,14 +540,28 @@ def user_campaign_detail(request, campaign_id):
     """Get campaign details with entries"""
     try:
         campaign = Campaign.objects.get(id=campaign_id)
-        entries = CampaignEntry.objects.filter(
+        entries = list(CampaignEntry.objects.filter(
             campaign=campaign,
             approved=True,
             disqualified=False
-        ).select_related('user', 'reel').order_by('-vote_count')
+        ).select_related('user', 'reel').only(
+            'id', 'vote_count', 'rank', 'is_winner',
+            'user__id', 'user__username',
+            'reel__id', 'reel__caption', 'reel__image', 'reel__media',
+        ).order_by('-vote_count'))
         
         is_authenticated = request.user.is_authenticated
         user = request.user if is_authenticated else None
+
+        # Bulk-fetch voted entries in one query instead of N+1
+        voted_entry_ids = set()
+        if user and entries:
+            voted_entry_ids = set(
+                CampaignVote.objects.filter(
+                    user=user,
+                    entry_id__in=[e.id for e in entries]
+                ).values_list('entry_id', flat=True)
+            )
         
         entries_data = [{
             'id': entry.id,
@@ -542,13 +572,13 @@ def user_campaign_detail(request, campaign_id):
             'reel': {
                 'id': entry.reel.id,
                 'caption': entry.reel.caption,
-                'image': request.build_absolute_uri(entry.reel.image.url) if entry.reel.image else None,
-                'media': request.build_absolute_uri(entry.reel.media.url) if entry.reel.media else None,
+                'image': entry.reel.image.name if entry.reel.image else None,
+                'media': entry.reel.media.name if entry.reel.media else None,
             },
             'vote_count': entry.vote_count,
             'rank': entry.rank,
             'is_winner': entry.is_winner,
-            'user_voted': CampaignVote.objects.filter(entry=entry, user=user).exists() if user else False,
+            'user_voted': entry.id in voted_entry_ids,
         } for entry in entries]
         
         image_url = get_image_url(campaign.image, request)
@@ -585,17 +615,15 @@ def user_campaign_detail(request, campaign_id):
 # Helper functions
 def update_campaign_rankings(campaign):
     """Update rankings for all entries in a campaign based on vote count"""
-    entries = CampaignEntry.objects.filter(
+    entries = list(CampaignEntry.objects.filter(
         campaign=campaign,
         approved=True,
         disqualified=False
-    ).order_by('-vote_count', '-created_at')
+    ).only('id', 'rank').order_by('-vote_count', '-created_at'))
     
-    rank = 1
-    for entry in entries:
+    for rank, entry in enumerate(entries, start=1):
         entry.rank = rank
-        entry.save(update_fields=['rank'])
-        rank += 1
+    CampaignEntry.objects.bulk_update(entries, ['rank'])
 
 def notify_eligible_users(campaign):
     """Notify users who are eligible for the campaign"""

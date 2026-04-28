@@ -30,10 +30,10 @@ const T = {
   border: '#e0e0e0',
   txt: '#000000',
   sub: '#666666',
-  pri: '#DA9B2A',
+  pri: '#F9E08B',
 };
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 const CATEGORIES = [
   { id: 'all', label: 'Trending', emoji: '🔥' },
@@ -86,6 +86,7 @@ export default function ExploreScreen({ navigation }) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [hashtagView, setHashtagView] = useState(null);
+  const [showHashtagDropdown, setShowHashtagDropdown] = useState(false);
 
   const searchTimeout = useRef(null);
 
@@ -419,7 +420,6 @@ export default function ExploreScreen({ navigation }) {
       {/* Categories */}
       {!inSearchMode && (
         <View style={styles.categoriesContainer}>
-          <Text style={styles.categoriesTitle}>CATEGORIES</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
             {CATEGORIES.map(cat => {
               const isActive = activeCategory === cat.id;
@@ -459,19 +459,38 @@ export default function ExploreScreen({ navigation }) {
           {/* Trending Hashtags */}
           {!hashLoading && hashtags.length > 0 && !hashtagView && (
             <View style={styles.trendingHashtags}>
-              <Text style={styles.sectionTitle}>TRENDING HASHTAGS</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.hashtagScroll}>
-                {hashtags.map(h => (
-                  <TouchableOpacity
-                    key={h.tag}
-                    onPress={() => handleHashtagClick(h.tag)}
-                    style={styles.trendingHashtagBtn}
-                  >
-                    <Text style={styles.trendingHashtagText}>#{h.tag}</Text>
-                    <Text style={styles.trendingHashtagCount}>{fmt(h.posts)} posts</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <TouchableOpacity
+                onPress={() => setShowHashtagDropdown(!showHashtagDropdown)}
+                style={styles.hashtagDropdownHeader}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="trending-up" size={16} color={T.pri} />
+                  <Text style={styles.sectionTitle}>TRENDING HASHTAGS</Text>
+                </View>
+                <Ionicons 
+                  name="chevron-down" 
+                  size={18} 
+                  color={T.pri} 
+                  style={{ 
+                    transform: [{ rotate: showHashtagDropdown ? '180deg' : '0deg' }] 
+                  }} 
+                />
+              </TouchableOpacity>
+              
+              {showHashtagDropdown && (
+                <View style={styles.hashtagDropdownContent}>
+                  {hashtags.map(h => (
+                    <TouchableOpacity
+                      key={h.tag}
+                      onPress={() => handleHashtagClick(h.tag)}
+                      style={styles.trendingHashtagBtn}
+                    >
+                      <Text style={styles.trendingHashtagText}>#{h.tag}</Text>
+                      <Text style={styles.trendingHashtagCount}>{fmt(h.posts)} posts</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           )}
 
@@ -600,15 +619,9 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     backgroundColor: '#0d0d0d',
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: T.border,
-  },
-  categoriesTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: T.sub,
-    marginBottom: 8,
   },
   categoriesScroll: {
     flexDirection: 'row',
@@ -616,14 +629,14 @@ const styles = StyleSheet.create({
   categoryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
     backgroundColor: T.bg,
     borderWidth: 1,
     borderColor: T.border,
-    marginRight: 8,
+    marginRight: 6,
   },
   categoryBtnActive: {
     backgroundColor: T.pri + '15',
@@ -675,25 +688,38 @@ const styles = StyleSheet.create({
     backgroundColor: '#0d0d0d',
     marginBottom: 8,
   },
+  hashtagDropdownHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: T.pri + '15',
+    borderWidth: 1,
+    borderColor: T.pri + '35',
+  },
+  hashtagDropdownContent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+    gap: 8,
+  },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '800',
     color: T.sub,
-    marginBottom: 10,
   },
   hashtagScroll: {
     flexDirection: 'row',
   },
   trendingHashtagBtn: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
     paddingVertical: 7,
     paddingHorizontal: 14,
     borderRadius: 20,
     backgroundColor: T.pri + '12',
     borderWidth: 1,
     borderColor: T.pri + '35',
-    marginRight: 8,
   },
   trendingHashtagText: {
     fontSize: 13,

@@ -34,7 +34,7 @@ async function writeCache(balance, packages) {
   } catch {}
 }
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 export default function WalletScreen({ navigation }) {
   const insets = useSafeAreaInsets();

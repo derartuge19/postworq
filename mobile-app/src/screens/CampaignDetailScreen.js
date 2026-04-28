@@ -15,7 +15,7 @@ import api from '../api';
 import config from '../config';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -139,209 +139,231 @@ export default function CampaignDetailScreen({ route, navigation }) {
   const statusColor = campaign.status === 'active' ? BRAND_GOLD : 
                        campaign.status === 'voting' ? '#3B82F6' : 
                        campaign.status === 'upcoming' ? '#F97316' : '#999999';
+  const [openSections, setOpenSections] = useState({ desc: true, reqs: false, timeline: false, scoring: false });
+  const toggleSection = (k) => setOpenSections(s => ({ ...s, [k]: !s[k] }));
+
+  const hasRequirements = (campaign.min_followers > 0 || campaign.min_level > 0 || campaign.min_votes_per_reel > 0 || campaign.required_hashtags || campaign.winner_count > 0);
+
+  const Accordion = ({ id, icon, title, subtitle, color, children }) => {
+    const open = openSections[id];
+    return (
+      <View style={styles.accordion}>
+        <TouchableOpacity
+          style={styles.accordionHeader}
+          onPress={() => toggleSection(id)}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.accordionIcon, { backgroundColor: (color || BRAND_GOLD) + '22' }]}>
+            <Ionicons name={icon} size={16} color={color || BRAND_GOLD} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.accordionTitle}>{title}</Text>
+            {subtitle ? <Text style={styles.accordionSubtitle}>{subtitle}</Text> : null}
+          </View>
+          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color="#999" />
+        </TouchableOpacity>
+        {open && (
+          <View style={styles.accordionBody}>
+            {children}
+          </View>
+        )}
+      </View>
+    );
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView style={styles.scrollView}>
-        {/* Back Button */}
-        <TouchableOpacity style={styles.backButtonTop} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={20} color="#666" />
-          <Text style={styles.backButtonTextTop}>Back</Text>
+      {/* Sticky Header */}
+      <View style={styles.stickyHeader}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
+          <Ionicons name="arrow-back" size={22} color="#000" />
         </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>{campaign.title}</Text>
+        <View style={[styles.headerStatusPill, { backgroundColor: statusColor + '25' }]}>
+          <Text style={[styles.headerStatusText, { color: statusColor }]}>{campaign.status}</Text>
+        </View>
+      </View>
 
-        {/* Campaign Image */}
-        {campaign.image ? (
-          <Image source={{ uri: campaign.image }} style={styles.campaignImage} />
-        ) : (
-          <View style={[styles.campaignImage, styles.imagePlaceholder]}>
-            <Ionicons name="trophy" size={64} color={BRAND_GOLD} />
-          </View>
-        )}
-
-        {/* Campaign Info */}
-        <View style={styles.content}>
-          {/* Status Badge */}
-          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{campaign.status}</Text>
-          </View>
-
-          {/* Type Badge */}
-          <View style={styles.typeBadge}>
-            <Text style={styles.typeText}>
-              {campaign.campaign_type === 'grand' ? 'Grand' : 
-               campaign.campaign_type === 'daily' ? 'Daily' : 
-               campaign.campaign_type === 'weekly' ? 'Weekly' : 'Monthly'}
-            </Text>
-          </View>
-
-          <Text style={styles.title}>{campaign.title}</Text>
-          <Text style={styles.description}>{campaign.description}</Text>
-
-          {/* Prize */}
-          <View style={styles.prizeContainer}>
-            <View style={styles.prizeIcon}>
-              <Ionicons name="award" size={24} color="#fff" />
-            </View>
-            <View style={styles.prizeInfo}>
-              <Text style={styles.prizeLabel}>Grand Prize</Text>
-              <Text style={styles.prizeValue}>${campaign.prize_value || 0}</Text>
-              <Text style={styles.prizeTitle}>{campaign.prize_title || 'Cash Prize'}</Text>
-            </View>
-          </View>
-
-          {/* Entry Requirements */}
-          {(campaign.min_followers > 0 || campaign.min_level > 0 || campaign.min_votes_per_reel > 0 || campaign.required_hashtags) && (
-            <View style={styles.requirementsContainer}>
-              <View style={styles.requirementsHeader}>
-                <Ionicons name="flag" size={20} color={BRAND_GOLD} />
-                <Text style={styles.requirementsTitle}>Entry Requirements</Text>
-              </View>
-              <View style={styles.requirementsGrid}>
-                {campaign.required_hashtags && (
-                  <View style={styles.requirementItem}>
-                    <Text style={styles.requirementLabel}>Required Hashtags</Text>
-                    <Text style={styles.requirementValue}>{campaign.required_hashtags}</Text>
-                  </View>
-                )}
-                {campaign.min_followers > 0 && (
-                  <View style={styles.requirementItem}>
-                    <Text style={styles.requirementLabel}>Min Followers</Text>
-                    <Text style={styles.requirementValue}>{campaign.min_followers}+</Text>
-                  </View>
-                )}
-                {campaign.min_level > 0 && (
-                  <View style={styles.requirementItem}>
-                    <Text style={styles.requirementLabel}>Min Level</Text>
-                    <Text style={styles.requirementValue}>Level {campaign.min_level}</Text>
-                  </View>
-                )}
-                {campaign.min_votes_per_reel > 0 && (
-                  <View style={styles.requirementItem}>
-                    <Text style={styles.requirementLabel}>Min Votes/Reel</Text>
-                    <Text style={styles.requirementValue}>{campaign.min_votes_per_reel}+</Text>
-                  </View>
-                )}
-                {campaign.winner_count > 0 && (
-                  <View style={styles.requirementItem}>
-                    <Text style={styles.requirementLabel}>Winners</Text>
-                    <Text style={styles.requirementValue}>{campaign.winner_count}</Text>
-                  </View>
-                )}
-              </View>
+      <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Hero with prize overlay */}
+        <View style={styles.hero}>
+          {campaign.image ? (
+            <Image source={{ uri: mediaUrl(campaign.image) }} style={styles.heroImage} />
+          ) : (
+            <View style={[styles.heroImage, styles.heroPlaceholder]}>
+              <Ionicons name="trophy" size={64} color={BRAND_GOLD} style={{ opacity: 0.5 }} />
             </View>
           )}
-
-          {/* Timeline */}
-          <View style={styles.timelineContainer}>
-            <Text style={styles.timelineTitle}>Campaign Timeline</Text>
-            <View style={styles.timelineGrid}>
-              <View style={styles.timelineItem}>
-                <Text style={styles.timelineLabel}>Start Date</Text>
-                <Text style={styles.timelineValue}>{formatDate(campaign.start_date)}</Text>
-              </View>
-              <View style={styles.timelineItem}>
-                <Text style={styles.timelineLabel}>Entry Deadline</Text>
-                <Text style={styles.timelineValue}>{formatDate(campaign.entry_deadline)}</Text>
-              </View>
-              <View style={styles.timelineItem}>
-                <Text style={styles.timelineLabel}>Voting Period</Text>
-                <Text style={styles.timelineValue}>{formatDate(campaign.voting_start)} - {formatDate(campaign.voting_end)}</Text>
-              </View>
+          <View style={styles.heroGradient} />
+          <View style={styles.heroOverlay}>
+            <View style={styles.heroPrizeIcon}>
+              <Ionicons name="trophy" size={22} color="#000" />
             </View>
-          </View>
-
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>{campaign.total_entries || 0}</Text>
-              <Text style={styles.statLabel}>Entries</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.heroPrizeLabel}>Prize Pool</Text>
+              <Text style={styles.heroPrizeValue}>
+                {campaign.prize_value ? `${campaign.prize_value} ETB` : (campaign.prize_title || '—')}
+              </Text>
             </View>
-            <View style={styles.stat}>
-              <Text style={[styles.statValue, styles.votesText]}>{campaign.total_votes || 0}</Text>
-              <Text style={styles.statLabel}>Votes</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={[styles.statValue, { color: statusColor }]}>
+            <View style={styles.heroTimePill}>
+              <Ionicons name="time-outline" size={12} color="#fff" />
+              <Text style={styles.heroTimeText}>
                 {getTimeRemaining(campaign.voting_end || campaign.entry_deadline)}
               </Text>
-              <Text style={styles.statLabel}>Time Left</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.content}>
+          {/* Quick Stats */}
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <View style={styles.statHeader}>
+                <Ionicons name="people-outline" size={11} color="#3B82F6" />
+                <Text style={styles.statLabel}>Entries</Text>
+              </View>
+              <Text style={[styles.statValueBox, { color: '#3B82F6' }]}>{campaign.total_entries || 0}</Text>
+            </View>
+            <View style={styles.statBox}>
+              <View style={styles.statHeader}>
+                <Ionicons name="flame-outline" size={11} color="#EF4444" />
+                <Text style={styles.statLabel}>Votes</Text>
+              </View>
+              <Text style={[styles.statValueBox, { color: '#EF4444' }]}>{campaign.total_votes || 0}</Text>
+            </View>
+            <View style={styles.statBox}>
+              <View style={styles.statHeader}>
+                <Ionicons name="star-outline" size={11} color={BRAND_GOLD} />
+                <Text style={styles.statLabel}>Winners</Text>
+              </View>
+              <Text style={[styles.statValueBox, { color: BRAND_GOLD }]}>{campaign.winner_count || 1}</Text>
             </View>
           </View>
 
-          {/* User's Entry with Gamification */}
-          {userEntry && (
-            <View style={styles.userEntryCard}>
-              <View style={styles.userEntryHeader}>
-                <View style={styles.userEntryIcon}>
-                  <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-                </View>
-                <View style={styles.userEntryInfo}>
-                  <Text style={styles.userEntryTitle}>Your Entry Submitted!</Text>
-                  <Text style={styles.userEntrySubtitle}>Good luck! 🍀</Text>
-                </View>
-                {userEntry.rank && userEntry.rank <= 3 && (
-                  <View style={[styles.rankBadge, { backgroundColor: userEntry.rank === 1 ? '#FFD700' : userEntry.rank === 2 ? '#C0C0C0' : '#CD7F32' }]}>
-                    <Ionicons name="crown" size={16} color="#fff" />
-                    <Text style={styles.rankBadgeText}>#{userEntry.rank}</Text>
-                  </View>
-                )}
-              </View>
-              <View style={styles.userEntryStats}>
-                <View style={styles.entryStat}>
-                  <Text style={styles.entryStatValue}>{userEntry.vote_count || 0}</Text>
-                  <Text style={styles.entryStatLabel}>Votes</Text>
-                </View>
-                <View style={styles.entryStat}>
-                  <Text style={styles.entryStatValue}>#{userEntry.rank || '-'}</Text>
-                  <Text style={styles.entryStatLabel}>Rank</Text>
-                </View>
-                <View style={styles.entryStat}>
-                  <Ionicons name="checkmark" size={20} color="#10B981" />
-                  <Text style={styles.entryStatLabel}>Active</Text>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* Action Buttons */}
-          {canSubmit() && (
-            <TouchableOpacity 
-              style={styles.submitButton}
+          {/* Primary CTA */}
+          {canSubmit() ? (
+            <TouchableOpacity
+              style={styles.ctaButton}
               onPress={() => setShowSubmitModal(true)}
+              activeOpacity={0.85}
             >
-              <Ionicons name="add-circle" size={20} color="#fff" />
-              <Text style={styles.submitButtonText}>🎯 Join Campaign</Text>
+              <Ionicons name="add-circle" size={18} color="#000" />
+              <Text style={styles.ctaButtonText}>Join Campaign</Text>
             </TouchableOpacity>
+          ) : userEntry ? (
+            <View style={styles.ctaAlready}>
+              <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+              <Text style={styles.ctaAlreadyText}>You're in! Rank #{userEntry.rank || '—'}</Text>
+            </View>
+          ) : (
+            <View style={styles.ctaDisabled}>
+              <Ionicons name="alert-circle-outline" size={18} color="#999" />
+              <Text style={styles.ctaDisabledText}>
+                {campaign.status === 'completed' ? 'Campaign Ended' : campaign.status === 'upcoming' ? 'Starts Soon' : 'Not Accepting Entries'}
+              </Text>
+            </View>
           )}
 
-          {userEntry ? (
-            <View style={styles.statusButton}>
-              <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-              <Text style={styles.statusButtonText}>Already Entered</Text>
-            </View>
-          ) : !canSubmit() && (
-            <View style={[styles.statusButton, styles.cannotSubmitButton]}>
-              <Ionicons name="alert-circle" size={20} color="#EF4444" />
-              <Text style={styles.statusButtonText}>Cannot Submit</Text>
-            </View>
-          )}
-
+          {/* Secondary actions */}
           <View style={styles.quickActions}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.quickActionButton}
               onPress={() => navigation.navigate('CampaignLeaderboard', { campaignId })}
+              activeOpacity={0.7}
             >
-              <Ionicons name="trophy" size={18} color={BRAND_GOLD} />
+              <Ionicons name="trophy-outline" size={16} color={BRAND_GOLD} />
               <Text style={styles.quickActionText}>Leaderboard</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.quickActionButton}
               onPress={() => navigation.navigate('CampaignFeed', { campaignId })}
+              activeOpacity={0.7}
             >
-              <Ionicons name="list" size={18} color={BRAND_GOLD} />
+              <Ionicons name="list-outline" size={16} color={BRAND_GOLD} />
               <Text style={styles.quickActionText}>Feed</Text>
             </TouchableOpacity>
           </View>
+
+          {/* User entry compact */}
+          {userEntry && (
+            <View style={styles.userEntryCompact}>
+              <View style={styles.userEntryCompactIcon}>
+                <Ionicons name="checkmark" size={18} color="#fff" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.userEntryCompactTitle}>Your Entry is Live 🎉</Text>
+                <Text style={styles.userEntryCompactSub}>
+                  {userEntry.vote_count || 0} votes · Rank #{userEntry.rank || '—'}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* ─── ACCORDIONS ─── */}
+          <Accordion id="desc" icon="document-text-outline" title="About this Campaign" subtitle="Description & type" color={BRAND_GOLD}>
+            <Text style={styles.accBody}>{campaign.description || 'No description provided.'}</Text>
+            <View style={styles.accHint}>
+              <Ionicons name="pricetag-outline" size={12} color={BRAND_GOLD} />
+              <Text style={styles.accHintText}>
+                Type: <Text style={{ fontWeight: '800' }}>{campaign.campaign_type === 'grand' ? 'Grand Campaign' : campaign.campaign_type === 'daily' ? 'Daily' : campaign.campaign_type === 'weekly' ? 'Weekly' : 'Monthly'}</Text>
+                {campaign.prize_title ? ` · ${campaign.prize_title}` : ''}
+              </Text>
+            </View>
+          </Accordion>
+
+          {hasRequirements && (
+            <Accordion id="reqs" icon="flag-outline" title="Entry Requirements" subtitle="What you need to qualify" color="#3B82F6">
+              {campaign.required_hashtags ? (
+                <View style={styles.reqRow}><Text style={styles.reqLabel}>Required tags</Text><Text style={[styles.reqValue, { color: BRAND_GOLD }]}>{campaign.required_hashtags}</Text></View>
+              ) : null}
+              {campaign.min_followers > 0 && (
+                <View style={styles.reqRow}><Text style={styles.reqLabel}>Min followers</Text><Text style={[styles.reqValue, { color: '#3B82F6' }]}>{campaign.min_followers}+</Text></View>
+              )}
+              {campaign.min_level > 0 && (
+                <View style={styles.reqRow}><Text style={styles.reqLabel}>Min level</Text><Text style={[styles.reqValue, { color: '#F97316' }]}>Level {campaign.min_level}</Text></View>
+              )}
+              {campaign.min_votes_per_reel > 0 && (
+                <View style={styles.reqRow}><Text style={styles.reqLabel}>Min votes/reel</Text><Text style={[styles.reqValue, { color: '#EF4444' }]}>{campaign.min_votes_per_reel}+</Text></View>
+              )}
+              {campaign.winner_count > 0 && (
+                <View style={styles.reqRow}><Text style={styles.reqLabel}>Winners</Text><Text style={[styles.reqValue, { color: '#10B981' }]}>{campaign.winner_count}</Text></View>
+              )}
+            </Accordion>
+          )}
+
+          <Accordion id="timeline" icon="calendar-outline" title="Timeline" subtitle="Key dates" color="#8B5CF6">
+            {[
+              { label: 'Starts',          date: campaign.start_date,      color: '#10B981' },
+              { label: 'Entry Deadline',  date: campaign.entry_deadline,  color: '#F59E0B' },
+              { label: 'Voting Begins',   date: campaign.voting_start,    color: '#3B82F6' },
+              { label: 'Voting Ends',     date: campaign.voting_end,      color: '#EF4444' },
+            ].map((t, i) => (
+              <View key={i} style={styles.tlRow}>
+                <View style={[styles.tlDot, { backgroundColor: t.color }]} />
+                <Text style={styles.tlLabel}>{t.label}</Text>
+                <Text style={styles.tlDate}>{formatDate(t.date)}</Text>
+              </View>
+            ))}
+          </Accordion>
+
+          <Accordion id="scoring" icon="trending-up-outline" title="How Scoring Works" subtitle="Engagement + votes" color="#EC4899">
+            <Text style={styles.accBody}>
+              Your total score is calculated from likes, comments, shares, and votes on your entry during the campaign period.
+            </Text>
+            <View style={styles.metricsGrid}>
+              {[
+                { label: 'Likes',    icon: 'heart-outline',         color: '#EF4444' },
+                { label: 'Comments', icon: 'chatbubble-outline',    color: '#3B82F6' },
+                { label: 'Shares',   icon: 'share-social-outline',  color: '#8B5CF6' },
+                { label: 'Votes',    icon: 'ribbon-outline',        color: BRAND_GOLD },
+              ].map((m, i) => (
+                <View key={i} style={styles.metricItem}>
+                  <Ionicons name={m.icon} size={14} color={m.color} />
+                  <Text style={styles.metricText}>{m.label}</Text>
+                </View>
+              ))}
+            </View>
+          </Accordion>
         </View>
       </ScrollView>
 
@@ -356,9 +378,9 @@ export default function CampaignDetailScreen({ route, navigation }) {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Submit Entry</Text>
             <Text style={styles.modalText}>
-              To submit an entry to this campaign, create a post and select this campaign during creation.
+              To submit an entry, create a post and select this campaign during creation.
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.modalButton}
               onPress={() => {
                 setShowSubmitModal(false);
@@ -367,7 +389,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
             >
               <Text style={styles.modalButtonText}>Create Post</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.modalButton, styles.modalButtonSecondary]}
               onPress={() => setShowSubmitModal(false)}
             >
@@ -797,4 +819,246 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: BRAND_GOLD,
   },
+
+  // ─── Redesigned compact layout styles ─────────────────────────
+  stickyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    gap: 10,
+  },
+  headerBack: { padding: 4 },
+  headerTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#000',
+  },
+  headerStatusPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  headerStatusText: {
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  hero: {
+    position: 'relative',
+    aspectRatio: 16 / 10,
+    marginTop: 12,
+    marginHorizontal: 12,
+    borderRadius: 14,
+    overflow: 'hidden',
+    alignSelf: 'stretch',
+  },
+  heroImage: { width: '100%', height: '100%' },
+  heroPlaceholder: {
+    backgroundColor: 'rgba(249, 224, 139, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroGradient: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    height: '60%',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  heroOverlay: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  heroPrizeIcon: {
+    width: 42, height: 42, borderRadius: 21,
+    backgroundColor: BRAND_GOLD,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  heroPrizeLabel: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  heroPrizeValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: BRAND_GOLD,
+    lineHeight: 24,
+  },
+  heroTimePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  heroTimeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+    marginTop: 14,
+  },
+  statBox: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#eee',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  statValueBox: { fontSize: 16, fontWeight: '900' },
+  ctaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: BRAND_GOLD,
+    marginBottom: 10,
+    shadowColor: BRAND_GOLD,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  ctaButtonText: { color: '#000', fontSize: 15, fontWeight: '800' },
+  ctaAlready: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(16,185,129,0.1)',
+    borderWidth: 1.5,
+    borderColor: '#10B981',
+    marginBottom: 10,
+  },
+  ctaAlreadyText: { color: '#10B981', fontSize: 14, fontWeight: '700' },
+  ctaDisabled: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    marginBottom: 10,
+  },
+  ctaDisabledText: { color: '#999', fontSize: 14, fontWeight: '700' },
+  userEntryCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(16,185,129,0.1)',
+    borderWidth: 1.5,
+    borderColor: '#10B981',
+    marginBottom: 12,
+  },
+  userEntryCompactIcon: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: '#10B981',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  userEntryCompactTitle: { fontSize: 14, fontWeight: '800', color: '#000' },
+  userEntryCompactSub: { fontSize: 11, color: '#666', marginTop: 2 },
+  accordion: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+    marginBottom: 10,
+    overflow: 'hidden',
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    gap: 10,
+  },
+  accordionIcon: {
+    width: 32, height: 32, borderRadius: 10,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  accordionTitle: { fontSize: 14, fontWeight: '700', color: '#000' },
+  accordionSubtitle: { fontSize: 11, color: '#888', marginTop: 2 },
+  accordionBody: {
+    padding: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  accBody: { fontSize: 13, color: '#555', lineHeight: 20 },
+  accHint: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: 'rgba(249, 224, 139, 0.15)',
+  },
+  accHintText: { flex: 1, fontSize: 12, color: '#333' },
+  reqRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#fafafa',
+    borderRadius: 8,
+    marginBottom: 6,
+    gap: 10,
+  },
+  reqLabel: { flex: 1, fontSize: 12, color: '#666', fontWeight: '600' },
+  reqValue: { fontSize: 13, fontWeight: '800' },
+  tlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 10,
+  },
+  tlDot: { width: 8, height: 8, borderRadius: 4 },
+  tlLabel: { flex: 1, fontSize: 12, color: '#666', fontWeight: '600' },
+  tlDate: { fontSize: 13, color: '#000', fontWeight: '700' },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+  },
+  metricItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#fafafa',
+    borderRadius: 8,
+    minWidth: '48%',
+  },
+  metricText: { fontSize: 12, color: '#000', fontWeight: '600' },
 });

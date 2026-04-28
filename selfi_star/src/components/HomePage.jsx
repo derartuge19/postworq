@@ -128,12 +128,15 @@ function buildCommentTree(flatList) {
 }
 
 /* ── Comment Sheet ── */
-const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, api, onLike, onReply }) {
+const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, api, onLike, onReply, expandedReplies, onToggleReplies }) {
   const isReply = depth > 0;
   const avatarSize = isReply ? 28 : 34;
+  const hasReplies = comment.replies && comment.replies.length > 0;
+  const isExpanded = expandedReplies?.has(comment.id);
+  const showRepliesToggle = !isReply && hasReplies;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', gap: 10 }}>
         <div style={{ 
           width: avatarSize, height: avatarSize, borderRadius: '50%', 
@@ -145,7 +148,7 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
             <img src={mediaUrl(comment.user.profile_photo)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : '👤'}
         </div>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
             <span style={{ fontWeight: 700, fontSize: isReply ? 12 : 13, color: '#F9E08B' }}>{comment.user?.username}</span>
             <span style={{ fontSize: isReply ? 12 : 13, color: '#F9E08B', wordBreak: 'break-word', lineHeight: 1.4 }}>
@@ -175,9 +178,34 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
         </div>
       </div>
 
-      {/* Recursive Replies */}
-      {comment.replies && comment.replies.length > 0 && (
-        <div style={{ marginLeft: depth === 0 ? 44 : 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* View replies toggle — only at top level */}
+      {showRepliesToggle && (
+        <button
+          onClick={() => onToggleReplies(comment.id)}
+          style={{
+            alignSelf: 'flex-start',
+            marginLeft: 44,
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '2px 0',
+            color: T?.sub || '#888', fontSize: 11, fontWeight: 600,
+          }}
+        >
+          <span style={{ display: 'inline-block', width: 24, height: 1, background: T?.sub || '#888', opacity: 0.5 }} />
+          {isExpanded
+            ? `Hide ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`
+            : `View ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`}
+        </button>
+      )}
+
+      {/* Recursive Replies — with tree line */}
+      {hasReplies && (isReply || isExpanded) && (
+        <div style={{
+          marginLeft: depth === 0 ? 18 : 12,
+          paddingLeft: depth === 0 ? 26 : 18,
+          borderLeft: `2px solid ${T?.border || 'rgba(249,224,139,0.2)'}`,
+          display: 'flex', flexDirection: 'column', gap: 12,
+        }}>
           {comment.replies.map(r => (
             <CommentItem 
               key={r.id} 
@@ -187,7 +215,9 @@ const CommentItem = memo(function CommentItem({ comment, T, depth = 0, timeAgo, 
               timeAgo={timeAgo} 
               api={api} 
               onLike={onLike} 
-              onReply={onReply} 
+              onReply={onReply}
+              expandedReplies={expandedReplies}
+              onToggleReplies={onToggleReplies}
             />
           ))}
         </div>
@@ -204,7 +234,28 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
   const [replyingTo, setReplyingTo] = useState(null);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState(() => new Set());
   const inputRef = useRef(null);
+
+  const toggleReplies = (commentId) => {
+    setExpandedReplies(prev => {
+      const next = new Set(prev);
+      if (next.has(commentId)) next.delete(commentId);
+      else next.add(commentId);
+      return next;
+    });
+  };
+
+  const findRootId = (list, targetId) => {
+    for (const c of list) {
+      if (String(c.id) === String(targetId)) return c.id;
+      if (c.replies?.length) {
+        const found = findRootId(c.replies, targetId);
+        if (found !== null) return c.id;
+      }
+    }
+    return null;
+  };
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionSuggestions, setMentionSuggestions] = useState([]);
@@ -253,7 +304,10 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [post.id, post.recent_comments]);
+    // Only re-fetch when the underlying post changes — NOT when parent passes a new
+    // `recent_comments` reference (which would clobber locally-added replies).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post.id]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -287,6 +341,18 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
 
     if (replyingTo) {
       setComments(prev => updateDeep(prev));
+      // Auto-expand the top-level ancestor so the new reply is visible
+      setComments(current => {
+        const rootId = findRootId(current, replyingTo.id);
+        if (rootId != null) {
+          setExpandedReplies(p => {
+            const next = new Set(p);
+            next.add(rootId);
+            return next;
+          });
+        }
+        return current;
+      });
     } else {
       setComments(prev => [temp, ...prev]); // New top-level comments at top
     }
@@ -319,18 +385,9 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
         return c;
       });
       setComments(prev => swapDeep(prev));
-      
-      // Only refetch if not in reply mode to preserve reply state
-      if (!replyingTo) {
-        setTimeout(() => {
-          api.request(`/reels/${post.id}/comments/?include_replies=true&depth=2`)
-            .then(d => {
-              const latest = Array.isArray(d) ? d : (d?.results || []);
-              setComments(buildCommentTree(latest));
-            })
-            .catch(() => {});
-        }, 800);
-      }
+      // Note: we deliberately do NOT refetch here — the optimistic swap above
+      // replaces the temp row with the real server row. Refetching would wipe
+      // out locally-added replies from other comments while the tree rebuilds.
     } catch (err) {
       // Roll back
       const removeDeep = (list) => list.filter(c => c.id !== tempId).map(c => ({
@@ -435,7 +492,20 @@ const CommentSheet = memo(function CommentSheet({ post, currentUser, onClose, on
                   timeAgo={timeAgo} 
                   api={api} 
                   onLike={handleLikeComment} 
-                  onReply={handleReply} 
+                  onReply={(cm) => {
+                    handleReply(cm);
+                    // Auto-expand the top-level ancestor so user sees existing replies
+                    const rootId = findRootId(comments, cm.id);
+                    if (rootId != null) {
+                      setExpandedReplies(prev => {
+                        const next = new Set(prev);
+                        next.add(rootId);
+                        return next;
+                      });
+                    }
+                  }}
+                  expandedReplies={expandedReplies}
+                  onToggleReplies={toggleReplies}
                 />
               ))}
             </div>
@@ -631,6 +701,7 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
   const isOwn = currentUser?.id === post.user?.id;
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const menuRef = useRef(null);
 
   // Calculate position: appear to the left of the button, align top
@@ -695,8 +766,27 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
   };
   const handleReport = async () => {
     if (!api.hasToken()) { onRequireAuth?.(); onClose(); return; }
-    try { await api.request('/reports/create/', { method: 'POST', body: JSON.stringify({ reel: post.id, reason: 'inappropriate' }), headers: { 'Content-Type': 'application/json' } }); } catch {}
+    setShowReportModal(true);
+  };
+
+  const submitReport = async (category) => {
+    setShowReportModal(false);
     onClose();
+    try {
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_reel_id: post.id,
+          report_type: category,
+          description: `Reported as ${category}`,
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      alert('Report submitted successfully. Thank you for helping keep our community safe.');
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      alert('Failed to submit report. Please try again.');
+    }
   };
   const handleDelete = async () => {
     if (!api.hasToken()) return;
@@ -770,6 +860,119 @@ const PostOptionsMenu = memo(function PostOptionsMenu({ post, currentUser, onClo
         ))}
       </div>
       {showInfo && <PostInfoSheet post={post} onClose={() => { setShowInfo(false); onClose(); }} T={T} />}
+      
+      {/* Report Category Modal */}
+      {showReportModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+          }}
+          onClick={() => setShowReportModal(false)}
+        >
+          <div
+            style={{
+              background: T?.cardBg || '#1A1A1A',
+              borderRadius: 16,
+              padding: '24px',
+              maxWidth: 400,
+              width: '90%',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                fontSize: 20,
+                fontWeight: 700,
+                color: T?.txt,
+                marginBottom: 8,
+              }}
+            >
+              Report Content
+            </h3>
+            <p
+              style={{
+                fontSize: 14,
+                color: T?.sub,
+                marginBottom: 20,
+              }}
+            >
+              Why are you reporting this content?
+            </p>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
+              {[
+                { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
+                {
+                  id: 'inappropriate',
+                  label: 'Inappropriate Content',
+                  icon: '😢',
+                },
+                { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
+                { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
+                { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
+                { id: 'other', label: 'Other', icon: 'Ⓜ' },
+              ].map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => submitReport(category.id)}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    marginBottom: 8,
+                    border: `1px solid ${T?.border}`,
+                    borderRadius: 8,
+                    background: T?.cardBg || '#1A1A1A',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    fontSize: 14,
+                    color: T?.txt,
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.target.style.background = 'rgba(226,179,85,0.12)')}
+                  onMouseLeave={(e) => (e.target.style.background = T?.cardBg || '#1A1A1A')}
+                >
+                  <span style={{ fontSize: 20 }}>{category.icon}</span>
+                  <span style={{ fontWeight: 500 }}>{category.label}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowReportModal(false)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                marginTop: 12,
+                borderRadius: 8,
+                border: `1px solid ${T?.border}`,
+                background: 'transparent',
+                color: T?.txt,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 });

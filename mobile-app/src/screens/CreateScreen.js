@@ -14,7 +14,7 @@ import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
 const { width, height } = Dimensions.get('window');
-const BRAND = '#DA9B2A';
+const BRAND = '#F9E08B';
 
 // Visual filter definitions (rendered as color overlays)
 const FILTERS = [
@@ -27,7 +27,7 @@ const FILTERS = [
   { id: 'golden',    name: 'Golden',   overlay: 'rgba(218,155,42,0.2)' },
 ];
 
-const TEXT_COLORS = ['#FFFFFF','#000000','#FF3B57','#DA9B2A','#3B82F6','#10B981','#EC4899'];
+const TEXT_COLORS = ['#FFFFFF','#000000','#FF3B57','#F9E08B','#3B82F6','#10B981','#EC4899'];
 
 
 
