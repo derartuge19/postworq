@@ -284,6 +284,17 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
     }
   };
 
+  const handleFollowToggle = async () => {
+    if (!user) return;
+    try {
+      const response = await api.toggleFollow(targetUserId);
+      setIsFollowing(response.following);
+      setFollowersCount(prev => prev + (response.following ? 1 : -1));
+    } catch (error) {
+      console.error('Failed to toggle follow:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
