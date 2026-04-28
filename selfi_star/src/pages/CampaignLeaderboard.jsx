@@ -44,7 +44,7 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
     <div style={{ minHeight: '100vh', background: T.bg, boxSizing: 'border-box' }}>
       {/* Header */}
       <div style={{
-        background: '#fff', borderBottom: `1px solid ${T.border}`,
+        background: T.card, borderBottom: `1px solid ${T.border}`,
         padding: '16px 24px', position: 'sticky', top: 0, zIndex: 100,
       }}>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -96,7 +96,7 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
                 onClick={() => setPeriod(p.id)}
                 style={{
                   padding: '7px 16px',
-                  background: period === p.id ? T.pri : '#fff',
+                  background: period === p.id ? T.pri : T.card,
                   color: period === p.id ? '#fff' : T.sub,
                   border: `1.5px solid ${period === p.id ? T.pri : T.border}`,
                   borderRadius: 20, cursor: 'pointer',
@@ -117,7 +117,7 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
           </div>
         ) : leaderboard.length === 0 ? (
           <div style={{
-            background: '#fff', borderRadius: 14, padding: '48px 24px',
+            background: T.card, borderRadius: 14, padding: '48px 24px',
             textAlign: 'center', border: `1px solid ${T.border}`,
           }}>
             <Trophy size={44} color={T.pri} style={{ marginBottom: 16, opacity: 0.4 }} />
@@ -129,7 +129,7 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
             {/* Podium – top 3 */}
             {top3.length >= 1 && (
               <div style={{
-                background: '#fff', borderRadius: 14, border: `1px solid ${T.border}`,
+                background: T.card, borderRadius: 14, border: `1px solid ${T.border}`,
                 padding: '28px 24px 24px', marginBottom: 16,
               }}>
                 <p style={{ margin: '0 0 20px', fontSize: 13, fontWeight: 700, color: T.sub, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -197,7 +197,7 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
 
             {/* Full list */}
             {leaderboard.length > 0 && (
-              <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${T.border}`, overflow: 'hidden' }}>
+              <div style={{ background: T.card, borderRadius: 14, border: `1px solid ${T.border}`, overflow: 'hidden' }}>
                 {leaderboard.map((entry, idx) => {
                   const rank = entry.rank || idx + 1;
                   const medalColor = MEDAL[rank];
@@ -208,7 +208,7 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
                         display: 'flex', alignItems: 'center', gap: 14,
                         padding: '14px 18px',
                         borderBottom: idx < leaderboard.length - 1 ? `1px solid ${T.border}` : 'none',
-                        background: rank === 1 ? `${T.pri}08` : '#fff',
+                        background: rank === 1 ? `${T.pri}08` : T.card,
                       }}
                     >
                       {/* Rank number */}

@@ -187,7 +187,7 @@ const CampaignFeed = ({ campaignId, onBack }) => {
     <div style={{ minHeight: '100vh', background: T.bg, boxSizing: 'border-box' }}>
       {/* Header */}
       <div style={{
-        background: '#fff',
+        background: T.card,
         borderBottom: `1px solid ${T.border}`,
         padding: '16px 24px',
         position: 'sticky',
@@ -220,7 +220,7 @@ const CampaignFeed = ({ campaignId, onBack }) => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '7px 14px',
-                    background: filter === f.id ? T.pri : '#fff',
+                    background: filter === f.id ? T.pri : T.card,
                     color: filter === f.id ? '#fff' : T.sub,
                     border: `1.5px solid ${filter === f.id ? T.pri : T.border}`,
                     borderRadius: 20, cursor: 'pointer',
@@ -244,7 +244,7 @@ const CampaignFeed = ({ campaignId, onBack }) => {
           </div>
         ) : posts.length === 0 ? (
           <div style={{
-            background: '#fff', borderRadius: 14, padding: '48px 24px',
+            background: T.card, borderRadius: 14, padding: '48px 24px',
             textAlign: 'center', border: `1px solid ${T.border}`,
           }}>
             <Award size={44} color={T.pri} style={{ marginBottom: 16, opacity: 0.5 }} />
@@ -281,7 +281,7 @@ const PostCard = ({ post, rank, onVote, campaignType, isVotingOpen }) => {
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 14, overflow: 'hidden',
+      background: T.card, borderRadius: 14, overflow: 'hidden',
       border: `1.5px solid ${rankStyle ? rankStyle.border : T.border}`,
       boxShadow: rankStyle ? `0 2px 12px ${rankStyle.border}30` : '0 1px 4px rgba(0,0,0,0.06)',
     }}>

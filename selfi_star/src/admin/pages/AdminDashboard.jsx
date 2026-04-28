@@ -115,8 +115,8 @@ export function AdminDashboard({ theme }) {
             <div
               key={index}
               style={{
-                background: '#fff',
-                border: '1px solid #E7E5E4',
+                background: theme.card,
+                border: `1px solid ${theme.border}`,
                 borderRadius: 12,
                 padding: '20px',
                 cursor: 'pointer',
@@ -182,10 +182,10 @@ export function AdminDashboard({ theme }) {
       }}>
         {/* Top Creators */}
         <div style={{
-          background: '#fff',
+          background: theme.card,
           borderRadius: 12,
           padding: 24,
-          border: '1px solid #E7E5E4',
+          border: `1px solid ${theme.border}`,
         }}>
           <h2 style={{
             margin: 0,
@@ -253,10 +253,10 @@ export function AdminDashboard({ theme }) {
 
         {/* Trending Reels */}
         <div style={{
-          background: '#fff',
+          background: theme.card,
           borderRadius: 12,
           padding: 24,
-          border: '1px solid #E7E5E4',
+          border: `1px solid ${theme.border}`,
         }}>
           <h2 style={{
             margin: 0,
