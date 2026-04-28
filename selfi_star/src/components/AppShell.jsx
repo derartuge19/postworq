@@ -169,6 +169,9 @@ export function AppShell({
         .mob-nav-btn span { color: #F9E08B !important; }
         .mob-nav-gold svg { color: #F9E08B !important; filter: drop-shadow(0 0 6px #F9E08B); }
         .mob-nav-gold span { color: #F9E08B !important; text-shadow: 0 0 8px #F9E08B; }
+        .mob-nav-btn:hover svg { filter: drop-shadow(0 0 8px #F9E08B); transform: scale(1.15); transition: all 0.2s; }
+        .mob-nav-btn:hover span { text-shadow: 0 0 8px #F9E08B; transition: all 0.2s; }
+        .mob-nav-btn { transition: all 0.2s; }
       `}</style>
       {/* 1. Desktop Sidebar */}
       {!isMobile && (
