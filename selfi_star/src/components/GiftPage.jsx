@@ -376,3 +376,4 @@ export default function GiftPage({ username, onClose, onShowWallet }) {
     </div>
   );
 }
+

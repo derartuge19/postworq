@@ -388,3 +388,4 @@ export function CampaignScoringConfigPage({ campaignId, campaignType, onBack, th
 
 // Export alias
 export const TypeSpecificScoringConfig = CampaignScoringConfigPage;
+

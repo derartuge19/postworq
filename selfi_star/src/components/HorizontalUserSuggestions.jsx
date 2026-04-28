@@ -200,3 +200,4 @@ export function HorizontalUserSuggestions({ onUserClick, onDismiss }) {
     </div>
   );
 }
+

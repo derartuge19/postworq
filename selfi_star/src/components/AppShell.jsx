@@ -15,7 +15,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import config from '../config';
-import flipLogo from '../assets/flip-logo.png';
+import flipLogo from '../assets/final_logo.jpg';
 
 export function AppShell({
   user,
@@ -511,3 +511,4 @@ export function AppShell({
     </div>
   );
 }
+

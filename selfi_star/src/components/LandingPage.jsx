@@ -314,3 +314,4 @@ export function LandingPage({ onLogin, onRegister, onShowCampaigns }) {
     </div>
   );
 }
+

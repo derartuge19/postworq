@@ -471,3 +471,4 @@ export function SecurityPage({ theme, onNavigate }) {
     </div>
   );
 }
+

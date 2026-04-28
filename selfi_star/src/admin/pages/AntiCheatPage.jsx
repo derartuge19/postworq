@@ -351,3 +351,4 @@ export function AntiCheatPage({ theme }) {
     </div>
   );
 }
+

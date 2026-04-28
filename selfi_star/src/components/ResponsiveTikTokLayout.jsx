@@ -71,3 +71,4 @@ export function ResponsiveTikTokLayout(props) {
 
   return <TikTokLayout {...props} />;
 }
+

@@ -21,3 +21,4 @@ export function SplashScreen({ onLogin, onRegister }) {
     </div>
   );
 }
+
