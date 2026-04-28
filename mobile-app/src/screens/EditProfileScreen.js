@@ -278,3 +278,4 @@ const styles = StyleSheet.create({
   logoutBtnText: { color: '#FF3B30', fontSize: 16, fontWeight: '700' },
 });
 
+

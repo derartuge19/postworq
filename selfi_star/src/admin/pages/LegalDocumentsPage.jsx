@@ -839,3 +839,4 @@ function AcceptancesModal({ theme, document, onClose }) {
 
 export default LegalDocumentsPage;
 
+

@@ -603,3 +603,4 @@ export function GamificationBar({ userId, theme, onShowWallet }) {
   );
 }
 
+

@@ -226,7 +226,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         {/* Logos */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <img src="/ethio-logo.png" alt="Ethio Telecom" style={{ width: 64, height: 64, objectFit: "contain" }} />
-          <img src="/final_logo.jpg" alt="FlipStar" style={{ width: 100, height: 50, objectFit: "contain" }} />
+          <img src="/final_logo.png" alt="FlipStar" style={{ width: 100, height: 50, objectFit: "contain" }} />
         </div>
 
         {/* Step indicator */}
@@ -370,4 +370,5 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
     </div>
   );
 }
+
 
