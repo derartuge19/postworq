@@ -15,7 +15,6 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import config from '../config';
-import flipLogo from '../assets/final_logo.jpg';
 
 export function AppShell({
   user,
@@ -195,7 +194,7 @@ export function AppShell({
             minHeight: 60
           }}>
             <img 
-              src={flipLogo} 
+              src="/final_logo.jpg" 
               alt="FlipStar" 
               style={{ 
                 height: 60, 
