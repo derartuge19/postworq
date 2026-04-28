@@ -165,6 +165,10 @@ export function AppShell({
         }
         .appshell-main::-webkit-scrollbar { display: none; }
         .appshell-main { -ms-overflow-style: none; scrollbar-width: none; }
+        .mob-nav-btn svg { color: #ffffff !important; }
+        .mob-nav-btn span { color: #ffffff !important; }
+        .mob-nav-gold svg { color: #F9E08B !important; }
+        .mob-nav-gold span { color: #F9E08B !important; }
       `}</style>
       {/* 1. Desktop Sidebar */}
       {!isMobile && (
