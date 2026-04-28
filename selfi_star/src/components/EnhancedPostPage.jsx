@@ -828,7 +828,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
         display: 'flex', alignItems: 'center', justifyContent: 'space-around',
         zIndex: 5000,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        boxShadow: '0 -2px 16px rgba(0,0,0,0.07)',
+        boxShadow: 'none',
         overflow: 'visible',
       }}>
         <style>{`
@@ -865,7 +865,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 height: 54,
                 borderRadius: '50%',
                 background: 'linear-gradient(145deg, #F9E08B 0%, #D4A017 100%)',
-                boxShadow: '0 4px 18px rgba(249,224,139,0.5), 0 2px 6px rgba(0,0,0,0.3)',
+        boxShadow: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1289,7 +1289,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               {/* Hero icon + title */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 24, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
                 <div style={{ position: 'relative', marginBottom: 14 }}>
-                  <div style={{ width: 72, height: 72, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 28px rgba(249,224,139,0.45)', border: '2px solid rgba(249,224,139,0.4)' }}>
+                  <div style={{ width: 72, height: 72, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(249,224,139,0.4)' }}>
                     <svg width="30" height="30" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#000"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#000" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
                   <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, border: '2px solid #0D0D0D', boxShadow: '0 2px 6px rgba(249,224,139,0.5)' }}>✨</div>
@@ -1322,7 +1322,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     borderRadius: 18,
                     padding: '20px 20px',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(249,224,139,0.4)',
+                    boxShadow: 'none',
                     transition: 'box-shadow 0.2s, transform 0.15s',
                     textAlign: 'center',
                     justifyContent: 'center',
@@ -1333,8 +1333,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     minWidth: '280px',
                     maxWidth: '400px',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(226,179,85,0.35)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(226,179,85,0.15)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
                   {/* Gold shimmer corner dots */}
                   <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5 }}>
@@ -1343,8 +1343,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#B8860B', opacity: 0.3 }} />
                   </div>
                   {/* Corner badge */}
-                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: '0 4px 12px rgba(249,224,139,0.5)' }}>📸</div>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F9E08B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(249,224,139,0.4)' }}>
+                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: 'none' }}>📸</div>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F9E08B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'none' }}>
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#000"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#000" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>
@@ -1361,7 +1361,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   borderRadius: 18,
                   padding: '20px 20px',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 24px rgba(226,179,85,0.15), 0 1px 0 rgba(255,255,255,0.04) inset',
+                  boxShadow: 'none',
                   transition: 'box-shadow 0.2s, transform 0.15s',
                   justifyContent: 'center',
                   textAlign: 'center',
@@ -1372,8 +1372,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                   minWidth: '280px',
                   maxWidth: '400px',
                 }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(226,179,85,0.35)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(226,179,85,0.15)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
                   {/* Gold shimmer corner dots */}
                   <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 5 }}>
@@ -1382,8 +1382,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#B8860B', opacity: 0.3 }} />
                   </div>
                   {/* Corner badge */}
-                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 900, color: '#000', boxShadow: '0 4px 12px rgba(249,224,139,0.5)' }}>+</div>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F9E08B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(249,224,139,0.4)' }}>
+                  <div style={{ position: 'absolute', top: -4, right: -4, width: 32, height: 32, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 900, color: '#000', boxShadow: 'none' }}>+</div>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: '#F9E08B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'none' }}>
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#000" strokeWidth="2.2" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{ flex: 1, textAlign: 'center' }}>
