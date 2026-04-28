@@ -12,7 +12,7 @@ const BG       = '#1a1a1a';
 const INPUT_BG = '#2a2a2a';
 
 const ethioLogo = require('../../image/Ethio telecom Logo PNG format.png');
-const flipLogo  = require('../../image/final_logo.jpg');
+const flipLogo  = require('../../image/final_logo.png');
 
 export default function RegisterScreen({ navigation }) {
   const [username, setUsername]   = useState('');
@@ -138,3 +138,4 @@ const styles = StyleSheet.create({
   linkText: { fontSize: 14, color: '#888' },
   link: { fontSize: 14, color: GOLD, fontWeight: '700' },
 });
+

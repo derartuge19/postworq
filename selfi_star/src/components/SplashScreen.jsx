@@ -22,3 +22,4 @@ export function SplashScreen({ onLogin, onRegister }) {
   );
 }
 
+

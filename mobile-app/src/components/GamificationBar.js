@@ -437,3 +437,4 @@ const styles = StyleSheet.create({
   topUpBtn: { backgroundColor: BRAND_GOLD + '20', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: BRAND_GOLD },
   topUpBtnText: { color: BRAND_GOLD, fontSize: 12, fontWeight: '700' },
 });
+

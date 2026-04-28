@@ -739,3 +739,4 @@ const styles = StyleSheet.create({
   sendGiftBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });
 
+

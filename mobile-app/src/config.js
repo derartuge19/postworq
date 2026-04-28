@@ -10,3 +10,4 @@ const getApiConfig = () => {
 const config = getApiConfig();
 
 export default config;
+

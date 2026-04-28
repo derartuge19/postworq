@@ -4,3 +4,4 @@ export default function CampaignScoringConfig(props) {
   return <CampaignScoringConfigPage {...props} />;
 }
 
+

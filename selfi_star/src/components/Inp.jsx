@@ -15,3 +15,4 @@ export function Inp({ label, type="text", value, onChange, placeholder, icon, ri
   );
 }
 
+
