@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: T.border,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
   },
   backBtn: {
     width: 40,
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderBottomWidth: 1,
     borderBottomColor: T.border,
   },
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   categoriesContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderBottomWidth: 1,
     borderBottomColor: T.border,
   },
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
   trendingHashtags: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     marginBottom: 8,
   },
   sectionTitle: {
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     marginBottom: 8,
   },
   userAvatar: {
@@ -871,3 +871,4 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 });
+

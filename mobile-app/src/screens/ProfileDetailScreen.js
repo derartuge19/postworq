@@ -266,7 +266,7 @@ export default function ProfileDetailScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
+  root: { flex: 1, backgroundColor: '#0d0d0d' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   profileInfo: { padding: 20 },
   mainInfoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
@@ -276,20 +276,20 @@ const styles = StyleSheet.create({
   avatarInitial: { fontSize: 32, fontWeight: 'bold', color: BRAND_GOLD },
   statsRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginLeft: 20, marginBottom: 12 },
   statItem: { alignItems: 'center' },
-  statCount: { fontSize: 18, fontWeight: '700', color: '#000' },
-  statLabel: { fontSize: 13, color: '#666', marginTop: 2 },
+  statCount: { fontSize: 18, fontWeight: '700', color: '#F9E08B' },
+  statLabel: { fontSize: 13, color: '#F9E08B', marginTop: 2 },
   bioSection: { marginBottom: 16 },
-  fullName: { fontSize: 15, fontWeight: '700', color: '#000', marginBottom: 4 },
-  bioText: { fontSize: 14, color: '#333', lineHeight: 20 },
+  fullName: { fontSize: 15, fontWeight: '700', color: '#F9E08B', marginBottom: 4 },
+  bioText: { fontSize: 14, color: '#F9E08B', lineHeight: 20 },
   actionButtons: { flexDirection: 'row', gap: 8 },
   followBtn: { flex: 1, height: 36, backgroundColor: BRAND_GOLD, borderRadius: 8, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 20 },
-  followingBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e5e5' },
+  followingBtn: { backgroundColor: '#0d0d0d', borderWidth: 1, borderColor: '#e5e5e5' },
   followBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  followingBtnText: { color: '#000' },
+  followingBtnText: { color: '#F9E08B' },
   iconBtn: { 
     width: 40, 
     height: 36, 
-    backgroundColor: '#fff', 
+    backgroundColor: '#0d0d0d', 
     borderWidth: 1, 
     borderColor: '#e5e5e5', 
     borderRadius: 8, 
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   editProfileBtn: { 
     width: '100%', 
     height: 36, 
-    backgroundColor: '#fff', 
+    backgroundColor: '#0d0d0d', 
     borderWidth: 1, 
     borderColor: '#e5e5e5', 
     borderRadius: 8, 
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 20,
   },
-  editProfileBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
+  editProfileBtnText: { fontSize: 14, fontWeight: '700', color: '#F9E08B' },
   tabs: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -328,5 +328,6 @@ const styles = StyleSheet.create({
   thumbImage: { width: '100%', height: '100%' },
   videoBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(0,0,0,0.5)', padding: 2, borderRadius: 4 },
   empty: { height: 200, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: '#999', marginTop: 10 },
+  emptyText: { color: '#F9E08B', marginTop: 10 },
 });
+

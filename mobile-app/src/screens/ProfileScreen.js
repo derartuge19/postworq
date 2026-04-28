@@ -769,7 +769,7 @@ export default function ProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
+  root: { flex: 1, backgroundColor: '#0d0d0d' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row',
@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#eee',
   },
-  headerUsername: { fontSize: 18, fontWeight: '800', color: '#000' },
+  headerUsername: { fontSize: 18, fontWeight: '800', color: '#F9E08B' },
   profileInfo: { padding: 16 },
   mainInfoRow: { flexDirection: 'row', alignItems: 'center' },
   avatarWrap: { position: 'relative' },
@@ -789,16 +789,16 @@ const styles = StyleSheet.create({
   avatarInitial: { fontSize: 32, fontWeight: 'bold', color: BRAND_GOLD },
   statsRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginLeft: 20 },
   statItem: { alignItems: 'center' },
-  statCount: { fontSize: 18, fontWeight: '800', color: '#000' },
-  statLabel: { fontSize: 12, color: '#666', marginTop: 2 },
+  statCount: { fontSize: 18, fontWeight: '800', color: '#F9E08B' },
+  statLabel: { fontSize: 12, color: '#F9E08B', marginTop: 2 },
   bioSection: { marginTop: 15 },
-  fullName: { fontSize: 15, fontWeight: '700', color: '#000' },
-  bioText: { fontSize: 14, color: '#333', marginTop: 4, lineHeight: 20 },
+  fullName: { fontSize: 15, fontWeight: '700', color: '#F9E08B' },
+  bioText: { fontSize: 14, color: '#F9E08B', marginTop: 4, lineHeight: 20 },
   actionButtons: { flexDirection: 'row', gap: 10, marginTop: 20, paddingHorizontal: 0 },
   editBtn: { flex: 1, height: 38, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0 },
-  editBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
+  editBtnText: { fontSize: 14, fontWeight: '700', color: '#F9E08B' },
   shareBtn: { flex: 1, height: 38, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0 },
-  shareBtnText: { fontSize: 14, fontWeight: '700', color: '#000' },
+  shareBtnText: { fontSize: 14, fontWeight: '700', color: '#F9E08B' },
   tabs: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -814,7 +814,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   activeTab: { borderBottomColor: BRAND_GOLD },
-  tabLabel: { fontSize: 10, fontWeight: '500', color: '#666' },
+  tabLabel: { fontSize: 10, fontWeight: '500', color: '#F9E08B' },
   activeTabLabel: { color: BRAND_GOLD, fontWeight: '700' },
   grid: { padding: 1 },
   postThumb: { width: width / 3 - 2, height: width / 3 - 2, margin: 1, backgroundColor: '#f0f0f0' },
@@ -837,7 +837,7 @@ const styles = StyleSheet.create({
   campaignThumbTitle: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
     textAlign: 'center',
     marginTop: 8,
   },
@@ -860,7 +860,7 @@ const styles = StyleSheet.create({
   campaignHeaderText: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#000',
+    color: '#F9E08B',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -869,7 +869,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '48%',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     borderRadius: 14,
     padding: 16,
     alignItems: 'center',
@@ -881,13 +881,13 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#000',
+    color: '#F9E08B',
     marginTop: 8,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 11,
-    color: '#666',
+    color: '#F9E08B',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -897,13 +897,13 @@ const styles = StyleSheet.create({
   campaignListTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#666',
+    color: '#F9E08B',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 12,
   },
   campaignListItem: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
@@ -919,12 +919,12 @@ const styles = StyleSheet.create({
   campaignListItemTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 3,
   },
   campaignListItemSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: '#F9E08B',
   },
   campaignListItemScore: {
     backgroundColor: 'rgba(218, 155, 42, 0.15)',
@@ -945,7 +945,7 @@ const styles = StyleSheet.create({
   badgesTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#666',
+    color: '#F9E08B',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 12,
@@ -972,17 +972,17 @@ const styles = StyleSheet.create({
     color: BRAND_GOLD,
   },
   empty: { height: 200, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: '#999', marginTop: 10 },
+  emptyText: { color: '#F9E08B', marginTop: 10 },
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginTop: 12,
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: '#666',
+    color: '#F9E08B',
   },
   postMenuBtn: {
     position: 'absolute',
@@ -998,7 +998,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   bottomSheet: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingBottom: 40,
@@ -1025,10 +1025,10 @@ const styles = StyleSheet.create({
   sheetItemText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   editModal: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: 20,
     padding: 24,
     margin: 20,
@@ -1037,12 +1037,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 4,
   },
   modalSubtitle: {
     fontSize: 13,
-    color: '#666',
+    color: '#F9E08B',
     marginBottom: 20,
   },
   formGroup: {
@@ -1051,7 +1051,7 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 8,
   },
   mediaPreview: {
@@ -1059,7 +1059,7 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     borderWidth: 1,
     borderColor: '#e5e5e5',
   },
@@ -1076,12 +1076,12 @@ const styles = StyleSheet.create({
   videoPlaceholderText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#666',
+    color: '#F9E08B',
   },
   changeMediaBtn: {
     marginTop: 10,
     padding: 10,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     borderWidth: 1.5,
     borderColor: '#e5e5e5',
     borderRadius: 10,
@@ -1093,7 +1093,7 @@ const styles = StyleSheet.create({
   changeMediaBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   newMediaSelectedText: {
     fontSize: 12,
@@ -1103,14 +1103,14 @@ const styles = StyleSheet.create({
   },
   formHelperText: {
     fontSize: 12,
-    color: '#666',
+    color: '#F9E08B',
     marginTop: 4,
   },
   textInput: {
     width: '100%',
     padding: 12,
     fontSize: 15,
-    color: '#000',
+    color: '#F9E08B',
     borderWidth: 1.5,
     borderColor: '#e5e5e5',
     borderRadius: 12,
@@ -1128,14 +1128,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelBtn: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderWidth: 1,
     borderColor: '#e5e5e5',
   },
   cancelBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   saveBtn: {
     backgroundColor: BRAND_GOLD,
@@ -1146,7 +1146,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   confirmModal: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderRadius: 20,
     padding: 28,
     margin: 20,
@@ -1159,12 +1159,12 @@ const styles = StyleSheet.create({
   confirmTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 8,
   },
   confirmSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#F9E08B',
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -1180,14 +1180,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   confirmCancelBtn: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0d0d0d',
     borderWidth: 1,
     borderColor: '#e5e5e5',
   },
   confirmCancelBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   confirmDeleteBtn: {
     backgroundColor: '#EF4444',
@@ -1227,7 +1227,7 @@ const styles = StyleSheet.create({
   gamModalHandle: {
     width: 36,
     height: 4,
-    backgroundColor: '#333',
+    backgroundcolor: '#F9E08B',
     borderRadius: 4,
     alignSelf: 'center',
     marginBottom: 4,
@@ -1246,3 +1246,4 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+

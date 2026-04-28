@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: T.cardBg,
     marginLeft: 8,
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderColor: T.border,
     borderWidth: 1,
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
   mediaContainer: {
     width: '100%',
     height: 350,
-    backgroundColor: '#000',
+    backgroundcolor: '#F9E08B',
     position: 'relative',
   },
   media: {
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -883,11 +883,11 @@ const styles = StyleSheet.create({
   inlineCommentUsername: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
   },
   inlineCommentText: {
     fontSize: 13,
-    color: '#333',
+    color: '#F9E08B',
   },
   emptyContainer: {
     padding: 40,
@@ -909,7 +909,7 @@ const styles = StyleSheet.create({
   },
   sheetCloseText: { fontSize: 16, fontWeight: '700', color: T.sub },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  bottomSheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
+  bottomSheet: { backgroundColor: '#0d0d0d', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
   sheetHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
   sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15, marginTop: 8 },
   sheetTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
@@ -928,3 +928,4 @@ const styles = StyleSheet.create({
   sheetItemText: { fontSize: 16, fontWeight: '600', marginLeft: 12, color: T.txt },
   sheetClose: { marginTop: 10, paddingVertical: 15, alignItems: 'center' },
 });
+

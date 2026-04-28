@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   },
   activeChip: { backgroundColor: BRAND_GOLD },
   filterLabel: { fontSize: 13, fontWeight: '600', color: '#F9E08B' },
-  activeLabel: { color: '#000' },
+  activeLabel: { color: '#F9E08B' },
   list: { paddingBottom: 100 },
   notifItem: {
     flexDirection: 'row',
@@ -312,3 +312,4 @@ const styles = StyleSheet.create({
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100 },
   emptyText: { color: '#F9E08B', opacity: 0.5, marginTop: 15, fontSize: 16 },
 });
+
