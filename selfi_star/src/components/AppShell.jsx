@@ -74,14 +74,13 @@ export function AppShell({
     },
   ];
 
-  // Mobile bottom-bar: Home | Discover | [+] | Notifications | Profile
-  // Matches the React Native AppNavigator tab order exactly.
+  // Mobile bottom-bar: Home | Reels | [+] | Messages | Profile
   const MOBILE_BOTTOM_TABS = [
-    { item: menuItems[0], label: 'Home',          iconName: 'home' },
-    { item: menuItems[1], label: 'Reels',          iconName: 'discover' },
-    { item: menuItems[5], label: '',               isCreate: true },
-    { item: menuItems[3], label: 'Alerts',         iconName: 'bell',    badge: unreadNotifCount },
-    { item: menuItems[6], label: 'Profile',        iconName: 'profile' },
+    { item: menuItems[0], label: 'Home',     iconName: 'home' },
+    { item: menuItems[1], label: 'Reels',    iconName: 'discover' },
+    { item: menuItems[5], label: '',         isCreate: true },
+    { item: menuItems[4], label: 'Messages', iconName: 'message', badge: unreadDmCount },
+    { item: menuItems[6], label: 'Profile',  iconName: 'profile' },
   ];
 
   const handleItemClick = (item) => {
@@ -165,6 +164,13 @@ export function AppShell({
         }
         .appshell-main::-webkit-scrollbar { display: none; }
         .appshell-main { -ms-overflow-style: none; scrollbar-width: none; }
+        .mob-nav-btn svg { color: #F9E08B !important; }
+        .mob-nav-btn span { color: #F9E08B !important; }
+        .mob-nav-gold svg { color: #F9E08B !important; filter: drop-shadow(0 0 6px #F9E08B); }
+        .mob-nav-gold span { color: #F9E08B !important; text-shadow: 0 0 8px #F9E08B; }
+        .mob-nav-btn:hover svg { filter: drop-shadow(0 0 8px #F9E08B); transform: scale(1.15); transition: all 0.2s; }
+        .mob-nav-btn:hover span { text-shadow: 0 0 8px #F9E08B; transition: all 0.2s; }
+        .mob-nav-btn { transition: all 0.2s; }
       `}</style>
       {/* 1. Desktop Sidebar */}
       {!isMobile && (
@@ -491,7 +497,7 @@ export function AppShell({
                   <span
                     style={{
                       fontSize: 10,
-                      fontWeight: 400,
+                      fontWeight: isActive ? 700 : 400,
                       color: '#F9E08B',
                       lineHeight: 1,
                     }}>{label}</span>

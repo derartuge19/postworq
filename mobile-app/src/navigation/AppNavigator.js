@@ -55,55 +55,61 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: BRAND.pri,
-        tabBarInactiveTintColor: BRAND.inactive,
+        tabBarActiveTintColor: '#F9E08B',
+        tabBarInactiveTintColor: '#F9E08B',
         tabBarStyle: {
-          backgroundColor: BRAND.cardBg,
+          backgroundColor: '#0d0d0d',
           borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: BRAND.border,
+          borderTopColor: '#F9E08B30',
           height: 60,
           paddingBottom: 8,
           paddingTop: 6,
           elevation: 8,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.06,
+          shadowOpacity: 0.3,
           shadowRadius: 8,
         },
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
         tabBarIcon: ({ focused, color, size }) => {
           const icons = {
-            Home:          focused ? 'home'          : 'home-outline',
-            Reels:         focused ? 'film'          : 'film-outline',
-            Create:        focused ? 'add-circle'    : 'add-circle-outline',
-            Notifications: focused ? 'notifications' : 'notifications-outline',
-            Profile:       focused ? 'person'        : 'person-outline',
+            Home:     focused ? 'home'              : 'home-outline',
+            Reels:    focused ? 'film'              : 'film-outline',
+            Create:   'add',
+            Messages: focused ? 'chatbubbles'       : 'chatbubbles-outline',
+            Profile:  focused ? 'person'            : 'person-outline',
           };
           const isCreate = route.name === 'Create';
           if (isCreate) {
             return (
               <View style={{
-                width: 40, height: 26, borderRadius: 13,
-                backgroundColor: BRAND.pri,
+                width: 44, height: 44, borderRadius: 22,
+                backgroundColor: '#F9E08B',
                 justifyContent: 'center', alignItems: 'center',
+                marginBottom: 4,
+                shadowColor: '#F9E08B',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.5,
+                shadowRadius: 8,
+                elevation: 8,
               }}>
-                <Ionicons name="add" size={20} color="#fff" />
+                <Ionicons name="add" size={24} color="#000" />
               </View>
             );
           }
-          return <Ionicons name={icons[route.name]} size={size} color={color} />;
+          return <Ionicons name={icons[route.name]} size={size} color={color} style={focused ? { textShadowColor: '#F9E08B', textShadowRadius: 8 } : {}} />;
         },
         tabBarLabel: ({ focused, color }) => {
-          const label = route.name === 'Notifications' ? 'Alerts' : route.name;
+          const label = route.name;
           return <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400' }}>{label}</Text>;
         },
       })}
     >
-      <Tab.Screen name="Home"          component={HomeScreen} />
-      <Tab.Screen name="Reels"         component={ReelsScreen} />
-      <Tab.Screen name="Create"        component={CreateScreen} />
-      <Tab.Screen name="Notifications" component={NotificationsScreen} />
-      <Tab.Screen name="Profile"       component={ProfileScreen} />
+      <Tab.Screen name="Home"     component={HomeScreen} />
+      <Tab.Screen name="Reels"    component={ReelsScreen} />
+      <Tab.Screen name="Create"   component={CreateScreen} />
+      <Tab.Screen name="Messages" component={NotificationsScreen} />
+      <Tab.Screen name="Profile"  component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
