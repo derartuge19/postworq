@@ -584,9 +584,8 @@ export default function ReelsScreen({ route, navigation }) {
             </TouchableOpacity>
             
             <TouchableOpacity style={[styles.sheetItem, { borderBottomColor: T.border }]} onPress={() => {
-              setReportReelId(longPressItem.id);
+              setShowReportModal(longPressItem.id);
               setLongPressItem(null);
-              setShowReportModal(true);
             }}>
               <Ionicons name="flag-outline" size={20} color="#FF3B30" style={{ marginRight: 12 }} />
               <Text style={[styles.sheetItemText, { color: '#FF3B30' }]}>Report</Text>
@@ -597,6 +596,48 @@ export default function ReelsScreen({ route, navigation }) {
               onPress={() => setLongPressItem(null)}
             >
               <Text style={[styles.sheetItemText, { fontWeight: '700', color: T.text, textAlign: 'center', width: '100%' }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ── Report Category Modal ── */}
+      <Modal visible={!!showReportModal} transparent animationType="fade">
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowReportModal(null)}
+        >
+          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>Report Content</Text>
+            <Text style={styles.sheetSubtitle}>Why are you reporting this content?</Text>
+            
+            <ScrollView style={styles.reportScroll} showsVerticalScrollIndicator={false}>
+              {[
+                { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
+                { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
+                { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
+                { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
+                { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
+                { id: 'other', label: 'Other', icon: 'Ⓜ' },
+              ].map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  onPress={() => submitReport(category.id)}
+                  style={styles.reportCategoryBtn}
+                >
+                  <Text style={styles.reportCategoryIcon}>{category.icon}</Text>
+                  <Text style={styles.reportCategoryText}>{category.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity 
+              style={styles.sheetClose} 
+              onPress={() => setShowReportModal(null)}
+            >
+              <Text style={styles.sheetCloseText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -821,4 +862,20 @@ const styles = StyleSheet.create({
   giftInput: { backgroundColor: '#FAFAF9', borderWidth: 1.5, borderColor: '#F5F5F4', borderRadius: 12, padding: 14, fontSize: 16, color: '#1C1917', marginBottom: 20 },
   sendGiftBtn: { backgroundColor: BRAND_GOLD, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 10 },
   sendGiftBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  sheetSubtitle: { fontSize: 14, color: '#78716C', textAlign: 'center', marginBottom: 16 },
+  reportScroll: { maxHeight: 400, paddingHorizontal: 20 },
+  reportCategoryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#F5F5F4',
+    backgroundColor: '#FAFAF9',
+    gap: 12,
+  },
+  reportCategoryIcon: { fontSize: 20 },
+  reportCategoryText: { fontSize: 15, fontWeight: '600', color: '#1C1917', flex: 1 },
 });
