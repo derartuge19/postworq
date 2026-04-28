@@ -73,11 +73,11 @@ function MainTabs() {
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
         tabBarIcon: ({ focused, color, size }) => {
           const icons = {
-            Home:          focused ? 'home'          : 'home-outline',
-            Reels:         focused ? 'film'          : 'film-outline',
-            Create:        'add',
-            Notifications: focused ? 'notifications' : 'notifications-outline',
-            Profile:       focused ? 'person'        : 'person-outline',
+            Home:     focused ? 'home'              : 'home-outline',
+            Reels:    focused ? 'film'              : 'film-outline',
+            Create:   'add',
+            Messages: focused ? 'chatbubbles'       : 'chatbubbles-outline',
+            Profile:  focused ? 'person'            : 'person-outline',
           };
           const isCreate = route.name === 'Create';
           if (isCreate) {
@@ -100,16 +100,16 @@ function MainTabs() {
           return <Ionicons name={icons[route.name]} size={size} color={color} style={focused ? { textShadowColor: '#F9E08B', textShadowRadius: 8 } : {}} />;
         },
         tabBarLabel: ({ focused, color }) => {
-          const label = route.name === 'Notifications' ? 'Alerts' : route.name;
+          const label = route.name;
           return <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400' }}>{label}</Text>;
         },
       })}
     >
-      <Tab.Screen name="Home"          component={HomeScreen} />
-      <Tab.Screen name="Reels"         component={ReelsScreen} />
-      <Tab.Screen name="Create"        component={CreateScreen} />
-      <Tab.Screen name="Notifications" component={NotificationsScreen} />
-      <Tab.Screen name="Profile"       component={ProfileScreen} />
+      <Tab.Screen name="Home"     component={HomeScreen} />
+      <Tab.Screen name="Reels"    component={ReelsScreen} />
+      <Tab.Screen name="Create"   component={CreateScreen} />
+      <Tab.Screen name="Messages" component={NotificationsScreen} />
+      <Tab.Screen name="Profile"  component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
