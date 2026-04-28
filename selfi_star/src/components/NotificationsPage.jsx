@@ -136,8 +136,8 @@ export function NotificationsPage({ user, onUserClick, onBack, onShowPostPage, o
       case 'comment': return <div style={{ ...s, background: '#DBEAFE' }}><MessageCircle size={18} color="#3B82F6" /></div>;
       case 'follow':  return <div style={{ ...s, background: '#D1FAE5' }}><UserPlus size={18} color="#10B981" /></div>;
       case 'mention': return <div style={{ ...s, background: '#EDE9FE' }}><AtSign size={18} color="#7C3AED" /></div>;
-      case 'reply':   return <div style={{ ...s, background: '#FEF3C7' }}><Reply size={18} color="#D97706" /></div>;
-      case 'campaign':return <div style={{ ...s, background: '#FEF9C3' }}><Trophy size={18} color="#CA8A04" /></div>;
+      case 'reply':   return <div style={{ ...s, background: '#FEF3C7' }}><Reply size={18} color="#F9E08B" /></div>;
+      case 'campaign':return <div style={{ ...s, background: '#FEF9C3' }}><Trophy size={18} color="#F9E08B" /></div>;
       default:        return <div style={{ ...s, background: T.bg }}><Bell size={18} color={T.pri} /></div>;
     }
   };
