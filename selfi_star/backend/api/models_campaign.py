@@ -100,6 +100,9 @@ class CampaignEntry(models.Model):
     class Meta:
         ordering = ['-vote_count', '-submitted_at']
         unique_together = ['campaign', 'user']
+        indexes = [
+            models.Index(fields=['campaign', 'approved', 'disqualified'], name='entry_campaign_filter_idx'),
+        ]
     
     def __str__(self):
         return f"{self.user.username} - {self.campaign.title}"
