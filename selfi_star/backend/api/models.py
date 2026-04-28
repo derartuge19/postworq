@@ -133,15 +133,31 @@ class Comment(models.Model):
 
 class CommentLike(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comment_likes')
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='comment_likes')
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='comment_likes', null=True, blank=True)
+    reply = models.ForeignKey('CommentReply', on_delete=models.CASCADE, related_name='reply_likes', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'comment')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'comment'],
+                condition=models.Q(comment__isnull=False),
+                name='unique_user_comment_like'
+            ),
+            models.UniqueConstraint(
+                fields=['user', 'reply'],
+                condition=models.Q(reply__isnull=False),
+                name='unique_user_reply_like'
+            ),
+        ]
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} liked comment {self.comment.id}"
+        if self.comment:
+            return f"{self.user.username} liked comment {self.comment.id}"
+        if self.reply:
+            return f"{self.user.username} liked reply {self.reply.id}"
+        return f"{self.user.username} like"
 
 class CommentReply(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comment_replies')

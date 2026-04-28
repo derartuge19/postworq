@@ -724,6 +724,13 @@ export default function WerqRoot() {
   };
 
   const handleShowEditProfile = () => {
+    // Save the previous state to return to it later
+    prevNavState.current = {
+      showSettings: showSettings,
+      showProfile: showProfile,
+      showPostPage: showPostPage,
+      showFollowersList: showFollowersList,
+    };
     setShowEditProfile(true);
     setShowProfile(false);
     setShowPostPage(false);
@@ -1025,7 +1032,20 @@ export default function WerqRoot() {
             <Suspense fallback={<PageSkeleton />}>
               <EditProfilePage
                 user={authUser}
-                onBack={() => goHome()}
+                onBack={() => {
+                  setShowEditProfile(false);
+                  // Restore previous state if available
+                  if (prevNavState.current) {
+                    const { showSettings, showProfile, showPostPage, showFollowersList } = prevNavState.current;
+                    setShowSettings(showSettings || false);
+                    setShowProfile(showProfile || false);
+                    setShowPostPage(showPostPage || false);
+                    setShowFollowersList(showFollowersList || false);
+                    prevNavState.current = null;
+                  } else {
+                    goHome();
+                  }
+                }}
                 onSave={handleProfileSaved}
               />
             </Suspense>

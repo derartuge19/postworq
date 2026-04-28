@@ -176,10 +176,10 @@ def reset_password(request):
     """Reset password for a user by email - temporary fix for password hash issues"""
     email = request.data.get('email')
     new_password = request.data.get('new_password')
-    
+
     if not email or not new_password:
         return Response({'error': 'Email and new_password required'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
     try:
         user = User.objects.get(email=email)
         user.set_password(new_password)
@@ -188,6 +188,81 @@ def reset_password(request):
         return Response({'message': 'Password reset successful. You can now login.'})
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    """Change password for authenticated user"""
+    current_password = request.data.get('current_password')
+    new_password = request.data.get('new_password')
+
+    if not current_password or not new_password:
+        return Response({'error': 'current_password and new_password required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if len(new_password) < 8:
+        return Response({'error': 'New password must be at least 8 characters'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = request.user
+    if not user.check_password(current_password):
+        return Response({'error': 'Current password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(new_password)
+    user.save()
+
+    # Delete old token to force re-login
+    Token.objects.filter(user=user).delete()
+
+    return Response({'message': 'Password changed successfully. Please login again.'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    """Delete authenticated user's account"""
+    user = request.user
+    username = user.username
+
+    # Delete user (this cascades to related objects)
+    user.delete()
+
+    return Response({'message': f'Account {username} has been deleted successfully.'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def download_data(request):
+    """Generate and return user's data as JSON"""
+    user = request.user
+    from .models import UserProfile, Reel, Comment, Follow
+
+    try:
+        profile = UserProfile.objects.get(user=user)
+    except UserProfile.DoesNotExist:
+        profile = None
+
+    # Collect user data
+    user_data = {
+        'user': {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'date_joined': user.date_joined.isoformat(),
+        },
+        'profile': {
+            'bio': profile.bio if profile else None,
+            'phone_number': profile.phone_number if profile else None,
+            'level': profile.level if profile else 1,
+            'xp': profile.xp if profile else 0,
+        } if profile else None,
+        'reels': list(Reel.objects.filter(user=user).values('id', 'caption', 'hashtags', 'created_at')),
+        'comments': list(Comment.objects.filter(user=user).values('id', 'text', 'created_at')),
+        'followers': list(Follow.objects.filter(following=user).values('follower__username')),
+        'following': list(Follow.objects.filter(follower=user).values('following__username')),
+    }
+
+    return Response(user_data)
 
 
 # ── Phone OTP Registration ─────────────────────────────────────────────────
