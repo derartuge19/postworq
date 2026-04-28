@@ -21,7 +21,7 @@ import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 const CATEGORY_ICONS = {
   flowers: '🌹',

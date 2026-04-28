@@ -18,7 +18,7 @@ import api from '../api';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 // Build comment tree from flat list
 function buildCommentTree(flatList) {

@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Video, ResizeMode } from 'expo-av';
 
-const BRAND = '#DA9B2A';
+const BRAND = '#F9E08B';
 
 export default function CustomCameraScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();

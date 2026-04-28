@@ -34,10 +34,10 @@ const T = {
   border: '#e0e0e0',
   txt: '#000000',
   sub: '#666666',
-  pri: '#DA9B2A',
+  pri: '#F9E08B',
 };
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 const ALL_TABS = ['For You', 'Explore', 'Campaigns'];
 

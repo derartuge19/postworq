@@ -15,7 +15,7 @@ import api from '../api';
 import config from '../config';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 const mediaUrl = (url) => {
   if (!url) return null;

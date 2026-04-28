@@ -37,7 +37,7 @@ import CustomCameraScreen from '../screens/CustomCameraScreen';
 
 // ── Brand theme — keep in sync with web selfi_star theme ──────────────────────
 const BRAND = {
-  pri:      '#DA9B2A',   // gold accent — matches web T.pri
+  pri:      '#F9E08B',   // gold accent — matches web T.pri
   bg:       '#ffffff',
   cardBg:   '#ffffff',
   border:   '#e5e5e5',

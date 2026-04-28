@@ -17,6 +17,13 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
   const [loading, setLoading] = useState(true);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [userEntry, setUserEntry] = useState(null);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (campaignId) {
@@ -126,7 +133,6 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: '240px',
       }}>
         <div style={{ color: T.sub }}>Loading campaign...</div>
       </div>
@@ -141,7 +147,6 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: '240px',
       }}>
         <div style={{ textAlign: 'center' }}>
           <AlertCircle size={48} color={T.red} style={{ marginBottom: 16 }} />
@@ -173,7 +178,7 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
     <div style={{
       minHeight: '100vh',
       background: T.bg,
-      padding: '24px 32px 60px 32px',
+      padding: isMobile ? '12px 12px 80px' : '24px 32px 60px 32px',
       boxSizing: 'border-box',
     }}>
       <div style={{
@@ -212,12 +217,12 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
           {campaign.image && (
             <div style={{
               width: '100%',
-              height: 300,
+              height: isMobile ? 180 : 300,
               background: `url(${mediaUrl(campaign.image)}) center/cover`,
             }} />
           )}
           
-          <div style={{ padding: 32 }}>
+          <div style={{ padding: isMobile ? 16 : 32 }}>
             <div style={{
               display: 'flex',
               alignItems: 'flex-start',
@@ -258,19 +263,20 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
                 
                 <h1 style={{
                   margin: 0,
-                  fontSize: 36,
+                  fontSize: isMobile ? 22 : 36,
                   fontWeight: 800,
                   color: T.txt,
-                  marginBottom: 12,
+                  marginBottom: 8,
+                  lineHeight: 1.2,
                 }}>
                   {campaign.title}
                 </h1>
                 
                 <p style={{
                   margin: 0,
-                  fontSize: 16,
+                  fontSize: isMobile ? 13 : 16,
                   color: T.sub,
-                  lineHeight: 1.6,
+                  lineHeight: 1.5,
                 }}>
                   {campaign.description}
                 </p>

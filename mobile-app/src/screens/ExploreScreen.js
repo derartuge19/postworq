@@ -30,10 +30,10 @@ const T = {
   border: '#e0e0e0',
   txt: '#000000',
   sub: '#666666',
-  pri: '#DA9B2A',
+  pri: '#F9E08B',
 };
 
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#F9E08B';
 
 const CATEGORIES = [
   { id: 'all', label: 'Trending', emoji: '🔥' },
@@ -419,7 +419,6 @@ export default function ExploreScreen({ navigation }) {
       {/* Categories */}
       {!inSearchMode && (
         <View style={styles.categoriesContainer}>
-          <Text style={styles.categoriesTitle}>CATEGORIES</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
             {CATEGORIES.map(cat => {
               const isActive = activeCategory === cat.id;
@@ -600,15 +599,9 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: T.border,
-  },
-  categoriesTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: T.sub,
-    marginBottom: 8,
   },
   categoriesScroll: {
     flexDirection: 'row',
@@ -616,14 +609,14 @@ const styles = StyleSheet.create({
   categoryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
     backgroundColor: T.bg,
     borderWidth: 1,
     borderColor: T.border,
-    marginRight: 8,
+    marginRight: 6,
   },
   categoryBtnActive: {
     backgroundColor: T.pri + '15',
