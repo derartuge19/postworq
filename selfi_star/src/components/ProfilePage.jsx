@@ -467,7 +467,7 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                   padding: 8, display: "flex", alignItems: "center", color: T.txt,
                 }}
               >
-                <ArrowLeft size={24} />
+                <ChevronLeft size={24} />
               </button>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#F9E08B' }}>

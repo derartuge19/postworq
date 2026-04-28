@@ -427,28 +427,28 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
         borderBottom: inSearchMode ? 'none' : `1px solid ${T.border}`,
       }}>
         {/* Row 1 – title + search bar */}
-        <div style={{ padding: '14px 16px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ padding: '12px 16px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Back button */}
           <button
             onClick={onBack}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              padding: '6px 8px 6px 0', display: 'flex', alignItems: 'center',
+              padding: '4px 6px 4px 0', display: 'flex', alignItems: 'center',
               color: T.txt, flexShrink: 0,
             }}
           >
-            <ChevronLeft size={22} strokeWidth={2.5} />
+            <ChevronLeft size={20} strokeWidth={2.5} />
           </button>
           
           {inSearchMode || searchFocused ? null : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <Flame size={22} color={T.pri} />
-              <span style={{ fontSize: 20, fontWeight: 800, color: '#F9E08B' }}>Explore</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Flame size={18} color={T.pri} />
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#F9E08B' }}>Explore</span>
             </div>
           )}
           {/* Search input wrapper */}
           <div style={{ flex: 1, position: 'relative' }}>
-            <Search size={16} color={T.sub} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+            <Search size={14} color={T.sub} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             <input
               ref={inputRef}
               value={query}
@@ -456,18 +456,18 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setTimeout(() => setSearchFocused(false), 180)}
               onKeyDown={e => { if (e.key === 'Enter') commitSearch(); }}
-              placeholder="Search videos, users, #tags…"
+              placeholder="Search videos, users…"
               style={{
                 width: '100%', boxSizing: 'border-box',
-                padding: '10px 38px 10px 36px',
-                borderRadius: 24, border: `1.5px solid ${searchFocused ? T.pri : T.border}`,
-                fontSize: 14, background: T.bg, color: T.txt,
+                padding: '8px 32px 8px 32px',
+                borderRadius: 20, border: `1px solid ${searchFocused ? T.pri : T.border}`,
+                fontSize: 13, background: T.bg, color: T.txt,
                 outline: 'none', transition: 'border-color .2s',
               }}
             />
             {query && (
-              <button onClick={clearSearch} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', color: T.sub }}>
-                <X size={15} />
+              <button onClick={clearSearch} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', color: T.sub }}>
+                <X size={12} />
               </button>
             )}
 
@@ -475,26 +475,26 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
             {showRecentDropdown && (
               <div style={{
                 position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-                background: '#fff', borderRadius: 14,
+                background: '#fff', borderRadius: 12,
                 boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
                 overflow: 'hidden', zIndex: 30,
                 border: `1px solid ${T.border}`,
               }}>
-                <div style={{ padding: '10px 14px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#F9E08B', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <Clock size={12} /> Recent
+                <div style={{ padding: '8px 12px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#F9E08B', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Clock size={11} /> Recent
                   </span>
                   <button onClick={() => { saveRecent([]); setRecentSearches([]); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#F9E08B', fontWeight: 600 }}>
-                    Clear all
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, color: '#F9E08B', fontWeight: 600 }}>
+                    Clear
                   </button>
                 </div>
                 {recentSearches.map(r => (
                   <button key={r} onMouseDown={() => { setQuery(r); commitSearch(r); }}
-                    style={{ width: '100%', padding: '9px 14px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', color: T.txt, fontSize: 14 }}>
-                    <Clock size={13} color={T.sub} />
+                    style={{ width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', color: T.txt, fontSize: 13 }}>
+                    <Clock size={12} color={T.sub} />
                     <span style={{ flex: 1 }}>{r}</span>
-                    <ChevronRight size={13} color={T.sub} />
+                    <ChevronRight size={12} color={T.sub} />
                   </button>
                 ))}
               </div>
@@ -503,14 +503,14 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
 
           {/* Time range pills — only in explore mode */}
           {!inSearchMode && !searchFocused && (
-            <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
               {TIME_RANGES.map(r => (
                 <button key={r.id} onClick={() => { setTimeRange(r.id); setHashtagView(null); }} style={{
-                  padding: '5px 10px', borderRadius: 20,
-                  border: `1.5px solid ${timeRange === r.id ? T.pri : T.border}`,
+                  padding: '4px 8px', borderRadius: 16,
+                  border: `1px solid ${timeRange === r.id ? T.pri : T.border}`,
                   background: timeRange === r.id ? T.pri : 'transparent',
                   color: timeRange === r.id ? '#fff' : '#F9E08B',
-                  fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+                  fontSize: 10, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
                 }}>
                   {r.label}
                 </button>
@@ -521,24 +521,21 @@ export function ExplorerPage({ user, onBack, onShowProfile, onShowVideoDetail, o
 
         {/* Row 2 - category navigation (explore mode only) */}
         {!inSearchMode && (
-          <div style={{ padding: '0 16px 12px' }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#F9E08B', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <TrendingUp size={14} /> CATEGORIES
-            </div>
-            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div style={{ padding: '0 16px 8px' }}>
+            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {CATEGORIES.map(cat => {
                 const isActive = activeCategory === cat.id;
                 return (
                   <div key={cat.id} onClick={() => { setActiveCategory(cat.id); setHashtagView(null); }} style={{
-                    padding: '8px 16px', borderRadius: 12, flexShrink: 0,
+                    padding: '6px 12px', borderRadius: 10, flexShrink: 0,
                     background: isActive ? T.pri + '15' : T.bg,
                     border: `1px solid ${isActive ? T.pri + '30' : T.border}`,
                     color: isActive ? T.pri : T.txt,
-                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 6,
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 4,
                     whiteSpace: 'nowrap', transition: 'all .18s',
                   }}>
-                    <span style={{ fontSize: 16 }}>{cat.emoji}</span>
+                    <span style={{ fontSize: 14 }}>{cat.emoji}</span>
                     {cat.label}
                   </div>
                 );
