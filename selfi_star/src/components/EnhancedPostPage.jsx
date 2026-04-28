@@ -1317,8 +1317,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 <button className="ep-btn" onClick={() => setCaptureMode('camera')}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 14,
-                    background: 'linear-gradient(135deg, #1A1611 0%, #221C10 100%)',
-                    border: '2px solid #F9E08B',
+                    background: '#000',
+                    border: '2px solid rgba(255,255,255,0.3)',
                     borderRadius: 18,
                     padding: '20px 20px',
                     cursor: 'pointer',
@@ -1356,8 +1356,8 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 {/* ── Upload Image card ── */}
                 <label style={{
                   display: 'flex', alignItems: 'center', gap: 14,
-                  background: 'linear-gradient(135deg, #1A1611 0%, #221C10 100%)',
-                  border: '2px solid #E2B355',
+                  background: '#000',
+                  border: '2px solid rgba(255,255,255,0.3)',
                   borderRadius: 18,
                   padding: '20px 20px',
                   cursor: 'pointer',
