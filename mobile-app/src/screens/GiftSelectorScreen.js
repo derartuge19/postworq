@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#2A2A2E',
   },
   headerTitle: {
     fontSize: 18,
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#0B0B0C',
   },
   recipientLabel: {
     fontSize: 14,
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   },
   categoryTabs: {
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#2A2A2E',
   },
   categoryTabsContent: {
     paddingHorizontal: 16,
@@ -618,11 +618,11 @@ const styles = StyleSheet.create({
     margin: 4,
     padding: 8,
     borderRadius: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#121214',
     alignItems: 'center',
   },
   giftItemSelected: {
-    backgroundColor: '#fff5e6',
+    backgroundColor: 'rgba(200,181,106,0.13)',
     borderWidth: 2,
     borderColor: BRAND_GOLD,
   },
@@ -823,12 +823,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#2A2A2E',
   },
   sendButtonText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   rechargeModalContent: {
     backgroundColor: '#0B0B0C',
@@ -892,7 +892,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#121214',
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -945,6 +945,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
   },
 });
+
 
 
 
