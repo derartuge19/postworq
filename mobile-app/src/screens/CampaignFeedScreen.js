@@ -118,7 +118,7 @@ export default function CampaignFeedScreen({ route, navigation }) {
     <View>
       {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={20} color="#666" />
+        <Ionicons name="chevron-back" size={20} color="#D4AF37" />
         <Text style={styles.backButtonText}>Back to Campaign</Text>
       </TouchableOpacity>
 

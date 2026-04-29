@@ -87,7 +87,7 @@ export default function FollowListScreen({ route, navigation }) {
       {/* Custom Header to ensure back button works as expected */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <Ionicons name="chevron-back" size={24} color="#D4AF37" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{type === 'followers' ? 'Followers' : 'Following'}</Text>
         <View style={{ width: 40 }} />

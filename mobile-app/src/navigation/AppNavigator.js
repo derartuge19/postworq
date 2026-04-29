@@ -108,7 +108,7 @@ function MainTabs() {
       <Tab.Screen name="Home"     component={HomeScreen} />
       <Tab.Screen name="Reels"    component={ReelsScreen} />
       <Tab.Screen name="Create"   component={CreateScreen} />
-      <Tab.Screen name="Messages" component={NotificationsScreen} />
+      <Tab.Screen name="Alert"    component={NotificationsScreen} />
       <Tab.Screen name="Profile"  component={ProfileScreen} />
     </Tab.Navigator>
   );
