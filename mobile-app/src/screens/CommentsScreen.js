@@ -407,6 +407,14 @@ export default function CommentsScreen({ route, navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={insets.bottom}
     >
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Comments ({comments.length})</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
+          <Ionicons name="close" size={24} color="#C8B56A" />
+        </TouchableOpacity>
+      </View>
+
       {/* Comments List */}
       <ScrollView 
         ref={scrollViewRef}
@@ -573,18 +581,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    borderBottomColor: '#2A2A2E',
+    backgroundColor: '#0B0B0C',
   },
-  backBtn: {
-    width: 40,
+  closeButton: {
+    padding: 8,
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#C8B56A',
+    color: '#F5F5F7',
+  },
+  inputContainer: {
+    borderTopWidth: 1,
+    borderTopColor: '#2A2A2E',
+    backgroundColor: '#0B0B0C',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   scrollView: {
     flex: 1,
@@ -623,18 +639,18 @@ const styles = StyleSheet.create({
   },
   commentContainer: {
     flexDirection: 'column',
-    gap: 12,
+    gap: 10,
   },
   commentRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   commentRowIndented: {
     marginLeft: 0,
   },
   avatar: {
     borderRadius: 20,
-    backgroundColor: BRAND_GOLD + '20',
+    backgroundColor: BRAND_GOLD + '30',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -652,12 +668,263 @@ const styles = StyleSheet.create({
   },
   commentHeader: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
     flexWrap: 'wrap',
   },
   username: {
     fontWeight: '700',
-    color: '#C8B56A',
+    color: '#F5F5F7',
+    fontSize: 14,
+  },
+  commentBody: {
+    fontSize: 14,
+    color: '#F5F5F7',
+    lineHeight: 21,
+    marginBottom: 8,
+  },
+  commentActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  timestamp: {
+    fontSize: 11,
+    color: '#A1A1AA',
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  likeCount: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#A1A1AA',
+  },
+  replyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  replyText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#A1A1AA',
+  },
+  reportBtn: {
+    marginLeft: 'auto',
+  },
+  viewRepliesToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4,
+    marginLeft: 48,
+  },
+  viewRepliesLine: {
+    width: 24,
+    height: 1,
+    backgroundColor: '#A1A1AA',
+    opacity: 0.5,
+  },
+  viewRepliesText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#A1A1AA',
+  },
+  repliesContainer: {
+    marginLeft: 44,
+    paddingLeft: 30,
+    borderLeftWidth: 2,
+    borderLeftColor: '#2A2A2E',
+    gap: 14,
+  },
+  replyThreadLine: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 2,
+    backgroundColor: '#2A2A2E',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: '#0B0B0C',
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    color: '#F5F5F7',
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#2A2A2E',
+    minHeight: 40,
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: BRAND_GOLD,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonDisabled: {
+    backgroundColor: '#333',
+  },
+  replyingTo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  replyingToText: {
+    fontSize: 13,
+    color: '#A1A1AA',
+  },
+  replyingToUser: {
+    color: BRAND_GOLD,
+    fontWeight: '600',
+  },
+  cancelReplyBtn: {
+    padding: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  reportModal: {
+    backgroundColor: '#0B0B0C',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 40,
+    maxHeight: '80%',
+    marginHorizontal: 0,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E7E5E4',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 15,
+    marginTop: 8,
+  },
+  reportHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+    paddingHorizontal: 20,
+  },
+  reportTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#F5F5F7',
+  },
+  reportSubtitle: {
+    fontSize: 13,
+    color: '#A1A1AA',
+    marginBottom: 16,
+    paddingHorizontal: 20,
+  },
+  reportScroll: {
+    paddingHorizontal: 20,
+  },
+  reportItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#2A2A2E',
+    borderRadius: 10,
+    backgroundColor: '#0B0B0C',
+    marginBottom: 4,
+  },
+  reportIcon: {
+    fontSize: 18,
+  },
+  reportLabel: {
+    fontSize: 14,
+    color: '#F5F5F7',
+    fontWeight: '500',
+  },
+  reportCancel: {
+    marginTop: 12,
+    marginHorizontal: 20,
+    paddingVertical: 12,
+    borderWidth: 0,
+    borderRadius: 10,
+    backgroundColor: '#2A2A2E',
+    alignItems: 'center',
+  },
+  reportCancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F5F5F7',
+  },
+  mentionSuggestionsContainer: {
+    position: 'absolute',
+    bottom: '100%',
+    left: 16,
+    right: 16,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#2A2A2E',
+    maxHeight: 200,
+    zIndex: 100,
+    marginBottom: 8,
+  },
+  mentionSuggestionsList: {
+    maxHeight: 200,
+  },
+  mentionSuggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    gap: 10,
+  },
+  mentionAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: BRAND_GOLD + '30',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mentionAvatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 16,
+  },
+  mentionAvatarText: {
+    fontWeight: 'bold',
+    color: BRAND_GOLD,
+  },
+  mentionUsername: {
+    fontSize: 14,
+    color: '#F5F5F7',
+    fontWeight: '600',
   },
 });
