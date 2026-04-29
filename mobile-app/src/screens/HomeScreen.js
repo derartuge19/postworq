@@ -321,7 +321,7 @@ export default function HomeScreen({ navigation }) {
       console.error('Failed to submit report:', error);
       Alert.alert('Error', 'Failed to submit report. Please try again.');
     }
-  };
+  }, [showReportModal]);
 
   useEffect(() => {
     loadPosts();
