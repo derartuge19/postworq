@@ -471,11 +471,7 @@ export default function ReelsScreen({ route, navigation }) {
       <FlashList
         data={reels}
         keyExtractor={item => String(item.id)}
-        renderItem={({ item, index }) => (
-          <ReelItem
-          key={item.id}
-          item={item}
-          isActive={index === visibleIdx}
+        renderItem={renderItem}
         pagingEnabled
         snapToInterval={SCREEN_HEIGHT}
         snapToAlignment="start"
