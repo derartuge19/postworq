@@ -387,7 +387,7 @@ export default function ProfileScreen({ navigation }) {
               {/* Header row */}
               <View style={styles.gamModalHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Ionicons name="diamond-outline" size={20} color={BRAND_GOLD} />
+                  <Ionicons name="diamond" size={20} color={BRAND_GOLD} />
                   <Text style={styles.gamModalTitle}>My Rewards</Text>
                 </View>
                 <TouchableOpacity onPress={() => setShowGamModal(false)} style={{ padding: 4 }}>
@@ -419,7 +419,7 @@ export default function ProfileScreen({ navigation }) {
             {profile?.id === user?.id && (
               <View style={styles.navActions}>
                 <TouchableOpacity onPress={() => setShowGamModal(true)} style={styles.navActionBtn}>
-                  <Ionicons name="diamond-outline" size={24} color="#D4AF37" />
+                  <Ionicons name="diamond" size={24} color="#D4AF37" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={styles.navActionBtn}>
                   <Ionicons name="wallet-outline" size={24} color="#D4AF37" />
