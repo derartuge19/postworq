@@ -47,6 +47,9 @@ export default function WalletScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [transactions, setTransactions] = useState([]);
+  const [withdrawals, setWithdrawals] = useState([]);
 
   useEffect(() => {
     initLoad();
@@ -123,6 +126,30 @@ export default function WalletScreen({ navigation }) {
       Alert.alert('Error', 'Payment initiation failed. Please try again.');
     } finally {
       setLoadingPayment(false);
+    }
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'transactions' && transactions.length === 0) loadTransactions();
+    if (tab === 'withdrawals' && withdrawals.length === 0) loadWithdrawals();
+  };
+
+  const loadTransactions = async () => {
+    try {
+      const data = await api.request('/wallet/transactions/?page_size=50');
+      setTransactions(data.results || []);
+    } catch (err) {
+      console.error('Transactions load failed:', err);
+    }
+  };
+
+  const loadWithdrawals = async () => {
+    try {
+      const data = await api.request('/wallet/withdrawals/');
+      setWithdrawals(data.results || []);
+    } catch (err) {
+      console.error('Withdrawals load failed:', err);
     }
   };
 
@@ -205,10 +232,83 @@ export default function WalletScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Coin Packages */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Purchase Coins</Text>
-          <Text style={styles.sectionSubtitle}>Get more coins to send gifts and boost posts</Text>
+        {/* Tab navigation */}
+        <View style={styles.tabBar}>
+          {['overview', 'transactions', 'withdrawals'].map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => handleTabChange(tab)}
+              style={styles.tab}
+            >
+              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Text>
+              {activeTab === tab && <View style={styles.tabIndicator} />}
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Tab content */}
+        <View style={styles.tabContent}>
+          {activeTab === 'overview' && (
+            <View>
+              <Text style={styles.sectionTitle}>Recent Activity</Text>
+              {transactions.length === 0 ? (
+                <Text style={styles.emptyText}>No recent transactions</Text>
+              ) : (
+                transactions.slice(0, 5).map((tx) => (
+                  <View key={tx.id} style={styles.transactionItem}>
+                    <Text style={styles.transactionType}>{tx.type_display || tx.type}</Text>
+                    <Text style={styles.transactionAmount}>
+                      {tx.is_credit ? '+' : '-'}{tx.coins}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
+          {activeTab === 'transactions' && (
+            <View>
+              <Text style={styles.sectionTitle}>All Transactions</Text>
+              {transactions.length === 0 ? (
+                <Text style={styles.emptyText}>No transactions yet</Text>
+              ) : (
+                transactions.map((tx) => (
+                  <View key={tx.id} style={styles.transactionItem}>
+                    <View>
+                      <Text style={styles.transactionType}>{tx.type_display || tx.type}</Text>
+                      <Text style={styles.transactionDate}>{tx.created_at}</Text>
+                    </View>
+                    <Text style={[styles.transactionAmount, tx.is_credit ? styles.credit : styles.debit]}>
+                      {tx.is_credit ? '+' : '-'}{tx.coins}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
+          {activeTab === 'withdrawals' && (
+            <View>
+              <Text style={styles.sectionTitle}>Withdrawals</Text>
+              {withdrawals.length === 0 ? (
+                <Text style={styles.emptyText}>No withdrawals yet</Text>
+              ) : (
+                withdrawals.map((w) => (
+                  <View key={w.id} style={styles.withdrawalItem}>
+                    <Text style={styles.withdrawalStatus}>{w.status}</Text>
+                    <Text style={styles.withdrawalAmount}>{w.coin_amount} coins → {w.net_birr} ETB</Text>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
+        </View>
+
+        {/* Coin Packages - only show on overview tab */}
+        {activeTab === 'overview' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Purchase Coins</Text>
+            <Text style={styles.sectionSubtitle}>Get more coins to send gifts and boost posts</Text>
 
           {packages.length === 0 ? (
             <View style={styles.emptyState}>
@@ -244,14 +344,17 @@ export default function WalletScreen({ navigation }) {
             ))
           )}
         </View>
+        )}
 
-        {/* Info */}
-        <View style={styles.infoBox}>
-          <Ionicons name="information-circle" size={20} color={BRAND_GOLD} />
-          <Text style={styles.infoText}>
-            Only purchased coins can be used for gifting. Earned coins from activities cannot be gifted.
-          </Text>
-        </View>
+        {/* Info - only show on overview tab */}
+        {activeTab === 'overview' && (
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle" size={20} color={BRAND_GOLD} />
+            <Text style={styles.infoText}>
+              Only purchased coins can be used for gifting. Earned coins from activities cannot be gifted.
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* Telebirr Payment Modal */}
@@ -429,6 +532,84 @@ const styles = StyleSheet.create({
     borderColor: '#333',
   },
   actionButtonTextSecondary: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: BRAND_GOLD,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+    paddingHorizontal: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  tabText: {
+    fontSize: 14,
+    color: '#78716C',
+    fontWeight: 500,
+    textTransform: 'capitalize',
+  },
+  tabTextActive: {
+    color: BRAND_GOLD,
+    fontWeight: 700,
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: BRAND_GOLD,
+  },
+  tabContent: {
+    padding: 16,
+  },
+  transactionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  transactionType: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#F5F5F7',
+  },
+  transactionDate: {
+    fontSize: 12,
+    color: '#78716C',
+  },
+  transactionAmount: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: '#F5F5F7',
+  },
+  credit: {
+    color: '#10B981',
+  },
+  debit: {
+    color: '#EF4444',
+  },
+  withdrawalItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  withdrawalStatus: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#F5F5F7',
+  },
+  withdrawalAmount: {
     fontSize: 14,
     fontWeight: 700,
     color: BRAND_GOLD,
