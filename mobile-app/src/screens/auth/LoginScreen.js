@@ -5,6 +5,7 @@ import {
   StatusBar, Image, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 
 const GOLD = '#C8B56A';
@@ -39,10 +40,15 @@ export default function LoginScreen({ navigation }) {
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
         {/* Logos */}
-        <View style={s.logosRow}>
-          <Image source={ethioLogo} style={s.logoLeft}  resizeMode="contain" />
+        <LinearGradient
+          colors={['#ffffff', '#888888', '#000000']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={s.logosRow}
+        >
+          <Image source={ethioLogo} style={s.logoLeft} resizeMode="contain" />
           <Image source={flipLogo}  style={s.logoRight} resizeMode="contain" />
-        </View>
+        </LinearGradient>
 
         {/* Card */}
         <View style={s.card}>
@@ -116,7 +122,7 @@ export default function LoginScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   scroll: { flexGrow: 1, padding: 20 },
-  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, marginTop: 40, backgroundColor: '#fff', borderRadius: 12, padding: 10 },
+  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 48, marginTop: 40, borderRadius: 12, padding: 10 },
   logoLeft:  { width: 100, height: 50 },
   logoRight: { width: 100, height: 50 },
   card: { backgroundColor: CARD, borderRadius: 18, padding: 24, borderWidth: 1, borderColor: GOLD_BORDER },

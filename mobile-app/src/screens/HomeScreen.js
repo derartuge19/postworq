@@ -10,6 +10,8 @@ import {
   Share,
   Alert,
   ScrollView,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { FlashList } from '@shopify/flash-list';
