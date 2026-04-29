@@ -13,7 +13,7 @@ export function SubscriptionPage({ user, onBack }) {
   const [loading, setLoading] = useState(true);
   const [selectedTier, setSelectedTier] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('onevas');
+  const [paymentMethod, setPaymentMethod] = useState('onevas'); // Only Onevas for now
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
@@ -24,17 +24,57 @@ export function SubscriptionPage({ user, onBack }) {
     try {
       setLoading(true);
       const [tiersData, subscriptionData] = await Promise.all([
-        api.request('/subscriptions/tiers/active/'),
-        api.request('/subscriptions/'),
+        api.request('/subscriptions/tiers/active/').catch(() => []),
+        api.request('/subscriptions/').catch(() => null),
       ]);
-      setTiers(Array.isArray(tiersData) ? tiersData : []);
+      setTiers(Array.isArray(tiersData) && tiersData.length > 0 ? tiersData : getFallbackTiers());
       setCurrentSubscription(subscriptionData);
     } catch (error) {
       console.error('Error loading subscription data:', error);
+      setTiers(getFallbackTiers());
     } finally {
       setLoading(false);
     }
   };
+
+  const getFallbackTiers = () => [
+    {
+      id: 1,
+      name: 'Daily',
+      duration_type: 'daily',
+      price_etb: 3,
+      price_coins: null,
+      description: 'Access for 24 hours',
+      features: ['Full access for 24 hours', 'Ad-free experience', 'HD quality videos']
+    },
+    {
+      id: 2,
+      name: 'Weekly',
+      duration_type: 'weekly',
+      price_etb: 20,
+      price_coins: null,
+      description: 'Access for 7 days',
+      features: ['Full access for 7 days', 'Ad-free experience', 'HD quality videos', 'Priority support']
+    },
+    {
+      id: 3,
+      name: 'Monthly',
+      duration_type: 'monthly',
+      price_etb: 70,
+      price_coins: null,
+      description: 'Access for 30 days',
+      features: ['Full access for 30 days', 'Ad-free experience', 'HD quality videos', 'Priority support', 'Exclusive content']
+    },
+    {
+      id: 4,
+      name: 'OnDemand',
+      duration_type: 'ondemand',
+      price_etb: 10,
+      price_coins: 100,
+      description: 'Pay per use with coins',
+      features: ['Flexible payment', 'No recurring charges', 'Use coins as needed']
+    }
+  ];
 
   const handleSubscribe = (tier) => {
     setSelectedTier(tier);
@@ -423,64 +463,14 @@ export function SubscriptionPage({ user, onBack }) {
               {selectedTier?.name} - {selectedTier?.price_etb} ETB
             </div>
 
-            {selectedTier?.price_coins && (
-              <button
-                onClick={() => setPaymentMethod('coins')}
-                style={{
-                  width: '100%',
-                  padding: 16,
-                  borderRadius: 12,
-                  border: `2px solid ${paymentMethod === 'coins' ? T.pri : T.border}`,
-                  background: paymentMethod === 'coins' ? `${T.pri}15` : T.card,
-                  color: T.txt,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  marginBottom: 12,
-                  cursor: 'pointer',
-                }}
-              >
-                <Coins size={24} color={paymentMethod === 'coins' ? T.pri : T.sub} />
-                <div style={{ textAlign: 'left', flex: 1 }}>
-                  <div style={{ fontWeight: 600 }}>Coins</div>
-                  <div style={{ fontSize: 14, color: T.sub }}>{selectedTier.price_coins} coins</div>
-                </div>
-                {paymentMethod === 'coins' && <Check size={24} color={T.pri} />}
-              </button>
-            )}
-
             <button
               onClick={() => setPaymentMethod('onevas')}
               style={{
                 width: '100%',
                 padding: 16,
                 borderRadius: 12,
-                border: `2px solid ${paymentMethod === 'onevas' ? T.pri : T.border}`,
-                background: paymentMethod === 'onevas' ? `${T.pri}15` : T.card,
-                color: T.txt,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                marginBottom: 12,
-                cursor: 'pointer',
-              }}
-            >
-              <Phone size={24} color={paymentMethod === 'onevas' ? T.pri : T.sub} />
-              <div style={{ textAlign: 'left', flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>Onevas Airtime</div>
-                <div style={{ fontSize: 14, color: T.sub }}>Pay via airtime</div>
-              </div>
-              {paymentMethod === 'onevas' && <Check size={24} color={T.pri} />}
-            </button>
-
-            <button
-              onClick={() => setPaymentMethod('telebirr')}
-              style={{
-                width: '100%',
-                padding: 16,
-                borderRadius: 12,
-                border: `2px solid ${paymentMethod === 'telebirr' ? T.pri : T.border}`,
-                background: paymentMethod === 'telebirr' ? `${T.pri}15` : T.card,
+                border: `2px solid ${T.pri}`,
+                background: `${T.pri}15`,
                 color: T.txt,
                 display: 'flex',
                 alignItems: 'center',
@@ -489,12 +479,12 @@ export function SubscriptionPage({ user, onBack }) {
                 cursor: 'pointer',
               }}
             >
-              <CreditCard size={24} color={paymentMethod === 'telebirr' ? T.pri : T.sub} />
+              <Phone size={24} color={T.pri} />
               <div style={{ textAlign: 'left', flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>Telebirr</div>
-                <div style={{ fontSize: 14, color: T.sub }}>Mobile payment</div>
+                <div style={{ fontWeight: 600 }}>Onevas Airtime</div>
+                <div style={{ fontSize: 14, color: T.sub }}>Pay via airtime</div>
               </div>
-              {paymentMethod === 'telebirr' && <Check size={24} color={T.pri} />}
+              <Check size={24} color={T.pri} />
             </button>
 
             <div style={{ display: 'flex', gap: 12 }}>
