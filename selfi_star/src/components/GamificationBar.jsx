@@ -334,7 +334,7 @@ const GiftModal = memo(function GiftModal({ coins, onClose, onRefresh, onShowWal
   return (
     <Modal onClose={onClose}>
       <ModalHeader title="🎁 Send Coin Gift" onClose={onClose}/>
-      <div style={{padding:'8px 20px 0'}}>
+      <div style={{padding:'8px 20px 20px', maxHeight:'70vh', display:'flex', flexDirection:'column'}}>
         {done ? (
           <div style={{textAlign:'center',padding:'24px 0'}}>
             <div style={{fontSize:64,marginBottom:12}}>🎉</div>
@@ -349,54 +349,56 @@ const GiftModal = memo(function GiftModal({ coins, onClose, onRefresh, onShowWal
         ) : (
           <>
             {/* balance chip */}
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(249,224,139,0.1)',borderRadius:12,padding:'10px 14px',marginBottom:16,border:'1px solid rgba(249,224,139,0.2)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(249,224,139,0.1)',borderRadius:12,padding:'10px 14px',marginBottom:16,border:'1px solid rgba(249,224,139,0.2)', flexShrink: 0}}>
               <span style={{fontSize:13,color:'#78716C'}}>Your balance</span>
               <span style={{fontWeight:800,color:'#F9E08B',fontSize:16}}>🪙 {coins?.balance ?? 0}</span>
             </div>
 
-            <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Recipient Username</label>
-            <input value={recipientId} onChange={e=>setRecipientId(e.target.value)}
-              placeholder="e.g. johndoe"
-              style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid rgba(249,224,139,0.3)',fontSize:15,marginBottom:14,boxSizing:'border-box',outline:'none'}}
-            />
+            <div style={{overflowY:'auto', flex: 1, marginBottom: 16, minHeight: 0}}>
+              <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Recipient Username</label>
+              <input value={recipientId} onChange={e=>setRecipientId(e.target.value)}
+                placeholder="e.g. johndoe"
+                style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid rgba(249,224,139,0.3)',fontSize:15,marginBottom:14,boxSizing:'border-box',outline:'none'}}
+              />
 
-            <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:8}}>Amount</label>
-            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
-              <button onClick={()=>setAmount(a=>Math.max(1,a-5))}
-                style={{width:40,height:40,borderRadius:10,border:'1.5px solid rgba(249,224,139,0.3)',background:'rgba(249,224,139,0.1)',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,color:'#F9E08B'}}>
-                −
-              </button>
-              <div style={{flex:1,textAlign:'center',fontSize:28,fontWeight:800,color:'#F9E08B'}}>
-                🪙 {amount}
-              </div>
-              <button onClick={()=>setAmount(a=>Math.min(coins?.balance??100,a+5))}
-                style={{width:40,height:40,borderRadius:10,border:'1.5px solid rgba(249,224,139,0.3)',background:'rgba(249,224,139,0.1)',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,color:'#F9E08B'}}>
-                +
-              </button>
-            </div>
-            {/* quick amounts */}
-            <div style={{display:'flex',gap:8,marginBottom:14}}>
-              {[10,25,50,100].map(v=>(
-                <button key={v} onClick={()=>setAmount(Math.min(v,coins?.balance??0))}
-                  style={{flex:1,padding:'8px 0',borderRadius:8,border:`1.5px solid ${amount===v?'#F9E08B':'rgba(249,224,139,0.3)'}`,background:amount===v?'rgba(249,224,139,0.15)':'#fff',color:amount===v?'#F9E08B':'#78716C',fontWeight:600,cursor:'pointer',fontSize:13}}>
-                  {v}
+              <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:8}}>Amount</label>
+              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
+                <button onClick={()=>setAmount(a=>Math.max(1,a-5))}
+                  style={{width:40,height:40,borderRadius:10,border:'1.5px solid rgba(249,224,139,0.3)',background:'rgba(249,224,139,0.1)',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,color:'#F9E08B'}}>
+                  −
                 </button>
-              ))}
+                <div style={{flex:1,textAlign:'center',fontSize:28,fontWeight:800,color:'#F9E08B'}}>
+                  🪙 {amount}
+                </div>
+                <button onClick={()=>setAmount(a=>Math.min(coins?.balance??100,a+5))}
+                  style={{width:40,height:40,borderRadius:10,border:'1.5px solid rgba(249,224,139,0.3)',background:'rgba(249,224,139,0.1)',cursor:'pointer',fontSize:18,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,color:'#F9E08B'}}>
+                  +
+                </button>
+              </div>
+              {/* quick amounts */}
+              <div style={{display:'flex',gap:8,marginBottom:14}}>
+                {[10,25,50,100].map(v=>(
+                  <button key={v} onClick={()=>setAmount(Math.min(v,coins?.balance??0))}
+                    style={{flex:1,padding:'8px 0',borderRadius:8,border:`1.5px solid ${amount===v?'#F9E08B':'rgba(249,224,139,0.3)'}`,background:amount===v?'rgba(249,224,139,0.15)':'#fff',color:amount===v?'#F9E08B':'#78716C',fontWeight:600,cursor:'pointer',fontSize:13}}>
+                    {v}
+                  </button>
+                ))}
+              </div>
+
+              <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Message (optional)</label>
+              <input value={message} onChange={e=>setMessage(e.target.value)}
+                placeholder="Say something nice ✨"
+                style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid rgba(249,224,139,0.3)',fontSize:15,marginBottom:16,boxSizing:'border-box',outline:'none'}}
+              />
+
+              {error && <div style={{color:'#EF4444',fontSize:13,marginBottom:12,padding:'10px 14px',background:'#FEF2F2',borderRadius:10}}>{error}</div>}
             </div>
-
-            <label style={{fontSize:13,fontWeight:600,color:'#78716C',display:'block',marginBottom:6}}>Message (optional)</label>
-            <input value={message} onChange={e=>setMessage(e.target.value)}
-              placeholder="Say something nice ✨"
-              style={{width:'100%',padding:'13px 14px',borderRadius:12,border:'1.5px solid rgba(249,224,139,0.3)',fontSize:15,marginBottom:16,boxSizing:'border-box',outline:'none'}}
-            />
-
-            {error && <div style={{color:'#EF4444',fontSize:13,marginBottom:12,padding:'10px 14px',background:'#FEF2F2',borderRadius:10}}>{error}</div>}
 
             <button onClick={send} disabled={sending}
               style={{width:'100%',padding:'16px',borderRadius:14,border:'none',
                 background: sending ? 'rgba(249,224,139,0.5)' : '#F9E08B',
                 color: '#000',fontSize:16,fontWeight:700,cursor:sending?'not-allowed':'pointer',
-                boxShadow: sending?'none':'0 4px 20px rgba(249,224,139,.4)'}}>
+                boxShadow: sending?'none':'0 4px 20px rgba(249,224,139,.4)', flexShrink: 0}}>
               {sending ? 'Sending...' : `🎁 Send ${amount} Coins`}
             </button>
           </>
