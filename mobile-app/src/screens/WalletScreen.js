@@ -189,7 +189,7 @@ export default function WalletScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         {/* Balance Card - matches web app gradient design */}
         <LinearGradient
           colors={['#C8B56A', '#6366F1']}
