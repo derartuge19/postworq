@@ -826,7 +826,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#0D0D0D',
     borderBottomWidth: 1,
     borderBottomColor: '#262626',
     gap: 10,
@@ -1005,14 +1005,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   accordionTitle: { fontSize: 14, fontWeight: '700', color: '#F9E08B' },
-  accordionSubtitle: { fontSize: 11, color: '#888', marginTop: 2 },
+  accordionSubtitle: { fontSize: 11, color: '#C2994B', marginTop: 2 },
   accordionBody: {
     padding: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: '#262626',
   },
-  accBody: { fontSize: 13, color: '#555', lineHeight: 20 },
+  accBody: { fontSize: 13, color: '#F9E08B', lineHeight: 20 },
   accHint: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -1028,7 +1028,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#fafafa',
+    backgroundColor: '#262626',
     borderRadius: 8,
     marginBottom: 6,
     gap: 10,
@@ -1056,10 +1056,11 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#fafafa',
+    backgroundColor: '#262626',
     borderRadius: 8,
     minWidth: '48%',
   },
   metricText: { fontSize: 12, color: '#F9E08B', fontWeight: '600' },
 });
+
 
