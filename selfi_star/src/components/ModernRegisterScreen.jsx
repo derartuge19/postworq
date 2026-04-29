@@ -126,9 +126,10 @@ function OtpInput({ value, onChange }) {
 
 export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
   const { colors: T } = useTheme();
-  const [step, setStep] = useState(3); // Skip OTP — go directly to account creation
+  const [step, setStep] = useState(1); // 1=form, 2=otp
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
+  const [devCode, setDevCode] = useState(""); // shown on page for testing
   const [verifiedPhone, setVerifiedPhone] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -140,7 +141,6 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
   const [error, setError] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
 
-  // Countdown for resend
   useEffect(() => {
     if (resendTimer <= 0) return;
     const t = setTimeout(() => setResendTimer(r => r - 1), 1000);
@@ -153,18 +153,24 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
   const [focusedPwd, setFocusedPwd] = useState(false);
   const [focusedConfirm, setFocusedConfirm] = useState(false);
 
-  // ── Step 1: Send OTP ───────────────────────────────────────────────────
+  // ── Step 1: Validate form then send OTP ───────────────────────────────
   const handleSendOtp = async () => {
     setError("");
+    if (!username) { setError("Please enter a username"); return; }
+    if (!email) { setError("Please enter your email"); return; }
     if (!phone) { setError("Please enter your phone number"); return; }
+    if (!/^\d{6}$/.test(password)) { setError("Password must be exactly 6 digits"); return; }
+    if (password !== confirm) { setError("Passwords do not match"); return; }
     setLoading(true);
     try {
       const res = await api.sendPhoneOtp(phone);
       setVerifiedPhone(res.phone);
-      setStep(2);
       setResendTimer(60);
-      // Dev: show code in UI if SMS not configured
-      if (res.dev_code) setError(`DEV MODE — Your code is: ${res.dev_code}`);
+      // Dev mode: show OTP on page since SMS not configured yet
+      if (res.dev_code) {
+        setDevCode(res.dev_code);
+      }
+      setStep(2);
     } catch (e) {
       setError(e?.message || "Failed to send OTP. Check your phone number.");
     } finally {
@@ -172,30 +178,14 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
     }
   };
 
-  // ── Step 2: Verify OTP ─────────────────────────────────────────────────
-  const handleVerifyOtp = async () => {
+  // ── Step 2: Verify OTP then register ──────────────────────────────────
+  const handleVerifyAndRegister = async () => {
     setError("");
     if (otp.length !== 6) { setError("Enter the 6-digit code"); return; }
     setLoading(true);
     try {
       await api.verifyPhoneOtp(verifiedPhone, otp);
-      setStep(3);
-    } catch (e) {
-      setError(e?.message || "Invalid or expired code");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ── Step 3: Create Account ─────────────────────────────────────────────
-  const handleRegister = async () => {
-    setError("");
-    if (!username) { setError("Please choose a username"); return; }
-    if (!email) { setError("Please enter your email"); return; }
-    if (!/^\d{6}$/.test(password)) { setError("Password must be exactly 6 digits (numbers only)"); return; }
-    if (password !== confirm) { setError("Passwords do not match"); return; }
-    setLoading(true);
-    try {
+      // OTP verified — now create account
       const res = await api.register(username, email, password, "", "");
       api.setAuthToken(res.token);
       onSuccess({
@@ -208,7 +198,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         is_staff: res.user.is_staff || false,
       });
     } catch (e) {
-      setError(e?.message || "Registration failed. Username may already exist.");
+      setError(e?.message || "Invalid code or registration failed.");
     } finally {
       setLoading(false);
     }
@@ -233,10 +223,8 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         {/* Step indicator */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 28 }}>
           <StepDot active={step === 1} done={step > 1} />
-          <div style={{ width: 32, height: 2, background: step > 1 ? "#F9E08B" : "#262626", borderRadius: 1, transition: "background 0.3s" }} />
-          <StepDot active={step === 2} done={step > 2} />
-          <div style={{ width: 32, height: 2, background: step > 2 ? "#F9E08B" : "#262626", borderRadius: 1, transition: "background 0.3s" }} />
-          <StepDot active={step === 3} done={false} />
+          <div style={{ width: 48, height: 2, background: step > 1 ? "#F9E08B" : "#262626", borderRadius: 1, transition: "background 0.3s" }} />
+          <StepDot active={step === 2} done={false} />
         </div>
 
         {/* Card */}
@@ -247,84 +235,32 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
             <>
               <div style={{ textAlign: "center", marginBottom: 24 }}>
                 <div style={{ fontSize: 36, marginBottom: 8 }}>📱</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>Enter Your Phone</div>
-                <div style={{ fontSize: 13, color: "#F9E08B" }}>Ethiopian number — an OTP will be sent via SMS</div>
-              </div>
-              <ErrorBox msg={error} />
-              <Field label="Phone Number" icon={<Phone size={17} />}>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  placeholder="09XXXXXXXX or +251XXXXXXXXX"
-                  style={inputStyle(T, focusedPhone)}
-                  onFocus={() => setFocusedPhone(true)}
-                  onBlur={() => setFocusedPhone(false)}
-                  onKeyDown={e => e.key === "Enter" && handleSendOtp()}
-                />
-              </Field>
-              <GoldBtn loading={loading} onClick={handleSendOtp}>Send OTP →</GoldBtn>
-            </>
-          )}
-
-          {/* ── STEP 2: OTP ── */}
-          {step === 2 && (
-            <>
-              <div style={{ textAlign: "center", marginBottom: 8 }}>
-                <div style={{ fontSize: 36, marginBottom: 8 }}>🔐</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>Verify Code</div>
-                <div style={{ fontSize: 13, color: "#F9E08B" }}>
-                  Code sent to <strong style={{ color: "#fff" }}>{verifiedPhone}</strong>
-                </div>
-              </div>
-              <ErrorBox msg={!error.startsWith("DEV") ? error : ""} />
-              {error.startsWith("DEV") && (
-                <div style={{ padding: "10px 14px", background: "#1A2A1A", border: "1px solid #22C55E", borderRadius: 8, color: "#22C55E", fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" }}>
-                  {error}
-                </div>
-              )}
-              <OtpInput value={otp} onChange={setOtp} />
-              <GoldBtn loading={loading} onClick={handleVerifyOtp} disabled={otp.length < 6}>Verify Code →</GoldBtn>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <button onClick={() => { setStep(1); setOtp(""); setError(""); }}
-                  style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                  <ChevronLeft size={14} /> Change number
-                </button>
-                {resendTimer > 0 ? (
-                  <span style={{ color: "#666", fontSize: 12 }}>Resend in {resendTimer}s</span>
-                ) : (
-                  <button onClick={handleSendOtp} style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                    Resend OTP
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* ── STEP 3: Account ── */}
-          {step === 3 && (
-            <>
-              <div style={{ textAlign: "center", marginBottom: 20 }}>
-                <CheckCircle size={36} color="#F9E08B" style={{ margin: "0 auto 8px" }} />
                 <div style={{ fontSize: 22, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>Create Account</div>
-                <div style={{ fontSize: 13, color: "#F9E08B" }}>Phone verified ✓ — choose your username & PIN</div>
+                <div style={{ fontSize: 13, color: "#F9E08B" }}>Fill in your details to get started</div>
               </div>
               <ErrorBox msg={error} />
-              <Field label="Username" icon={<User size={17} />}>
+              <Field label="Username *" icon={<User size={17} />}>
                 <input type="text" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/\s/g, ""))}
                   placeholder="Choose a unique username"
                   style={inputStyle(T, focusedUser)}
                   onFocus={() => setFocusedUser(true)} onBlur={() => setFocusedUser(false)}
                 />
               </Field>
-              <Field label="Email (optional — needed for password reset)" icon={<Mail size={17} />}>
+              <Field label="Email *" icon={<Mail size={17} />}>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="your@email.com"
                   style={inputStyle(T, focusedEmail)}
                   onFocus={() => setFocusedEmail(true)} onBlur={() => setFocusedEmail(false)}
                 />
               </Field>
-              <Field label="6-Digit PIN Password" icon={<Lock size={17} />}>
+              <Field label="Phone Number *" icon={<Phone size={17} />}>
+                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+                  placeholder="09XXXXXXXX or +251XXXXXXXXX"
+                  style={inputStyle(T, focusedPhone)}
+                  onFocus={() => setFocusedPhone(true)} onBlur={() => setFocusedPhone(false)}
+                />
+              </Field>
+              <Field label="6-Digit PIN *" icon={<Lock size={17} />}>
                 <input
                   type={showPwd ? "text" : "password"} inputMode="numeric" maxLength={6}
                   value={password} onChange={e => setPassword(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -337,7 +273,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
                   {showPwd ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </Field>
-              <Field label="Confirm PIN" icon={<Lock size={17} />}>
+              <Field label="Confirm PIN *" icon={<Lock size={17} />}>
                 <input
                   type={showConfirm ? "text" : "password"} inputMode="numeric" maxLength={6}
                   value={confirm} onChange={e => setConfirm(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -350,10 +286,44 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
                   {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </Field>
-              <div style={{ fontSize: 11, color: "#666", marginBottom: 16, marginTop: -8 }}>
-                Password must be exactly 6 digits (e.g. 123456)
+              <GoldBtn loading={loading} onClick={handleSendOtp}>Send OTP →</GoldBtn>
+            </>
+          )}
+
+          {/* ── STEP 2: OTP Verification ── */}
+          {step === 2 && (
+            <>
+              <div style={{ textAlign: "center", marginBottom: 16 }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>🔐</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>Verify Code</div>
+                <div style={{ fontSize: 13, color: "#F9E08B" }}>
+                  Code sent to <strong style={{ color: "#fff" }}>{verifiedPhone}</strong>
+                </div>
               </div>
-              <GoldBtn loading={loading} onClick={handleRegister}>Create Account 🚀</GoldBtn>
+              <ErrorBox msg={error} />
+
+              {/* DEV MODE: show OTP on page */}
+              {devCode && (
+                <div style={{ padding: "12px 16px", background: "#1A2A1A", border: "2px solid #22C55E", borderRadius: 10, color: "#22C55E", fontSize: 14, fontWeight: 700, marginBottom: 16, textAlign: "center" }}>
+                  🧪 DEV MODE — Your OTP code is: <span style={{ fontSize: 22, letterSpacing: 4 }}>{devCode}</span>
+                </div>
+              )}
+
+              <OtpInput value={otp} onChange={setOtp} />
+              <GoldBtn loading={loading} onClick={handleVerifyAndRegister} disabled={otp.length < 6}>Verify & Register 🚀</GoldBtn>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <button onClick={() => { setStep(1); setOtp(""); setError(""); setDevCode(""); }}
+                  style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                  <ChevronLeft size={14} /> Go back
+                </button>
+                {resendTimer > 0 ? (
+                  <span style={{ color: "#666", fontSize: 12 }}>Resend in {resendTimer}s</span>
+                ) : (
+                  <button onClick={handleSendOtp} style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                    Resend OTP
+                  </button>
+                )}
+              </div>
             </>
           )}
 

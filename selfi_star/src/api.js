@@ -508,9 +508,15 @@ const api = {
       body: JSON.stringify({ following_id: userId }),
     }),
 
-  getFollowers: (userId) => api.request(`/follows/?following=${userId}`, { noCache: true }),
+  getFollowers: (userId) => {
+    if (!api.getToken()) return Promise.resolve([]);
+    return api.request(`/follows/?following=${userId}`, { noCache: true });
+  },
 
-  getFollowing: (userId) => api.request(`/follows/?follower=${userId}`, { noCache: true }),
+  getFollowing: (userId) => {
+    if (!api.getToken()) return Promise.resolve([]);
+    return api.request(`/follows/?follower=${userId}`, { noCache: true });
+  },
 
   getUserSuggestions: () => api.request('/follows/suggestions/'),
 
