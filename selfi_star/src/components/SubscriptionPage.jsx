@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Crown, Zap, Calendar, Coins, Check, X, Phone, CreditCard, Wallet, ChevronLeft } from 'lucide-react';
+import { Crown, Zap, Calendar, Coins, Check, X, ChevronLeft } from 'lucide-react';
 import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -12,8 +12,6 @@ export function SubscriptionPage({ user, onBack }) {
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTier, setSelectedTier] = useState(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('onevas'); // Only Onevas for now
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
@@ -77,8 +75,20 @@ export function SubscriptionPage({ user, onBack }) {
   ];
 
   const handleSubscribe = (tier) => {
-    setSelectedTier(tier);
-    setShowPaymentModal(true);
+    // Get tier code for SMS
+    const tierCode = tier.duration_type === 'daily' ? 'A' : 
+                     tier.duration_type === 'weekly' ? 'B' : 
+                     tier.duration_type === 'monthly' ? 'C' : 'D';
+    
+    // Open SMS app with pre-filled message
+    const shortCode = '9286';
+    const message = tierCode;
+    
+    // Use SMS link format
+    const smsUrl = `sms:${shortCode}?body=${encodeURIComponent(message)}`;
+    
+    // Open in new window/tab
+    window.open(smsUrl, '_blank');
   };
 
   const handlePayment = async () => {
@@ -214,33 +224,17 @@ export function SubscriptionPage({ user, onBack }) {
             marginBottom: 24,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            gap: 12,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Check size={24} color={T.green} />
-              <div>
-                <div style={{ fontWeight: 600, color: T.green }}>
-                  Active: {currentSubscription.tier?.name}
-                </div>
-                <div style={{ color: T.sub, fontSize: 14 }}>
-                  Renews on {new Date(currentSubscription.next_renewal_date).toLocaleDateString()}
-                </div>
+            <Check size={24} color={T.green} />
+            <div>
+              <div style={{ fontWeight: 600, color: T.green }}>
+                Active: {currentSubscription.tier?.name}
+              </div>
+              <div style={{ color: T.sub, fontSize: 14 }}>
+                Renews on {new Date(currentSubscription.next_renewal_date).toLocaleDateString()}
               </div>
             </div>
-            <button
-              onClick={handleUnsubscribe}
-              style={{
-                background: 'none',
-                border: '1px solid #ef4444',
-                color: '#ef4444',
-                padding: '8px 16px',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
-            >
-              Cancel
-            </button>
           </div>
         )}
 
@@ -374,6 +368,7 @@ export function SubscriptionPage({ user, onBack }) {
 
                 <button
                   disabled={isCurrent}
+                  onClick={() => !isCurrent && handleSubscribe(tier)}
                   style={{
                     width: '100%',
                     padding: 12,
@@ -387,7 +382,7 @@ export function SubscriptionPage({ user, onBack }) {
                     opacity: isCurrent ? 0.8 : 1,
                   }}
                 >
-                  {isCurrent ? 'Subscribed' : 'Subscribe'}
+                  {isCurrent ? 'Subscribed' : 'Subscribe via SMS'}
                 </button>
               </div>
             );
@@ -428,104 +423,6 @@ export function SubscriptionPage({ user, onBack }) {
           </div>
         </div>
       </div>
-
-      {/* Payment Modal */}
-      {showPaymentModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            background: T.card,
-            borderRadius: 16,
-            padding: 32,
-            maxWidth: 480,
-            width: '90%',
-          }}>
-            <h2 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 700 }}>
-              Choose Payment Method
-            </h2>
-            
-            <div style={{
-              fontSize: 18,
-              color: T.pri,
-              fontWeight: 600,
-              marginBottom: 24,
-            }}>
-              {selectedTier?.name} - {selectedTier?.price_etb} ETB
-            </div>
-
-            <button
-              onClick={() => setPaymentMethod('onevas')}
-              style={{
-                width: '100%',
-                padding: 16,
-                borderRadius: 12,
-                border: `2px solid ${T.pri}`,
-                background: `${T.pri}15`,
-                color: T.txt,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                marginBottom: 24,
-                cursor: 'pointer',
-              }}
-            >
-              <Phone size={24} color={T.pri} />
-              <div style={{ textAlign: 'left', flex: 1 }}>
-                <div style={{ fontWeight: 600 }}>Onevas Airtime</div>
-                <div style={{ fontSize: 14, color: T.sub }}>Pay via airtime</div>
-              </div>
-              <Check size={24} color={T.pri} />
-            </button>
-
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button
-                onClick={() => setShowPaymentModal(false)}
-                style={{
-                  flex: 1,
-                  padding: 14,
-                  borderRadius: 8,
-                  border: 'none',
-                  background: T.border,
-                  color: T.txt,
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePayment}
-                disabled={processing}
-                style={{
-                  flex: 1,
-                  padding: 14,
-                  borderRadius: 8,
-                  border: 'none',
-                  background: T.pri,
-                  color: '#fff',
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: processing ? 'not-allowed' : 'pointer',
-                  opacity: processing ? 0.7 : 1,
-                }}
-              >
-                {processing ? 'Processing...' : 'Subscribe'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
