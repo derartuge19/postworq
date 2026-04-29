@@ -243,7 +243,10 @@ export default function LoginScreen({ navigation }) {
     try {
       const res = await api.login(username, password);
       await api.setAuthToken(res.token);
-      navigation.replace('Main');
+      if (res.user) {
+        updateUser(res.user);
+      }
+      navigation.replace('MainTabs');
     } catch (e) {
       setError('Invalid credentials. Please try again.');
     } finally {

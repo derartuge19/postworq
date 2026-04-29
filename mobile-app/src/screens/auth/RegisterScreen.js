@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const GOLD     = '#F9E08B';
 const BG       = '#1a1a1a';
@@ -15,6 +16,7 @@ const ethioLogo = require('../../image/Ethio telecom Logo PNG format.png');
 const flipLogo  = require('../../image/final_logo.png');
 
 export default function RegisterScreen({ navigation }) {
+  const { updateUser } = useAuth();
   const [step, setStep] = useState(1); // 1=phone, 2=otp, 3=account
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
@@ -81,11 +83,20 @@ export default function RegisterScreen({ navigation }) {
     try {
       const res = await api.registerWithPhone(verifiedPhone, username, password, email);
       await api.setAuthToken(res.token);
+      if (res.user) {
+        updateUser(res.user);
+      }
       Alert.alert('Success', 'Account created successfully!', [
-        { text: 'OK', onPress: () => navigation.replace('Main') }
+        { text: 'OK', onPress: () => navigation.replace('MainTabs') }
       ]);
     } catch (e) {
-      setError(e?.message || 'Registration failed. Username may already exist.');
+      console.error('Registration error:', e);
+      let errorMsg = 'Registration failed. Please try again.';
+      if (e?.message) {
+        errorMsg = e.message;
+      }
+      setError(errorMsg);
+      Alert.alert('Registration Error', errorMsg);
     } finally {
       setLoading(false);
     }
