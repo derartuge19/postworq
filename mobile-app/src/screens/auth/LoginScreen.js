@@ -237,18 +237,20 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     if (!username || !password) { setError('Please fill in all fields'); return; }
-    if (password.length !== 6) { setError('PIN must be 6 digits'); return; }
     setError('');
     setLoading(true);
     try {
-      const res = await api.login(username, password);
+      // Extract username from email if user entered email
+      const loginUsername = username.includes('@') ? username.split('@')[0] : username;
+      const res = await api.login(loginUsername, password);
       await api.setAuthToken(res.token);
       if (res.user) {
         updateUser(res.user);
       }
       navigation.replace('MainTabs');
     } catch (e) {
-      setError('Invalid credentials. Please try again.');
+      console.error('Login error:', e);
+      setError(e?.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -296,7 +298,7 @@ export default function LoginScreen({ navigation }) {
               placeholder="••••••"
               placeholderTextColor="#666"
               value={password}
-              onChangeText={(t) => setPassword(t.replace(/\D/g, '').slice(0, 6))}
+              onChangeText={setPassword}
               secureTextEntry={!showPass}
               keyboardType="number-pad"
               maxLength={6}
