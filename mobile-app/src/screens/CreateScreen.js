@@ -169,36 +169,31 @@ export default function CreateScreen({ navigation }) {
   if (stage === 'pick') {
     return (
       <View style={s.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         
         {/* Header */}
         <View style={[s.newHeader, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
-            <Ionicons name="close" size={24} color="#000" />
+            <Ionicons name="arrow-back" size={20} color="#F9E08B" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>New Post</Text>
-          <TouchableOpacity 
-            style={s.draftsBtn}
-            onPress={() => Alert.alert(
-              'Drafts',
-              `You have ${drafts.length} draft(s). Load most recent?`,
-              [
-                { text: 'Cancel' },
-                { text: 'Load', onPress: () => loadDraft(drafts[0]) }
-              ]
-            )}
-          >
-            <Text style={s.draftsBtnText}>Drafts ({drafts.length})</Text>
-          </TouchableOpacity>
+          {drafts.length > 0 ? (
+            <TouchableOpacity 
+              style={s.draftsBtn}
+              onPress={() => Alert.alert('Drafts', `You have ${drafts.length} draft(s). Load most recent?`, [{ text: 'Cancel' }, { text: 'Load', onPress: () => loadDraft(drafts[0]) }])}
+            >
+              <Text style={s.draftsBtnText}>Drafts ({drafts.length})</Text>
+            </TouchableOpacity>
+          ) : <View style={{ width: 80 }} />}
         </View>
 
-        <View style={s.newPickBody}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={s.newPickBody}>
           {/* Hero Section */}
           <View style={s.heroSection}>
             <View style={s.heroCircle}>
-              <Ionicons name="camera" size={48} color="#fff" />
-              <View style={s.questionMark}>
-                <Text style={s.questionMarkText}>?</Text>
+              <Ionicons name="camera" size={30} color="#000" />
+              <View style={s.sparkle}>
+                <Text style={{ fontSize: 11 }}>✨</Text>
               </View>
             </View>
             <Text style={s.heroTitle}>Create Post</Text>
@@ -207,34 +202,28 @@ export default function CreateScreen({ navigation }) {
 
           {/* Action Cards */}
           <View style={s.actionCards}>
-            <TouchableOpacity style={s.actionCard} onPress={pickFromCamera}>
-              <View style={s.cardLeft}>
-                <View style={[s.cardIcon, { backgroundColor: BRAND }]}>
-                  <Ionicons name="camera" size={24} color="#fff" />
-                </View>
-                <View style={s.cardText}>
-                  <Text style={s.cardTitle}>Take Photo/Video</Text>
-                  <Text style={s.cardSub}>Use camera with filters</Text>
-                </View>
+            <TouchableOpacity style={s.actionCard} onPress={pickFromCamera} activeOpacity={0.85}>
+              <View style={s.cardIcon}>
+                <Ionicons name="camera" size={24} color="#F9E08B" />
+              </View>
+              <View style={s.cardText}>
+                <Text style={s.cardTitle}>Take Photo/Video</Text>
+                <Text style={s.cardSub}>Use camera with filters</Text>
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={s.actionCard} onPress={pickFromLibrary}>
-              <View style={s.cardLeft}>
-                <View style={[s.cardIcon, { backgroundColor: '#818cf8' }]}>
-                  <Ionicons name="cloud-upload-outline" size={24} color="#fff" />
-                </View>
-                <View style={s.cardText}>
-                  <Text style={s.cardTitle}>Upload Photo/Video</Text>
-                  <Text style={s.cardSub}>From gallery or files</Text>
-                </View>
+            <TouchableOpacity style={s.actionCard} onPress={pickFromLibrary} activeOpacity={0.85}>
+              <View style={s.cardIcon}>
+                <Ionicons name="cloud-upload-outline" size={24} color="#F9E08B" />
               </View>
-              <TouchableOpacity style={s.cardRightBtn}>
-                <Ionicons name="add-outline" size={20} color="#999" />
-              </TouchableOpacity>
+              <View style={s.cardText}>
+                <Text style={s.cardTitle}>Upload Photo/Video</Text>
+                <Text style={s.cardSub}>From gallery or files</Text>
+              </View>
+              <Text style={{ color: '#F9E08B', fontSize: 22, fontWeight: '300' }}>+</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </View>
     );
   }
@@ -465,7 +454,7 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#e0e0e0',
   },
-  headerTitle: { fontSize: 17, fontWeight: '800' },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: '#F9E08B' },
   draftBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: BRAND + '18', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, gap: 4 },
   draftBadgeText: { fontSize: 12, fontWeight: '700', color: BRAND },
 
@@ -478,7 +467,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#262626',
     backgroundColor: '#0d0d0d',
   },
   headerBtn: {
@@ -488,95 +477,81 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   draftsBtn: {
-    backgroundColor: BRAND + '15',
+    backgroundColor: 'rgba(249,224,139,0.12)',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#F9E08B',
   },
   draftsBtnText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: BRAND,
+    fontWeight: '700',
+    color: '#F9E08B',
   },
 
-  // Body styles for new design
+  // Body styles
   newPickBody: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
     paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   heroSection: {
     alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingTop: 40,
+    paddingBottom: 32,
   },
   heroCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: BRAND,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#D4A017',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-    shadowColor: BRAND,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(249,224,139,0.4)',
     position: 'relative',
   },
-  questionMark: {
+  sparkle: {
     position: 'absolute',
-    bottom: -5,
-    right: -5,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#0d0d0d',
+    top: -2,
+    right: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#F9E08B',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowcolor: '#F9E08B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  questionMarkText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: BRAND,
+    borderWidth: 2,
+    borderColor: '#0D0D0D',
   },
   heroTitle: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '800',
-    marginBottom: 8,
+    marginBottom: 6,
     color: '#F9E08B',
   },
   heroSub: {
-    fontSize: 15,
+    fontSize: 13,
     color: '#F9E08B',
+    opacity: 0.7,
     textAlign: 'center',
-    lineHeight: 20,
   },
 
   // Action cards
   actionCards: {
-    gap: 16,
+    gap: 20,
   },
   actionCard: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#1a1a1a',
     borderRadius: 16,
-    padding: 20,
+    padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowcolor: '#F9E08B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#f0f0f0',
+    gap: 16,
+    borderWidth: 1.5,
+    borderColor: '#F9E08B',
+    height: 88,
   },
   cardLeft: {
     flexDirection: 'row',
@@ -584,20 +559,23 @@ const s = StyleSheet.create({
     flex: 1,
   },
   cardIcon: {
-    width: 50,
-    height: 50,
+    width: 52,
+    height: 52,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    backgroundColor: '#111',
+    borderWidth: 1,
+    borderColor: 'rgba(249,224,139,0.27)',
+    flexShrink: 0,
   },
   cardText: {
     flex: 1,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    marginBottom: 2,
+    marginBottom: 3,
     color: '#F9E08B',
   },
   cardSub: {
