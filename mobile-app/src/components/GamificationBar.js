@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
-  ScrollView,
   TextInput,
   ActivityIndicator,
   Dimensions,
@@ -37,13 +36,13 @@ const ModalHeader = ({ title, onClose }) => (
 const CoinsModal = ({ coins, onClose }) => (
   <View style={styles.modalContent}>
     <ModalHeader title="💰 Coin Balance" onClose={onClose} />
-    <ScrollView contentContainerStyle={styles.scrollPadding}>
+    <View style={styles.scrollPadding}>
       <View style={[styles.balanceHero, { backgroundColor: '#F9E08B' }]}>
         <Text style={styles.heroEmoji}>🪙</Text>
         <Text style={[styles.heroAmount, { color: '#000' }]}>{coins?.balance?.total ?? coins?.balance ?? 0}</Text>
         <Text style={[styles.heroLabel, { color: 'rgba(0,0,0,0.75)' }]}>Total Balance</Text>
       </View>
-      
+
       <View style={styles.statsGrid}>
         <View style={[styles.statBox, { backgroundColor: '#10B98112', borderColor: '#10B98125' }]}>
           <Text style={styles.statEmoji}>🎁</Text>
@@ -51,18 +50,18 @@ const CoinsModal = ({ coins, onClose }) => (
           <Text style={styles.statLabel}>Earned</Text>
         </View>
         <View style={[styles.statBox, { backgroundColor: '#8B5CF612', borderColor: '#8B5CF625' }]}>
-          <Text style={styles.statEmoji}>�</Text>
+          <Text style={styles.statEmoji}>💳</Text>
           <Text style={[styles.statValue, { color: '#8B5CF6' }]}>{coins?.balance?.purchased ?? 0}</Text>
           <Text style={styles.statLabel}>Purchased</Text>
         </View>
       </View>
-      
+
       <View style={styles.tipBox}>
         <Text style={styles.tipText}>
           💡 Earned coins come from activities (login, posts, likes). Purchased coins are bought and can be used for gifting.
         </Text>
       </View>
-    </ScrollView>
+    </View>
   </View>
 );
 
@@ -72,9 +71,28 @@ const CoinsModal = ({ coins, onClose }) => (
 const StreakModal = ({ streak, onClaim, onClose }) => {
   const [claiming, setClaiming] = useState(false);
   const [claimed, setClaimed] = useState(false);
-  
+
   const cur = streak?.current ?? 0;
-  
+
+  // Get real calendar days starting from today going back 6 days
+  const getRealDays = () => {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      days.push({
+        name: dayNames[d.getDay()],
+        date: d.getDate(),
+        isToday: i === 0,
+        isPast: i > 0,
+      });
+    }
+    return days;
+  };
+  const realDays = getRealDays();
+
   const handleClaim = async () => {
     setClaiming(true);
     try {
@@ -90,23 +108,62 @@ const StreakModal = ({ streak, onClaim, onClose }) => {
   return (
     <View style={styles.modalContent}>
       <ModalHeader title="🔥 Login Streak" onClose={onClose} />
-      <ScrollView contentContainerStyle={styles.scrollPadding}>
+      <View style={styles.scrollPadding}>
         <View style={[styles.balanceHero, { backgroundColor: '#F9E08B', borderBottomWidth: 0 }]}>
           <Text style={styles.heroEmoji}>🔥</Text>
           <Text style={[styles.heroAmount, { color: '#000' }]}>{cur}</Text>
           <Text style={[styles.heroLabel, { color: 'rgba(0,0,0,0.75)' }]}>Day Streak</Text>
+          {(streak?.longest ?? 0) > 0 && (
+            <Text style={styles.bestStreak}>Best: {streak.longest} days 🏆</Text>
+          )}
         </View>
-        
+
+        {/* 7-day progress - real calendar days */}
+        <View style={styles.streakDaysContainer}>
+          {realDays.map((day, i) => {
+            const daysFromEnd = 6 - i;
+            const active = daysFromEnd < cur && daysFromEnd > 0;
+            const isToday = day.isToday;
+            return (
+              <View key={i} style={styles.streakDayItem}>
+                <View style={[
+                  styles.streakDayCircle,
+                  active && styles.streakDayCircleActive,
+                  isToday && styles.streakDayCircleToday,
+                  !active && !isToday && styles.streakDayCircleInactive
+                ]}>
+                  <Text style={[
+                    styles.streakDayText,
+                    active && styles.streakDayTextActive,
+                    isToday && styles.streakDayTextToday,
+                    !active && !isToday && styles.streakDayTextInactive
+                  ]}>
+                    {active ? '✓' : day.date}
+                  </Text>
+                </View>
+                <Text style={[
+                  styles.streakDayName,
+                  active && styles.streakDayNameActive,
+                  isToday && styles.streakDayNameToday,
+                  !active && !isToday && styles.streakDayNameInactive
+                ]}>
+                  {day.name}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+
         {streak?.bonus_available && !claimed ? (
-          <TouchableOpacity 
-            style={[styles.claimBtn, { backgroundColor: '#F9E08B' }]} 
+          <TouchableOpacity
+            style={[styles.claimBtn, { backgroundColor: '#F9E08B' }]}
             onPress={handleClaim}
             disabled={claiming}
           >
             {claiming ? (
               <ActivityIndicator color="#000" />
             ) : (
-              <Text style={[styles.claimBtnText, { color: '#000' }]}>🎁 Claim Day {cur + 1} Bonus!</Text>
+              <Text style={[styles.claimBtnText, { color: '#000' }]}>🎁 Claim +{streak.next_bonus?.coins ?? 0} Coins</Text>
             )}
           </TouchableOpacity>
         ) : claimed ? (
@@ -118,7 +175,7 @@ const StreakModal = ({ streak, onClaim, onClose }) => {
             <Text style={styles.noBonusText}>Come back tomorrow for your next bonus 🌙</Text>
           </View>
         )}
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -167,7 +224,7 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
   return (
     <View style={styles.modalContent}>
       <ModalHeader title="🎁 Send Coin Gift" onClose={onClose} />
-      <ScrollView contentContainerStyle={styles.scrollPadding}>
+      <View style={styles.scrollPadding}>
         <View style={styles.balanceRow}>
           <Text style={styles.balanceLabel}>Your balance</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -180,16 +237,16 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
             </TouchableOpacity>
           </View>
         </View>
-        
+
         <Text style={styles.inputLabel}>Recipient Username</Text>
-        <TextInput 
-          style={styles.input} 
-          value={recipient} 
+        <TextInput
+          style={styles.input}
+          value={recipient}
           onChangeText={setRecipient}
           placeholder="e.g. johndoe"
           autoCapitalize="none"
         />
-        
+
         <Text style={styles.inputLabel}>Amount</Text>
         <View style={styles.amountPicker}>
           <TouchableOpacity onPress={() => setAmount(Math.max(1, amount - 5))} style={[styles.amtBtn, { borderColor: '#F9E08B' }]}>
@@ -200,17 +257,17 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
             <Text style={[styles.amtBtnText, { color: '#F9E08B' }]}>+</Text>
           </TouchableOpacity>
         </View>
-        
+
         <Text style={styles.inputLabel}>Message (optional)</Text>
-        <TextInput 
-          style={styles.input} 
-          value={message} 
+        <TextInput
+          style={styles.input}
+          value={message}
           onChangeText={setMessage}
           placeholder="Say something nice ✨"
         />
-        
-        <TouchableOpacity 
-          style={[styles.sendBtn, !recipient && styles.sendBtnDisabled, { backgroundColor: '#F9E08B' }]} 
+
+        <TouchableOpacity
+          style={[styles.sendBtn, !recipient && styles.sendBtnDisabled, { backgroundColor: '#F9E08B' }]}
           onPress={handleSend}
           disabled={sending || !recipient}
         >
@@ -220,7 +277,7 @@ const GiftModal = ({ coins, onClose, onRefresh }) => {
             <Text style={[styles.sendBtnText, { color: '#000' }]}>🎁 Send {amount} Coins</Text>
           )}
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -420,6 +477,39 @@ const styles = StyleSheet.create({
   heroEmoji: { fontSize: 56, marginBottom: 4 },
   heroAmount: { fontSize: 48, fontWeight: 900, color: '#000', lineHeight: 1 },
   heroLabel: { fontSize: 14, color: 'rgba(0,0,0,0.75)', marginTop: 4, fontWeight: 600 },
+  bestStreak: { fontSize: 12, color: 'rgba(0,0,0,0.65)', marginTop: 6 },
+  streakDaysContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, paddingHorizontal: 4 },
+  streakDayItem: { flexDirection: 'column', alignItems: 'center', gap: 4 },
+  streakDayCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F4',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  streakDayCircleActive: {
+    backgroundColor: '#F9E08B',
+    borderWidth: 0,
+  },
+  streakDayCircleToday: {
+    borderColor: '#F9E08B',
+    backgroundColor: 'rgba(249,224,139,0.1)',
+  },
+  streakDayCircleInactive: {
+    backgroundColor: '#F5F5F4',
+    borderColor: 'transparent',
+  },
+  streakDayText: { fontSize: 14, fontWeight: 700, color: '#A8A29E' },
+  streakDayTextActive: { color: '#000' },
+  streakDayTextToday: { color: '#F9E08B', fontSize: 12 },
+  streakDayTextInactive: { color: '#A8A29E' },
+  streakDayName: { fontSize: 10, color: '#A8A29E', fontWeight: 600 },
+  streakDayNameActive: { color: '#F9E08B' },
+  streakDayNameToday: { color: '#F9E08B' },
+  streakDayNameInactive: { color: '#A8A29E' },
   
   statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   statBox: { flex: 1, borderRadius: 14, padding: 14, alignItems: 'center', borderWidth: 1.5 },
