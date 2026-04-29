@@ -249,7 +249,7 @@ export default function LoginScreen({ navigation }) {
       if (res.user) {
         updateUser(res.user);
       }
-      navigation.replace('MainTabs');
+      // AuthContext state change will automatically switch navigator
     } catch (e) {
       console.error('Login error:', e);
       setError(e?.message || 'Invalid credentials. Please try again.');
