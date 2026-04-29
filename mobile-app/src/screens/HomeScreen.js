@@ -29,12 +29,12 @@ import { StatusBar } from 'expo-status-bar';
 const { width } = Dimensions.get('window');
 
 const T = {
-  bg: '#f5f5f5',
-  cardBg: '#ffffff',
-  border: '#e0e0e0',
-  txt: '#000000',
-  sub: '#666666',
-  pri: '#F9E08B',
+  bg:     '#0D0D0D',
+  cardBg: '#1A1A1A',
+  border: '#262626',
+  txt:    '#FFFFFF',
+  sub:    '#C2994B',
+  pri:    '#F9E08B',
 };
 
 const BRAND_GOLD = '#F9E08B';
@@ -1065,5 +1065,6 @@ const styles = StyleSheet.create({
   reportIcon: { fontSize: 20, marginRight: 12 },
   reportLabel: { fontSize: 16, fontWeight: '600', color: T.txt },
 });
+
 
 
