@@ -320,23 +320,26 @@ export function SubscriptionPage({ user, onBack }) {
                   <Icon size={24} color={color} />
                 </div>
 
-                <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700 }}>
-                  {tier.name}
-                </h3>
-
-                <div style={{ fontSize: 28, fontWeight: 700, color: color, marginBottom: 4 }}>
-                  {tier.price_etb} ETB
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: T.txt, marginBottom: 8 }}>
+                    {tier.name}
+                  </div>
+                  <div style={{ fontSize: 32, fontWeight: 900, color: color, marginBottom: 8 }}>
+                    {tier.price_etb} ETB
+                  </div>
+                  {tier.price_coins && (
+                    <div style={{ fontSize: 18, color: T.sub, marginBottom: 8, fontWeight: 600 }}>
+                      or {tier.price_coins} coins
+                    </div>
+                  )}
+                  <div style={{ fontSize: 16, color: T.txt, marginBottom: 20, fontWeight: 500 }}>
+                    {tier.description}
+                  </div>
                 </div>
 
-                {tier.price_coins && (
-                  <div style={{ color: T.sub, fontSize: 14, marginBottom: 16 }}>
-                    or {tier.price_coins} coins
-                  </div>
-                )}
-
                 <div style={{ 
+                  fontSize: 16, 
                   color: T.sub, 
-                  fontSize: 14, 
                   marginBottom: 16,
                   textTransform: 'capitalize'
                 }}>
@@ -354,13 +357,14 @@ export function SubscriptionPage({ user, onBack }) {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 8,
-                        marginBottom: 8,
-                        fontSize: 14,
-                        color: T.sub,
+                        gap: 10,
+                        marginBottom: 10,
+                        fontSize: 16,
+                        color: T.txt,
+                        fontWeight: 500,
                       }}
                     >
-                      <Check size={16} color={color} />
+                      <Check size={20} color={color} />
                       {feature}
                     </div>
                   ))}
