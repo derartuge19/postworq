@@ -29,15 +29,16 @@ import { StatusBar } from 'expo-status-bar';
 const { width } = Dimensions.get('window');
 
 const T = {
-  bg:     '#0D0D0D',
-  cardBg: '#1A1A1A',
-  border: '#262626',
-  txt:    '#FFFFFF',
-  sub:    '#C2994B',
-  pri:    '#F9E08B',
+  bg:     '#0B0B0C',
+  cardBg: '#121214',
+  border: '#2A2A2E',
+  txt:    '#F5F5F7',
+  sub:    '#A1A1AA',
+  meta:   '#71717A',
+  pri:    '#D4AF37',
 };
 
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 const ALL_TABS = ['For You', 'Explore', 'Campaigns'];
 
@@ -796,7 +797,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: T.cardBg,
     marginLeft: 8,
-    shadowcolor: '#F9E08B',
+    shadowcolor: '#D4AF37',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -827,7 +828,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderColor: T.border,
     borderWidth: 1,
-    shadowcolor: '#F9E08B',
+    shadowcolor: '#D4AF37',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -883,7 +884,7 @@ const styles = StyleSheet.create({
   mediaContainer: {
     width: '100%',
     height: 350,
-    backgroundcolor: '#F9E08B',
+    backgroundcolor: '#D4AF37',
     position: 'relative',
   },
   media: {
@@ -904,7 +905,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowcolor: '#F9E08B',
+    shadowcolor: '#D4AF37',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -1001,11 +1002,11 @@ const styles = StyleSheet.create({
   inlineCommentUsername: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   inlineCommentText: {
     fontSize: 13,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   emptyContainer: {
     padding: 40,
@@ -1027,7 +1028,7 @@ const styles = StyleSheet.create({
   },
   sheetCloseText: { fontSize: 16, fontWeight: '700', color: T.sub },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  bottomSheet: { backgroundColor: '#0d0d0d', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
+  bottomSheet: { backgroundColor: '#0B0B0C', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
   sheetHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
   sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15, marginTop: 8 },
   sheetTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
@@ -1065,6 +1066,7 @@ const styles = StyleSheet.create({
   reportIcon: { fontSize: 20, marginRight: 12 },
   reportLabel: { fontSize: 16, fontWeight: '600', color: T.txt },
 });
+
 
 
 
