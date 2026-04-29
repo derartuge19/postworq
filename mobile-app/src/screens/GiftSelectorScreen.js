@@ -44,12 +44,21 @@ export default function GiftSelectorScreen({ route, navigation }) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   
-  const [gifts, setGifts] = useState([]);
+  const [gifts, setGifts] = useState([
+    { id: 1, name: 'Rose', coin_value: 10, rarity: 'common', category: 'flowers' },
+    { id: 2, name: 'Heart', coin_value: 20, rarity: 'common', category: 'hearts' },
+    { id: 3, name: 'Medal', coin_value: 50, rarity: 'rare', category: 'special' },
+    { id: 4, name: 'Diamond', coin_value: 100, rarity: 'epic', category: 'gems' },
+    { id: 5, name: 'Teddy', coin_value: 30, rarity: 'common', category: 'animals' },
+    { id: 6, name: 'Star', coin_value: 75, rarity: 'rare', category: 'special' },
+    { id: 7, name: 'Crown', coin_value: 200, rarity: 'legendary', category: 'special' },
+    { id: 8, name: 'Rocket', coin_value: 150, rarity: 'epic', category: 'vehicles' },
+  ]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedGift, setSelectedGift] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
   const [coinBalance, setCoinBalance] = useState(0);
@@ -75,11 +84,10 @@ export default function GiftSelectorScreen({ route, navigation }) {
   const loadGifts = async () => {
     try {
       const response = await api.request('/gifts/');
-      setGifts(response.results || response);
+      const data = response.results || response;
+      if (Array.isArray(data) && data.length > 0) setGifts(data);
     } catch (error) {
-      console.error('Error loading gifts:', error);
-    } finally {
-      setLoading(false);
+      // Keep default gifts on error
     }
   };
 
