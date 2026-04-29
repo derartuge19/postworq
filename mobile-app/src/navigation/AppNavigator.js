@@ -100,6 +100,7 @@ function MainTabs() {
           return <Ionicons name={icons[route.name]} size={size} color={color} style={focused ? { textShadowColor: '#C8B56A', textShadowRadius: 8 } : {}} />;
         },
         tabBarLabel: ({ focused, color }) => {
+          if (route.name === 'Create') return null; // no label for Create
           const label = route.name;
           return <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400' }}>{label}</Text>;
         },
