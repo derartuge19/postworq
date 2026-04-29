@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const GOLD = '#F9E08B';
 const BG   = '#1a1a1a';
@@ -228,6 +229,7 @@ function TermsModal({ visible, onClose }) {
 }
 
 export default function LoginScreen({ navigation }) {
+  const { updateUser } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
