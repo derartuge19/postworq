@@ -609,60 +609,6 @@ export default function HomeScreen({ navigation }) {
       </Modal>
 
       {/* ── Report Category Modal ── */}
-      <Modal visible={showReportModal} transparent animationType="fade">
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1} 
-          onPress={() => setShowReportModal(false)}
-        >
-          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Report Content</Text>
-            <Text style={styles.sheetSubtitle}>Why are you reporting this content?</Text>
-            
-            <ScrollView style={styles.reportScroll} showsVerticalScrollIndicator={false}>
-              {[
-                { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
-                { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
-                { id: 'violence', label: 'Violence or Dangerous', icon: '⚔️' },
-                { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
-                { id: 'copyright', label: 'Copyright Violation', icon: '©️' },
-                { id: 'other', label: 'Other', icon: 'Ⓜ' },
-              ].map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  style={styles.reportItem}
-                  onPress={async () => {
-                    setShowReportModal(false);
-                    try {
-                      await api.request('/reports/create/', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                          reported_reel_id: reportPostId,
-                          report_type: category.id,
-                          description: `Reported as ${category.id}`,
-                        }),
-                      });
-                      Alert.alert('Success', 'Report submitted successfully. Thank you for helping keep our community safe.');
-                    } catch (error) {
-                      Alert.alert('Error', 'Failed to submit report. Please try again.');
-                    }
-                  }}
-                >
-                  <Text style={styles.reportIcon}>{category.icon}</Text>
-                  <Text style={styles.reportLabel}>{category.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity style={styles.sheetClose} onPress={() => setShowReportModal(false)}>
-              <Text style={styles.sheetCloseText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* ── Report Category Modal ── */}
       <Modal visible={!!showReportModal} transparent animationType="fade">
         <TouchableOpacity 
           style={styles.modalOverlay} 
