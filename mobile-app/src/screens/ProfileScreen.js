@@ -403,10 +403,10 @@ export default function ProfileScreen({ navigation }) {
               <Ionicons name="diamond-outline" size={24} color={BRAND_GOLD} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={{ marginRight: 12 }}>
-              <Ionicons name="wallet-outline" size={24} color="#000" />
+              <Ionicons name="wallet-outline" size={24} color="#F9E08B" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-              <Ionicons name="settings-outline" size={24} color="#000" />
+              <Ionicons name="settings-outline" size={24} color="#F9E08B" />
             </TouchableOpacity>
           </View>
         </View>
