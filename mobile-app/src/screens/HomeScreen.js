@@ -8,9 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Share,
-  Modal,
   Alert,
-  TextInput,
   ScrollView,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -25,6 +23,7 @@ import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import GiftSelectorScreen from './GiftSelectorScreen';
 
 const { width } = Dimensions.get('window');
 
@@ -66,17 +65,13 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('For You');
   const [refreshing, setRefreshing] = useState(false);
-  const [giftPost, setGiftPost] = useState(null); // Post being gifted
   const [showPostMenu, setShowPostMenu] = useState(null);
   const [showReportModal, setShowReportModal] = useState(null);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  
+
   const [visibleItems, setVisibleItems] = useState([]);
   const [expandedCaptions, setExpandedCaptions] = useState({}); // { postId: boolean }
-  const [giftAmount, setGiftAmount] = useState(50);
-  const [customGift, setCustomGift] = useState('');
-  const [giftMessage, setGiftMessage] = useState('');
   const [votingInProgress, setVotingInProgress] = useState({}); // { reelId: boolean }
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [followStates, setFollowStates] = useState({}); // { userId: boolean }
@@ -110,33 +105,6 @@ export default function HomeScreen({ navigation }) {
       }
       return <Text key={`${postId}-text-${index}`}>{part}</Text>;
     });
-  };
-
-  const handleSendGift = async () => {
-    if (!giftPost) return;
-    if (giftPost.user?.id === user?.id) {
-      Alert.alert('Error', 'Cannot gift yourself');
-      return;
-    }
-
-    const amount = customGift ? parseInt(customGift) : giftAmount;
-    if (!amount || amount <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await api.sendGift(giftPost.user?.username, amount, giftMessage || 'Gift from mobile!');
-      Alert.alert('Success', `Gift of ${amount} coins sent to @${giftPost.user?.username}!`);
-      setGiftPost(null);
-      setCustomGift('');
-      setGiftMessage('');
-    } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to send gift');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const submitReport = async (category) => {
@@ -448,7 +416,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.actionText}>{(item.shares || 0) > 0 ? item.shares : ''}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionBtn} onPress={() => setGiftPost(item)}>
+            <TouchableOpacity style={styles.actionBtn} onPress={() => nav.navigate('GiftSelector', { recipientUsername: item.user?.username })}>
               <Ionicons name="gift-outline" size={20} color={T.txt} />
             </TouchableOpacity>
           </View>
@@ -609,68 +577,6 @@ export default function HomeScreen({ navigation }) {
             <TouchableOpacity style={styles.sheetClose} onPress={() => setShowPostMenu(null)}>
               <Text style={styles.sheetCloseText}>Cancel</Text>
             </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* ── Gift Modal ── */}
-      <Modal visible={!!giftPost} transparent animationType="slide">
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1} 
-          onPress={() => setGiftPost(null)}
-        >
-          <View style={styles.bottomSheet} onStartShouldSetResponder={() => true}>
-            <View style={styles.sheetHeader}>
-              <View style={styles.sheetHandle} />
-              <View style={styles.sheetTitleRow}>
-                <Ionicons name="gift" size={24} color={BRAND_GOLD} />
-                <Text style={styles.sheetTitle}>Send Gift to @{giftPost?.user?.username}</Text>
-              </View>
-            </View>
-
-            <ScrollView style={styles.giftScroll} showsVerticalScrollIndicator={false}>
-              <Text style={styles.giftLabel}>Choose an amount</Text>
-              <View style={styles.giftGrid}>
-                {[10, 25, 50, 100, 250, 500].map(amt => (
-                  <TouchableOpacity 
-                    key={amt} 
-                    style={[styles.giftChip, giftAmount === amt && styles.giftChipActive]}
-                    onPress={() => { setGiftAmount(amt); setCustomGift(''); }}
-                  >
-                    <Ionicons name="flash" size={14} color={giftAmount === amt ? '#fff' : BRAND_GOLD} />
-                    <Text style={[styles.giftChipText, giftAmount === amt && styles.giftChipTextActive]}>{amt}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={styles.giftLabel}>Or custom amount</Text>
-              <TextInput
-                style={styles.giftInput}
-                placeholder="Enter coins..."
-                keyboardType="numeric"
-                value={customGift}
-                onChangeText={setCustomGift}
-              />
-
-              <Text style={styles.giftLabel}>Message (optional)</Text>
-              <TextInput
-                style={[styles.giftInput, { height: 80, textAlignVertical: 'top' }]}
-                placeholder="Say something nice..."
-                multiline
-                value={giftMessage}
-                onChangeText={setGiftMessage}
-              />
-
-              <TouchableOpacity 
-                style={[styles.sendGiftBtn, loading && { opacity: 0.7 }]} 
-                onPress={handleSendGift}
-                disabled={loading}
-              >
-                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.sendGiftBtnText}>Send Gift</Text>}
-              </TouchableOpacity>
-              <View style={{ height: 40 }} />
-            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -1033,16 +939,6 @@ const styles = StyleSheet.create({
   sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15, marginTop: 8 },
   sheetTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   sheetTitle: { fontSize: 17, fontWeight: '800', color: '#1C1917', textAlign: 'center', paddingHorizontal: 20 },
-  giftScroll: { padding: 20 },
-  giftLabel: { fontSize: 13, fontWeight: '700', color: '#78716C', marginBottom: 12, textTransform: 'uppercase' },
-  giftGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
-  giftChip: { flexBasis: '30%', paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#F5F5F4', backgroundColor: '#FAFAF9', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 4 },
-  giftChipActive: { borderColor: BRAND_GOLD, backgroundColor: '#FFF8F0' },
-  giftChipText: { fontSize: 14, fontWeight: '700', color: '#444' },
-  giftChipTextActive: { color: BRAND_GOLD },
-  giftInput: { backgroundColor: '#FAFAF9', borderWidth: 1.5, borderColor: '#F5F5F4', borderRadius: 12, padding: 14, fontSize: 16, color: '#1C1917', marginBottom: 20 },
-  sendGiftBtn: { backgroundColor: BRAND_GOLD, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 10 },
-  sendGiftBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   sheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
   sheetItemText: { fontSize: 16, fontWeight: 600, marginLeft: 12, color: T.txt },
   sheetClose: { marginTop: 10, paddingVertical: 15, alignItems: 'center' },
