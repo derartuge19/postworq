@@ -82,11 +82,11 @@ export function SubscriptionManagement({ theme }) {
     );
   }
 
-  const totalSubscribers = analytics?.total_subscriptions || 0;
-  const activeSubscriptions = analytics?.active_subscriptions || 0;
-  const expiredSubscriptions = analytics?.expired_subscriptions || 0;
-  const trialUsers = analytics?.trial_users || 0;
-  const totalRevenue = analytics?.total_revenue || 0;
+  const totalSubscribers = stats?.total_subscriptions || 0;
+  const activeSubscriptions = stats?.active_subscriptions || 0;
+  const expiredSubscriptions = stats?.expired_subscriptions || 0;
+  const trialUsers = stats?.trial_users || 0;
+  const totalRevenue = stats?.total_revenue || 0;
 
   return (
     <div>
