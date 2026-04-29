@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     borderColor: '#0B0B0C',
   },
   content: { flex: 1, marginLeft: 15 },
-  message: { fontSize: 14, color: '#C8B56A', lineHeight: 18 },
+  message: { fontSize: 14, color: '#A1A1AA', lineHeight: 18 },
   username: { fontWeight: '800', color: '#C8B56A' },
    import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
@@ -612,9 +612,9 @@ const styles = StyleSheet.create({
     borderColor: '#0B0B0C',
   },
   content: { flex: 1, marginLeft: 15 },
-  message: { fontSize: 14, color: '#C8B56A', lineHeight: 18 },
+  message: { fontSize: 14, color: '#A1A1AA', lineHeight: 18 },
   username: { fontWeight: '800', color: '#C8B56A' },
-  comment: { fontSize: 12, color: '#C8B56A', opacity: 0.6, marginTop: 4, fontStyle: 'italic' },
+  comment: { fontSize: 12, color: '#A1A1AA', opacity: 0.6, marginTop: 4, fontStyle: 'italic' },
   time: { fontSize: 11, color: '#C8B56A', opacity: 0.5, marginTop: 4 },
   unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#C8B56A', marginLeft: 10 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100 },
@@ -630,6 +630,7 @@ const styles = StyleSheet.create({
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100 },
   emptyText: { color: '#C8B56A', opacity: 0.5, marginTop: 15, fontSize: 16 },
 });
+
 
 
 
