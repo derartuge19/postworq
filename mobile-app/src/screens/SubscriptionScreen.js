@@ -142,7 +142,7 @@ export default function SubscriptionScreen({ navigation }) {
           disabled={isCurrent}
         >
           <Text style={[styles.subscribeButtonText, isCurrent && styles.disabledButtonText]}>
-            {isCurrent ? 'Subscribed' : 'Subscribe via SMS'}
+            {isCurrent ? '✓ Subscribed' : '📱 Subscribe via SMS'}
           </Text>
         </TouchableOpacity>
       </TouchableOpacity>
@@ -360,17 +360,25 @@ const styles = StyleSheet.create({
   },
   subscribeButton: {
     backgroundColor: BRAND_GOLD,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     alignItems: 'center',
+    shadowColor: BRAND_GOLD,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   disabledButton: {
     backgroundColor: '#4CAF50',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   subscribeButtonText: {
     color: '#000',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '800',
   },
   infoSection: {
     backgroundColor: '#1a1a1a',

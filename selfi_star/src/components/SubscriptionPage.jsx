@@ -371,18 +371,32 @@ export function SubscriptionPage({ user, onBack }) {
                   onClick={() => !isCurrent && handleSubscribe(tier)}
                   style={{
                     width: '100%',
-                    padding: 12,
-                    borderRadius: 8,
-                    border: 'none',
+                    padding: 16,
+                    borderRadius: 12,
+                    border: isCurrent ? 'none' : `2px solid ${color}`,
                     background: isCurrent ? T.green : color,
                     color: isCurrent ? '#fff' : '#fff',
-                    fontSize: 16,
-                    fontWeight: 600,
+                    fontSize: 18,
+                    fontWeight: 800,
                     cursor: isCurrent ? 'default' : 'pointer',
                     opacity: isCurrent ? 0.8 : 1,
+                    boxShadow: isCurrent ? 'none' : `0 4px 15px ${color}40`,
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={(e) => {
+                    if (!isCurrent) {
+                      e.target.style.transform = 'translateY(-2px)';
+                      e.target.style.boxShadow = `0 6px 20px ${color}60`;
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (!isCurrent) {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = `0 4px 15px ${color}40`;
+                    }
                   }}
                 >
-                  {isCurrent ? 'Subscribed' : 'Subscribe via SMS'}
+                  {isCurrent ? '✓ Subscribed' : '📱 Subscribe via SMS'}
                 </button>
               </div>
             );
