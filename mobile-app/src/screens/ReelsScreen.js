@@ -12,6 +12,7 @@ import {
   PanResponder,
   Alert,
   Share,
+  Modal,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { FlashList } from '@shopify/flash-list';
