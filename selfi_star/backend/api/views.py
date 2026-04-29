@@ -349,6 +349,36 @@ def register_with_phone(request):
         profile.phone_number = phone
         profile.save()
         otp.delete()
+        
+        # Activate any pending subscriptions for this phone number
+        from .models_subscription import UserSubscription as SubscriptionPlan, SubscriptionPayment, SubscriptionHistory
+        from django.db import transaction
+        
+        pending_subs = SubscriptionPlan.objects.filter(
+            onevas_phone_number=phone,
+            status='pending',
+            user__isnull=True
+        )
+        
+        if pending_subs.exists():
+            with transaction.atomic():
+                for sub in pending_subs:
+                    # Link subscription to user
+                    sub.user = user
+                    sub.status = 'active'
+                    sub.activate()
+                    sub.save()
+                    
+                    # Update payment record
+                    SubscriptionPayment.objects.filter(subscription=sub).update(user=user)
+                    
+                    # Update history record
+                    SubscriptionHistory.objects.filter(subscription=sub).update(user=user)
+                    
+                    # Update user trial status
+                    profile.is_trial_user = False
+                    profile.save()
+        
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'user': UserSerializer(user).data, 'token': token.key}, status=status.HTTP_201_CREATED)
     except Exception as e:

@@ -183,11 +183,47 @@ class OnevasWebhookView(APIView):
         except SubscriptionTier.DoesNotExist:
             return Response({'error': 'Tier not found'}, status=404)
         
-        # If user is not registered, send registration link SMS
+        # If user is not registered, create pending subscription and send registration link SMS
         if not user_exists:
-            registration_message = f"To subscribe to {tier.name} plan, please register first:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}\n\nAfter registration, you can subscribe to {tier.name} for {tier.duration_type} plan."
+            # Create pending subscription linked to phone number
+            with transaction.atomic():
+                subscription = UserSubscription.objects.create(
+                    user=None,  # No user yet
+                    tier=tier,
+                    duration_type=tier.duration_type,
+                    onevas_phone_number=phone_number,
+                    onevas_subscription_id=str(uuid.uuid4()),
+                    status='pending',
+                    start_date=timezone.now(),
+                    end_date=timezone.now() + timedelta(days=tier.duration_days or 30)
+                )
+                
+                # Record payment
+                SubscriptionPayment.objects.create(
+                    subscription=subscription,
+                    user=None,
+                    amount=tier.price_etb,
+                    payment_method='onevas',
+                    duration_type=tier.duration_type,
+                    period_start=subscription.start_date,
+                    period_end=subscription.end_date,
+                    status='completed'
+                )
+                
+                # Record history
+                SubscriptionHistory.objects.create(
+                    user=None,
+                    subscription=subscription,
+                    tier=tier,
+                    action='created',
+                    reason='Subscription created via Onevas (pending registration)',
+                    metadata={'webhook_payload': payload, 'pending_registration': True}
+                )
+            
+            # Send registration link SMS
+            registration_message = f"To activate your {tier.name} subscription, please register with phone number {phone_number}:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}\n\nYour subscription is pending activation. It will be activated automatically after registration."
             self.send_sms(phone_number, registration_message, tier.duration_type)
-            return Response({'status': 'user_not_registered', 'message': 'Registration link sent via SMS'})
+            return Response({'status': 'pending_registration', 'message': 'Pending subscription created, registration link sent via SMS'})
         
         # User exists - proceed with subscription
         # Check if user already has active subscription

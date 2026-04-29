@@ -100,7 +100,7 @@ class SubscriptionPlan(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_plans')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_plans', null=True, blank=True)
     tier = models.ForeignKey(SubscriptionTier, on_delete=models.SET_NULL, null=True, related_name='subscription_plans')
     
     # Onevas reference
