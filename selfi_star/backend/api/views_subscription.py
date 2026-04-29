@@ -21,10 +21,34 @@ import json
 import uuid
 from datetime import timedelta
 
+# Onevas SMS Configuration
+ONEVAS_SMS_URL = "https://onevas.alet.io/api/partnerSms/send"
+ONEVAS_APPLICATION_KEY = settings.ONEVAS_APPLICATION_KEY if hasattr(settings, 'ONEVAS_APPLICATION_KEY') else "YOUR_APPLICATION_KEY"
+ONEVAS_PRODUCT_NUMBER = settings.ONEVAS_PRODUCT_NUMBER if hasattr(settings, 'ONEVAS_PRODUCT_NUMBER') else "YOUR_PRODUCT_NUMBER"
+
+# App Links (placeholders - update with actual URLs)
+WEB_APP_LINK = "https://postworq.onrender.com"
+MOBILE_APP_LINK = "https://play.google.com/store/apps/details?id=com.postworq.mobile"
+
 
 class OnevasWebhookView(APIView):
     """Handle Onevas webhook notifications"""
     permission_classes = [AllowAny]
+    
+    def send_sms(self, phone_number, text):
+        """Send SMS using Onevas API"""
+        try:
+            payload = {
+                "phone_number": phone_number,
+                "application_key": ONEVAS_APPLICATION_KEY,
+                "text": text,
+                "product_number": ONEVAS_PRODUCT_NUMBER
+            }
+            response = requests.post(ONEVAS_SMS_URL, json=payload, timeout=10)
+            return response.status_code == 200
+        except Exception as e:
+            print(f"Failed to send SMS: {e}")
+            return False
     
     def post(self, request, webhook_type):
         """Handle subscription, unsubscription, and renewal webhooks"""
@@ -66,8 +90,9 @@ class OnevasWebhookView(APIView):
         try:
             profile = UserProfile.objects.get(phone_number=phone_number)
             user = profile.user
+            user_exists = True
         except UserProfile.DoesNotExist:
-            return Response({'error': 'User not found'}, status=404)
+            user_exists = False
         
         # Find tier by product number
         try:
@@ -75,6 +100,13 @@ class OnevasWebhookView(APIView):
         except SubscriptionTier.DoesNotExist:
             return Response({'error': 'Tier not found'}, status=404)
         
+        # If user is not registered, send registration link SMS
+        if not user_exists:
+            registration_message = f"To subscribe to {tier.name} plan, please register first:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}\n\nAfter registration, you can subscribe to {tier.name} for {tier.duration_type} plan."
+            self.send_sms(phone_number, registration_message)
+            return Response({'status': 'user_not_registered', 'message': 'Registration link sent via SMS'})
+        
+        # User exists - proceed with subscription
         # Check if user already has active subscription
         active_sub = UserSubscription.objects.filter(
             user=user,
@@ -155,6 +187,11 @@ class OnevasWebhookView(APIView):
                 profile.is_trial_user = False
                 profile.save()
             
+            # Send SMS confirmation
+            duration_text = f"{tier.duration_days} days" if tier.duration_days else tier.duration_type
+            confirmation_message = f"You are successfully subscribed to {tier.name} plan for {duration_text}. Thank you for your subscription!"
+            self.send_sms(phone_number, confirmation_message)
+            
             return Response({'status': 'success', 'message': 'Subscription created'})
     
     def handle_unsubscription(self, payload, log):
@@ -190,6 +227,10 @@ class OnevasWebhookView(APIView):
             reason='User unsubscribed via Onevas',
             metadata={'webhook_payload': payload}
         )
+        
+        # Send SMS confirmation
+        cancellation_message = f"Your {subscription.tier.name} subscription has been cancelled. Thank you for using our service!"
+        self.send_sms(phone_number, cancellation_message)
         
         return Response({'status': 'success', 'message': 'Subscription cancelled'})
     
