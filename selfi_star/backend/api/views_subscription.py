@@ -801,6 +801,108 @@ class AdminSubscriptionViewSet(viewsets.ModelViewSet):
         return Response(data)
     
     @action(detail=False, methods=['get'])
+    def charging_analytics(self, request):
+        """Get real-time charging analytics"""
+        if not self._is_admin(request):
+            return Response({'error': 'Unauthorized'}, status=403)
+        
+        from django.db.models import Sum, Count
+        from datetime import datetime, timedelta
+        
+        # Get time ranges
+        today = timezone.now().date()
+        week_ago = today - timedelta(days=7)
+        month_ago = today - timedelta(days=30)
+        
+        # Active subscriptions by tier
+        active_by_tier = UserSubscription.objects.filter(
+            status='active'
+        ).values('tier__name').annotate(
+            count=Count('id'),
+            total_revenue=Sum('tier__price_etb')
+        ).order_by('-total_revenue')
+        
+        # Today's revenue
+        today_payments = SubscriptionPayment.objects.filter(
+            status='completed',
+            period_start__date=today
+        ).aggregate(
+            total=Sum('amount'),
+            count=Count('id')
+        )
+        
+        # This week's revenue
+        week_payments = SubscriptionPayment.objects.filter(
+            status='completed',
+            period_start__date__gte=week_ago
+        ).aggregate(
+            total=Sum('amount'),
+            count=Count('id')
+        )
+        
+        # This month's revenue
+        month_payments = SubscriptionPayment.objects.filter(
+            status='completed',
+            period_start__date__gte=month_ago
+        ).aggregate(
+            total=Sum('amount'),
+            count=Count('id')
+        )
+        
+        # Cancellations this month
+        month_cancellations = SubscriptionHistory.objects.filter(
+            action='cancelled',
+            created_at__date__gte=month_ago
+        ).count()
+        
+        # Expected monthly recurring revenue (MRR)
+        active_subs = UserSubscription.objects.filter(status='active')
+        mrr = sum([sub.tier.price_etb for sub in active_subs if sub.tier])
+        
+        # Recent transactions
+        recent_transactions = SubscriptionPayment.objects.filter(
+            status='completed'
+        ).order_by('-created_at')[:20]
+        
+        recent_data = []
+        for tx in recent_transactions:
+            recent_data.append({
+                'id': str(tx.id),
+                'amount': float(tx.amount),
+                'payment_method': tx.payment_method,
+                'tier': tx.subscription.tier.name if tx.subscription and tx.subscription.tier else 'N/A',
+                'user': tx.subscription.user.username if tx.subscription and tx.subscription.user else 'N/A',
+                'date': tx.period_start.strftime('%Y-%m-%d %H:%M') if tx.period_start else 'N/A',
+                'status': tx.status
+            })
+        
+        return Response({
+            'active_subscriptions': {
+                'total': active_subs.count(),
+                'by_tier': list(active_by_tier),
+                'mrr': float(mrr)
+            },
+            'revenue': {
+                'today': {
+                    'total': float(today_payments['total'] or 0),
+                    'count': today_payments['count'] or 0
+                },
+                'week': {
+                    'total': float(week_payments['total'] or 0),
+                    'count': week_payments['count'] or 0
+                },
+                'month': {
+                    'total': float(month_payments['total'] or 0),
+                    'count': month_payments['count'] or 0
+                }
+            },
+            'cancellations': {
+                'month_count': month_cancellations
+            },
+            'recent_transactions': recent_data
+        })
+    
+    @action(detail=False, methods=['get'])
     def revenue(self, request):
         """Get revenue reports"""
         if not self._is_admin(request):
