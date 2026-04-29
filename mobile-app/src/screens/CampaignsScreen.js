@@ -19,9 +19,9 @@ const BRAND_GOLD = '#C8B56A';
 const CYAN_COLOR = '#3B82F6';
 
 const ALL_TABS = ['All', 'Active', 'Voting', 'Upcoming', 'Completed'];
-insets = useSafeAreaInsets();
-  const 
+
 export default function CampaignsScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
