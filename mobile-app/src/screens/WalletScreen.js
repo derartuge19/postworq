@@ -24,7 +24,7 @@ async function readCache() {
     if (!raw) return null;
     const { ts, balance, packages } = JSON.parse(raw);
     if (Date.now() - ts > CACHE_TTL) return null;
-    return { balance, packages };
+    return { balance, packages: Array.isArray(packages) ? packages : [] };
   } catch { return null; }
 }
 
@@ -55,7 +55,7 @@ export default function WalletScreen({ navigation }) {
     const cached = await readCache();
     if (cached) {
       setBalance(cached.balance);
-      setPackages(cached.packages);
+      setPackages(Array.isArray(cached.packages) ? cached.packages : []);
       setLoading(false);
       loadWalletData(true); // silent background refresh
     } else {
