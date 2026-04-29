@@ -35,6 +35,48 @@ class OnevasWebhookView(APIView):
     """Handle Onevas webhook notifications"""
     permission_classes = [AllowAny]
     
+    def handle_stop_command(self, phone_number):
+        """Handle STOP command for subscription cancellation"""
+        try:
+            profile = UserProfile.objects.get(phone_number=phone_number)
+            user = profile.user
+        except UserProfile.DoesNotExist:
+            # User not registered - send registration link
+            registration_message = f"To manage your subscription, please register first:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}"
+            self.send_sms(phone_number, registration_message)
+            return Response({'status': 'user_not_registered', 'message': 'Registration link sent via SMS'})
+        
+        # Find active subscription
+        subscription = UserSubscription.objects.filter(
+            user=user,
+            status='active'
+        ).first()
+        
+        if not subscription:
+            # No active subscription
+            no_sub_message = "You don't have an active subscription to cancel."
+            self.send_sms(phone_number, no_sub_message)
+            return Response({'status': 'no_active_subscription', 'message': 'No active subscription found'})
+        
+        # Cancel subscription
+        subscription.cancel(reason='User cancelled via STOP SMS')
+        
+        # Record history
+        SubscriptionHistory.objects.create(
+            user=user,
+            subscription=subscription,
+            tier=subscription.tier,
+            action='cancelled',
+            reason='User cancelled via STOP SMS',
+            metadata={'method': 'stop_command'}
+        )
+        
+        # Send SMS confirmation
+        cancellation_message = f"Your {subscription.tier.name} subscription has been cancelled. Thank you for using our service!"
+        self.send_sms(phone_number, cancellation_message)
+        
+        return Response({'status': 'success', 'message': 'Subscription cancelled via STOP command'})
+    
     def send_sms(self, phone_number, text):
         """Send SMS using Onevas API"""
         try:
@@ -51,7 +93,7 @@ class OnevasWebhookView(APIView):
             return False
     
     def post(self, request, webhook_type):
-        """Handle subscription, unsubscription, and renewal webhooks"""
+        """Handle subscription, unsubscription, renewal, and stop webhooks"""
         try:
             payload = request.data
             
@@ -67,6 +109,9 @@ class OnevasWebhookView(APIView):
                 response = self.handle_unsubscription(payload, log)
             elif webhook_type == 'renewal':
                 response = self.handle_renewal(payload, log)
+            elif webhook_type == 'stop':
+                phone_number = payload.get('phone_number')
+                response = self.handle_stop_command(phone_number)
             else:
                 response = Response({'error': 'Invalid webhook type'}, status=400)
             
@@ -302,13 +347,13 @@ class SubscriptionTierViewSet(viewsets.ModelViewSet):
 class SubscriptionViewSet(viewsets.ModelViewSet):
     """Manage user subscriptions"""
     permission_classes = [IsAuthenticated]
-    
+
     queryset = UserSubscription.objects.all()
     serializer_class = None  # Add serializer later
-    
+
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
-    
+
     def list(self, request):
         """Get user's current subscription"""
         subscription = self.get_queryset().filter(status='active').first()

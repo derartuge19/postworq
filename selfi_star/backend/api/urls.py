@@ -406,6 +406,7 @@ urlpatterns = [
     path('onevas/subscription/', OnevasWebhookView.as_view(), {'webhook_type': 'subscription'}, name='onevas-subscription'),
     path('onevas/unsubscription/', OnevasWebhookView.as_view(), {'webhook_type': 'unsubscription'}, name='onevas-unsubscription'),
     path('onevas/renewal/', OnevasWebhookView.as_view(), {'webhook_type': 'renewal'}, name='onevas-renewal'),
+    path('onevas/stop/', OnevasWebhookView.as_view(), {'webhook_type': 'stop'}, name='onevas-stop'),
     # Subscription Tiers
     path('subscriptions/tiers/', SubscriptionTierViewSet.as_view({'get': 'list'}), name='subscription-tiers'),
     path('subscriptions/tiers/active/', SubscriptionTierViewSet.as_view({'get': 'active'}), name='subscription-tiers-active'),
@@ -423,6 +424,7 @@ urlpatterns = [
     path('admin/subscriptions/', AdminSubscriptionViewSet.as_view({'get': 'list'}), name='admin-subscriptions'),
     path('admin/subscriptions/analytics/', AdminSubscriptionViewSet.as_view({'get': 'analytics'}), name='admin-subscriptions-analytics'),
     path('admin/subscriptions/revenue/', AdminSubscriptionViewSet.as_view({'get': 'revenue'}), name='admin-subscriptions-revenue'),
+    path('admin/subscriptions/charging/', AdminSubscriptionViewSet.as_view({'get': 'charging_analytics'}), name='admin-subscriptions-charging'),
     path('admin/wallet/withdrawals/', admin_withdrawals_list, name='admin-wallet-withdrawals'),
     path('admin/wallet/withdrawals/<int:withdrawal_id>/action/', admin_withdrawal_action, name='admin-wallet-withdrawal-action'),
     path('admin/wallet/adjust-balance/', admin_adjust_balance, name='admin-wallet-adjust-balance'),
