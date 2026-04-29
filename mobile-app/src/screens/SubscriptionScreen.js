@@ -7,8 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Modal,
   SafeAreaView,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,10 +23,6 @@ export default function SubscriptionScreen({ navigation }) {
   const [tiers, setTiers] = useState([]);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTier, setSelectedTier] = useState(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('onevas');
-  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     loadSubscriptionData();
@@ -36,91 +32,85 @@ export default function SubscriptionScreen({ navigation }) {
     try {
       setLoading(true);
       const [tiersData, subscriptionData] = await Promise.all([
-        api.request('/subscriptions/tiers/active/'),
-        api.request('/subscriptions/'),
+        api.request('/subscriptions/tiers/active/').catch(() => []),
+        api.request('/subscriptions/').catch(() => null),
       ]);
-      setTiers(Array.isArray(tiersData) ? tiersData : []);
+      setTiers(Array.isArray(tiersData) && tiersData.length > 0 ? tiersData : getFallbackTiers());
       setCurrentSubscription(subscriptionData);
     } catch (error) {
       console.error('Error loading subscription data:', error);
-      Alert.alert('Error', 'Failed to load subscription data');
+      setTiers(getFallbackTiers());
     } finally {
       setLoading(false);
     }
   };
 
   const handleSubscribe = (tier) => {
-    setSelectedTier(tier);
-    setShowPaymentModal(true);
+    // Get tier code for SMS
+    const tierCode = tier.duration_type === 'daily' ? 'A' : 
+                     tier.duration_type === 'weekly' ? 'B' : 
+                     tier.duration_type === 'monthly' ? 'C' : 'D';
+    
+    // Open SMS app with pre-filled message
+    const shortCode = '9286';
+    const message = tierCode;
+    
+    // Use Linking to open SMS app
+    const smsUrl = `sms:${shortCode}?body=${encodeURIComponent(message)}`;
+    
+    Linking.openURL(smsUrl).catch(err => {
+      console.error('Error opening SMS:', err);
+      Alert.alert('Error', 'Could not open SMS app');
+    });
   };
 
-  const handlePayment = async () => {
-    if (!selectedTier) return;
-
-    setProcessing(true);
-    try {
-      const response = await api.request('/subscriptions/subscribe/', {
-        method: 'POST',
-        body: JSON.stringify({
-          tier_id: selectedTier.id,
-          payment_method: paymentMethod,
-        }),
-      });
-
-      if (response.status === 'success' || response.status === 'pending') {
-        Alert.alert(
-          'Success',
-          response.message || 'Subscription initiated successfully',
-          [{ text: 'OK', onPress: () => {
-            setShowPaymentModal(false);
-            loadSubscriptionData();
-          }}]
-        );
-      } else {
-        Alert.alert('Error', response.error || 'Failed to subscribe');
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      Alert.alert('Error', 'Failed to process subscription');
-    } finally {
-      setProcessing(false);
+  const getFallbackTiers = () => [
+    {
+      id: 1,
+      name: 'Daily',
+      duration_type: 'daily',
+      price_etb: 3,
+      price_coins: null,
+      description: 'Access for 24 hours',
+      features: ['Full access for 24 hours', 'Ad-free experience', 'HD quality videos']
+    },
+    {
+      id: 2,
+      name: 'Weekly',
+      duration_type: 'weekly',
+      price_etb: 20,
+      price_coins: null,
+      description: 'Access for 7 days',
+      features: ['Full access for 7 days', 'Ad-free experience', 'HD quality videos', 'Priority support']
+    },
+    {
+      id: 3,
+      name: 'Monthly',
+      duration_type: 'monthly',
+      price_etb: 70,
+      price_coins: null,
+      description: 'Access for 30 days',
+      features: ['Full access for 30 days', 'Ad-free experience', 'HD quality videos', 'Priority support', 'Exclusive content']
+    },
+    {
+      id: 4,
+      name: 'OnDemand',
+      duration_type: 'ondemand',
+      price_etb: 10,
+      price_coins: 100,
+      description: 'Pay per use with coins',
+      features: ['Flexible payment', 'No recurring charges', 'Use coins as needed']
     }
-  };
-
-  const handleUnsubscribe = async () => {
-    Alert.alert(
-      'Cancel Subscription',
-      'Are you sure you want to cancel your subscription?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Unsubscribe',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.request('/subscriptions/unsubscribe/', {
-                method: 'POST',
-              });
-              Alert.alert('Success', 'Subscription cancelled successfully');
-              loadSubscriptionData();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to cancel subscription');
-            }
-          },
-        },
-      ]
-    );
-  };
+  ];
 
   const renderTierCard = (tier) => {
-    const isSelected = selectedTier?.id === tier.id;
     const isCurrent = currentSubscription?.tier?.name === tier.name;
 
     return (
       <TouchableOpacity
         key={tier.id}
-        style={[styles.tierCard, isSelected && styles.selectedTier, isCurrent && styles.currentTier]}
-        onPress={() => handleSubscribe(tier)}
+        style={[styles.tierCard, isCurrent && styles.currentTier]}
+        onPress={() => !isCurrent && handleSubscribe(tier)}
         disabled={isCurrent}
       >
         <View style={styles.tierHeader}>
@@ -148,10 +138,11 @@ export default function SubscriptionScreen({ navigation }) {
 
         <TouchableOpacity
           style={[styles.subscribeButton, isCurrent && styles.disabledButton]}
+          onPress={() => !isCurrent && handleSubscribe(tier)}
           disabled={isCurrent}
         >
-          <Text style={styles.subscribeButtonText}>
-            {isCurrent ? 'Subscribed' : 'Subscribe'}
+          <Text style={[styles.subscribeButtonText, isCurrent && styles.disabledButtonText]}>
+            {isCurrent ? 'Subscribed' : 'Subscribe via SMS'}
           </Text>
         </TouchableOpacity>
       </TouchableOpacity>
@@ -195,9 +186,6 @@ export default function SubscriptionScreen({ navigation }) {
             <Text style={styles.activeText}>
               Active: {currentSubscription.tier?.name}
             </Text>
-            <TouchableOpacity onPress={handleUnsubscribe}>
-              <Text style={styles.unsubscribeText}>Cancel</Text>
-            </TouchableOpacity>
           </View>
         )}
 
@@ -229,109 +217,6 @@ export default function SubscriptionScreen({ navigation }) {
           </Text>
         </View>
       </ScrollView>
-
-      {/* Payment Modal */}
-      <Modal
-        visible={showPaymentModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowPaymentModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Choose Payment Method</Text>
-            
-            <Text style={styles.selectedTierText}>
-              {selectedTier?.name} - {selectedTier?.price_etb} ETB
-            </Text>
-
-            {selectedTier?.price_coins && (
-              <TouchableOpacity
-                style={[
-                  styles.paymentOption,
-                  paymentMethod === 'coins' && styles.selectedPayment
-                ]}
-                onPress={() => setPaymentMethod('coins')}
-              >
-                <Ionicons 
-                  name="cash" 
-                  size={24} 
-                  color={paymentMethod === 'coins' ? BRAND_GOLD : '#666'} 
-                />
-                <View style={styles.paymentOptionText}>
-                  <Text style={styles.paymentOptionTitle}>Coins</Text>
-                  <Text style={styles.paymentOptionSub}>{selectedTier.price_coins} coins</Text>
-                </View>
-                {paymentMethod === 'coins' && (
-                  <Ionicons name="checkmark-circle" size={24} color={BRAND_GOLD} />
-                )}
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={[
-                styles.paymentOption,
-                paymentMethod === 'onevas' && styles.selectedPayment
-              ]}
-              onPress={() => setPaymentMethod('onevas')}
-            >
-              <Ionicons 
-                name="phone-portrait" 
-                size={24} 
-                color={paymentMethod === 'onevas' ? BRAND_GOLD : '#666'} 
-              />
-              <View style={styles.paymentOptionText}>
-                <Text style={styles.paymentOptionTitle}>Onevas Airtime</Text>
-                <Text style={styles.paymentOptionSub}>Pay via airtime</Text>
-              </View>
-              {paymentMethod === 'onevas' && (
-                <Ionicons name="checkmark-circle" size={24} color={BRAND_GOLD} />
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.paymentOption,
-                paymentMethod === 'telebirr' && styles.selectedPayment
-              ]}
-              onPress={() => setPaymentMethod('telebirr')}
-            >
-              <Ionicons 
-                name="card" 
-                size={24} 
-                color={paymentMethod === 'telebirr' ? BRAND_GOLD : '#666'} 
-              />
-              <View style={styles.paymentOptionText}>
-                <Text style={styles.paymentOptionTitle}>Telebirr</Text>
-                <Text style={styles.paymentOptionSub}>Mobile payment</Text>
-              </View>
-              {paymentMethod === 'telebirr' && (
-                <Ionicons name="checkmark-circle" size={24} color={BRAND_GOLD} />
-              )}
-            </TouchableOpacity>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setShowPaymentModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
-                onPress={handlePayment}
-                disabled={processing}
-              >
-                {processing ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.confirmButtonText}>Subscribe</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -392,11 +277,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     flex: 1,
   },
-  unsubscribeText: {
-    color: '#FF5722',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
   expiredBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -423,9 +303,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 2,
     borderColor: 'transparent',
-  },
-  selectedTier: {
-    borderColor: BRAND_GOLD,
   },
   currentTier: {
     borderColor: '#4CAF50',
@@ -511,85 +388,5 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 14,
     marginBottom: 8,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 20,
-    width: '100%',
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  selectedTierText: {
-    fontSize: 16,
-    color: BRAND_GOLD,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  paymentOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2a2a2a',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  selectedPayment: {
-    borderColor: BRAND_GOLD,
-  },
-  paymentOptionText: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  paymentOptionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  paymentOptionSub: {
-    fontSize: 14,
-    color: '#888',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    marginTop: 20,
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#333',
-  },
-  cancelButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  confirmButton: {
-    backgroundColor: BRAND_GOLD,
-  },
-  confirmButtonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
