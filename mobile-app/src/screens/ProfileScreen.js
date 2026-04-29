@@ -166,7 +166,7 @@ export default function ProfileScreen({ navigation }) {
               setPostMenuId(postMenuId === item.id ? null : item.id);
             }}
           >
-            <Ionicons name="ellipsis-vertical" size={16} color="#fff" />
+            <Ionicons name="ellipsis-vertical" size={12} color="#fff" />
           </TouchableOpacity>
         )}
       </TouchableOpacity>
@@ -675,14 +675,14 @@ export default function ProfileScreen({ navigation }) {
               style={styles.sheetItem}
               onPress={() => { const p = posts.find(p => p.id === postMenuId); handleEditPost(p); }}
             >
-              <Ionicons name="create-outline" size={20} color={BRAND_GOLD} />
+              <Ionicons name="create" size={20} color={BRAND_GOLD} />
               <Text style={styles.sheetItemText}>Edit Caption</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.sheetItem}
               onPress={() => { setConfirmDeleteId(postMenuId); setPostMenuId(null); }}
             >
-              <Ionicons name="trash-outline" size={20} color="#EF4444" />
+              <Ionicons name="trash" size={20} color="#EF4444" />
               <Text style={[styles.sheetItemText, { color: '#EF4444' }]}>Delete Post</Text>
             </TouchableOpacity>
           </View>
@@ -1182,9 +1182,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    width: 24,
+    height: 24,
+    minWidth: 24,
+    minHeight: 24,
+    maxWidth: 24,
+    maxHeight: 24,
+    aspectRatio: 1,
     borderRadius: 12,
-    padding: 6,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
   },
   modalOverlay: {
     flex: 1,

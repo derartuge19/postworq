@@ -133,7 +133,7 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
             <Text style={styles.time}>{timeAgo(item.created_at)}</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.setParams({ showPostMenu: item })}>
-            <Ionicons name="ellipsis-horizontal" size={20} color={T.sub} />
+            <Ionicons name="ellipsis-vertical" size={20} color={T.sub} />
           </TouchableOpacity>
         </View>
 
@@ -584,11 +584,10 @@ export default function HomeScreen({ navigation }) {
         <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowPostMenu(null)}>
           <View style={styles.bottomSheet}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Post Options</Text>
             
             <TouchableOpacity style={styles.sheetItem} onPress={() => { setShowPostMenu(null); handleShare(showPostMenu.id); }}>
-              <Ionicons name="link-outline" size={20} color={T.txt} />
-              <Text style={styles.sheetItemText}>Copy Link</Text>
+              <Ionicons name="share-outline" size={20} color={BRAND_GOLD} />
+              <Text style={styles.sheetItemText}>Share</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.sheetItem} onPress={() => { setShowPostMenu(null); alert('Post info: ' + showPostMenu.caption); }}>
@@ -599,10 +598,6 @@ export default function HomeScreen({ navigation }) {
             <TouchableOpacity style={styles.sheetItem} onPress={() => { setShowReportModal(showPostMenu.id); }}>
               <Ionicons name="flag-outline" size={20} color="#EF4444" />
               <Text style={[styles.sheetItemText, { color: '#EF4444' }]}>Report Post</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.sheetClose} onPress={() => setShowPostMenu(null)}>
-              <Text style={styles.sheetCloseText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
