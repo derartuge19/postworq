@@ -210,7 +210,7 @@ export default function RegisterScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   scroll: { flexGrow: 1, padding: 20 },
-  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, marginTop: 40 },
+  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, marginTop: 40, backgroundColor: '#fff', borderRadius: 12, padding: 10 },
   logoLeft:  { width: 100, height: 50 },
   logoRight: { width: 100, height: 50 },
   stepRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 24 },
