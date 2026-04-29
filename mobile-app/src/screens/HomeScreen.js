@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -61,34 +61,24 @@ const mediaUrl = (url) => {
   return `${config.API_BASE_URL.replace('/api', '')}${url}`;
 };
 
-export default function HomeScreen({ navigation }) {
-  const nav = useNavigation();
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('For You');
-  const [refreshing, setRefreshing] = useState(false);
-  const [showPostMenu, setShowPostMenu] = useState(null);
-  const [showReportModal, setShowReportModal] = useState(null);
-  const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+// Memoized post item component
+const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD }) => {
+  const isVideo = !!item.media && (
+    /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
+    item.media.includes('/video/upload/') ||
+    !item.image
+  );
+  const mediaSrc = mediaUrl(item.media || item.image);
+  const avatarSrc = mediaUrl(item.user?.profile_photo);
+  const isVisible = visibleItems.includes(item.id);
+  const currentLiked = item.has_voted || item.is_liked || false;
 
-  const [visibleItems, setVisibleItems] = useState([]);
-  const [expandedCaptions, setExpandedCaptions] = useState({}); // { postId: boolean }
-  const [votingInProgress, setVotingInProgress] = useState({}); // { reelId: boolean }
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const [followStates, setFollowStates] = useState({}); // { userId: boolean }
-  const [suggestionTriggerUserId, setSuggestionTriggerUserId] = useState(null);
-  const [reportPostId, setReportPostId] = useState(null);
+  const isFollowing = followStates[item.user?.id] ?? item.user?.is_following;
+  const isOwnPost = user?.id === item.user?.id;
 
-  const toggleCaption = (postId) => {
-    setExpandedCaptions(prev => ({ ...prev, [postId]: !prev[postId] }));
-  };
-
-  // Parse caption to handle hashtags
-  const parseCaption = (caption, postId) => {
+  // Memoize parseCaption
+  const parseCaption = useCallback((caption, postId) => {
     if (!caption) return null;
-    
-    // Better regex to match hashtags with letters, numbers, and underscores
     const parts = caption.split(/(#\w+)/g);
     return parts.map((part, index) => {
       if (part.startsWith('#') && part.length > 1) {
@@ -97,7 +87,6 @@ export default function HomeScreen({ navigation }) {
             key={`${postId}-hashtag-${index}`}
             style={styles.hashtagText}
             onPress={() => {
-              // Navigate to explore with hashtag
               navigation.navigate('Explore', { hashtag: part.slice(1) });
             }}
           >
@@ -107,218 +96,10 @@ export default function HomeScreen({ navigation }) {
       }
       return <Text key={`${postId}-text-${index}`}>{part}</Text>;
     });
-  };
+  }, [navigation]);
 
-  const submitReport = async (category) => {
-    setShowReportModal(null);
-    setShowPostMenu(null);
-    try {
-      await api.request('/reports/create/', {
-        method: 'POST',
-        body: JSON.stringify({
-          reported_reel_id: showReportModal,
-          report_type: category,
-          description: `Reported as ${category}`,
-        }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-      Alert.alert('Report Submitted', 'Thank you for your report. We will review it shortly.');
-    } catch (error) {
-      console.error('Failed to submit report:', error);
-      Alert.alert('Error', 'Failed to submit report. Please try again.');
-    }
-  };
-
-  useEffect(() => {
-    loadPosts();
-  }, []);
-
-  // Refresh posts when screen comes into focus (e.g., returning from Comments)
-  useFocusEffect(
-    useCallback(() => {
-      loadPosts();
-    }, [])
-  );
-
-  // Listen for tab press event to refresh when already on Home screen
-  useEffect(() => {
-    const unsubscribe = nav.addListener('tabPress', (e) => {
-      // Only refresh if we're already on the Home screen
-      // Don't prevent navigation from other tabs
-      const currentRoute = nav.getState()?.routes[nav.getState()?.index];
-      if (currentRoute?.name === 'Home') {
-        loadPosts();
-      }
-    });
-
-    return unsubscribe;
-  }, [nav]);
-
-  const loadPosts = async () => {
-    try {
-      setLoading(true);
-      const data = await api.getReels();
-      const posts = Array.isArray(data) ? data : (data.results || []);
-      setPosts(posts);
-    } catch (error) {
-      console.error('Error loading posts:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    loadPosts();
-  };
-
-  const handleVote = async (reelId, currentLiked) => {
-    // Prevent multiple rapid clicks
-    if (votingInProgress[reelId]) return;
-    
-    setVotingInProgress(prev => ({ ...prev, [reelId]: true }));
-    
-    // Optimistic update
-    setPosts(posts.map(post => 
-      post.id === reelId 
-        ? { ...post, votes: currentLiked ? Math.max(0, (post.votes || 0) - 1) : (post.votes || 0) + 1, has_voted: !currentLiked, is_liked: !currentLiked }
-        : post
-    ));
-    
-    try {
-      const response = await api.voteReel(reelId);
-      // Update with server response if available
-      if (response && response.votes !== undefined) {
-        setPosts(posts.map(post => 
-          post.id === reelId 
-            ? { ...post, votes: response.votes, has_voted: response.has_voted ?? !currentLiked, is_liked: response.is_liked ?? !currentLiked, comments_count: response.comments_count ?? post.comments_count }
-            : post
-        ));
-      }
-    } catch (error) {
-      console.error('Error voting:', error);
-      // Revert on error
-      setPosts(posts.map(post => 
-        post.id === reelId 
-          ? { ...post, votes: currentLiked ? (post.votes || 0) + 1 : Math.max(0, (post.votes || 0) - 1), has_voted: currentLiked, is_liked: currentLiked }
-          : post
-      ));
-    } finally {
-      setVotingInProgress(prev => ({ ...prev, [reelId]: false }));
-    }
-  };
-
-  const handleSave = async (reelId, currentSaved) => {
-    try {
-      setPosts(posts.map(post => 
-        post.id === reelId 
-          ? { ...post, is_saved: !currentSaved }
-          : post
-      ));
-      await api.toggleSavePost(reelId);
-    } catch (error) {
-      console.error('Error saving:', error);
-    }
-  };
-
-  const handleShare = async (postId) => {
-    try {
-      await Share.share({
-        message: `Check out this post on FlipStar! ${config.API_BASE_URL.replace('/api', '')}/post/${postId}`,
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
-
-  const handleComment = (reelId) => {
-    navigation.navigate('Comments', { reelId });
-  };
-
-  const handleProfile = (userId) => {
-    if (userId) {
-      navigation.navigate('ProfileDetail', { userId });
-    }
-  };
-
-  const handleVideoPress = (reelId) => {
-     navigation.navigate('Reels', { reelId });
-  };
-
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    setVisibleItems(viewableItems.map(item => item.item.id));
-  }).current;
-
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 60,
-  }).current;
-
-  const renderHeader = () => (
-    <View style={styles.tabsContainer}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', paddingHorizontal: 4 }}>
-        {ALL_TABS.map(item => {
-          const isActive = activeTab === item;
-          return (
-            <TouchableOpacity
-              key={item}
-              onPress={() => {
-                if (item === 'Explore') {
-                  navigation.navigate('Explore');
-                } else if (item === 'Campaigns') {
-                  navigation.navigate('Campaigns');
-                } else {
-                  setActiveTab(item);
-                }
-              }}
-              activeOpacity={0.75}
-              style={[
-                styles.tabButton,
-                isActive && styles.tabButtonActive,
-                { flex: 1, marginHorizontal: 4, alignItems: 'center' }
-              ]}
-            >
-              <Text style={[styles.tabText, isActive && styles.tabTextActive]} numberOfLines={1}>
-                {item}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
-
-  const handleFollow = async (userId) => {
-    try {
-      // Optimistic update
-      setFollowStates(prev => ({ ...prev, [userId]: true }));
-      setSuggestionTriggerUserId(userId);
-      await api.toggleFollow(userId);
-    } catch (error) {
-      console.error('Error following:', error);
-      setFollowStates(prev => ({ ...prev, [userId]: false }));
-      setSuggestionTriggerUserId(null);
-    }
-  };
-
-  const renderPost = ({ item }) => {
-    if (!item) return null;
-    
-    const isVideo = !!item.media && (
-      /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
-      item.media.includes('/video/upload/') ||
-      !item.image
-    );
-    const mediaSrc = mediaUrl(item.media || item.image);
-    const avatarSrc = mediaUrl(item.user?.profile_photo);
-    const isVisible = visibleItems.includes(item.id);
-    const currentLiked = item.has_voted || item.is_liked || false;
-
-    const isFollowing = followStates[item.user?.id] ?? item.user?.is_following;
-    const isOwnPost = user?.id === item.user?.id;
-
-    return (
-      <View key={item.id}>
+  return (
+    <View key={item.id}>
       <View style={styles.postCard}>
         {/* Header */}
         <View style={styles.header}>
@@ -351,7 +132,7 @@ export default function HomeScreen({ navigation }) {
             </View>
             <Text style={styles.time}>{timeAgo(item.created_at)}</Text>
           </View>
-          <TouchableOpacity onPress={() => setShowPostMenu(item)}>
+          <TouchableOpacity onPress={() => navigation.setParams({ showPostMenu: item })}>
             <Ionicons name="ellipsis-horizontal" size={20} color={T.sub} />
           </TouchableOpacity>
         </View>
@@ -418,7 +199,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.actionText}>{(item.shares || 0) > 0 ? item.shares : ''}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionBtn} onPress={() => nav.navigate('GiftSelector', { recipientUsername: item.user?.username })}>
+            <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('GiftSelector', { recipientUsername: item.user?.username })}>
               <Ionicons name="gift-outline" size={20} color={T.txt} />
             </TouchableOpacity>
           </View>
@@ -493,9 +274,251 @@ export default function HomeScreen({ navigation }) {
           onDismiss={() => setSuggestionTriggerUserId(null)}
         />
       )}
-      </View>
-    );
+    </View>
+  );
+});
+
+export default function HomeScreen({ navigation }) {
+  const nav = useNavigation();
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('For You');
+  const [refreshing, setRefreshing] = useState(false);
+  const [showPostMenu, setShowPostMenu] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(null);
+  const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+
+  const [visibleItems, setVisibleItems] = useState([]);
+  const [expandedCaptions, setExpandedCaptions] = useState({}); // { postId: boolean }
+  const [votingInProgress, setVotingInProgress] = useState({}); // { reelId: boolean }
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [followStates, setFollowStates] = useState({}); // { userId: boolean }
+  const [suggestionTriggerUserId, setSuggestionTriggerUserId] = useState(null);
+  const [reportPostId, setReportPostId] = useState(null);
+
+  const toggleCaption = useCallback((postId) => {
+    setExpandedCaptions(prev => ({ ...prev, [postId]: !prev[postId] }));
+  }, []);
+
+  const submitReport = useCallback(async (category) => {
+    setShowReportModal(null);
+    setShowPostMenu(null);
+    try {
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_reel_id: showReportModal,
+          report_type: category,
+          description: `Reported as ${category}`,
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      Alert.alert('Report Submitted', 'Thank you for your report. We will review it shortly.');
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      Alert.alert('Error', 'Failed to submit report. Please try again.');
+    }
   };
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  // Refresh posts when screen comes into focus (e.g., returning from Comments)
+  useFocusEffect(
+    useCallback(() => {
+      loadPosts();
+    }, [loadPosts])
+  );
+
+  // Listen for tab press event to refresh when already on Home screen
+  useEffect(() => {
+    const unsubscribe = nav.addListener('tabPress', (e) => {
+      // Only refresh if we're already on the Home screen
+      // Don't prevent navigation from other tabs
+      const currentRoute = nav.getState()?.routes[nav.getState()?.index];
+      if (currentRoute?.name === 'Home') {
+        loadPosts();
+      }
+    });
+
+    return unsubscribe;
+  }, [nav, loadPosts]);
+
+  const loadPosts = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getReels();
+      const posts = Array.isArray(data) ? data : (data.results || []);
+      setPosts(posts);
+    } catch (error) {
+      console.error('Error loading posts:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadPosts();
+  };
+
+  const handleVote = useCallback(async (reelId, currentLiked) => {
+    // Prevent multiple rapid clicks
+    if (votingInProgress[reelId]) return;
+    
+    setVotingInProgress(prev => ({ ...prev, [reelId]: true }));
+    
+    // Optimistic update
+    setPosts(posts.map(post => 
+      post.id === reelId 
+        ? { ...post, votes: currentLiked ? Math.max(0, (post.votes || 0) - 1) : (post.votes || 0) + 1, has_voted: !currentLiked, is_liked: !currentLiked }
+        : post
+    ));
+    
+    try {
+      const response = await api.voteReel(reelId);
+      // Update with server response if available
+      if (response && response.votes !== undefined) {
+        setPosts(posts.map(post => 
+          post.id === reelId 
+            ? { ...post, votes: response.votes, has_voted: response.has_voted ?? !currentLiked, is_liked: response.is_liked ?? !currentLiked, comments_count: response.comments_count ?? post.comments_count }
+            : post
+        ));
+      }
+    } catch (error) {
+      console.error('Error voting:', error);
+      // Revert on error
+      setPosts(posts.map(post => 
+        post.id === reelId 
+          ? { ...post, votes: currentLiked ? (post.votes || 0) + 1 : Math.max(0, (post.votes || 0) - 1), has_voted: currentLiked, is_liked: currentLiked }
+          : post
+      ));
+    } finally {
+      setVotingInProgress(prev => ({ ...prev, [reelId]: false }));
+    }
+  }, [votingInProgress, posts]);
+
+  const handleSave = useCallback(async (reelId, currentSaved) => {
+    try {
+      setPosts(posts.map(post => 
+        post.id === reelId 
+          ? { ...post, is_saved: !currentSaved }
+          : post
+      ));
+      await api.toggleSavePost(reelId);
+    } catch (error) {
+      console.error('Error saving:', error);
+    }
+  }, [posts]);
+
+  const handleShare = useCallback(async (postId) => {
+    try {
+      await Share.share({
+        message: `Check out this post on FlipStar! ${config.API_BASE_URL.replace('/api', '')}/post/${postId}`,
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  }, []);
+
+  const handleComment = useCallback((reelId) => {
+    navigation.navigate('Comments', { reelId });
+  }, [navigation]);
+
+  const handleProfile = useCallback((userId) => {
+    if (userId) {
+      navigation.navigate('ProfileDetail', { userId });
+    }
+  }, [navigation]);
+
+  const handleVideoPress = useCallback((reelId) => {
+     navigation.navigate('Reels', { reelId });
+  }, [navigation]);
+
+  const handleFollow = useCallback(async (userId) => {
+    try {
+      // Optimistic update
+      setFollowStates(prev => ({ ...prev, [userId]: true }));
+      setSuggestionTriggerUserId(userId);
+      await api.toggleFollow(userId);
+    } catch (error) {
+      console.error('Error following:', error);
+      setFollowStates(prev => ({ ...prev, [userId]: false }));
+      setSuggestionTriggerUserId(null);
+    }
+  }, []);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    setVisibleItems(viewableItems.map(item => item.item.id));
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 60,
+  }).current;
+
+  const renderHeader = () => (
+    <View style={styles.tabsContainer}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', paddingHorizontal: 4 }}>
+        {ALL_TABS.map(item => {
+          const isActive = activeTab === item;
+          return (
+            <TouchableOpacity
+              key={item}
+              onPress={() => {
+                if (item === 'Explore') {
+                  navigation.navigate('Explore');
+                } else if (item === 'Campaigns') {
+                  navigation.navigate('Campaigns');
+                } else {
+                  setActiveTab(item);
+                }
+              }}
+              activeOpacity={0.75}
+              style={[
+                styles.tabButton,
+                isActive && styles.tabButtonActive,
+                { flex: 1, marginHorizontal: 4, alignItems: 'center' }
+              ]}
+            >
+              <Text style={[styles.tabText, isActive && styles.tabTextActive]} numberOfLines={1}>
+                {item}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+
+  const renderPost = useCallback(({ item }) => {
+    if (!item || item.type === 'suggestions') return null;
+    return (
+      <PostItem
+        item={item}
+        navigation={navigation}
+        visibleItems={visibleItems}
+        expandedCaptions={expandedCaptions}
+        toggleCaption={toggleCaption}
+        handleVote={handleVote}
+        handleSave={handleSave}
+        handleShare={handleShare}
+        handleComment={handleComment}
+        handleProfile={handleProfile}
+        handleVideoPress={handleVideoPress}
+        votingInProgress={votingInProgress}
+        followStates={followStates}
+        handleFollow={handleFollow}
+        suggestionTriggerUserId={suggestionTriggerUserId}
+        setSuggestionTriggerUserId={setSuggestionTriggerUserId}
+        user={user}
+        T={T}
+        BRAND_GOLD={BRAND_GOLD}
+      />
+    );
+  }, [visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD, navigation]);
 
   const feedData = React.useMemo(() => {
     if (posts.length === 0) return posts;
