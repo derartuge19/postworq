@@ -36,6 +36,7 @@ async function writeCache(balance, packages) {
 }
 
 const BRAND_GOLD = '#C8B56A';
+const CYAN_COLOR = '#3B82F6';
 
 export default function WalletScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -178,13 +179,13 @@ export default function WalletScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#C8B56A" />
+          <Ionicons name="chevron-back" size={24} color={CYAN_COLOR} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Wallet</Text>
         <TouchableOpacity onPress={() => loadWalletData(false)}>
           {refreshing
             ? <ActivityIndicator size="small" color={BRAND_GOLD} />
-            : <Ionicons name="refresh" size={22} color="#C8B56A" />}
+            : <Ionicons name="refresh" size={22} color={CYAN_COLOR} />}
         </TouchableOpacity>
       </View>
 
@@ -432,12 +433,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1A1A1A',
+    borderBottomColor: CYAN_COLOR,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#C8B56A',
+    color: CYAN_COLOR,
   },
   content: {
     flex: 1,

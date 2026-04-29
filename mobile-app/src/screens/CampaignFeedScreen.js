@@ -19,6 +19,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const BRAND_GOLD = '#C8B56A';
+const CYAN_COLOR = '#3B82F6';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -118,7 +119,7 @@ export default function CampaignFeedScreen({ route, navigation }) {
     <View>
       {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Ionicons name="chevron-back" size={20} color="#C8B56A" />
+        <Ionicons name="chevron-back" size={20} color={CYAN_COLOR} />
         <Text style={styles.backButtonText}>Back to Campaign</Text>
       </TouchableOpacity>
 

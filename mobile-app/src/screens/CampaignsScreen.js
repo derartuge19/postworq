@@ -11,13 +11,16 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
 
 const { width } = Dimensions.get('window');
 const BRAND_GOLD = '#C8B56A';
+const CYAN_COLOR = '#3B82F6';
 
 const ALL_TABS = ['All', 'Active', 'Voting', 'Upcoming', 'Completed'];
-
+insets = useSafeAreaInsets();
+  const 
 export default function CampaignsScreen({ navigation }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -214,6 +217,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0B0B0C',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#0B0B0C',
+    borderBottomWidth: 1,
+    borderBottomColor: CYAN_COLOR,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: CYAN_COLOR,
   },
   loadingContainer: {
     flex: 1,

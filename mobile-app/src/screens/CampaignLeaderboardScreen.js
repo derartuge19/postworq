@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 const BRAND_GOLD = '#C8B56A';
+const CYAN_COLOR = '#3B82F6';
 
 const PERIODS = [
   { id: 'overall', label: 'All Time' },
@@ -174,7 +175,7 @@ export default function CampaignLeaderboardScreen({ route, navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={16} color="#C8B56A" />
+          <Ionicons name="chevron-back" size={16} color={CYAN_COLOR} />
           <Text style={styles.backButtonText}>Back to Campaign</Text>
         </TouchableOpacity>
         

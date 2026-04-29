@@ -176,7 +176,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
       {/* Sticky Header */}
       <View style={styles.stickyHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
-          <Ionicons name="chevron-back" size={22} color="#C8B56A" />
+          <Ionicons name="chevron-back" size={22} color={CYAN_COLOR} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{campaign.title}</Text>
         <View style={[styles.headerStatusPill, { backgroundColor: statusColor + '25' }]}>
@@ -824,19 +824,22 @@ const styles = StyleSheet.create({
   stickyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: '#0B0B0C',
     borderBottomWidth: 1,
-    borderBottomColor: '#2A2A2E',
-    gap: 10,
+    borderBottomColor: CYAN_COLOR,
   },
-  headerBack: { padding: 4 },
+  headerBack: {
+    padding: 4,
+  },
   headerTitle: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#C8B56A',
+    fontSize: 16,
+    fontWeight: '700',
+    color: CYAN_COLOR,
+    marginLeft: 8,
   },
   headerStatusPill: {
     paddingHorizontal: 10,
