@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
-  ScrollView, StatusBar, Image,
+  ScrollView, StatusBar, Image, Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../../api';
@@ -32,6 +32,8 @@ export default function RegisterScreen({ navigation }) {
   const [resendTimer, setResendTimer] = useState(0);
 
   const otpRefs = useRef([]);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
   // Countdown for resend
   useEffect(() => {
@@ -39,6 +41,24 @@ export default function RegisterScreen({ navigation }) {
     const timer = setTimeout(() => setResendTimer(r => r - 1), 1000);
     return () => clearTimeout(timer);
   }, [resendTimer]);
+
+  // Animate step transitions
+  useEffect(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(20);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [step]);
 
   // Step 1: Send OTP
   const handleSendOtp = async () => {
@@ -162,6 +182,10 @@ export default function RegisterScreen({ navigation }) {
             </View>
           )}
 
+          <Animated.View style={{
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          }}>
           {/* Step 1: Phone */}
           {step === 1 && (
             <>
@@ -324,6 +348,7 @@ export default function RegisterScreen({ navigation }) {
               </TouchableOpacity>
             </>
           )}
+          </Animated.View>
 
           {/* Footer */}
           <View style={styles.footer}>
