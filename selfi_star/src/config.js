@@ -10,7 +10,7 @@ const getApiConfig = () => {
   
   if (isVercel || isRender) {
     return {
-      API_BASE_URL: 'https://selfi-star-backend.onrender.com/api', // Your actual backend URL
+      API_BASE_URL: 'https://postworq.onrender.com/api', // Your actual backend URL
       // API_BASE_URL:'https://216.24.57.7/api',
       ENVIRONMENT: 'production'
     };
@@ -21,7 +21,7 @@ const getApiConfig = () => {
     };
   } else {
     return {
-      API_BASE_URL: 'https://selfi-star-backend.onrender.com/api', // Fallback
+      API_BASE_URL: 'https://postworq.onrender.com/api', // Fallback
       ENVIRONMENT: 'production'
     };
   }
