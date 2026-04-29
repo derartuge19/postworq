@@ -76,7 +76,7 @@ function MainTabs() {
             Home:     focused ? 'home'              : 'home-outline',
             Reels:    focused ? 'film'              : 'film-outline',
             Create:   'add',
-            Messages: focused ? 'notifications'     : 'notifications-outline',
+            Alert:    focused ? 'notifications'     : 'notifications-outline',
             Profile:  focused ? 'person'            : 'person-outline',
           };
           const isCreate = route.name === 'Create';
