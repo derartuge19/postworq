@@ -26,6 +26,34 @@ ONEVAS_SMS_URL = "https://onevas.alet.io/api/partnerSms/send"
 ONEVAS_APPLICATION_KEY = settings.ONEVAS_APPLICATION_KEY if hasattr(settings, 'ONEVAS_APPLICATION_KEY') else "YOUR_APPLICATION_KEY"
 ONEVAS_PRODUCT_NUMBER = settings.ONEVAS_PRODUCT_NUMBER if hasattr(settings, 'ONEVAS_PRODUCT_NUMBER') else "YOUR_PRODUCT_NUMBER"
 
+# Onevas Product Configuration (SPID, Service ID, Product ID, Application Key)
+ONEVAS_PRODUCTS = {
+    'daily': {
+        'spid': '300263',
+        'service_id': '30026300007331',
+        'product_id': '10000302850',
+        'application_key': 'UPJG5ZM3X6C9LLDSKKCME4MA86UQRKWV'
+    },
+    'weekly': {
+        'spid': '300263',
+        'service_id': '30026300007332',
+        'product_id': '10000302851',
+        'application_key': 'I6QEX9W5D341NN50QPB0KQ9HW6DH99TQ'
+    },
+    'monthly': {
+        'spid': '300263',
+        'service_id': '30026300007333',
+        'product_id': '10000302852',
+        'application_key': '0Y72TFLJP4ZAQ127K0O43IJSD9QAPTWQ'
+    },
+    'ondemand': {
+        'spid': '300263',
+        'service_id': '30026300007334',
+        'product_id': '10000302853',
+        'application_key': '4CROFBT0EGCM1OK8R88EQBTEZOMI3138'
+    }
+}
+
 # App Links (placeholders - update with actual URLs)
 WEB_APP_LINK = "https://postworq.onrender.com"
 MOBILE_APP_LINK = "https://play.google.com/store/apps/details?id=com.postworq.mobile"
@@ -73,18 +101,28 @@ class OnevasWebhookView(APIView):
         
         # Send SMS confirmation
         cancellation_message = f"Your {subscription.tier.name} subscription has been cancelled. Thank you for using our service!"
-        self.send_sms(phone_number, cancellation_message)
+        self.send_sms(phone_number, cancellation_message, subscription.tier.duration_type)
         
         return Response({'status': 'success', 'message': 'Subscription cancelled via STOP command'})
     
-    def send_sms(self, phone_number, text):
-        """Send SMS using Onevas API"""
+    def send_sms(self, phone_number, text, tier_type=None):
+        """Send SMS using Onevas API with tier-specific application key"""
         try:
+            # Get application key for the specific tier, or use default
+            app_key = ONEVAS_APPLICATION_KEY
+            if tier_type and tier_type in ONEVAS_PRODUCTS:
+                app_key = ONEVAS_PRODUCTS[tier_type]['application_key']
+            
+            # Get product number from configuration
+            product_number = ONEVAS_PRODUCT_NUMBER
+            if tier_type and tier_type in ONEVAS_PRODUCTS:
+                product_number = ONEVAS_PRODUCTS[tier_type]['product_id']
+            
             payload = {
                 "phone_number": phone_number,
-                "application_key": ONEVAS_APPLICATION_KEY,
+                "application_key": app_key,
                 "text": text,
-                "product_number": ONEVAS_PRODUCT_NUMBER
+                "product_number": product_number
             }
             response = requests.post(ONEVAS_SMS_URL, json=payload, timeout=10)
             return response.status_code == 200
@@ -148,7 +186,7 @@ class OnevasWebhookView(APIView):
         # If user is not registered, send registration link SMS
         if not user_exists:
             registration_message = f"To subscribe to {tier.name} plan, please register first:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}\n\nAfter registration, you can subscribe to {tier.name} for {tier.duration_type} plan."
-            self.send_sms(phone_number, registration_message)
+            self.send_sms(phone_number, registration_message, tier.duration_type)
             return Response({'status': 'user_not_registered', 'message': 'Registration link sent via SMS'})
         
         # User exists - proceed with subscription
@@ -235,7 +273,7 @@ class OnevasWebhookView(APIView):
             # Send SMS confirmation
             duration_text = f"{tier.duration_days} days" if tier.duration_days else tier.duration_type
             confirmation_message = f"You are successfully subscribed to {tier.name} plan for {duration_text}. Thank you for your subscription!"
-            self.send_sms(phone_number, confirmation_message)
+            self.send_sms(phone_number, confirmation_message, tier.duration_type)
             
             return Response({'status': 'success', 'message': 'Subscription created'})
     
@@ -275,7 +313,7 @@ class OnevasWebhookView(APIView):
         
         # Send SMS confirmation
         cancellation_message = f"Your {subscription.tier.name} subscription has been cancelled. Thank you for using our service!"
-        self.send_sms(phone_number, cancellation_message)
+        self.send_sms(phone_number, cancellation_message, subscription.tier.duration_type)
         
         return Response({'status': 'success', 'message': 'Subscription cancelled'})
     
