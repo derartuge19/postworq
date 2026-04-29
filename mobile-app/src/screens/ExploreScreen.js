@@ -25,12 +25,12 @@ const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 12) / 3; // 3 columns with 3px gaps
 
 const T = {
-  bg: '#f5f5f5',
-  cardBg: '#ffffff',
-  border: '#e0e0e0',
-  txt: '#000000',
-  sub: '#666666',
-  pri: '#F9E08B',
+  bg:     '#0D0D0D',
+  cardBg: '#1A1A1A',
+  border: '#262626',
+  txt:    '#FFFFFF',
+  sub:    '#C2994B',
+  pri:    '#F9E08B',
 };
 
 const BRAND_GOLD = '#F9E08B';
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
     color: T.sub,
   },
   timeRangeTextActive: {
-    color: '#fff',
+    color: '#000',
   },
   categoriesContainer: {
     backgroundColor: '#0d0d0d',
@@ -732,13 +732,15 @@ const styles = StyleSheet.create({
   },
   videoThumb: {
     width: ITEM_WIDTH,
-    height: ITEM_WIDTH * 1.78, // 9:16 aspect ratio
-    backgroundColor: '#111',
+    height: ITEM_WIDTH * 1.78,
+    backgroundColor: 'rgba(249,224,139,0.15)',
     borderRadius: 10,
     overflow: 'hidden',
     marginHorizontal: 1.5,
     marginBottom: 3,
     position: 'relative',
+    borderWidth: 1.5,
+    borderColor: 'rgba(249,224,139,0.3)',
   },
   thumbImage: {
     width: '100%',
@@ -897,5 +899,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 });
+
 
 
