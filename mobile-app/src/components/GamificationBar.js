@@ -270,7 +270,9 @@ export default function GamificationBar({ userId, onShowWallet }) {
   return (
     <View style={styles.bar}>
       <TouchableOpacity style={styles.item} onPress={() => setActiveModal('coins')}>
-        <Text style={styles.emoji}>🪙</Text>
+        <View style={styles.iconCircle}>
+          <Text style={styles.emoji}>🪙</Text>
+        </View>
         <Text style={styles.value}>{coins?.balance ?? 0}</Text>
         <Text style={styles.label}>Coins</Text>
       </TouchableOpacity>
@@ -278,7 +280,9 @@ export default function GamificationBar({ userId, onShowWallet }) {
       <View style={styles.divider} />
       
       <TouchableOpacity style={styles.item} onPress={() => setActiveModal('streak')}>
-        <Text style={styles.emoji}>🔥</Text>
+        <View style={styles.iconCircle}>
+          <Text style={styles.emoji}>🔥</Text>
+        </View>
         <Text style={styles.value}>{login_streak?.current ?? 0}d</Text>
         <Text style={styles.label}>Streak</Text>
         {login_streak?.bonus_available && <View style={styles.badge} />}
@@ -287,7 +291,9 @@ export default function GamificationBar({ userId, onShowWallet }) {
       <View style={styles.divider} />
       
       <TouchableOpacity style={styles.item} onPress={() => setActiveModal('gift')}>
-        <Text style={styles.emoji}>🎁</Text>
+        <View style={styles.iconCircle}>
+          <Text style={styles.emoji}>🎁</Text>
+        </View>
         <Text style={styles.value}>{gifts?.received_today ?? 0}</Text>
         <Text style={styles.label}>Gifts</Text>
       </TouchableOpacity>
@@ -318,42 +324,53 @@ export default function GamificationBar({ userId, onShowWallet }) {
 const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
-    backgroundColor: '#FFF8F0',
+    backgroundColor: '#0D0D0D',
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#DA9B2A20',
-    paddingVertical: 10,
-    marginVertical: 4,
+    borderColor: 'rgba(218,155,42,0.25)',
+    paddingVertical: 4,
   },
   item: {
     flex: 1,
     alignItems: 'center',
     position: 'relative',
+    paddingVertical: 12,
   },
   divider: {
     width: 1,
     height: '70%',
-    backgroundColor: '#F0EDEB',
+    backgroundColor: '#262626',
     alignSelf: 'center',
   },
-  emoji: { fontSize: 24, marginBottom: 2 },
-  value: { fontSize: 16, fontWeight: '800', color: '#1C1917' },
-  label: { fontSize: 10, color: '#78716C', fontWeight: '600', textTransform: 'uppercase' },
+  iconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(218,155,42,0.09)',
+    borderWidth: 2.5,
+    borderColor: 'rgba(218,155,42,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  emoji: { fontSize: 24 },
+  value: { fontSize: 15, fontWeight: 800, color: '#FFFFFF', marginBottom: 2 },
+  label: { fontSize: 10, color: '#C2994B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 },
   badge: {
     position: 'absolute',
-    top: 4,
-    right: '25%',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: 6,
+    right: '18%',
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: '#EF4444',
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: '#fff',
   },
   skeletonItem: {
     flex: 1,
     height: 40,
-    backgroundColor: '#F5F5F4',
+    backgroundColor: '#1A1A1A',
     marginHorizontal: 10,
     borderRadius: 8,
   },
@@ -361,14 +378,14 @@ const styles = StyleSheet.create({
   // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0D0D0D',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: height * 0.75,
+    maxHeight: height * 0.8,
   },
   modalContent: {
     width: '100%',
@@ -377,32 +394,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F4',
+    padding: 16,
+    paddingBottom: 8,
   },
-  modalTitle: { fontSize: 18, fontWeight: '800', color: '#1C1917' },
-  closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F5F5F4', alignItems: 'center', justifyContent: 'center' },
-  scrollPadding: { padding: 20 },
+  modalTitle: { fontSize: 18, fontWeight: 700, color: '#F9E08B' },
+  closeBtn: { 
+    width: 32, 
+    height: 32, 
+    borderRadius: 16, 
+    backgroundColor: 'rgba(249,224,139,0.1)', 
+    borderWidth: 1,
+    borderColor: 'rgba(249,224,139,0.2)',
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  scrollPadding: { padding: 12 },
   
   balanceHero: {
-    backgroundColor: BRAND_GOLD,
+    backgroundColor: 'linear-gradient(135deg, #F9E08B, #F59E0B)',
     borderRadius: 20,
-    padding: 30,
+    padding: 28,
     alignItems: 'center',
     marginBottom: 20,
   },
-  heroEmoji: { fontSize: 50, marginBottom: 10 },
-  heroAmount: { fontSize: 44, fontWeight: '900', color: '#fff' },
-  heroLabel: { fontSize: 14, color: 'rgba(255,255,255,0.8)' },
+  heroEmoji: { fontSize: 56, marginBottom: 4 },
+  heroAmount: { fontSize: 48, fontWeight: 900, color: '#000', lineHeight: 1 },
+  heroLabel: { fontSize: 14, color: 'rgba(0,0,0,0.75)', marginTop: 4, fontWeight: 600 },
   
   statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  statBox: { flex: 1, borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1.5 },
+  statBox: { flex: 1, borderRadius: 14, padding: 14, alignItems: 'center', borderWidth: 1.5 },
   statEmoji: { fontSize: 24, marginBottom: 4 },
-  statValue: { fontSize: 22, fontWeight: '800' },
+  statValue: { fontSize: 22, fontWeight: 800 },
   statLabel: { fontSize: 11, color: '#78716C' },
-  
-  tipBox: { backgroundColor: '#FFF8F0', borderRadius: 12, padding: 15 },
+
+  tipBox: { backgroundColor: 'rgba(139,92,246,0.08)', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: 'rgba(139,92,246,0.15)' },
   tipText: { fontSize: 13, color: '#78716C', textAlign: 'center', lineHeight: 18 },
   
   claimBtn: { backgroundColor: '#10B981', borderRadius: 14, padding: 18, alignItems: 'center' },
@@ -412,29 +437,29 @@ const styles = StyleSheet.create({
   noBonusBox: { backgroundColor: '#F5F5F4', borderRadius: 14, padding: 18, alignItems: 'center' },
   noBonusText: { color: '#78716C', fontSize: 14 },
   
-  balanceRow: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#FFF8F0', borderRadius: 12, padding: 12, marginBottom: 16 },
+  balanceRow: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: 'rgba(249,224,139,0.1)', borderRadius: 12, padding: 12, marginBottom: 16 },
   balanceLabel: { fontSize: 13, color: '#78716C' },
-  balanceValue: { fontSize: 16, fontWeight: '800', color: BRAND_GOLD },
-  
-  inputLabel: { fontSize: 13, fontWeight: '600', color: '#78716C', marginBottom: 6 },
-  input: { backgroundColor: '#fff', borderWeight: 1.5, borderColor: '#E7E5E4', borderWidth: 1.5, borderRadius: 12, padding: 14, fontSize: 15, marginBottom: 16 },
-  
+  balanceValue: { fontSize: 16, fontWeight: '800', color: '#F9E08B' },
+
+  inputLabel: { fontSize: 14, fontWeight: '600', color: '#F9E08B', marginBottom: 8 },
+  input: { backgroundColor: '#1A1A1A', borderColor: 'rgba(249,224,139,0.3)', borderWidth: 1.5, borderRadius: 12, padding: 14, fontSize: 15, marginBottom: 16, color: '#fff' },
+
   amountPicker: { flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 16, justifyContent: 'center' },
-  amtBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F5F5F4', alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  amtBtnText: { fontSize: 24, fontWeight: '700' },
-  amtText: { fontSize: 28, fontWeight: '900', color: BRAND_GOLD },
-  
-  sendBtn: { backgroundColor: '#8B5CF6', borderRadius: 14, padding: 18, alignItems: 'center' },
+  amtBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(249,224,139,0.3)' },
+  amtBtnText: { fontSize: 24, fontWeight: '700', color: '#F9E08B' },
+  amtText: { fontSize: 28, fontWeight: '900', color: '#F9E08B' },
+
+  sendBtn: { backgroundColor: '#F9E08B', borderRadius: 14, padding: 16, alignItems: 'center', flexShrink: 0 },
   sendBtnDisabled: { opacity: 0.5 },
-  sendBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  
-  doneContainer: { padding: 40, alignItems: 'center' },
+  sendBtnText: { color: '#000', fontSize: 16, fontWeight: '700' },
+
+  doneContainer: { padding: 24, alignItems: 'center' },
   doneEmoji: { fontSize: 64, marginBottom: 12 },
-  doneTitle: { fontSize: 20, fontWeight: '800', color: '#1C1917', marginBottom: 8 },
-  doneSub: { fontSize: 14, color: '#78716C', marginBottom: 30, textAlign: 'center' },
-  doneBtn: { backgroundColor: '#8B5CF6', borderRadius: 14, padding: 16, width: '100%', alignItems: 'center' },
-  doneBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  topUpBtn: { backgroundColor: BRAND_GOLD + '20', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: BRAND_GOLD },
-  topUpBtnText: { color: BRAND_GOLD, fontSize: 12, fontWeight: '700' },
+  doneTitle: { fontSize: 20, fontWeight: '800', color: '#F9E08B', marginBottom: 8 },
+  doneSub: { fontSize: 14, color: '#78716C', marginBottom: 24, textAlign: 'center' },
+  doneBtn: { backgroundColor: '#F9E08B', borderRadius: 14, padding: 16, width: '100%', alignItems: 'center' },
+  doneBtnText: { color: '#000', fontSize: 16, fontWeight: '700' },
+  topUpBtn: { backgroundColor: 'rgba(249,224,139,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: '#F9E08B' },
+  topUpBtnText: { color: '#F9E08B', fontSize: 12, fontWeight: '700' },
 });
 
