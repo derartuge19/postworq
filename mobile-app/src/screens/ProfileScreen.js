@@ -1081,7 +1081,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    color: '#D4AF37',
+    color: '#F5F5F7',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
