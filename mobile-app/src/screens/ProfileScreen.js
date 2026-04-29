@@ -904,11 +904,11 @@ const styles = StyleSheet.create({
   statCount: {
     fontSize: 18,
     fontWeight: 700,
-    color: '#F5F5F7',
+    color: '#D4AF37',
   },
   statLabel: {
     fontSize: 13,
-    color: '#A1A1AA',
+    color: '#F5F5F7',
   },
   bioSection: {
     marginBottom: 16,
@@ -944,7 +944,7 @@ const styles = StyleSheet.create({
   editBtnText: {
     fontSize: 14,
     fontWeight: 700,
-    color: '#D4AF37',
+    color: '#F5F5F7',
   },
   followBtn: {
     flex: 1,
