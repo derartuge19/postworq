@@ -940,6 +940,4 @@ const styles = StyleSheet.create({
     color: '#F5F5F7',
     fontWeight: '600',
   },
-}); fontWeight: '600',
-  },
 });
