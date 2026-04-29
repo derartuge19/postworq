@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,11 @@ import GiftSelectorScreen from './GiftSelectorScreen';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const BRAND_GOLD = '#C8B56A';
+
+const isVideo = (url) => {
+  if (!url) return false;
+  return url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('/video/upload/');
+};
 
 // ─────────────────────────────────────────────────────────────
 // Single Reel Item Component
@@ -357,7 +362,7 @@ export default function ReelsScreen({ route, navigation }) {
   useFocusEffect(
     useCallback(() => {
       fetchReels(0);
-    }, [])
+    }, [fetchReels])
   );
 
   // Listen for tab press event to refresh when already on Reels screen
@@ -371,7 +376,7 @@ export default function ReelsScreen({ route, navigation }) {
     });
 
     return unsubscribe;
-  }, [nav]);
+  }, [nav, fetchReels]);
 
   const handleShare = async (reel) => {
     try {
@@ -422,6 +427,35 @@ export default function ReelsScreen({ route, navigation }) {
     }
   }).current;
 
+  const handleComment = useCallback((reelId) => {
+    navigation.navigate('Comments', { reelId });
+  }, [navigation]);
+
+  const handleProfile = useCallback((uid) => {
+    navigation.navigate('ProfileDetail', { userId: uid });
+  }, [navigation]);
+
+  const handleLongPress = useCallback((item) => {
+    setLongPressItem(item);
+  }, []);
+
+  const handleSave = useCallback(() => {}, []);
+
+  const renderItem = useCallback(({ item, index }) => (
+    <ReelItem
+      key={item.id}
+      item={item}
+      isActive={index === visibleIdx}
+      isFocused={isFocused}
+      onComment={() => handleComment(item.id)}
+      onProfile={() => handleProfile(item.user?.id)}
+      onShare={() => handleShare(item)}
+      onSave={handleSave}
+      onLongPress={() => handleLongPress(item)}
+      navigation={navigation}
+    />
+  ), [visibleIdx, isFocused, handleComment, handleProfile, handleShare, handleSave, handleLongPress, navigation]);
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -442,15 +476,6 @@ export default function ReelsScreen({ route, navigation }) {
           key={item.id}
           item={item}
           isActive={index === visibleIdx}
-          isFocused={index === visibleIdx}
-          onComment={() => navigation.navigate('Comments', { reelId: item.id })}
-          onProfile={(uid) => navigation.navigate('ProfileDetail', { userId: uid })}
-          onShare={() => handleShare(item)}
-          onSave={() => {}}
-          onLongPress={(item) => setLongPressItem(item)}
-          navigation={navigation}
-        />
-        )}
         pagingEnabled
         snapToInterval={SCREEN_HEIGHT}
         snapToAlignment="start"
