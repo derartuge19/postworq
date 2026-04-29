@@ -16,6 +16,7 @@ import config from '../config';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const BRAND_GOLD = '#C8B56A';
+const CYAN_COLOR = '#3B82F6';
 
 const mediaUrl = (url) => {
   if (!url) return null;
