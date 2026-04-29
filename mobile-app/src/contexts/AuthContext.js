@@ -19,10 +19,15 @@ export const AuthProvider = ({ children }) => {
       const hasToken = await api.hasToken();
       console.log('AuthContext: Has token?', hasToken);
       if (hasToken) {
-        console.log('AuthContext: Fetching profile...');
-        const profileData = await api.getProfile();
-        console.log('AuthContext: Profile data:', profileData);
-        setUser(profileData.user || profileData);
+        // Only fetch profile if user data is not already set
+        if (!user) {
+          console.log('AuthContext: Fetching profile...');
+          const profileData = await api.getProfile();
+          console.log('AuthContext: Profile data:', profileData);
+          setUser(profileData.user || profileData);
+        } else {
+          console.log('AuthContext: User already set, skipping profile fetch');
+        }
       } else {
         console.log('AuthContext: No token found, user not authenticated');
         setUser(null);
