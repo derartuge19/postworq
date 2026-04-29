@@ -200,7 +200,7 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
             </TouchableOpacity>
 
             {item.user?.username !== user?.username && (
-              <TouchableOpacity style={styles.actionBtn} onPress={() => nav.navigate('GiftSelector', { recipientUsername: item.user?.username })}>
+              <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('GiftSelector', { recipientUsername: item.user?.username })}>
                 <Ionicons name="gift-outline" size={20} color={BRAND_GOLD} />
               </TouchableOpacity>
             )}
