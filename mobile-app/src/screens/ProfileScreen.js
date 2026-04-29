@@ -904,11 +904,11 @@ const styles = StyleSheet.create({
   statCount: {
     fontSize: 18,
     fontWeight: 700,
-    color: '#D4AF37',
+    color: '#F5F5F7',
   },
   statLabel: {
     fontSize: 13,
-    color: '#D4AF37',
+    color: '#A1A1AA',
   },
   bioSection: {
     marginBottom: 16,
@@ -916,12 +916,12 @@ const styles = StyleSheet.create({
   fullName: {
     fontSize: 15,
     fontWeight: 700,
-    color: '#D4AF37',
+    color: '#F5F5F7',
     marginBottom: 4,
   },
   bioText: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#A1A1AA',
     lineHeight: 20,
   },
   actionButtons: {
@@ -999,7 +999,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   activeTab: { borderBottomColor: '#D4AF37' },
-  tabLabel: { fontSize: 10, fontWeight: 400, color: '#D4AF37', letterSpacing: 0.3 },
+  tabLabel: { fontSize: 10, fontWeight: 400, color: '#F5F5F7', letterSpacing: 0.3 },
   activeTabLabel: { color: '#D4AF37', fontWeight: 700 },
   grid: { padding: 4 },
   postThumb: { 
