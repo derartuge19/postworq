@@ -126,7 +126,7 @@ function OtpInput({ value, onChange }) {
 
 export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
   const { colors: T } = useTheme();
-  const [step, setStep] = useState(1); // 1=phone, 2=otp, 3=account
+  const [step, setStep] = useState(3); // Skip OTP — go directly to account creation
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [verifiedPhone, setVerifiedPhone] = useState("");
@@ -191,11 +191,12 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
   const handleRegister = async () => {
     setError("");
     if (!username) { setError("Please choose a username"); return; }
+    if (!email) { setError("Please enter your email"); return; }
     if (!/^\d{6}$/.test(password)) { setError("Password must be exactly 6 digits (numbers only)"); return; }
     if (password !== confirm) { setError("Passwords do not match"); return; }
     setLoading(true);
     try {
-      const res = await api.registerWithPhone(verifiedPhone, username, password, email);
+      const res = await api.register(username, email, password, "", "");
       api.setAuthToken(res.token);
       onSuccess({
         id: res.user.id, username: res.user.username, email: res.user.email || "",
