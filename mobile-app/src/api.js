@@ -252,6 +252,19 @@ const api = {
     return data;
   },
 
+  // Forgot Password
+  forgotPasswordRequest: (email) =>
+    api.request('/auth/forgot-password/', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  forgotPasswordConfirm: (email, code, new_password) =>
+    api.request('/auth/forgot-password/confirm/', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, new_password }),
+    }),
+
   // Profile
   getProfile: () => api.request('/profile/me/'),
 
@@ -515,6 +528,94 @@ const api = {
   getWalletBalance: () => api.request('/wallet/'),
   getWalletConfig: () => api.request('/wallet/config/'),
   getCoinPackages: () => api.request('/coins/packages/'),
+
+  // Competitions
+  getCompetitions: () => api.request('/competitions/'),
+  getActiveCompetitions: () => api.request('/competitions/?is_active=true'),
+
+  // Winners
+  getWinners: () => api.request('/winners/'),
+  getLatestWinners: () => api.request('/winners/latest/'),
+
+  // Subscription
+  getSubscription: () => api.request('/subscription/'),
+  upgradeSubscription: (plan) =>
+    api.request('/subscription/upgrade/', {
+      method: 'POST',
+      body: JSON.stringify({ plan }),
+    }),
+  upgradeToProPlan: () =>
+    api.request('/subscription/upgrade/', {
+      method: 'POST',
+      body: JSON.stringify({ plan: 'pro' }),
+    }),
+  upgradeToPremiumPlan: () =>
+    api.request('/subscription/upgrade/', {
+      method: 'POST',
+      body: JSON.stringify({ plan: 'premium' }),
+    }),
+
+  // Quests
+  getQuests: () => api.request('/quests/'),
+  completeQuest: (questId) =>
+    api.request(`/quests/${questId}/complete/`, {
+      method: 'POST',
+    }),
+
+  // Reports
+  createReport: (reportData) =>
+    api.request('/reports/create/', {
+      method: 'POST',
+      body: JSON.stringify(reportData),
+    }),
+  getAdminReports: (status = null, type = null) => {
+    let url = '/admin/reports/';
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (type) params.append('type', type);
+    if (params.toString()) url += '?' + params.toString();
+    return api.request(url);
+  },
+  getAdminReportDetail: (reportId) =>
+    api.request(`/admin/reports/${reportId}/`),
+  updateAdminReport: (reportId, data) =>
+    api.request(`/admin/reports/${reportId}/`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  getAdminReportsStats: () => api.request('/admin/reports/stats/'),
+
+  // Trending hashtags
+  getTrendingHashtags: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.request(`/explorer/trending-hashtags/${qs ? '?' + qs : ''}`);
+  },
+
+  // Search by hashtag
+  searchByHashtag: (hashtag) =>
+    api.request(`/reels/?hashtags__icontains=${encodeURIComponent(hashtag)}`),
+
+  // Change password
+  changePassword: (currentPassword, newPassword) =>
+    api.request('/auth/change-password/', {
+      method: 'POST',
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    }),
+
+  // Delete account
+  deleteAccount: () =>
+    api.request('/auth/delete-account/', {
+      method: 'DELETE',
+    }),
+
+  // Download data
+  downloadData: () =>
+    api.request('/profile/download-data/', {
+      method: 'POST',
+    }),
 
 };
 

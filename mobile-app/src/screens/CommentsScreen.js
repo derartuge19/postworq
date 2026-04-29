@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
+  Modal,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -73,9 +75,12 @@ const timeAgo = (date) => {
 };
 
 // Comment Item Component (recursive)
-const CommentItem = memo(function CommentItem({ comment, depth = 0, onLike, onReply }) {
+const CommentItem = memo(function CommentItem({ comment, depth = 0, onLike, onReply, onReport, expandedReplies, onToggleReplies }) {
   const isReply = depth > 0;
   const avatarSize = isReply ? 28 : 34;
+  const hasReplies = comment.replies && comment.replies.length > 0;
+  const isExpanded = expandedReplies?.has(comment.id);
+  const showRepliesToggle = !isReply && hasReplies;
 
   return (
     <View style={styles.commentContainer}>
@@ -111,12 +116,30 @@ const CommentItem = memo(function CommentItem({ comment, depth = 0, onLike, onRe
             <TouchableOpacity style={styles.replyBtn} onPress={() => onReply(comment)}>
               <Text style={styles.replyText}>Reply</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.reportBtn} onPress={() => onReport(comment)}>
+              <Ionicons name="flag-outline" size={13} color="#EF4444" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
 
+      {/* View replies toggle — only at top level */}
+      {showRepliesToggle && (
+        <TouchableOpacity
+          style={styles.viewRepliesToggle}
+          onPress={() => onToggleReplies(comment.id)}
+        >
+          <View style={styles.viewRepliesLine} />
+          <Text style={styles.viewRepliesText}>
+            {isExpanded
+              ? `Hide ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`
+              : `View ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       {/* Recursive Replies */}
-      {comment.replies && comment.replies.length > 0 && (
+      {hasReplies && (isReply || isExpanded) && (
         <View style={[styles.repliesContainer, { marginLeft: depth === 0 ? 44 : 24 }]}>
           <View style={styles.replyThreadLine} />
           {comment.replies.map(r => (
@@ -126,6 +149,9 @@ const CommentItem = memo(function CommentItem({ comment, depth = 0, onLike, onRe
               depth={depth + 1}
               onLike={onLike}
               onReply={onReply}
+              onReport={onReport}
+              expandedReplies={expandedReplies}
+              onToggleReplies={onToggleReplies}
             />
           ))}
         </View>
@@ -151,6 +177,9 @@ export default function CommentsScreen({ route, navigation }) {
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [expandedReplies, setExpandedReplies] = useState(() => new Set());
+  const [reportingComment, setReportingComment] = useState(null);
+  const [reportSubmitting, setReportSubmitting] = useState(false);
 
   useEffect(() => {
     loadComments();
@@ -328,6 +357,48 @@ export default function CommentsScreen({ route, navigation }) {
     }
   };
 
+  const toggleReplies = (commentId) => {
+    setExpandedReplies(prev => {
+      const next = new Set(prev);
+      if (next.has(commentId)) next.delete(commentId);
+      else next.add(commentId);
+      return next;
+    });
+  };
+
+  const COMMENT_REPORT_REASONS = [
+    { id: 'spam', label: 'Spam or Misleading', icon: '⚠️' },
+    { id: 'harassment', label: 'Harassment or Bullying', icon: '😡' },
+    { id: 'hate_speech', label: 'Hate Speech', icon: '🚫' },
+    { id: 'inappropriate', label: 'Inappropriate Content', icon: '😢' },
+    { id: 'other', label: 'Other', icon: '📋' },
+  ];
+
+  const handleReportComment = async (commentId, reportType) => {
+    setReportingComment(null);
+    if (!currentUser) {
+      Alert.alert('Sign In Required', 'Please sign in to report comments.');
+      return;
+    }
+    setReportSubmitting(true);
+    try {
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_comment_id: commentId,
+          report_type: reportType,
+          description: `Comment reported as: ${reportType}`,
+          target_type: 'comment',
+        }),
+      });
+      Alert.alert('Report Submitted', 'Thank you. Our team will review this comment.');
+    } catch (err) {
+      Alert.alert('Error', 'Failed to submit report. Please try again.');
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -359,6 +430,9 @@ export default function CommentsScreen({ route, navigation }) {
                 comment={c}
                 onLike={handleLikeComment}
                 onReply={handleReply}
+                onReport={setReportingComment}
+                expandedReplies={expandedReplies}
+                onToggleReplies={toggleReplies}
               />
             ))}
           </View>
@@ -444,6 +518,45 @@ export default function CommentsScreen({ route, navigation }) {
           </View>
         )}
       </View>
+
+      {/* Comment Report Reason Modal */}
+      <Modal visible={!!reportingComment} transparent animationType="slide">
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setReportingComment(null)}
+        >
+          <View style={styles.reportModal} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.reportHeader}>
+              <Ionicons name="flag" size={18} color="#EF4444" />
+              <Text style={styles.reportTitle}>Report Comment</Text>
+            </View>
+            <Text style={styles.reportSubtitle}>Why are you reporting this comment?</Text>
+            
+            <ScrollView style={styles.reportScroll} showsVerticalScrollIndicator={false}>
+              {COMMENT_REPORT_REASONS.map(r => (
+                <TouchableOpacity
+                  key={r.id}
+                  style={styles.reportItem}
+                  onPress={() => handleReportComment(reportingComment, r.id)}
+                  disabled={reportSubmitting}
+                >
+                  <Text style={styles.reportIcon}>{r.icon}</Text>
+                  <Text style={styles.reportLabel}>{r.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity 
+              style={styles.reportCancel}
+              onPress={() => setReportingComment(null)}
+            >
+              <Text style={styles.reportCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -693,6 +806,101 @@ const styles = StyleSheet.create({
     color: BRAND_GOLD,
   },
   mentionUsername: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F9E08B',
+  },
+  reportBtn: {
+    padding: 0,
+    marginLeft: 'auto',
+    opacity: 0.6,
+  },
+  viewRepliesToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginLeft: 44,
+    paddingVertical: 4,
+  },
+  viewRepliesLine: {
+    width: 24,
+    height: 1,
+    backgroundColor: '#e5e5e5',
+    opacity: 0.5,
+  },
+  viewRepliesText: {
+    color: '#F9E08B',
+    fontSize: 11,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  reportModal: {
+    backgroundColor: '#0d0d0d',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 40,
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: '#e5e5e5',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  reportHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  reportTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#F9E08B',
+  },
+  reportSubtitle: {
+    fontSize: 13,
+    color: '#999',
+    marginBottom: 16,
+  },
+  reportScroll: {
+    maxHeight: 400,
+  },
+  reportItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    backgroundColor: '#1a1a1a',
+    gap: 12,
+  },
+  reportIcon: {
+    fontSize: 18,
+  },
+  reportLabel: {
+    fontSize: 14,
+    color: '#F9E08B',
+    fontWeight: '500',
+  },
+  reportCancel: {
+    marginTop: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 10,
+  },
+  reportCancelText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#F9E08B',
