@@ -16,9 +16,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import api from '../api';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
+import GiftSelectorScreen from './GiftSelectorScreen';
 
 const BRAND_GOLD = '#C8B56A';
 
@@ -75,7 +77,7 @@ const timeAgo = (date) => {
 };
 
 // Comment Item Component (recursive)
-const CommentItem = memo(function CommentItem({ comment, depth = 0, onLike, onReply, onReport, expandedReplies, onToggleReplies }) {
+const CommentItem = memo(function CommentItem({ comment, depth = 0, onLike, onReply, onReport, onGift, expandedReplies, onToggleReplies }) {
   const isReply = depth > 0;
   const avatarSize = isReply ? 28 : 34;
   const hasReplies = comment.replies && comment.replies.length > 0;
@@ -106,16 +108,21 @@ const CommentItem = memo(function CommentItem({ comment, depth = 0, onLike, onRe
           <View style={styles.commentActions}>
             <Text style={styles.timestamp}>{timeAgo(comment.created_at)}</Text>
             <TouchableOpacity style={styles.actionBtn} onPress={() => onLike(comment)}>
-              <Ionicons 
-                name={comment.is_liked ? "heart" : "heart-outline"} 
-                size={14} 
-                color={comment.is_liked ? BRAND_GOLD : "#666"} 
+              <Ionicons
+                name={comment.is_liked ? "heart" : "heart-outline"}
+                size={14}
+                color={comment.is_liked ? BRAND_GOLD : "#666"}
               />
               {comment.likes_count > 0 && <Text style={styles.likeCount}>{comment.likes_count}</Text>}
             </TouchableOpacity>
             <TouchableOpacity style={styles.replyBtn} onPress={() => onReply(comment)}>
               <Text style={styles.replyText}>Reply</Text>
             </TouchableOpacity>
+            {onGift && (
+              <TouchableOpacity style={styles.actionBtn} onPress={() => onGift(comment)}>
+                <Ionicons name="gift-outline" size={14} color={BRAND_GOLD} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={styles.reportBtn} onPress={() => onReport(comment)}>
               <Ionicons name="flag-outline" size={13} color="#EF4444" />
             </TouchableOpacity>
@@ -150,6 +157,7 @@ const CommentItem = memo(function CommentItem({ comment, depth = 0, onLike, onRe
               onLike={onLike}
               onReply={onReply}
               onReport={onReport}
+              onGift={onGift}
               expandedReplies={expandedReplies}
               onToggleReplies={onToggleReplies}
             />
@@ -165,15 +173,12 @@ export default function CommentsScreen({ route, navigation }) {
   const insets = useSafeAreaInsets();
   const { user: currentUser } = useAuth();
   const scrollViewRef = useRef(null);
-  
+
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showGiftModal, setShowGiftModal] = useState(false);
-  const [reelUsername, setReelUsername] = useState('');
-  const [reelUserId, setReelUserId] = useState('');
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionSuggestions, setMentionSuggestions] = useState([]);
@@ -183,13 +188,6 @@ export default function CommentsScreen({ route, navigation }) {
 
   useEffect(() => {
     loadComments();
-    // Fetch reel data to get username for gift modal
-    api.request(`/reels/${reelId}/`)
-      .then(d => {
-        setReelUsername(d.user?.username || '');
-        setReelUserId(d.user?.id || '');
-      })
-      .catch(() => {});
   }, [reelId]);
 
   // Mention autocomplete
@@ -399,6 +397,10 @@ export default function CommentsScreen({ route, navigation }) {
     }
   };
 
+  const handleGift = (comment) => {
+    navigation.navigate('GiftSelector', { recipientUsername: comment.user?.username });
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -431,6 +433,7 @@ export default function CommentsScreen({ route, navigation }) {
                 onLike={handleLikeComment}
                 onReply={handleReply}
                 onReport={setReportingComment}
+                onGift={handleGift}
                 expandedReplies={expandedReplies}
                 onToggleReplies={toggleReplies}
               />
