@@ -44,6 +44,7 @@ export default function ProfileScreen({ navigation }) {
   const [posts, setPosts] = useState([]);
   const [followers, setFollowers] = useState(0);
   const [following, setFollowing] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState('posts'); // 'posts' | 'reels' | 'saved' | 'campaigns'
   const [campaignStats, setCampaignStats] = useState(null);
   const [postMenuId, setPostMenuId] = useState(null);
@@ -350,6 +351,29 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const handleFollowToggle = async () => {
+    try {
+      const res = await api.toggleFollow(profile?.id || user?.id);
+      setIsFollowing(res.following);
+      setFollowers(prev => prev + (res.following ? 1 : -1));
+    } catch (error) {
+      console.error('Failed to toggle follow:', error);
+      Alert.alert('Error', 'Could not follow user. Please try again.');
+    }
+  };
+
+  const handleShareProfile = async () => {
+    try {
+      const profileUrl = `https://flipstar.app/profile/${profile?.id || user?.id}`;
+      await Share.share({
+        message: `Check out ${profile?.username || user?.username}'s profile on FlipStar!`,
+        url: profileUrl,
+      });
+    } catch (error) {
+      console.error('Failed to share:', error);
+    }
+  };
+
   return (
     <View style={styles.root}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
@@ -392,22 +416,30 @@ export default function ProfileScreen({ navigation }) {
       </Modal>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top }]}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.headerUsername}>@{profile?.username || user?.username || 'user'}</Text>
-          </View>
-          <View style={styles.headerRight}>
-            {/* Treasure chest — opens rewards modal */}
-            <TouchableOpacity onPress={() => setShowGamModal(true)} style={{ marginRight: 12 }}>
-              <Ionicons name="diamond-outline" size={24} color={BRAND_GOLD} />
+        {/* Sticky header with gamification bar */}
+        <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+          {/* Navigation row */}
+          <View style={styles.navRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={24} color="#F9E08B" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={{ marginRight: 12 }}>
-              <Ionicons name="wallet-outline" size={24} color="#F9E08B" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-              <Ionicons name="settings-outline" size={24} color="#F9E08B" />
-            </TouchableOpacity>
+            <View style={styles.navCenter}>
+              <Text style={styles.navUsername}>{profile?.username || user?.username || 'user'}</Text>
+              <Text style={styles.navPosts}>{posts.length} posts</Text>
+            </View>
+            {profile?.id === user?.id && (
+              <View style={styles.navActions}>
+                <TouchableOpacity onPress={() => setShowGamModal(true)} style={styles.navActionBtn}>
+                  <Ionicons name="diamond-outline" size={24} color="#F9E08B" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={styles.navActionBtn}>
+                  <Ionicons name="wallet-outline" size={24} color="#F9E08B" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.navActionBtn}>
+                  <Ionicons name="settings-outline" size={24} color="#F9E08B" />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
 
@@ -419,7 +451,7 @@ export default function ProfileScreen({ navigation }) {
                 <Image source={{ uri: mediaUrl(profile.profile_photo) }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatar, styles.avatarFallback]}>
-                  <Text style={styles.avatarInitial}>{user?.username?.[0]?.toUpperCase()}</Text>
+                  <Text style={styles.avatarEmoji}>👤</Text>
                 </View>
               )}
             </View>
@@ -449,25 +481,43 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.bioSection}>
             <Text style={styles.fullName}>
               {profile?.first_name || user?.first_name || ''} {profile?.last_name || user?.last_name || ''}
-              {!(profile?.first_name || user?.first_name) && (profile?.username || user?.username)}
             </Text>
             {(profile?.bio || user?.bio) && <Text style={styles.bioText}>{profile?.bio || user?.bio}</Text>}
           </View>
 
-          <View style={styles.actionButtons}>
+          {profile?.id === user?.id ? (
             <TouchableOpacity 
               style={styles.editBtn}
               onPress={() => navigation.navigate('EditProfile')}
             >
+              <Ionicons name="pencil-outline" size={16} color="#F9E08B" />
               <Text style={styles.editBtnText}>Edit Profile</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.shareBtn}
-              onPress={handleShareProfile}
-            >
-              <Text style={styles.shareBtnText}>Share Profile</Text>
-            </TouchableOpacity>
-          </View>
+          ) : (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity 
+                style={styles.followBtn}
+                onPress={handleFollowToggle}
+              >
+                <Ionicons name={isFollowing ? 'checkmark-circle' : 'person-add'} size={18} color={isFollowing ? '#F9E08B' : '#000'} />
+                <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
+                  {isFollowing ? 'Following' : 'Follow'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.iconBtn}
+                onPress={handleShareProfile}
+              >
+                <Ionicons name="share-social-outline" size={18} color="#F9E08B" />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.iconBtn, styles.reportBtn]}
+                onPress={() => {/* Report functionality */}}
+              >
+                <Ionicons name="flag-outline" size={18} color="#EF4444" />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Tabs */}
@@ -476,28 +526,48 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.tabItem, activeTab === 'posts' && styles.activeTab]}
             onPress={() => setActiveTab('posts')}
           >
-            <Ionicons name="grid-outline" size={22} color={activeTab === 'posts' ? BRAND_GOLD : '#666'} />
+            <Ionicons 
+              name="grid-outline" 
+              size={22} 
+              color="#F9E08B" 
+              strokeWidth={activeTab === 'posts' ? 2.5 : 1.8} 
+            />
             <Text style={[styles.tabLabel, activeTab === 'posts' && styles.activeTabLabel]}>Posts</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tabItem, activeTab === 'reels' && styles.activeTab]}
             onPress={() => setActiveTab('reels')}
           >
-            <Ionicons name="film-outline" size={22} color={activeTab === 'reels' ? BRAND_GOLD : '#666'} />
+            <Ionicons 
+              name="film-outline" 
+              size={22} 
+              color="#F9E08B" 
+              strokeWidth={activeTab === 'reels' ? 2.5 : 1.8} 
+            />
             <Text style={[styles.tabLabel, activeTab === 'reels' && styles.activeTabLabel]}>Reels</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tabItem, activeTab === 'campaigns' && styles.activeTab]}
             onPress={() => setActiveTab('campaigns')}
           >
-            <Ionicons name="trophy-outline" size={22} color={activeTab === 'campaigns' ? BRAND_GOLD : '#666'} />
+            <Ionicons 
+              name="trophy-outline" 
+              size={22} 
+              color="#F9E08B" 
+              strokeWidth={activeTab === 'campaigns' ? 2.5 : 1.8} 
+            />
             <Text style={[styles.tabLabel, activeTab === 'campaigns' && styles.activeTabLabel]}>Campaigns</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tabItem, activeTab === 'saved' && styles.activeTab]}
             onPress={() => setActiveTab('saved')}
           >
-            <Ionicons name="bookmark-outline" size={22} color={activeTab === 'saved' ? BRAND_GOLD : '#666'} />
+            <Ionicons 
+              name="bookmark-outline" 
+              size={22} 
+              color="#F9E08B" 
+              strokeWidth={activeTab === 'saved' ? 2.5 : 1.8} 
+            />
             <Text style={[styles.tabLabel, activeTab === 'saved' && styles.activeTabLabel]}>Saved</Text>
           </TouchableOpacity>
         </View>
@@ -769,57 +839,190 @@ export default function ProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0d0d0d' },
+  root: { flex: 1, backgroundColor: '#1A1A1A' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: {
+  headerContainer: {
+    backgroundColor: '#1A1A1A',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226,179,85,0.35)',
+  },
+  navRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#262626',
+    gap: 16,
+    padding: 12,
   },
-  headerLeft: { flex: 1 },
-  headerRight: { flexDirection: 'row', alignItems: 'center' },
-  headerUsername: { fontSize: 18, fontWeight: '800', color: '#F9E08B' },
-  profileInfo: { padding: 16 },
-  mainInfoRow: { flexDirection: 'row', alignItems: 'center' },
-  avatarWrap: { position: 'relative' },
-  avatar: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, borderColor: '#F9E08B' },
-  avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND_GOLD + '20' },
-  avatarInitial: { fontSize: 32, fontWeight: 'bold', color: BRAND_GOLD },
-  statsRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginLeft: 20 },
-  statItem: { alignItems: 'center' },
-  statCount: { fontSize: 18, fontWeight: '800', color: '#F9E08B' },
-  statLabel: { fontSize: 12, color: '#F9E08B', marginTop: 2 },
-  bioSection: { marginTop: 15 },
-  fullName: { fontSize: 15, fontWeight: '700', color: '#F9E08B' },
-  bioText: { fontSize: 14, color: '#F9E08B', marginTop: 4, lineHeight: 20 },
-  actionButtons: { flexDirection: 'row', gap: 10, marginTop: 20, paddingHorizontal: 0 },
-  editBtn: { flex: 1, height: 38, backgroundColor: '#1A1A1A', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0, borderWidth: 1.5, borderColor: '#F9E08B' },
-  editBtnText: { fontSize: 14, fontWeight: '700', color: '#F9E08B' },
-  shareBtn: { flex: 1, height: 38, backgroundColor: '#1A1A1A', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0, borderWidth: 1.5, borderColor: '#F9E08B' },
-  shareBtnText: { fontSize: 14, fontWeight: '700', color: '#F9E08B' },
+  backBtn: {
+    padding: 8,
+  },
+  navCenter: {
+    flex: 1,
+  },
+  navUsername: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: '#F9E08B',
+  },
+  navPosts: {
+    fontSize: 12,
+    color: '#F9E08B',
+  },
+  navActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  navActionBtn: {
+    padding: 8,
+  },
+  profileInfo: {
+    padding: 20,
+  },
+  mainInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 20,
+    marginBottom: 20,
+  },
+  avatarWrap: {
+    position: 'relative',
+    flexShrink: 0,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    minWidth: 80,
+    minHeight: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(249,224,139,0.1)',
+  },
+  avatarFallback: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(249,224,139,0.3)',
+  },
+  avatarEmoji: {
+    fontSize: 32,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 20,
+    flex: 1,
+  },
+  statItem: {
+    textAlign: 'center',
+  },
+  statCount: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: '#F9E08B',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#F9E08B',
+  },
+  bioSection: {
+    marginBottom: 16,
+  },
+  fullName: {
+    fontSize: 15,
+    fontWeight: 700,
+    color: '#F9E08B',
+    marginBottom: 4,
+  },
+  bioText: {
+    fontSize: 14,
+    color: '#F9E08B',
+    lineHeight: 20,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  editBtn: {
+    width: '100%',
+    height: 40,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#F9E08B',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editBtnText: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#F9E08B',
+  },
+  followBtn: {
+    flex: 1,
+    height: 40,
+    backgroundColor: '#F9E08B',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  followBtnActive: {
+    backgroundColor: 'rgba(249,224,139,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(249,224,139,0.6)',
+  },
+  followBtnText: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#000',
+  },
+  followBtnTextActive: {
+    color: '#F9E08B',
+  },
+  iconBtn: {
+    height: 40,
+    width: 40,
+    backgroundColor: '#1A1A1A',
+    borderWidth: 1,
+    borderColor: 'rgba(226,179,85,0.35)',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reportBtn: {
+    borderColor: 'rgba(239,68,68,0.5)',
+  },
   tabs: {
     flexDirection: 'row',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#262626',
-    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(226,179,85,0.35)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226,179,85,0.35)',
   },
   tabItem: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderBottomWidth: 2,
+    justifyContent: 'center',
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
-    gap: 4,
+    gap: 3,
   },
-  activeTab: { borderBottomColor: BRAND_GOLD },
-  tabLabel: { fontSize: 10, fontWeight: '500', color: '#F9E08B' },
-  activeTabLabel: { color: BRAND_GOLD, fontWeight: '700' },
-  grid: { padding: 1 },
-  postThumb: { width: width / 3 - 2, height: width / 3 - 2, margin: 1, backgroundColor: '#1A1A1A' },
+  activeTab: { borderBottomColor: '#F9E08B' },
+  tabLabel: { fontSize: 10, fontWeight: 400, color: '#F9E08B', letterSpacing: 0.3 },
+  activeTabLabel: { color: '#F9E08B', fontWeight: 700 },
+  grid: { padding: 4 },
+  postThumb: { 
+    width: width / 3 - 4, 
+    height: width / 3 - 4, 
+    margin: 2, 
+    backgroundColor: 'rgba(249,224,139,0.2)', 
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(226,179,85,0.28)',
+    overflow: 'hidden',
+  },
   thumbImage: { width: '100%', height: '100%', objectFit: 'cover' },
   videoBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(0,0,0,0.5)', padding: 2, borderRadius: 4 },
   campaignThumb: { 
