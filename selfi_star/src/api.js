@@ -256,13 +256,13 @@ const api = {
 
   // Phone OTP Registration
   sendPhoneOtp: (phone) =>
-    api.request('/auth/send-otp/', { method: 'POST', body: JSON.stringify({ phone }) }),
+    api.request('/auth/send-phone-otp/', { method: 'POST', body: JSON.stringify({ phone }) }),
 
   verifyPhoneOtp: (phone, code) =>
-    api.request('/auth/verify-otp/', { method: 'POST', body: JSON.stringify({ phone, code }) }),
+    api.request('/auth/verify-phone-otp/', { method: 'POST', body: JSON.stringify({ phone, code }) }),
 
   registerWithPhone: (phone, username, password, email = '') =>
-    api.request('/auth/register-phone/', {
+    api.request('/auth/register-with-phone/', {
       method: 'POST',
       body: JSON.stringify({ phone, username, password, email }),
     }),
