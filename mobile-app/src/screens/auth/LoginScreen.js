@@ -40,8 +40,12 @@ export default function LoginScreen({ navigation }) {
 
         {/* Logos */}
         <View style={s.logosRow}>
-          <Image source={ethioLogo} style={s.logoLeft}  resizeMode="contain" />
-          <Image source={flipLogo}  style={s.logoRight} resizeMode="contain" />
+          <View style={s.logoLeftBg}>
+            <Image source={ethioLogo} style={s.logoLeft} resizeMode="contain" />
+          </View>
+          <View style={s.logoRightBg}>
+            <Image source={flipLogo} style={s.logoRight} resizeMode="contain" />
+          </View>
         </View>
 
         {/* Card */}
@@ -116,7 +120,9 @@ export default function LoginScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   scroll: { flexGrow: 1, padding: 20 },
-  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, marginTop: 40, backgroundColor: '#fff', borderRadius: 12, padding: 10 },
+  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, marginTop: 40 },
+  logoLeftBg:  { backgroundColor: '#fff', borderRadius: 10, padding: 8 },
+  logoRightBg: { backgroundColor: '#000', borderRadius: 10, padding: 8 },
   logoLeft:  { width: 100, height: 50 },
   logoRight: { width: 100, height: 50 },
   card: { backgroundColor: CARD, borderRadius: 18, padding: 24, borderWidth: 1, borderColor: GOLD_BORDER },
