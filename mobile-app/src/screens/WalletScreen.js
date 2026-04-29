@@ -200,21 +200,21 @@ export default function WalletScreen({ navigation }) {
             <Ionicons name="wallet" size={16} color="#fff" />
             <Text style={styles.balanceLabel}>Total Balance</Text>
           </View>
-          <Text style={styles.balanceAmount}>{balance?.balance?.total || balance?.balance || 0}</Text>
+          <Text style={styles.balanceAmount}>{balance?.balance?.total ?? 0}</Text>
           <Text style={styles.balanceSubtext}>
-            ≈ {((balance?.balance?.total || balance?.balance || 0) / (balance?.config?.coins_per_birr || 10)).toFixed(2)} ETB (Birr)
+            ≈ {((balance?.balance?.total ?? 0) / (balance?.config?.coins_per_birr ?? 10)).toFixed(2)} ETB (Birr)
           </Text>
 
           {/* Two-bucket breakdown */}
           <View style={styles.balanceBreakdown}>
             <View style={styles.balanceBucket}>
               <Text style={styles.balanceBucketLabel}>Earned</Text>
-              <Text style={styles.balanceBucketValue}>{balance?.balance?.earned || balance?.earned_total || 0}</Text>
+              <Text style={styles.balanceBucketValue}>{balance?.balance?.earned ?? balance?.earned_total ?? 0}</Text>
               <Text style={styles.balanceBucketSub}>Withdrawable to Birr</Text>
             </View>
             <View style={styles.balanceBucket}>
               <Text style={styles.balanceBucketLabel}>Purchased</Text>
-              <Text style={styles.balanceBucketValue}>{balance?.balance?.purchased || 0}</Text>
+              <Text style={styles.balanceBucketValue}>{balance?.balance?.purchased ?? 0}</Text>
               <Text style={styles.balanceBucketSub}>For gifts & boosts</Text>
             </View>
           </View>
