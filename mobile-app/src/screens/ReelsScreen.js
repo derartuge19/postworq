@@ -29,7 +29,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 // ─────────────────────────────────────────────────────────────
 // Single Reel Item Component
@@ -656,15 +656,15 @@ export default function ReelsScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundcolor: '#D4AF37' },
-  loader: { flex: 1, backgroundcolor: '#D4AF37', alignItems: 'center', justifyContent: 'center' },
-  slide: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, backgroundcolor: '#D4AF37' },
+  root: { flex: 1, backgroundcolor: '#C8B56A' },
+  loader: { flex: 1, backgroundcolor: '#C8B56A', alignItems: 'center', justifyContent: 'center' },
+  slide: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, backgroundcolor: '#C8B56A' },
   heartOverlay: { 
     ...StyleSheet.absoluteFillObject, 
     alignItems: 'center', 
     justifyContent: 'center', 
     zIndex: 10,
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 10,
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -711,12 +711,12 @@ const styles = StyleSheet.create({
   iconCircleGrid: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   iconGrid: { flexDirection: 'row', justifyContent: 'space-around', padding: '8px 16px 16px', gap: 8 },
   iconGridItem: { alignItems: 'center', gap: 4 },
-  iconGridText: { fontSize: 11, color: '#D4AF37', marginTop: 4, fontWeight: '500' },
+  iconGridText: { fontSize: 11, color: '#C8B56A', marginTop: 4, fontWeight: '500' },
   sheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
   sheetItemText: { fontSize: 16, fontWeight: '600', color: '#1C1917' },
   menuCard: { width: SCREEN_WIDTH * 0.7, backgroundColor: '#0B0B0C', borderRadius: 20, overflow: 'hidden' },
   menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
-  menuItemText: { marginLeft: 12, fontSize: 16, fontWeight: '600', color: '#D4AF37' },
+  menuItemText: { marginLeft: 12, fontSize: 16, fontWeight: '600', color: '#C8B56A' },
   header: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 30 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
@@ -738,6 +738,7 @@ const styles = StyleSheet.create({
   sendGiftBtn: { backgroundColor: BRAND_GOLD, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 10 },
   sendGiftBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });
+
 
 
 

@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0B0B0C',
   },
   videoContainer: {
-    backgroundcolor: '#D4AF37',
+    backgroundcolor: '#C8B56A',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -125,21 +125,21 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   time: {
     fontSize: 12,
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginTop: 2,
   },
   caption: {
     fontSize: 16,
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 16,
     lineHeight: 22,
   },
@@ -154,9 +154,10 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
 });
+
 
 
 

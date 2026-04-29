@@ -13,7 +13,7 @@ import api from '../api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const PERIODS = [
   { id: 'overall', label: 'All Time' },
@@ -174,7 +174,7 @@ export default function CampaignLeaderboardScreen({ route, navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={16} color="#D4AF37" />
+          <Ionicons name="chevron-back" size={16} color="#C8B56A" />
           <Text style={styles.backButtonText}>Back to Campaign</Text>
         </TouchableOpacity>
         
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   campaignTypeRow: {
     flexDirection: 'row',
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   podiumAvatarText: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   podiumAvatarTextFirst: {
     fontSize: 26,
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   podiumName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 4,
   },
   podiumNameFirst: {
@@ -475,12 +475,12 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   username: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   scoreInfo: {
     alignItems: 'flex-end',
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 8,
   },
   emptySubtitle: {
@@ -514,6 +514,7 @@ const styles = StyleSheet.create({
     color: '#A1A1AA',
   },
 });
+
 
 
 

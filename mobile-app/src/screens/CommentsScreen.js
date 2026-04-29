@@ -20,7 +20,7 @@ import api from '../api';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 // Build comment tree from flat list
 function buildCommentTree(flatList) {
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   scrollView: {
     flex: 1,
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 8,
   },
   emptySubtext: {
@@ -655,10 +655,10 @@ const styles = StyleSheet.create({
   },
   username: {
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   commentBody: {
-    color: '#D4AF37',
+    color: '#C8B56A',
     lineHeight: 18,
   },
   commentActions: {
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 10,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   actionBtn: {
     flexDirection: 'row',
@@ -678,13 +678,13 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontSize: 10,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   replyBtn: {
     padding: 0,
   },
   replyText: {
-    color: '#D4AF37',
+    color: '#C8B56A',
     fontSize: 11,
     fontWeight: '600',
   },
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
   },
   replyingToText: {
     fontSize: 12,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   replyingToUser: {
     fontWeight: '700',
@@ -740,7 +740,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     maxHeight: 80,
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   sendButton: {
     width: 40,
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e5e5',
     maxHeight: 200,
     marginBottom: 8,
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -808,7 +808,7 @@ const styles = StyleSheet.create({
   mentionUsername: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   reportBtn: {
     padding: 0,
@@ -829,7 +829,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   viewRepliesText: {
-    color: '#D4AF37',
+    color: '#C8B56A',
     fontSize: 11,
     fontWeight: '600',
     marginLeft: 8,
@@ -863,7 +863,7 @@ const styles = StyleSheet.create({
   reportTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   reportSubtitle: {
     fontSize: 13,
@@ -890,7 +890,7 @@ const styles = StyleSheet.create({
   },
   reportLabel: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     fontWeight: '500',
   },
   reportCancel: {
@@ -903,9 +903,10 @@ const styles = StyleSheet.create({
   reportCancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
 });
+
 
 
 

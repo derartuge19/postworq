@@ -21,7 +21,7 @@ import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const CATEGORY_ICONS = {
   flowers: '🌹',
@@ -475,7 +475,7 @@ export default function GiftSelectorScreen({ route, navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+          <Ionicons name="chevron-back" size={24} color="#C8B56A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Send Gift</Text>
         <View style={styles.coinBalanceContainer}>
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   coinBalanceContainer: {
     flexDirection: 'row',
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
   },
   recipientLabel: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginRight: 8,
   },
   recipientName: {
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
   },
   categoryTabText: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     fontWeight: '500',
   },
   categoryTabTextSelected: {
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
   giftName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     textAlign: 'center',
     marginBottom: 4,
   },
@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   modalGiftPreview: {
     alignItems: 'center',
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
   modalGiftName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 4,
   },
   modalGiftPrice: {
@@ -752,7 +752,7 @@ const styles = StyleSheet.create({
   quantityLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 12,
   },
   quantityControls: {
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
   quantityValue: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   messageContainer: {
     marginBottom: 20,
@@ -782,7 +782,7 @@ const styles = StyleSheet.create({
   messageLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 12,
   },
   messageInput: {
@@ -790,7 +790,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     minHeight: 80,
     textAlignVertical: 'top',
   },
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
   totalCostLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   totalCostValue: {
     fontSize: 20,
@@ -849,12 +849,12 @@ const styles = StyleSheet.create({
   rechargeTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 8,
   },
   rechargeSubtitle: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -869,7 +869,7 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 8,
   },
   textInput: {
@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   quickRechargeContainer: {
     marginBottom: 24,
@@ -885,7 +885,7 @@ const styles = StyleSheet.create({
   quickRechargeTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 12,
   },
   quickRechargeButton: {
@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
   },
   quickRechargePrice: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   rechargeButtons: {
     flexDirection: 'row',
@@ -922,7 +922,7 @@ const styles = StyleSheet.create({
   rechargeCancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   rechargeWalletButton: {
     backgroundColor: BRAND_GOLD,
@@ -945,6 +945,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
   },
 });
+
 
 
 

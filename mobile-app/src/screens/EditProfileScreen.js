@@ -20,7 +20,7 @@ import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import config from '../config';
 
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -117,7 +117,7 @@ export default function EditProfileScreen({ navigation }) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+          <Ionicons name="chevron-back" size={24} color="#C8B56A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
         <TouchableOpacity onPress={handleSave} disabled={loading}>
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#eee',
   },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#D4AF37' },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: '#C8B56A' },
   backBtn: { padding: 4 },
   saveBtnText: { fontSize: 16, fontWeight: '800', color: BRAND_GOLD },
   scrollContent: { padding: 20 },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   changePhotoText: { color: BRAND_GOLD, fontSize: 14, fontWeight: '700', marginTop: 12 },
   form: { gap: 20 },
   inputGroup: { gap: 8 },
-  label: { fontSize: 13, fontWeight: '700', color: '#D4AF37' },
+  label: { fontSize: 13, fontWeight: '700', color: '#C8B56A' },
   input: {
     backgroundColor: '#f9f9f9',
     borderWidth: 1,
@@ -269,14 +269,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   row: { flexDirection: 'row', gap: 12 },
   bioInput: { minHeight: 80, textAlignVertical: 'top' },
-  charCount: { alignSelf: 'flex-end', fontSize: 11, color: '#D4AF37', marginTop: 4 },
+  charCount: { alignSelf: 'flex-end', fontSize: 11, color: '#C8B56A', marginTop: 4 },
   logoutBtn: { marginTop: 40, alignItems: 'center' },
   logoutBtnText: { color: '#FF3B30', fontSize: 16, fontWeight: '700' },
 });
+
 
 
 

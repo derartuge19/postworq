@@ -15,7 +15,7 @@ import api from '../api';
 import config from '../config';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -176,7 +176,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
       {/* Sticky Header */}
       <View style={styles.stickyHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
-          <Ionicons name="chevron-back" size={22} color="#D4AF37" />
+          <Ionicons name="chevron-back" size={22} color="#C8B56A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{campaign.title}</Text>
         <View style={[styles.headerStatusPill, { backgroundColor: statusColor + '25' }]}>
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#D4AF37', marginBottom: 12 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#C8B56A', marginBottom: 12 },
   description: { fontSize: 16, color: '#A1A1AA', lineHeight: 22, marginBottom: 24 },
   prizeContainer: {
     flexDirection: 'row',
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
   },
   prizeTitle: {
     fontSize: 16,
-    color: '#D4AF37',
+    color: '#C8B56A',
     fontWeight: '600',
   },
   datesContainer: {
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   },
   dateValue: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     fontWeight: '600',
   },
   statsContainer: {
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#2A2A2E',
   },
   stat: { alignItems: 'center' },
-  statValue: { fontSize: 24, fontWeight: 'bold', color: '#D4AF37' },
+  statValue: { fontSize: 24, fontWeight: 'bold', color: '#C8B56A' },
   statLabel: { fontSize: 12, color: '#A1A1AA', marginTop: 4 },
   votesText: { color: '#EF4444' },
   submitButton: {
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginTop: 16,
     marginBottom: 16,
   },
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 12,
   },
   modalText: {
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0B0B0C',
   },
   modalButtonTextSecondary: {
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   requirementsContainer: {
     padding: 16,
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
   requirementsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginLeft: 8,
   },
   requirementsGrid: {
@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
   timelineTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 12,
   },
   timelineGrid: {
@@ -710,7 +710,7 @@ const styles = StyleSheet.create({
   timelineValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   userEntryCard: {
     backgroundColor: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(218,155,42,0.1))',
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
   userEntryTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   userEntrySubtitle: {
     fontSize: 13,
@@ -836,7 +836,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '800',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   headerStatusPill: {
     paddingHorizontal: 10,
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 6,
   },
-  ctaButtonText: { color: '#D4AF37', fontSize: 15, fontWeight: '800' },
+  ctaButtonText: { color: '#C8B56A', fontSize: 15, fontWeight: '800' },
   ctaAlready: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -984,7 +984,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
     justifyContent: 'center', alignItems: 'center',
   },
-  userEntryCompactTitle: { fontSize: 14, fontWeight: '800', color: '#D4AF37' },
+  userEntryCompactTitle: { fontSize: 14, fontWeight: '800', color: '#C8B56A' },
   userEntryCompactSub: { fontSize: 11, color: '#A1A1AA', marginTop: 2 },
   accordion: {
     backgroundColor: '#121214',
@@ -1004,7 +1004,7 @@ const styles = StyleSheet.create({
     width: 32, height: 32, borderRadius: 10,
     justifyContent: 'center', alignItems: 'center',
   },
-  accordionTitle: { fontSize: 14, fontWeight: '700', color: '#D4AF37' },
+  accordionTitle: { fontSize: 14, fontWeight: '700', color: '#C8B56A' },
   accordionSubtitle: { fontSize: 11, color: '#A1A1AA', marginTop: 2 },
   accordionBody: {
     padding: 12,
@@ -1012,7 +1012,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#2A2A2E',
   },
-  accBody: { fontSize: 13, color: '#D4AF37', lineHeight: 20 },
+  accBody: { fontSize: 13, color: '#C8B56A', lineHeight: 20 },
   accHint: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -1022,7 +1022,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: 'rgba(249, 224, 139, 0.15)',
   },
-  accHintText: { flex: 1, fontSize: 12, color: '#D4AF37' },
+  accHintText: { flex: 1, fontSize: 12, color: '#C8B56A' },
   reqRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1043,7 +1043,7 @@ const styles = StyleSheet.create({
   },
   tlDot: { width: 8, height: 8, borderRadius: 4 },
   tlLabel: { flex: 1, fontSize: 12, color: '#A1A1AA', fontWeight: '600' },
-  tlDate: { fontSize: 13, color: '#D4AF37', fontWeight: '700' },
+  tlDate: { fontSize: 13, color: '#C8B56A', fontWeight: '700' },
   metricsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1060,8 +1060,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     minWidth: '48%',
   },
-  metricText: { fontSize: 12, color: '#D4AF37', fontWeight: '600' },
+  metricText: { fontSize: 12, color: '#C8B56A', fontWeight: '600' },
 });
+
 
 
 
