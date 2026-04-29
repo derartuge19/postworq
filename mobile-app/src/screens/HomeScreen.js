@@ -199,9 +199,11 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
               <Text style={styles.actionText}>{(item.shares || 0) > 0 ? item.shares : ''}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('GiftSelector', { recipientUsername: item.user?.username })}>
-              <Ionicons name="gift-outline" size={20} color={T.txt} />
-            </TouchableOpacity>
+            {item.user?.username !== user?.username && (
+              <TouchableOpacity style={styles.actionBtn} onPress={() => nav.navigate('GiftSelector', { recipientUsername: item.user?.username })}>
+                <Ionicons name="gift-outline" size={20} color={BRAND_GOLD} />
+              </TouchableOpacity>
+            )}
           </View>
 
           <TouchableOpacity style={styles.actionBtn} onPress={() => handleSave(item.id, item.is_saved)}>
