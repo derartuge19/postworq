@@ -780,6 +780,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#262626',
   },
+  headerLeft: { flex: 1 },
+  headerRight: { flexDirection: 'row', alignItems: 'center' },
   headerUsername: { fontSize: 18, fontWeight: '800', color: '#F9E08B' },
   profileInfo: { padding: 16 },
   mainInfoRow: { flexDirection: 'row', alignItems: 'center' },
