@@ -30,6 +30,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [userEntry, setUserEntry] = useState(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [openSections, setOpenSections] = useState({ desc: true, reqs: false, timeline: false, scoring: false });
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -139,7 +140,6 @@ export default function CampaignDetailScreen({ route, navigation }) {
   const statusColor = campaign.status === 'active' ? BRAND_GOLD : 
                        campaign.status === 'voting' ? '#3B82F6' : 
                        campaign.status === 'upcoming' ? '#F97316' : '#999999';
-  const [openSections, setOpenSections] = useState({ desc: true, reqs: false, timeline: false, scoring: false });
   const toggleSection = (k) => setOpenSections(s => ({ ...s, [k]: !s[k] }));
 
   const hasRequirements = (campaign.min_followers > 0 || campaign.min_level > 0 || campaign.min_votes_per_reel > 0 || campaign.required_hashtags || campaign.winner_count > 0);

@@ -107,7 +107,7 @@ export default function RegisterScreen({ navigation }) {
         updateUser(res.user);
       }
       Alert.alert('Success', 'Account created successfully!', [
-        { text: 'OK', onPress: () => navigation.replace('MainTabs') }
+        { text: 'OK', onPress: () => {} }
       ]);
     } catch (e) {
       console.error('Registration error:', e);
