@@ -275,17 +275,18 @@ export function SubscriptionPage({ user, onBack }) {
               <div
                 key={tier.id}
                 style={{
-                  background: T.card,
-                  border: `2px solid ${isCurrent ? T.green : color}`,
+                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                  border: `2px solid ${isCurrent ? T.green : '#FFD700'}`,
                   borderRadius: 16,
                   padding: 24,
                   position: 'relative',
                   cursor: isCurrent ? 'default' : 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
+                  boxShadow: '0 4px 20px rgba(255, 215, 0, 0.3)',
                   ...(isCurrent ? {} : {
                     '&:hover': {
                       transform: 'translateY(-4px)',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                      boxShadow: '0 8px 30px rgba(255, 215, 0, 0.5)',
                     }
                   })
                 }}
@@ -311,43 +312,40 @@ export function SubscriptionPage({ user, onBack }) {
                   width: 48,
                   height: 48,
                   borderRadius: 12,
-                  background: `${color}15`,
+                  background: 'rgba(255, 255, 255, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: 16,
                 }}>
-                  <Icon size={24} color={color} />
+                  <Icon size={24} color="#fff" />
                 </div>
 
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: T.txt, marginBottom: 8 }}>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>
                     {tier.name}
                   </div>
-                  <div style={{ fontSize: 32, fontWeight: 900, color: color, marginBottom: 8 }}>
+                  <div style={{ fontSize: 32, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>
                     {tier.price_etb} ETB
                   </div>
                   {tier.price_coins && (
-                    <div style={{ fontSize: 18, color: T.sub, marginBottom: 8, fontWeight: 600 }}>
+                    <div style={{ fontSize: 18, color: '#333', marginBottom: 8, fontWeight: 600 }}>
                       or {tier.price_coins} coins
                     </div>
                   )}
-                  <div style={{ fontSize: 16, color: T.txt, marginBottom: 20, fontWeight: 500 }}>
+                  <div style={{ fontSize: 16, color: '#333', marginBottom: 20, fontWeight: 500 }}>
                     {tier.description}
                   </div>
                 </div>
 
                 <div style={{ 
                   fontSize: 16, 
-                  color: T.sub, 
+                  color: '#333', 
                   marginBottom: 16,
-                  textTransform: 'capitalize'
+                  textTransform: 'capitalize',
+                  fontWeight: 600
                 }}>
                   {tier.duration_type}
-                </div>
-
-                <div style={{ marginBottom: 20 }}>
-                  {tier.description}
                 </div>
 
                 <div style={{ marginBottom: 20 }}>
@@ -360,11 +358,11 @@ export function SubscriptionPage({ user, onBack }) {
                         gap: 10,
                         marginBottom: 10,
                         fontSize: 16,
-                        color: T.txt,
+                        color: '#1a1a1a',
                         fontWeight: 500,
                       }}
                     >
-                      <Check size={20} color={color} />
+                      <Check size={20} color="#1a1a1a" />
                       {feature}
                     </div>
                   ))}
@@ -377,26 +375,26 @@ export function SubscriptionPage({ user, onBack }) {
                     width: '100%',
                     padding: 16,
                     borderRadius: 12,
-                    border: isCurrent ? 'none' : `2px solid ${color}`,
-                    background: isCurrent ? T.green : color,
-                    color: isCurrent ? '#fff' : '#fff',
+                    border: isCurrent ? 'none' : `2px solid #1a1a1a`,
+                    background: isCurrent ? '#1a1a1a' : '#1a1a1a',
+                    color: '#fff',
                     fontSize: 18,
                     fontWeight: 800,
                     cursor: isCurrent ? 'default' : 'pointer',
                     opacity: isCurrent ? 0.8 : 1,
-                    boxShadow: isCurrent ? 'none' : `0 4px 15px ${color}40`,
+                    boxShadow: isCurrent ? 'none' : '0 4px 15px rgba(0,0,0,0.3)',
                     transition: 'all 0.2s',
                   }}
                   onMouseOver={(e) => {
                     if (!isCurrent) {
                       e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = `0 6px 20px ${color}60`;
+                      e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
                     }
                   }}
                   onMouseOut={(e) => {
                     if (!isCurrent) {
                       e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = `0 4px 15px ${color}40`;
+                      e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
                     }
                   }}
                 >
