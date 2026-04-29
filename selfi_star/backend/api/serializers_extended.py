@@ -5,6 +5,7 @@ from .serializers import UserSerializer
 
 class CommentReplySerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    comment = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all())
     is_editable = serializers.SerializerMethodField()
     
     class Meta:

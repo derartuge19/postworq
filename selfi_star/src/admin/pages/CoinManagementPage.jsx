@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Wallet, Coins, ArrowUpFromLine, Settings, RefreshCw,
   CheckCircle2, XCircle, Clock, Loader, Search, Filter,
-  TrendingUp, TrendingDown, User, Save, AlertTriangle, ChevronRight, Gift
+  TrendingUp, TrendingDown, User, Save, AlertTriangle, ChevronRight, Gift, Trophy
 } from 'lucide-react';
 import api from '../../api';
 
@@ -70,12 +70,22 @@ export function CoinManagementPage({ theme }) {
       setError('');
       const flat = {
         welcome_bonus: config.rewards.welcome_bonus,
+        daily_login_day1: config.rewards.daily_login_day1,
+        daily_login_day2: config.rewards.daily_login_day2,
+        daily_login_day3: config.rewards.daily_login_day3,
+        daily_login_day4: config.rewards.daily_login_day4,
+        daily_login_day5: config.rewards.daily_login_day5,
+        daily_login_day6: config.rewards.daily_login_day6,
+        daily_login_day7: config.rewards.daily_login_day7,
         daily_post_bonus: config.rewards.daily_post_bonus,
         campaign_join_reward: config.rewards.campaign_join_reward,
         receive_like_reward: config.rewards.receive_like_reward,
         receive_like_daily_cap: config.rewards.receive_like_daily_cap,
-        campaign_winner_reward: config.rewards.campaign_winner_reward,
+        quality_comment_reward: config.rewards.quality_comment_reward,
+        quality_comment_daily_cap: config.rewards.quality_comment_daily_cap,
+        profile_complete_reward: config.rewards.profile_complete_reward,
         referral_reward: config.rewards.referral_reward,
+        campaign_winner_reward: config.rewards.campaign_winner_reward,
         cost_post_create: config.costs.post_create,
         cost_like: config.costs.like,
         cost_comment: config.costs.comment,
@@ -85,6 +95,7 @@ export function CoinManagementPage({ theme }) {
         cost_boost_24hr: config.costs.boost_24hr,
         withdrawal_enabled: config.withdrawal.enabled,
         withdrawal_min_coins: config.withdrawal.min_coins,
+        withdrawal_max_coins_per_request: config.withdrawal.max_coins_per_request,
         coins_per_birr: config.withdrawal.coins_per_birr,
         withdrawal_fee_percent: config.withdrawal.fee_percent,
         withdrawal_processing_days: config.withdrawal.processing_days,
@@ -301,12 +312,22 @@ function ConfigTab({ theme: T, config, setConfig, onSave, saving, result, loadin
         {/* Earning Rewards */}
         <SectionCard theme={T} title="Earning Rewards" icon={<TrendingUp size={20} color="#10B981" />}>
           <FieldRow theme={T} label="Welcome Bonus" value={config.rewards.welcome_bonus} onChange={(v) => updateField('rewards', 'welcome_bonus', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Daily Login Day 1" value={config.rewards.daily_login_day1} onChange={(v) => updateField('rewards', 'daily_login_day1', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Daily Login Day 2" value={config.rewards.daily_login_day2} onChange={(v) => updateField('rewards', 'daily_login_day2', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Daily Login Day 3" value={config.rewards.daily_login_day3} onChange={(v) => updateField('rewards', 'daily_login_day3', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Daily Login Day 4" value={config.rewards.daily_login_day4} onChange={(v) => updateField('rewards', 'daily_login_day4', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Daily Login Day 5" value={config.rewards.daily_login_day5} onChange={(v) => updateField('rewards', 'daily_login_day5', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Daily Login Day 6" value={config.rewards.daily_login_day6} onChange={(v) => updateField('rewards', 'daily_login_day6', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Daily Login Day 7" value={config.rewards.daily_login_day7} onChange={(v) => updateField('rewards', 'daily_login_day7', parseInt(v) || 0)} />
           <FieldRow theme={T} label="Daily Post Bonus" value={config.rewards.daily_post_bonus} onChange={(v) => updateField('rewards', 'daily_post_bonus', parseInt(v) || 0)} />
           <FieldRow theme={T} label="Campaign Join Reward" value={config.rewards.campaign_join_reward} onChange={(v) => updateField('rewards', 'campaign_join_reward', parseInt(v) || 0)} />
           <FieldRow theme={T} label="Like Received Reward" value={config.rewards.receive_like_reward} onChange={(v) => updateField('rewards', 'receive_like_reward', parseInt(v) || 0)} />
           <FieldRow theme={T} label="Like Daily Cap" value={config.rewards.receive_like_daily_cap} onChange={(v) => updateField('rewards', 'receive_like_daily_cap', parseInt(v) || 0)} />
-          <FieldRow theme={T} label="Campaign Winner Bonus" value={config.rewards.campaign_winner_reward} onChange={(v) => updateField('rewards', 'campaign_winner_reward', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Quality Comment Reward" value={config.rewards.quality_comment_reward} onChange={(v) => updateField('rewards', 'quality_comment_reward', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Quality Comment Daily Cap" value={config.rewards.quality_comment_daily_cap} onChange={(v) => updateField('rewards', 'quality_comment_daily_cap', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Profile Complete Reward" value={config.rewards.profile_complete_reward} onChange={(v) => updateField('rewards', 'profile_complete_reward', parseInt(v) || 0)} />
           <FieldRow theme={T} label="Referral Reward" value={config.rewards.referral_reward} onChange={(v) => updateField('rewards', 'referral_reward', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Campaign Winner Bonus" value={config.rewards.campaign_winner_reward} onChange={(v) => updateField('rewards', 'campaign_winner_reward', parseInt(v) || 0)} />
         </SectionCard>
 
         {/* Action Costs */}
@@ -329,6 +350,7 @@ function ConfigTab({ theme: T, config, setConfig, onSave, saving, result, loadin
             theme={T}
           />
           <FieldRow theme={T} label="Min Coins" value={config.withdrawal.min_coins} onChange={(v) => updateField('withdrawal', 'min_coins', parseInt(v) || 0)} />
+          <FieldRow theme={T} label="Max Coins per Request" value={config.withdrawal.max_coins_per_request} onChange={(v) => updateField('withdrawal', 'max_coins_per_request', parseInt(v) || 0)} />
           <FieldRow theme={T} label="Coins per Birr" value={config.withdrawal.coins_per_birr} onChange={(v) => updateField('withdrawal', 'coins_per_birr', parseInt(v) || 0)} />
           <FieldRow theme={T} label="Fee Percent" value={config.withdrawal.fee_percent} onChange={(v) => updateField('withdrawal', 'fee_percent', parseFloat(v) || 0)} />
           <FieldRow theme={T} label="Processing Days" value={config.withdrawal.processing_days} onChange={(v) => updateField('withdrawal', 'processing_days', parseInt(v) || 0)} />

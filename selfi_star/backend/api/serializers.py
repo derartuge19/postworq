@@ -250,7 +250,8 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 class CommentReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = CommentReply
-        fields = ['id', 'user', 'comment', 'text', 'created_at']
+        fields = ['id', 'user', 'comment', 'text', 'created_at', 'edited_at', 'is_deleted']
+        read_only_fields = ['created_at', 'edited_at', 'is_deleted']
 
 class SavedPostSerializer(serializers.ModelSerializer):
     class Meta:

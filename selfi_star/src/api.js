@@ -534,9 +534,9 @@ const api = {
     }),
 
   replyToComment: (commentId, text) =>
-    api.request(`/comments/${commentId}/reply/`, {
+    api.request('/comment-replies/', {
       method: 'POST',
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ comment: commentId, text }),
     }),
 
   // Saved posts

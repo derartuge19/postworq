@@ -148,6 +148,9 @@ class CommentReplyViewSet(viewsets.ModelViewSet):
             self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
     
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    
     def update(self, request, *args, **kwargs):
         reply = self.get_object()
         # Only allow editing own replies

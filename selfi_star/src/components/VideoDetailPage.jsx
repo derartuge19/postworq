@@ -129,10 +129,7 @@ export function VideoDetailPage({ reelId, onBack, onShowProfile, user }) {
   const handleReplyToComment = async (commentId) => {
     if (!replyText.trim() || !user) return;
     try {
-      const reply = await api.request(`/comments/${commentId}/reply/`, {
-        method: 'POST',
-        body: JSON.stringify({ text: replyText }),
-      });
+      const reply = await api.replyToComment(commentId, replyText);
       setComments(prev => prev.map(c => {
         if (c.id === commentId) {
           return {
