@@ -778,13 +778,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#262626',
   },
   headerUsername: { fontSize: 18, fontWeight: '800', color: '#F9E08B' },
   profileInfo: { padding: 16 },
   mainInfoRow: { flexDirection: 'row', alignItems: 'center' },
   avatarWrap: { position: 'relative' },
-  avatar: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, borderColor: '#fff' },
+  avatar: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, borderColor: '#F9E08B' },
   avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND_GOLD + '20' },
   avatarInitial: { fontSize: 32, fontWeight: 'bold', color: BRAND_GOLD },
   statsRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginLeft: 20 },
@@ -795,14 +795,14 @@ const styles = StyleSheet.create({
   fullName: { fontSize: 15, fontWeight: '700', color: '#F9E08B' },
   bioText: { fontSize: 14, color: '#F9E08B', marginTop: 4, lineHeight: 20 },
   actionButtons: { flexDirection: 'row', gap: 10, marginTop: 20, paddingHorizontal: 0 },
-  editBtn: { flex: 1, height: 38, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0 },
+  editBtn: { flex: 1, height: 38, backgroundColor: '#1A1A1A', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0, borderWidth: 1.5, borderColor: '#F9E08B' },
   editBtnText: { fontSize: 14, fontWeight: '700', color: '#F9E08B' },
-  shareBtn: { flex: 1, height: 38, backgroundColor: '#efefef', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0 },
+  shareBtn: { flex: 1, height: 38, backgroundColor: '#1A1A1A', borderRadius: 8, alignItems: 'center', justifyContent: 'center', minWidth: 0, borderWidth: 1.5, borderColor: '#F9E08B' },
   shareBtnText: { fontSize: 14, fontWeight: '700', color: '#F9E08B' },
   tabs: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#eee',
+    borderTopColor: '#262626',
     marginTop: 10,
   },
   tabItem: {
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
   tabLabel: { fontSize: 10, fontWeight: '500', color: '#F9E08B' },
   activeTabLabel: { color: BRAND_GOLD, fontWeight: '700' },
   grid: { padding: 1 },
-  postThumb: { width: width / 3 - 2, height: width / 3 - 2, margin: 1, backgroundColor: '#f0f0f0' },
+  postThumb: { width: width / 3 - 2, height: width / 3 - 2, margin: 1, backgroundColor: '#1A1A1A' },
   thumbImage: { width: '100%', height: '100%', objectFit: 'cover' },
   videoBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(0,0,0,0.5)', padding: 2, borderRadius: 4 },
   campaignThumb: { 
@@ -874,7 +874,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
     marginBottom: 8,
     marginRight: '2%',
   },
@@ -910,7 +910,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
     marginBottom: 10,
   },
   campaignListItemInfo: {
@@ -1007,7 +1007,7 @@ const styles = StyleSheet.create({
   sheetHandle: {
     width: 40,
     height: 4,
-    backgroundColor: '#E7E5E4',
+    backgroundColor: '#404040',
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: 15,
@@ -1019,7 +1019,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F4',
+    borderBottomColor: '#262626',
     gap: 14,
   },
   sheetItemText: {
@@ -1061,7 +1061,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#1a1a1a',
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
   },
   mediaImage: {
     width: '100%',
@@ -1083,7 +1083,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#1a1a1a',
     borderWidth: 1.5,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
     borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#F9E08B',
     borderWidth: 1.5,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
     borderRadius: 12,
     minHeight: 80,
   },
@@ -1130,7 +1130,7 @@ const styles = StyleSheet.create({
   cancelBtn: {
     backgroundColor: '#0d0d0d',
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
   },
   cancelBtnText: {
     fontSize: 15,
@@ -1182,7 +1182,7 @@ const styles = StyleSheet.create({
   confirmCancelBtn: {
     backgroundColor: '#0d0d0d',
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
   },
   confirmCancelBtnText: {
     fontSize: 15,
@@ -1246,5 +1246,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+
 
 
