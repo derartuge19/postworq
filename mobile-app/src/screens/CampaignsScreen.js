@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   actionButtonText: {
-    color: '#F9E08B',
+    color: '#000',
     fontSize: 14,
     fontWeight: '800',
     marginRight: 6,

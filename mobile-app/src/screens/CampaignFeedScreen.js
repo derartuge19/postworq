@@ -296,7 +296,7 @@ export default function CampaignFeedScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0D0D0D',
   },
   centerContent: {
     justifyContent: 'center',
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
   },
@@ -315,28 +315,28 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: '#C2994B',
   },
   campaignInfo: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
   },
   campaignTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 4,
   },
   campaignSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#C2994B',
   },
   tabsContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
     gap: 8,
@@ -345,9 +345,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0D0D0D',
     borderWidth: 2,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
   },
   tabActive: {
     backgroundColor: BRAND_GOLD,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   tabTextActive: {
     color: '#fff',
@@ -365,11 +365,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   postCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowcolor: '#F9E08B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -408,11 +408,11 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   score: {
     fontSize: 12,
-    color: '#666',
+    color: '#C2994B',
   },
   voteButton: {
     flexDirection: 'row',
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     aspectRatio: 9 / 16,
-    backgroundColor: '#000',
+    backgroundcolor: '#F9E08B',
   },
   media: {
     width: '100%',
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   mediaPlaceholder: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0D0D0D',
   },
   actions: {
     flexDirection: 'row',
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   actionTextDisabled: {
     color: '#999',
@@ -474,11 +474,11 @@ const styles = StyleSheet.create({
   captionUsername: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   captionText: {
     fontSize: 14,
-    color: '#000',
+    color: '#F9E08B',
     lineHeight: 20,
     flex: 1,
   },
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#C2994B',
   },
   scoreValue: {
     fontSize: 14,
@@ -500,25 +500,26 @@ const styles = StyleSheet.create({
     color: BRAND_GOLD,
   },
   emptyContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 16,
     padding: 40,
     alignItems: 'center',
     marginTop: 20,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginTop: 12,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#C2994B',
     textAlign: 'center',
   },
 });
+
 

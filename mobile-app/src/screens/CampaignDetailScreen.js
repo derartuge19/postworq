@@ -403,7 +403,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#1A1A1A' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   scrollView: { flex: 1 },
   backButtonTop: {
@@ -416,9 +416,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: '#C2994B',
   },
-  campaignImage: { width: '100%', height: 200, backgroundColor: '#f5f5f5' },
+  campaignImage: { width: '100%', height: 200, backgroundColor: '#0D0D0D' },
   imagePlaceholder: {
     backgroundColor: 'rgba(218, 155, 42, 0.1)',
     justifyContent: 'center',
@@ -454,8 +454,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#000', marginBottom: 12 },
-  description: { fontSize: 16, color: '#666', lineHeight: 22, marginBottom: 24 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#F9E08B', marginBottom: 12 },
+  description: { fontSize: 16, color: '#C2994B', lineHeight: 22, marginBottom: 24 },
   prizeContainer: {
     flexDirection: 'row',
     backgroundColor: 'rgba(218, 155, 42, 0.1)',
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   prizeInfo: { flex: 1 },
   prizeLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#C2994B',
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
   },
   prizeTitle: {
     fontSize: 16,
-    color: '#000',
+    color: '#F9E08B',
     fontWeight: '600',
   },
   datesContainer: {
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   dateInfo: { marginLeft: 12 },
   dateLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#C2994B',
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   },
   dateValue: {
     fontSize: 14,
-    color: '#000',
+    color: '#F9E08B',
     fontWeight: '600',
   },
   statsContainer: {
@@ -522,13 +522,13 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
+    borderTopColor: '#262626',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    borderBottomColor: '#262626',
   },
   stat: { alignItems: 'center' },
-  statValue: { fontSize: 24, fontWeight: 'bold', color: '#000' },
-  statLabel: { fontSize: 12, color: '#666', marginTop: 4 },
+  statValue: { fontSize: 24, fontWeight: 'bold', color: '#F9E08B' },
+  statLabel: { fontSize: 12, color: '#C2994B', marginTop: 4 },
   votesText: { color: '#EF4444' },
   submitButton: {
     flexDirection: 'row',
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   },
   leaderboardButton: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 12,
     padding: 16,
     justifyContent: 'center',
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginTop: 16,
     marginBottom: 16,
   },
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -609,12 +609,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 12,
   },
   modalText: {
     fontSize: 14,
-    color: '#666',
+    color: '#C2994B',
     lineHeight: 20,
     marginBottom: 20,
   },
@@ -631,10 +631,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   modalButtonSecondary: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0D0D0D',
   },
   modalButtonTextSecondary: {
-    color: '#000',
+    color: '#F9E08B',
   },
   requirementsContainer: {
     padding: 16,
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
   requirementsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginLeft: 8,
   },
   requirementsGrid: {
@@ -662,16 +662,16 @@ const styles = StyleSheet.create({
   requirementItem: {
     width: '48%',
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
     marginBottom: 8,
     marginRight: '2%',
   },
   requirementLabel: {
     fontSize: 11,
-    color: '#666',
+    color: '#C2994B',
     fontWeight: '600',
     textTransform: 'uppercase',
     marginBottom: 4,
@@ -683,16 +683,16 @@ const styles = StyleSheet.create({
   },
   timelineContainer: {
     padding: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0D0D0D',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
     marginBottom: 16,
   },
   timelineTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 12,
   },
   timelineGrid: {
@@ -703,14 +703,14 @@ const styles = StyleSheet.create({
   },
   timelineLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#C2994B',
     fontWeight: '600',
     marginBottom: 4,
   },
   timelineValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   userEntryCard: {
     backgroundColor: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(218,155,42,0.1))',
@@ -741,11 +741,11 @@ const styles = StyleSheet.create({
   userEntryTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
   },
   userEntrySubtitle: {
     fontSize: 13,
-    color: '#666',
+    color: '#C2994B',
   },
   rankBadge: {
     flexDirection: 'row',
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
   },
   entryStatLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#C2994B',
     marginTop: 4,
   },
   statusButton: {
@@ -805,13 +805,13 @@ const styles = StyleSheet.create({
   quickActionButton: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 12,
     padding: 12,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
     gap: 8,
   },
   quickActionText: {
@@ -826,9 +826,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#262626',
     gap: 10,
   },
   headerBack: { padding: 4 },
@@ -836,7 +836,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '800',
-    color: '#000',
+    color: '#F9E08B',
   },
   headerStatusPill: {
     paddingHorizontal: 10,
@@ -915,8 +915,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fff',
+    borderColor: '#262626',
+    backgroundColor: '#1A1A1A',
     alignItems: 'center',
   },
   statHeader: {
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 6,
   },
-  ctaButtonText: { color: '#000', fontSize: 15, fontWeight: '800' },
+  ctaButtonText: { color: '#F9E08B', fontSize: 15, fontWeight: '800' },
   ctaAlready: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -962,12 +962,12 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0D0D0D',
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
     marginBottom: 10,
   },
-  ctaDisabledText: { color: '#999', fontSize: 14, fontWeight: '700' },
+  ctaDisabledText: { color: '#C2994B', fontSize: 14, fontWeight: '700' },
   userEntryCompact: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -984,13 +984,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
     justifyContent: 'center', alignItems: 'center',
   },
-  userEntryCompactTitle: { fontSize: 14, fontWeight: '800', color: '#000' },
-  userEntryCompactSub: { fontSize: 11, color: '#666', marginTop: 2 },
+  userEntryCompactTitle: { fontSize: 14, fontWeight: '800', color: '#F9E08B' },
+  userEntryCompactSub: { fontSize: 11, color: '#C2994B', marginTop: 2 },
   accordion: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: '#262626',
     marginBottom: 10,
     overflow: 'hidden',
   },
@@ -1004,7 +1004,7 @@ const styles = StyleSheet.create({
     width: 32, height: 32, borderRadius: 10,
     justifyContent: 'center', alignItems: 'center',
   },
-  accordionTitle: { fontSize: 14, fontWeight: '700', color: '#000' },
+  accordionTitle: { fontSize: 14, fontWeight: '700', color: '#F9E08B' },
   accordionSubtitle: { fontSize: 11, color: '#888', marginTop: 2 },
   accordionBody: {
     padding: 12,
@@ -1022,7 +1022,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: 'rgba(249, 224, 139, 0.15)',
   },
-  accHintText: { flex: 1, fontSize: 12, color: '#333' },
+  accHintText: { flex: 1, fontSize: 12, color: '#F9E08B' },
   reqRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1033,7 +1033,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     gap: 10,
   },
-  reqLabel: { flex: 1, fontSize: 12, color: '#666', fontWeight: '600' },
+  reqLabel: { flex: 1, fontSize: 12, color: '#C2994B', fontWeight: '600' },
   reqValue: { fontSize: 13, fontWeight: '800' },
   tlRow: {
     flexDirection: 'row',
@@ -1042,8 +1042,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   tlDot: { width: 8, height: 8, borderRadius: 4 },
-  tlLabel: { flex: 1, fontSize: 12, color: '#666', fontWeight: '600' },
-  tlDate: { fontSize: 13, color: '#000', fontWeight: '700' },
+  tlLabel: { flex: 1, fontSize: 12, color: '#C2994B', fontWeight: '600' },
+  tlDate: { fontSize: 13, color: '#F9E08B', fontWeight: '700' },
   metricsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1060,5 +1060,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     minWidth: '48%',
   },
-  metricText: { fontSize: 12, color: '#000', fontWeight: '600' },
+  metricText: { fontSize: 12, color: '#F9E08B', fontWeight: '600' },
 });
+

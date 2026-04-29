@@ -247,14 +247,14 @@ export default function CampaignLeaderboardScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0D0D0D',
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
   },
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: '#C2994B',
   },
   headerTitle: {
     flexDirection: 'row',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#000',
+    color: '#F9E08B',
   },
   campaignTypeRow: {
     flexDirection: 'row',
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   },
   campaignName: {
     fontSize: 13,
-    color: '#666',
+    color: '#C2994B',
     marginRight: 8,
   },
   campaignType: {
@@ -319,9 +319,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderWidth: 1.5,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
   },
   periodTabActive: {
     backgroundColor: BRAND_GOLD,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   periodTabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#666',
+    color: '#C2994B',
   },
   periodTabTextActive: {
     color: '#fff',
@@ -340,17 +340,17 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   podiumContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 14,
     padding: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
   },
   podiumTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#666',
+    color: '#C2994B',
     textTransform: 'uppercase',
     letterSpacing: 0.05,
     marginBottom: 20,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   podiumAvatarText: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#000',
+    color: '#F9E08B',
   },
   podiumAvatarTextFirst: {
     fontSize: 26,
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   podiumName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 4,
   },
   podiumNameFirst: {
@@ -425,16 +425,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   leaderboardList: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
   },
   listTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#666',
+    color: '#C2994B',
     textTransform: 'uppercase',
     letterSpacing: 0.05,
     marginBottom: 12,
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0D0D0D',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -475,12 +475,12 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
   },
   username: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#F9E08B',
   },
   scoreInfo: {
     alignItems: 'flex-end',
@@ -492,26 +492,27 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontSize: 10,
-    color: '#666',
+    color: '#C2994B',
     fontWeight: '600',
   },
   emptyContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1A1A1A',
     borderRadius: 14,
     padding: 48,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e5e5e5',
+    borderColor: '#262626',
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#F9E08B',
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#C2994B',
   },
 });
+
 
