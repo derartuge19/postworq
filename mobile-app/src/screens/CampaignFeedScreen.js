@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -118,7 +118,7 @@ export default function CampaignFeedScreen({ route, navigation }) {
     <View>
       {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Ionicons name="chevron-back" size={20} color="#D4AF37" />
+        <Ionicons name="chevron-back" size={20} color="#C8B56A" />
         <Text style={styles.backButtonText}>Back to Campaign</Text>
       </TouchableOpacity>
 
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   campaignTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 4,
   },
   campaignSubtitle: {
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   tabTextActive: {
     color: '#fff',
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   score: {
     fontSize: 12,
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     aspectRatio: 9 / 16,
-    backgroundcolor: '#D4AF37',
+    backgroundcolor: '#C8B56A',
   },
   media: {
     width: '100%',
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   actionTextDisabled: {
     color: '#71717A',
@@ -474,11 +474,11 @@ const styles = StyleSheet.create({
   captionUsername: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   captionText: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     lineHeight: 20,
     flex: 1,
   },
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginTop: 12,
     marginBottom: 8,
   },
@@ -521,6 +521,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+
 
 
 

@@ -34,7 +34,7 @@ async function writeCache(balance, packages) {
   } catch {}
 }
 
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 export default function WalletScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -130,7 +130,7 @@ export default function WalletScreen({ navigation }) {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+            <Ionicons name="chevron-back" size={24} color="#C8B56A" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Wallet</Text>
           <View style={{ width: 24 }} />
@@ -150,13 +150,13 @@ export default function WalletScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+          <Ionicons name="chevron-back" size={24} color="#C8B56A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Wallet</Text>
         <TouchableOpacity onPress={() => loadWalletData(false)}>
           {refreshing
             ? <ActivityIndicator size="small" color={BRAND_GOLD} />
-            : <Ionicons name="refresh" size={22} color="#D4AF37" />}
+            : <Ionicons name="refresh" size={22} color="#C8B56A" />}
         </TouchableOpacity>
       </View>
 
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   content: {
     flex: 1,
@@ -380,12 +380,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 12,
   },
   packageCard: {
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   packageName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   packageCoins: {
     fontSize: 20,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   packagePriceText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   featuredBadge: {
     backgroundColor: BRAND_GOLD,
@@ -441,12 +441,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 4,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     textAlign: 'center',
   },
   infoBox: {
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   selectedPackagePreview: {
     flexDirection: 'row',
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
   packagePreviewName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 4,
   },
   packagePreviewCoins: {
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   packagePreviewPrice: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   formGroup: {
     marginBottom: 20,
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 8,
   },
   textInput: {
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   payButton: {
     backgroundColor: BRAND_GOLD,
@@ -563,6 +563,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
 });
+
+
 
 
 

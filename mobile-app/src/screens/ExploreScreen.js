@@ -30,10 +30,10 @@ const T = {
   border: '#2A2A2E',
   txt:    '#FFFFFF',
   sub:    '#A1A1AA',
-  pri:    '#D4AF37',
+  pri:    '#C8B56A',
 };
 
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const CATEGORIES = [
   { id: 'all', label: 'Trending', emoji: '🔥' },
@@ -371,7 +371,7 @@ export default function ExploreScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+          <Ionicons name="chevron-back" size={24} color="#C8B56A" />
         </TouchableOpacity>
         
         {!inSearchMode && !searchFocused && (
@@ -444,7 +444,7 @@ export default function ExploreScreen({ navigation }) {
       {hashtagView && (
         <View style={styles.hashtagHeader}>
           <TouchableOpacity onPress={clearHashtagView} style={styles.hashtagBackBtn}>
-            <Ionicons name="chevron-back" size={20} color="#D4AF37" />
+            <Ionicons name="chevron-back" size={20} color="#C8B56A" />
           </TouchableOpacity>
           <Text style={styles.hashtagTitle}>#{hashtagView.tag}</Text>
           <Text style={styles.hashtagCount}>{fmt(hashtagView.count)} posts</Text>
@@ -899,6 +899,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 });
+
+
 
 
 

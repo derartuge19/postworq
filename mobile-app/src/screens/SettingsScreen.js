@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -458,12 +458,14 @@ const styles = StyleSheet.create({
   modalBody: { padding: 24 },
   langOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 18, paddingHorizontal: 4 },
   langText: { fontSize: 16, fontWeight: '600' },
-  langTextActive: { color: '#D4AF37' },
+  langTextActive: { color: '#C8B56A' },
   inputLabel: { fontSize: 14, fontWeight: '700', marginBottom: 8, marginTop: 16 },
   input: { borderRadius: 12, padding: 16, fontSize: 16, borderWidth: 1 },
   saveBtn: { borderRadius: 14, padding: 18, alignItems: 'center', marginTop: 32 },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });
+
+
 
 
 

@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
-const GOLD     = '#D4AF37';
+const GOLD     = '#C8B56A';
 const BG       = '#121214';
 const INPUT_BG = '#2a2a2a';
 
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: INPUT_BG, borderRadius: 18, padding: 24,
-    borderWidth: 1, borderColor: '#D4AF3730', marginHorizontal: 16,
+    borderWidth: 1, borderColor: '#C8B56A30', marginHorizontal: 16,
   },
 
   errorBox: {
@@ -466,5 +466,6 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 13, color: '#666' },
   footerLink: { fontSize: 13, color: GOLD, fontWeight: '700' },
 });
+
 
 

@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
 import config from '../config';
 
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 export default function FollowListScreen({ route, navigation }) {
   const { userId, type } = route.params; // type: 'followers' | 'following'
@@ -87,7 +87,7 @@ export default function FollowListScreen({ route, navigation }) {
       {/* Custom Header to ensure back button works as expected */}
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+          <Ionicons name="chevron-back" size={24} color="#C8B56A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{type === 'followers' ? 'Followers' : 'Following'}</Text>
         <View style={{ width: 40 }} />
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   backBtn: { padding: 8 },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#D4AF37' },
+  headerTitle: { fontSize: 17, fontWeight: '700', color: '#C8B56A' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { paddingVertical: 8 },
   userItem: {
@@ -144,11 +144,13 @@ const styles = StyleSheet.create({
   avatarFallback: { backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' },
   avatarInitial: { fontSize: 20, fontWeight: 'bold', color: BRAND_GOLD },
   userInfo: { flex: 1 },
-  username: { fontSize: 15, fontWeight: '700', color: '#D4AF37' },
-  fullName: { fontSize: 13, color: '#D4AF37', marginTop: 2 },
+  username: { fontSize: 15, fontWeight: '700', color: '#C8B56A' },
+  fullName: { fontSize: 13, color: '#C8B56A', marginTop: 2 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100 },
-  emptyText: { fontSize: 16, color: '#D4AF37', marginTop: 16 },
+  emptyText: { fontSize: 16, color: '#C8B56A', marginTop: 16 },
 });
+
+
 
 
 

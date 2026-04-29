@@ -14,7 +14,7 @@ import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 
 const { width, height } = Dimensions.get('window');
-const BRAND = '#D4AF37';
+const BRAND = '#C8B56A';
 
 // Visual filter definitions (rendered as color overlays)
 const FILTERS = [
@@ -27,7 +27,7 @@ const FILTERS = [
   { id: 'golden',    name: 'Golden',   overlay: 'rgba(218,155,42,0.2)' },
 ];
 
-const TEXT_COLORS = ['#FFFFFF','#000000','#FF3B57','#D4AF37','#3B82F6','#10B981','#EC4899'];
+const TEXT_COLORS = ['#FFFFFF','#000000','#FF3B57','#C8B56A','#3B82F6','#10B981','#EC4899'];
 
 
 
@@ -174,7 +174,7 @@ export default function CreateScreen({ navigation }) {
         {/* Header */}
         <View style={[s.newHeader, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
-            <Ionicons name="chevron-back" size={20} color="#D4AF37" />
+            <Ionicons name="chevron-back" size={20} color="#C8B56A" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>New Post</Text>
           {drafts.length > 0 ? (
@@ -204,7 +204,7 @@ export default function CreateScreen({ navigation }) {
           <View style={s.actionCards}>
             <TouchableOpacity style={s.actionCard} onPress={pickFromCamera} activeOpacity={0.85}>
               <View style={s.cardIcon}>
-                <Ionicons name="camera" size={24} color="#D4AF37" />
+                <Ionicons name="camera" size={24} color="#C8B56A" />
               </View>
               <View style={s.cardText}>
                 <Text style={s.cardTitle}>Take Photo/Video</Text>
@@ -214,13 +214,13 @@ export default function CreateScreen({ navigation }) {
 
             <TouchableOpacity style={s.actionCard} onPress={pickFromLibrary} activeOpacity={0.85}>
               <View style={s.cardIcon}>
-                <Ionicons name="cloud-upload-outline" size={24} color="#D4AF37" />
+                <Ionicons name="cloud-upload-outline" size={24} color="#C8B56A" />
               </View>
               <View style={s.cardText}>
                 <Text style={s.cardTitle}>Upload Photo/Video</Text>
                 <Text style={s.cardSub}>From gallery or files</Text>
               </View>
-              <Text style={{ color: '#D4AF37', fontSize: 22, fontWeight: '300' }}>+</Text>
+              <Text style={{ color: '#C8B56A', fontSize: 22, fontWeight: '300' }}>+</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -233,7 +233,7 @@ export default function CreateScreen({ navigation }) {
   // ──────────────────────────────────────────────────────────────────────────
   if (stage === 'edit') {
     return (
-      <View style={{ flex: 1, backgroundcolor: '#D4AF37' }}>
+      <View style={{ flex: 1, backgroundcolor: '#C8B56A' }}>
         <StatusBar barStyle="light-content" />
 
         {/* Full-screen preview */}
@@ -365,7 +365,7 @@ export default function CreateScreen({ navigation }) {
         <StatusBar barStyle="dark-content" />
         <View style={[s.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => setStage('edit')}>
-            <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+            <Ionicons name="chevron-back" size={24} color="#C8B56A" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>Post Details</Text>
           <TouchableOpacity onPress={handlePost} style={s.postBtn}>
@@ -454,7 +454,7 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#e0e0e0',
   },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#D4AF37' },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: '#C8B56A' },
   draftBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: BRAND + '18', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, gap: 4 },
   draftBadgeText: { fontSize: 12, fontWeight: '700', color: BRAND },
 
@@ -482,12 +482,12 @@ const s = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#D4AF37',
+    borderColor: '#C8B56A',
   },
   draftsBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
 
   // Body styles
@@ -519,7 +519,7 @@ const s = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#C8B56A',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -529,11 +529,11 @@ const s = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     marginBottom: 6,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   heroSub: {
     fontSize: 13,
-    color: '#D4AF37',
+    color: '#C8B56A',
     opacity: 0.7,
     textAlign: 'center',
   },
@@ -550,7 +550,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     borderWidth: 1.5,
-    borderColor: '#D4AF37',
+    borderColor: '#C8B56A',
     height: 88,
   },
   cardLeft: {
@@ -576,11 +576,11 @@ const s = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     marginBottom: 3,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   cardSub: {
     fontSize: 13,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   cardRightBtn: {
     width: 40,
@@ -595,7 +595,7 @@ const s = StyleSheet.create({
   nextPillText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   editTools: { position: 'absolute', top: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 70 : 110, right: 14, gap: 0, zIndex: 10 },
   toolBtn: { alignItems: 'center', marginBottom: 18 },
-  toolLabel: { color: '#fff', fontSize: 11, fontWeight: '700', marginTop: 3, textShadowcolor: '#D4AF37', textShadowRadius: 4 },
+  toolLabel: { color: '#fff', fontSize: 11, fontWeight: '700', marginTop: 3, textShadowcolor: '#C8B56A', textShadowRadius: 4 },
   filterBar: { position: 'absolute', bottom: 30, left: 0, right: 0, zIndex: 10 },
   filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', marginRight: 8 },
   filterChipActive: { backgroundColor: BRAND, borderColor: BRAND },
@@ -616,24 +616,26 @@ const s = StyleSheet.create({
   modalBtns: { flexDirection: 'row', gap: 40 },
 
   detailsScroll: { padding: 16, gap: 16 },
-  thumb: { width: '100%', height: 200, borderRadius: 16, overflow: 'hidden', backgroundcolor: '#D4AF37', marginBottom: 8 },
+  thumb: { width: '100%', height: 200, borderRadius: 16, overflow: 'hidden', backgroundcolor: '#C8B56A', marginBottom: 8 },
   videoIcon: { position: 'absolute', top: 10, right: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 6, padding: 4 },
-  captionInput: { fontSize: 15, color: '#D4AF37', borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 12, minHeight: 80 },
+  captionInput: { fontSize: 15, color: '#C8B56A', borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 12, minHeight: 80 },
   hashRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#121214', borderRadius: 12, paddingHorizontal: 12, height: 48 },
   hashSymbol: { fontSize: 20, fontWeight: '800', color: BRAND, marginRight: 6 },
-  hashInput: { flex: 1, fontSize: 14, color: '#D4AF37' },
+  hashInput: { flex: 1, fontSize: 14, color: '#C8B56A' },
   overlaySummary: { flexDirection: 'row', alignItems: 'center', backgroundColor: BRAND + '15', padding: 12, borderRadius: 10 },
   postBtn: { backgroundColor: BRAND, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20 },
   postBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   draftBtn: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', marginTop: 20, gap: 6 },
-  draftBtnText: { color: '#D4AF37', fontSize: 14, fontWeight: '600' },
+  draftBtnText: { color: '#C8B56A', fontSize: 14, fontWeight: '600' },
 
   uploadCard: { alignItems: 'center', padding: 32 },
   uploadTitle: { fontSize: 18, fontWeight: '800', marginTop: 20, marginBottom: 20 },
   progressTrack: { width: width * 0.7, height: 8, backgroundColor: '#eee', borderRadius: 4, overflow: 'hidden', marginBottom: 10 },
   progressFill: { height: '100%', backgroundColor: BRAND },
-  uploadPct: { fontSize: 14, color: '#D4AF37', fontWeight: '600' },
+  uploadPct: { fontSize: 14, color: '#C8B56A', fontWeight: '600' },
 });
+
+
 
 
 

@@ -35,10 +35,10 @@ const T = {
   txt:    '#F5F5F7',
   sub:    '#A1A1AA',
   meta:   '#71717A',
-  pri:    '#D4AF37',
+  pri:    '#C8B56A',
 };
 
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const ALL_TABS = ['For You', 'Explore', 'Campaigns'];
 
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: T.cardBg,
     marginLeft: 8,
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderColor: T.border,
     borderWidth: 1,
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -884,7 +884,7 @@ const styles = StyleSheet.create({
   mediaContainer: {
     width: '100%',
     height: 350,
-    backgroundcolor: '#D4AF37',
+    backgroundcolor: '#C8B56A',
     position: 'relative',
   },
   media: {
@@ -905,7 +905,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -1002,11 +1002,11 @@ const styles = StyleSheet.create({
   inlineCommentUsername: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   inlineCommentText: {
     fontSize: 13,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   emptyContainer: {
     padding: 40,
@@ -1066,6 +1066,9 @@ const styles = StyleSheet.create({
   reportIcon: { fontSize: 20, marginRight: 12 },
   reportLabel: { fontSize: 16, fontWeight: '600', color: T.txt },
 });
+
+
+
 
 
 

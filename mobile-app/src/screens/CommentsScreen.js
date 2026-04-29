@@ -20,7 +20,7 @@ import api from '../api';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 // Build comment tree from flat list
 function buildCommentTree(flatList) {
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   scrollView: {
     flex: 1,
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 8,
   },
   emptySubtext: {
@@ -655,257 +655,6 @@ const styles = StyleSheet.create({
   },
   username: {
     fontWeight: '700',
-    color: '#D4AF37',
-  },
-  commentBody: {
-    color: '#D4AF37',
-    lineHeight: 18,
-  },
-  commentActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 4,
-  },
-  timestamp: {
-    fontSize: 10,
-    color: '#D4AF37',
-  },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  likeCount: {
-    fontSize: 10,
-    color: '#D4AF37',
-  },
-  replyBtn: {
-    padding: 0,
-  },
-  replyText: {
-    color: '#D4AF37',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  repliesContainer: {
-    flexDirection: 'column',
-    gap: 16,
-    position: 'relative',
-  },
-  replyThreadLine: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 1,
-    backgroundColor: '#e5e5e5',
-  },
-  inputContainer: {
-    borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
-    backgroundColor: '#0B0B0C',
-    paddingHorizontal: 16,
-    paddingTop: 10,
-  },
-  replyingTo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 8,
-    backgroundColor: BRAND_GOLD + '10',
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  replyingToText: {
-    fontSize: 12,
-    color: '#D4AF37',
-  },
-  replyingToUser: {
-    fontWeight: '700',
-  },
-  cancelReplyBtn: {
-    padding: 4,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#121214',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    maxHeight: 80,
-    fontSize: 14,
-    color: '#D4AF37',
-  },
-  sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: BRAND_GOLD,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexShrink: 0,
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#121214',
-  },
-  mentionSuggestionsContainer: {
-    position: 'absolute',
-    bottom: '100%',
-    left: 16,
-    right: 16,
-    backgroundColor: '#0B0B0C',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e5e5',
-    maxHeight: 200,
-    marginBottom: 8,
-    shadowcolor: '#D4AF37',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  mentionSuggestionsList: {
-    maxHeight: 200,
-  },
-  mentionSuggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    gap: 10,
-  },
-  mentionAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: BRAND_GOLD + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  mentionAvatarImage: {
-    width: '100%',
-    height: '100%',
-  },
-  mentionAvatarText: {
-    fontWeight: 'bold',
-    color: BRAND_GOLD,
-  },
-  mentionUsername: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#D4AF37',
-  },
-  reportBtn: {
-    padding: 0,
-    marginLeft: 'auto',
-    opacity: 0.6,
-  },
-  viewRepliesToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    marginLeft: 44,
-    paddingVertical: 4,
-  },
-  viewRepliesLine: {
-    width: 24,
-    height: 1,
-    backgroundColor: '#e5e5e5',
-    opacity: 0.5,
-  },
-  viewRepliesText: {
-    color: '#D4AF37',
-    fontSize: 11,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  reportModal: {
-    backgroundColor: '#0B0B0C',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 40,
-  },
-  sheetHandle: {
-    width: 36,
-    height: 4,
-    backgroundColor: '#e5e5e5',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  reportHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  reportTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#D4AF37',
-  },
-  reportSubtitle: {
-    fontSize: 13,
-    color: '#71717A',
-    marginBottom: 16,
-  },
-  reportScroll: {
-    maxHeight: 400,
-  },
-  reportItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e5e5e5',
-    backgroundColor: '#121214',
-    gap: 12,
-  },
-  reportIcon: {
-    fontSize: 18,
-  },
-  reportLabel: {
-    fontSize: 14,
-    color: '#D4AF37',
-    fontWeight: '500',
-  },
-  reportCancel: {
-    marginTop: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: '#121214',
-    borderRadius: 10,
-  },
-  reportCancelText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
 });
-
-
-

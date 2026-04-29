@@ -37,7 +37,7 @@ import CustomCameraScreen from '../screens/CustomCameraScreen';
 
 // ── Brand theme — keep in sync with web selfi_star theme ──────────────────────
 const BRAND = {
-  pri:      '#D4AF37',   // gold accent — matches web T.pri
+  pri:      '#C8B56A',   // gold accent — matches web T.pri
   bg:       '#ffffff',
   cardBg:   '#ffffff',
   border:   '#e5e5e5',
@@ -55,12 +55,12 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#D4AF37',
+        tabBarActiveTintColor: '#C8B56A',
         tabBarInactiveTintColor: '#F5F5F7',
         tabBarStyle: {
           backgroundColor: '#0B0B0C',
           borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: '#D4AF3730',
+          borderTopColor: '#C8B56A30',
           height: 60,
           paddingBottom: 8,
           paddingTop: 6,
@@ -84,10 +84,10 @@ function MainTabs() {
             return (
               <View style={{
                 width: 44, height: 44, borderRadius: 22,
-                backgroundColor: '#D4AF37',
+                backgroundColor: '#C8B56A',
                 justifyContent: 'center', alignItems: 'center',
                 marginBottom: 4,
-                shadowColor: '#D4AF37',
+                shadowColor: '#C8B56A',
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.5,
                 shadowRadius: 8,
@@ -97,9 +97,10 @@ function MainTabs() {
               </View>
             );
           }
-          return <Ionicons name={icons[route.name]} size={size} color={color} style={focused ? { textShadowColor: '#D4AF37', textShadowRadius: 8 } : {}} />;
+          return <Ionicons name={icons[route.name]} size={size} color={color} style={focused ? { textShadowColor: '#C8B56A', textShadowRadius: 8 } : {}} />;
         },
         tabBarLabel: ({ focused, color }) => {
+          if (route.name === 'Create') return null; // no label for Create
           const label = route.name;
           return <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400' }}>{label}</Text>;
         },
@@ -307,5 +308,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+
 
 

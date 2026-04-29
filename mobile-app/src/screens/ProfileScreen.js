@@ -25,7 +25,7 @@ import config from '../config';
 import GamificationBar from '../components/GamificationBar';
 
 const { width } = Dimensions.get('window');
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -237,7 +237,7 @@ export default function ProfileScreen({ navigation }) {
       <View style={[styles.root, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+            <Ionicons name="chevron-back" size={24} color="#C8B56A" />
           </TouchableOpacity>
           <Text style={styles.headerUsername}>Profile</Text>
           <View style={{ width: 24 }} />
@@ -410,7 +410,7 @@ export default function ProfileScreen({ navigation }) {
           {/* Navigation row */}
           <View style={styles.navRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="chevron-back" size={24} color="#D4AF37" />
+              <Ionicons name="chevron-back" size={24} color="#C8B56A" />
             </TouchableOpacity>
             <View style={styles.navCenter}>
               <Text style={styles.navUsername}>{profile?.username || user?.username || 'user'}</Text>
@@ -419,13 +419,13 @@ export default function ProfileScreen({ navigation }) {
             {profile?.id === user?.id && (
               <View style={styles.navActions}>
                 <TouchableOpacity onPress={() => setShowGamModal(true)} style={styles.navActionBtn}>
-                  <Ionicons name="diamond" size={24} color="#D4AF37" />
+                  <Ionicons name="diamond" size={24} color="#C8B56A" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={styles.navActionBtn}>
-                  <Ionicons name="wallet-outline" size={24} color="#D4AF37" />
+                  <Ionicons name="wallet-outline" size={24} color="#C8B56A" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.navActionBtn}>
-                  <Ionicons name="settings-outline" size={24} color="#D4AF37" />
+                  <Ionicons name="settings-outline" size={24} color="#C8B56A" />
                 </TouchableOpacity>
               </View>
             )}
@@ -479,7 +479,7 @@ export default function ProfileScreen({ navigation }) {
               style={styles.editBtn}
               onPress={() => navigation.navigate('EditProfile')}
             >
-              <Ionicons name="pencil-outline" size={16} color="#D4AF37" />
+              <Ionicons name="pencil-outline" size={16} color="#C8B56A" />
               <Text style={styles.editBtnText}>Edit Profile</Text>
             </TouchableOpacity>
           ) : (
@@ -488,7 +488,7 @@ export default function ProfileScreen({ navigation }) {
                 style={styles.followBtn}
                 onPress={handleFollowToggle}
               >
-                <Ionicons name={isFollowing ? 'checkmark-circle' : 'person-add'} size={18} color={isFollowing ? '#D4AF37' : '#000'} />
+                <Ionicons name={isFollowing ? 'checkmark-circle' : 'person-add'} size={18} color={isFollowing ? '#C8B56A' : '#000'} />
                 <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
                   {isFollowing ? 'Following' : 'Follow'}
                 </Text>
@@ -497,7 +497,7 @@ export default function ProfileScreen({ navigation }) {
                 style={styles.iconBtn}
                 onPress={handleShareProfile}
               >
-                <Ionicons name="share-social-outline" size={18} color="#D4AF37" />
+                <Ionicons name="share-social-outline" size={18} color="#C8B56A" />
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.iconBtn, styles.reportBtn]}
@@ -518,7 +518,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons 
               name="grid-outline" 
               size={22} 
-              color="#D4AF37" 
+              color="#C8B56A" 
               strokeWidth={activeTab === 'posts' ? 2.5 : 1.8} 
             />
             <Text style={[styles.tabLabel, activeTab === 'posts' && styles.activeTabLabel]}>Posts</Text>
@@ -530,7 +530,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons 
               name="film-outline" 
               size={22} 
-              color="#D4AF37" 
+              color="#C8B56A" 
               strokeWidth={activeTab === 'reels' ? 2.5 : 1.8} 
             />
             <Text style={[styles.tabLabel, activeTab === 'reels' && styles.activeTabLabel]}>Reels</Text>
@@ -542,7 +542,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons 
               name="trophy-outline" 
               size={22} 
-              color="#D4AF37" 
+              color="#C8B56A" 
               strokeWidth={activeTab === 'campaigns' ? 2.5 : 1.8} 
             />
             <Text style={[styles.tabLabel, activeTab === 'campaigns' && styles.activeTabLabel]}>Campaigns</Text>
@@ -554,7 +554,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons 
               name="bookmark-outline" 
               size={22} 
-              color="#D4AF37" 
+              color="#C8B56A" 
               strokeWidth={activeTab === 'saved' ? 2.5 : 1.8} 
             />
             <Text style={[styles.tabLabel, activeTab === 'saved' && styles.activeTabLabel]}>Saved</Text>
@@ -850,11 +850,11 @@ const styles = StyleSheet.create({
   navUsername: {
     fontSize: 16,
     fontWeight: 700,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   navPosts: {
     fontSize: 12,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   navActions: {
     flexDirection: 'row',
@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
   statCount: {
     fontSize: 18,
     fontWeight: 700,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   statLabel: {
     fontSize: 13,
@@ -934,7 +934,7 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#D4AF37',
+    borderColor: '#C8B56A',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -949,7 +949,7 @@ const styles = StyleSheet.create({
   followBtn: {
     flex: 1,
     height: 40,
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#C8B56A',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -967,7 +967,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   followBtnTextActive: {
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   iconBtn: {
     height: 40,
@@ -998,9 +998,9 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
     gap: 3,
   },
-  activeTab: { borderBottomColor: '#D4AF37' },
+  activeTab: { borderBottomColor: '#C8B56A' },
   tabLabel: { fontSize: 10, fontWeight: 400, color: '#F5F5F7', letterSpacing: 0.3 },
-  activeTabLabel: { color: '#D4AF37', fontWeight: 700 },
+  activeTabLabel: { color: '#C8B56A', fontWeight: 700 },
   grid: { padding: 4 },
   postThumb: { 
     width: width / 3 - 4, 
@@ -1031,7 +1031,7 @@ const styles = StyleSheet.create({
   campaignThumbTitle: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     textAlign: 'center',
     marginTop: 8,
   },
@@ -1054,7 +1054,7 @@ const styles = StyleSheet.create({
   campaignHeaderText: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -1075,7 +1075,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginTop: 8,
     marginBottom: 4,
   },
@@ -1091,7 +1091,7 @@ const styles = StyleSheet.create({
   campaignListTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 12,
@@ -1113,12 +1113,12 @@ const styles = StyleSheet.create({
   campaignListItemTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 3,
   },
   campaignListItemSubtitle: {
     fontSize: 12,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   campaignListItemScore: {
     backgroundColor: 'rgba(218, 155, 42, 0.15)',
@@ -1139,7 +1139,7 @@ const styles = StyleSheet.create({
   badgesTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 12,
@@ -1166,17 +1166,17 @@ const styles = StyleSheet.create({
     color: BRAND_GOLD,
   },
   empty: { height: 200, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: '#D4AF37', marginTop: 10 },
+  emptyText: { color: '#C8B56A', marginTop: 10 },
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginTop: 12,
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   postMenuBtn: {
     position: 'absolute',
@@ -1219,7 +1219,7 @@ const styles = StyleSheet.create({
   sheetItemText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   editModal: {
     backgroundColor: '#0B0B0C',
@@ -1231,12 +1231,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 4,
   },
   modalSubtitle: {
     fontSize: 13,
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 20,
   },
   formGroup: {
@@ -1245,7 +1245,7 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 8,
   },
   mediaPreview: {
@@ -1270,7 +1270,7 @@ const styles = StyleSheet.create({
   videoPlaceholderText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   changeMediaBtn: {
     marginTop: 10,
@@ -1287,7 +1287,7 @@ const styles = StyleSheet.create({
   changeMediaBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   newMediaSelectedText: {
     fontSize: 12,
@@ -1297,14 +1297,14 @@ const styles = StyleSheet.create({
   },
   formHelperText: {
     fontSize: 12,
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginTop: 4,
   },
   textInput: {
     width: '100%',
     padding: 12,
     fontSize: 15,
-    color: '#D4AF37',
+    color: '#C8B56A',
     borderWidth: 1.5,
     borderColor: '#2A2A2E',
     borderRadius: 12,
@@ -1329,7 +1329,7 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   saveBtn: {
     backgroundColor: BRAND_GOLD,
@@ -1353,12 +1353,12 @@ const styles = StyleSheet.create({
   confirmTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 8,
   },
   confirmSubtitle: {
     fontSize: 14,
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -1381,7 +1381,7 @@ const styles = StyleSheet.create({
   confirmCancelBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   confirmDeleteBtn: {
     backgroundColor: '#EF4444',
@@ -1421,7 +1421,7 @@ const styles = StyleSheet.create({
   gamModalHandle: {
     width: 36,
     height: 4,
-    backgroundcolor: '#D4AF37',
+    backgroundcolor: '#C8B56A',
     borderRadius: 4,
     alignSelf: 'center',
     marginBottom: 4,
@@ -1440,6 +1440,8 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+
+
 
 
 

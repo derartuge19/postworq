@@ -18,7 +18,7 @@ import { useAuth } from '../contexts/AuthContext';
 import config from '../config';
 
 const { width } = Dimensions.get('window');
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -193,7 +193,7 @@ export default function ProfileDetailScreen({ route, navigation }) {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.goBack()}>
-                <Ionicons name="chevron-back" size={18} color="#D4AF37" />
+                <Ionicons name="chevron-back" size={18} color="#C8B56A" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconBtn} onPress={() => {/* Share functionality */}}>
                 <Ionicons name="share-social" size={18} color="#000" />
@@ -276,16 +276,16 @@ const styles = StyleSheet.create({
   avatarInitial: { fontSize: 32, fontWeight: 'bold', color: BRAND_GOLD },
   statsRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginLeft: 20, marginBottom: 12 },
   statItem: { alignItems: 'center' },
-  statCount: { fontSize: 18, fontWeight: '700', color: '#D4AF37' },
-  statLabel: { fontSize: 13, color: '#D4AF37', marginTop: 2 },
+  statCount: { fontSize: 18, fontWeight: '700', color: '#C8B56A' },
+  statLabel: { fontSize: 13, color: '#C8B56A', marginTop: 2 },
   bioSection: { marginBottom: 16 },
-  fullName: { fontSize: 15, fontWeight: '700', color: '#D4AF37', marginBottom: 4 },
-  bioText: { fontSize: 14, color: '#D4AF37', lineHeight: 20 },
+  fullName: { fontSize: 15, fontWeight: '700', color: '#C8B56A', marginBottom: 4 },
+  bioText: { fontSize: 14, color: '#C8B56A', lineHeight: 20 },
   actionButtons: { flexDirection: 'row', gap: 8 },
   followBtn: { flex: 1, height: 36, backgroundColor: BRAND_GOLD, borderRadius: 8, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 20 },
   followingBtn: { backgroundColor: '#0B0B0C', borderWidth: 1, borderColor: '#e5e5e5' },
   followBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  followingBtnText: { color: '#D4AF37' },
+  followingBtnText: { color: '#C8B56A' },
   iconBtn: { 
     width: 40, 
     height: 36, 
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 20,
   },
-  editProfileBtnText: { fontSize: 14, fontWeight: '700', color: '#D4AF37' },
+  editProfileBtnText: { fontSize: 14, fontWeight: '700', color: '#C8B56A' },
   tabs: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -328,8 +328,10 @@ const styles = StyleSheet.create({
   thumbImage: { width: '100%', height: '100%' },
   videoBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(0,0,0,0.5)', padding: 2, borderRadius: 4 },
   empty: { height: 200, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: '#D4AF37', marginTop: 10 },
+  emptyText: { color: '#C8B56A', marginTop: 10 },
 });
+
+
 
 
 

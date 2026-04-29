@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../api';
 
 const { width } = Dimensions.get('window');
-const BRAND_GOLD = '#D4AF37';
+const BRAND_GOLD = '#C8B56A';
 
 const ALL_TABS = ['All', 'Active', 'Voting', 'Upcoming', 'Completed'];
 
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 4,
     textAlign: 'center',
   },
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
   },
   tabTextActive: {
     color: '#000',
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
-    shadowcolor: '#D4AF37',
+    shadowcolor: '#C8B56A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   campaignTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginBottom: 6,
   },
   campaignDescription: {
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   prizeTitle: {
     fontSize: 13,
-    color: '#D4AF37',
+    color: '#C8B56A',
     fontWeight: '600',
   },
   statsContainer: {
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#D4AF37',
+    color: '#C8B56A',
     marginTop: 12,
     marginBottom: 8,
   },
@@ -469,6 +469,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+
 
 
 
