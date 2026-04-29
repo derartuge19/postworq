@@ -71,9 +71,11 @@ export function SubscriptionManagement({ theme }) {
     );
   }
 
-  const totalSubscribers = plans.reduce((sum, plan) => sum + plan.count, 0);
-  const paidSubscribers = plans.slice(1).reduce((sum, plan) => sum + plan.count, 0);
-  const revenue = paidSubscribers * 999; // Assuming 999 ETB average
+  const totalSubscribers = analytics?.total_subscriptions || 0;
+  const activeSubscriptions = analytics?.active_subscriptions || 0;
+  const expiredSubscriptions = analytics?.expired_subscriptions || 0;
+  const trialUsers = analytics?.trial_users || 0;
+  const totalRevenue = analytics?.total_revenue || 0;
 
   return (
     <div>
@@ -116,7 +118,7 @@ export function SubscriptionManagement({ theme }) {
             color: theme.sub,
             marginBottom: 8,
           }}>
-            Total Subscribers
+            Total Subscriptions
           </div>
           <div style={{
             fontSize: 32,
@@ -139,14 +141,14 @@ export function SubscriptionManagement({ theme }) {
             color: theme.sub,
             marginBottom: 8,
           }}>
-            Paid Subscribers
+            Active Subscriptions
           </div>
           <div style={{
             fontSize: 32,
             fontWeight: 700,
             color: theme.green,
           }}>
-            {paidSubscribers}
+            {activeSubscriptions}
           </div>
         </div>
 
@@ -162,14 +164,37 @@ export function SubscriptionManagement({ theme }) {
             color: theme.sub,
             marginBottom: 8,
           }}>
-            Est. Monthly Revenue
+            Trial Users
+          </div>
+          <div style={{
+            fontSize: 32,
+            fontWeight: 700,
+            color: theme.blue,
+          }}>
+            {trialUsers}
+          </div>
+        </div>
+
+        <div style={{
+          background: theme.card,
+          borderRadius: 12,
+          padding: 24,
+          border: `1px solid ${theme.border}`,
+        }}>
+          <div style={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: theme.sub,
+            marginBottom: 8,
+          }}>
+            Total Revenue (ETB)
           </div>
           <div style={{
             fontSize: 32,
             fontWeight: 700,
             color: theme.pri,
           }}>
-            ${revenue.toFixed(2)}
+            {totalRevenue.toFixed(2)}
           </div>
         </div>
       </div>
@@ -235,11 +260,31 @@ export function SubscriptionManagement({ theme }) {
                 </h3>
 
                 <div style={{
+                  fontSize: 18,
+                  fontWeight: 600,
+                  color: plan.color,
+                  marginBottom: 8,
+                }}>
+                  {plan.price} ETB
+                </div>
+
+                {plan.priceCoins && (
+                  <div style={{
+                    fontSize: 14,
+                    color: theme.sub,
+                    marginBottom: 8,
+                  }}>
+                    or {plan.priceCoins} coins
+                  </div>
+                )}
+
+                <div style={{
                   fontSize: 14,
                   color: theme.sub,
                   marginBottom: 20,
+                  textTransform: 'capitalize',
                 }}>
-                  {plan.count} subscribers ({percentage}%)
+                  {plan.duration} • {plan.count} subscribers ({percentage}%)
                 </div>
 
                 {/* Progress Bar */}

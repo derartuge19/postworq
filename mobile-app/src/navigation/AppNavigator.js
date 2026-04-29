@@ -34,6 +34,7 @@ import FollowListScreen from '../screens/FollowListScreen';
 import WalletScreen from '../screens/WalletScreen';
 import GiftSelectorScreen from '../screens/GiftSelectorScreen';
 import CustomCameraScreen from '../screens/CustomCameraScreen';
+import SubscriptionScreen from '../screens/SubscriptionScreen';
 
 // ── Brand theme — keep in sync with web selfi_star theme ──────────────────────
 const BRAND = {
@@ -142,6 +143,7 @@ function MainStack() {
       <Stack.Screen name="Wallet"             component={WalletScreen}             options={{ headerShown: false }} />
       <Stack.Screen name="GiftSelector"       component={GiftSelectorScreen}       options={{ headerShown: false }} />
       <Stack.Screen name="CustomCamera"       component={CustomCameraScreen}       options={{ headerShown: false }} />
+      <Stack.Screen name="Subscription"      component={SubscriptionScreen}      options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

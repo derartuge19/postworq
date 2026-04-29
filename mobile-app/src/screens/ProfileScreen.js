@@ -424,6 +424,9 @@ export default function ProfileScreen({ navigation }) {
                 <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={styles.navActionBtn}>
                   <Ionicons name="wallet-outline" size={24} color="#C8B56A" />
                 </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Subscription')} style={styles.navActionBtn}>
+                  <Ionicons name="diamond-outline" size={24} color="#C8B56A" />
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.navActionBtn}>
                   <Ionicons name="settings-outline" size={24} color="#C8B56A" />
                 </TouchableOpacity>

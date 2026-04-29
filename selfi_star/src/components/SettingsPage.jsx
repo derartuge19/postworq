@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   X, User, Bell, Lock, Globe, HelpCircle, LogOut, ChevronRight, Moon, Sun, Wallet,
   ChevronLeft, MessageCircle, Heart, Users as UsersIcon, Mail, Eye, EyeOff, Activity,
-  Download, Trash2, Shield, FileText, Check
+  Download, Trash2, Shield, FileText, Check, Crown
 } from "lucide-react";
 import api from "../api";
 import config from "../config";
@@ -73,6 +73,7 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEdit
   const sections = [
     { id: "account", icon: User, label: t('account') },
     { id: "wallet", icon: Wallet, label: 'Wallet', isExternal: true },
+    { id: "subscription", icon: Crown, label: 'Subscription', isExternal: true },
     { id: "notifications", icon: Bell, label: t('notificationsSettings') },
     { id: "privacy", icon: Lock, label: t('privacy') },
     { id: "appearance", icon: darkMode ? Moon : Sun, label: t('appearance') },
@@ -323,6 +324,7 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEdit
           <SectionCard>
             <Row icon={User} title={t('editProfile')} subtitle="Change bio and photo" onPress={() => { onClose?.(); onShowEditProfile?.(); }} />
             <Row icon={Wallet} title="Wallet" subtitle="Coins & transactions" onPress={() => { onClose?.(); onShowWallet?.(); }} />
+            <Row icon={Crown} title="Subscription" subtitle="Plans & billing" onPress={() => { onClose?.(); onShowSubscription?.(); }} />
             <Row icon={Lock} title={t('changePassword')} onPress={() => setShowPassModal(true)} />
             <Row icon={Download} title={t('downloadData')} subtitle={t('downloadDataDesc')} onPress={handleDownloadData} />
           </SectionCard>
@@ -565,6 +567,10 @@ export function SettingsPage({ user, onClose, onLogout, onShowWallet, onShowEdit
                   onClick={() => {
                     if (section.isExternal && section.id === 'wallet' && onShowWallet) {
                       onShowWallet();
+                      return;
+                    }
+                    if (section.isExternal && section.id === 'subscription' && onShowSubscription) {
+                      onShowSubscription();
                       return;
                     }
                     setActiveSection(section.id);

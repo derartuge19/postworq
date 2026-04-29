@@ -14,6 +14,10 @@ from .views import (
     admin_reports_stats, admin_moderate_report, get_trending_reels, mark_not_interested, undo_not_interested,
     get_trending_hashtags, get_reels_by_hashtag, track_view
 )
+from .views_subscription import (
+    OnevasWebhookView, SubscriptionTierViewSet, SubscriptionViewSet as NewSubscriptionViewSet,
+    TrialPopupViewSet, CoinTransactionViewSet, AdminSubscriptionViewSet
+)
 from .views_master_campaign import (
     master_campaign_list, master_campaign_detail, master_campaign_participants,
     join_master_campaign, master_campaign_stats, test_generate_endpoint, generate_sub_campaigns,
@@ -397,6 +401,28 @@ urlpatterns = [
     path('wallet/telebirr-callback/', telebirr_callback, name='telebirr-callback'),
     # ============ WALLET (Admin) ============
     path('admin/wallet/config/', admin_wallet_config, name='admin-wallet-config'),
+    # ============ SUBSCRIPTION SYSTEM ============
+    # Onevas Webhooks
+    path('onevas/subscription/', OnevasWebhookView.as_view(), {'webhook_type': 'subscription'}, name='onevas-subscription'),
+    path('onevas/unsubscription/', OnevasWebhookView.as_view(), {'webhook_type': 'unsubscription'}, name='onevas-unsubscription'),
+    path('onevas/renewal/', OnevasWebhookView.as_view(), {'webhook_type': 'renewal'}, name='onevas-renewal'),
+    # Subscription Tiers
+    path('subscriptions/tiers/', SubscriptionTierViewSet.as_view({'get': 'list'}), name='subscription-tiers'),
+    path('subscriptions/tiers/active/', SubscriptionTierViewSet.as_view({'get': 'active'}), name='subscription-tiers-active'),
+    # User Subscriptions
+    path('subscriptions/', NewSubscriptionViewSet.as_view({'get': 'list', 'post': 'create'}), name='subscriptions'),
+    path('subscriptions/subscribe/', NewSubscriptionViewSet.as_view({'post': 'subscribe'}), name='subscription-subscribe'),
+    path('subscriptions/unsubscribe/', NewSubscriptionViewSet.as_view({'post': 'unsubscribe'}), name='subscription-unsubscribe'),
+    path('subscriptions/history/', NewSubscriptionViewSet.as_view({'get': 'history'}), name='subscription-history'),
+    # Trial Popup
+    path('trial/popup/', TrialPopupViewSet.as_view({'get': 'list', 'post': 'create'}), name='trial-popup'),
+    # Coin Transactions
+    path('coins/transactions/', CoinTransactionViewSet.as_view({'get': 'list'}), name='coin-transactions'),
+    path('coins/purchase/', CoinTransactionViewSet.as_view({'post': 'purchase'}), name='coin-purchase'),
+    # Admin Subscription Management
+    path('admin/subscriptions/', AdminSubscriptionViewSet.as_view({'get': 'list'}), name='admin-subscriptions'),
+    path('admin/subscriptions/analytics/', AdminSubscriptionViewSet.as_view({'get': 'analytics'}), name='admin-subscriptions-analytics'),
+    path('admin/subscriptions/revenue/', AdminSubscriptionViewSet.as_view({'get': 'revenue'}), name='admin-subscriptions-revenue'),
     path('admin/wallet/withdrawals/', admin_withdrawals_list, name='admin-wallet-withdrawals'),
     path('admin/wallet/withdrawals/<int:withdrawal_id>/action/', admin_withdrawal_action, name='admin-wallet-withdrawal-action'),
     path('admin/wallet/adjust-balance/', admin_adjust_balance, name='admin-wallet-adjust-balance'),
