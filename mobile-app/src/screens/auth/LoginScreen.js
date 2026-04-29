@@ -122,7 +122,7 @@ export default function LoginScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   scroll: { flexGrow: 1, padding: 20 },
-  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, marginTop: 40, borderRadius: 12, padding: 10 },
+  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 48, marginTop: 40, borderRadius: 12, padding: 10 },
   logoLeft:  { width: 100, height: 50 },
   logoRight: { width: 100, height: 50 },
   card: { backgroundColor: CARD, borderRadius: 18, padding: 24, borderWidth: 1, borderColor: GOLD_BORDER },
