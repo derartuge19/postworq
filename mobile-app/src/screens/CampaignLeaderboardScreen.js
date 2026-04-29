@@ -174,7 +174,7 @@ export default function CampaignLeaderboardScreen({ route, navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={16} color="#666" />
+          <Ionicons name="chevron-back" size={16} color="#D4AF37" />
           <Text style={styles.backButtonText}>Back to Campaign</Text>
         </TouchableOpacity>
         

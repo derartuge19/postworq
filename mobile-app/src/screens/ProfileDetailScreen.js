@@ -193,7 +193,7 @@ export default function ProfileDetailScreen({ route, navigation }) {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={18} color="#000" />
+                <Ionicons name="chevron-back" size={18} color="#D4AF37" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconBtn} onPress={() => {/* Share functionality */}}>
                 <Ionicons name="share-social" size={18} color="#000" />

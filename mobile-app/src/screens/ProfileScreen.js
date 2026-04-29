@@ -237,7 +237,7 @@ export default function ProfileScreen({ navigation }) {
       <View style={[styles.root, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+            <Ionicons name="chevron-back" size={24} color="#D4AF37" />
           </TouchableOpacity>
           <Text style={styles.headerUsername}>Profile</Text>
           <View style={{ width: 24 }} />

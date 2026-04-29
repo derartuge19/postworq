@@ -174,7 +174,7 @@ export default function CreateScreen({ navigation }) {
         {/* Header */}
         <View style={[s.newHeader, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={s.headerBtn}>
-            <Ionicons name="arrow-back" size={20} color="#D4AF37" />
+            <Ionicons name="chevron-back" size={20} color="#D4AF37" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>New Post</Text>
           {drafts.length > 0 ? (
@@ -365,7 +365,7 @@ export default function CreateScreen({ navigation }) {
         <StatusBar barStyle="dark-content" />
         <View style={[s.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={() => setStage('edit')}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+            <Ionicons name="chevron-back" size={24} color="#D4AF37" />
           </TouchableOpacity>
           <Text style={s.headerTitle}>Post Details</Text>
           <TouchableOpacity onPress={handlePost} style={s.postBtn}>

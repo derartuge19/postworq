@@ -176,7 +176,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
       {/* Sticky Header */}
       <View style={styles.stickyHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack}>
-          <Ionicons name="arrow-back" size={22} color="#000" />
+          <Ionicons name="chevron-back" size={22} color="#D4AF37" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{campaign.title}</Text>
         <View style={[styles.headerStatusPill, { backgroundColor: statusColor + '25' }]}>

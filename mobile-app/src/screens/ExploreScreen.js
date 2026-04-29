@@ -371,7 +371,7 @@ export default function ExploreScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={T.txt} />
+          <Ionicons name="chevron-back" size={24} color="#D4AF37" />
         </TouchableOpacity>
         
         {!inSearchMode && !searchFocused && (
@@ -444,7 +444,7 @@ export default function ExploreScreen({ navigation }) {
       {hashtagView && (
         <View style={styles.hashtagHeader}>
           <TouchableOpacity onPress={clearHashtagView} style={styles.hashtagBackBtn}>
-            <Ionicons name="arrow-back" size={20} color={T.txt} />
+            <Ionicons name="chevron-back" size={20} color="#D4AF37" />
           </TouchableOpacity>
           <Text style={styles.hashtagTitle}>#{hashtagView.tag}</Text>
           <Text style={styles.hashtagCount}>{fmt(hashtagView.count)} posts</Text>

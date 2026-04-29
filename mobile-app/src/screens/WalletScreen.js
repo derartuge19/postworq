@@ -71,7 +71,7 @@ export default function WalletScreen({ navigation }) {
         api.getWalletBalance(),
         api.getCoinPackages(),
       ]);
-      const pkgs = packagesData.results || packagesData;
+      const pkgs = Array.isArray(packagesData?.results) ? packagesData.results : Array.isArray(packagesData) ? packagesData : [];
       setBalance(balanceData);
       setPackages(pkgs);
       writeCache(balanceData, pkgs);
@@ -130,7 +130,7 @@ export default function WalletScreen({ navigation }) {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+            <Ionicons name="chevron-back" size={24} color="#D4AF37" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Wallet</Text>
           <View style={{ width: 24 }} />
@@ -150,13 +150,13 @@ export default function WalletScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <Ionicons name="chevron-back" size={24} color="#D4AF37" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Wallet</Text>
         <TouchableOpacity onPress={() => loadWalletData(false)}>
           {refreshing
             ? <ActivityIndicator size="small" color={BRAND_GOLD} />
-            : <Ionicons name="refresh" size={22} color="#666" />}
+            : <Ionicons name="refresh" size={22} color="#D4AF37" />}
         </TouchableOpacity>
       </View>
 
