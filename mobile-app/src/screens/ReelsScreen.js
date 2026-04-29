@@ -342,7 +342,6 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
 });
 
 export default function ReelsScreen({ route, navigation }) {
-  const nav            = useNavigation();
   const isFocused      = useIsFocused();
   const insets         = useSafeAreaInsets();
   const [reels, setReels]           = useState([]);

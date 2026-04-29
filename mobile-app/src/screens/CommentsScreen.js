@@ -188,7 +188,20 @@ export default function CommentsScreen({ route, navigation }) {
 
   useEffect(() => {
     loadComments();
+    loadReelData();
   }, [reelId]);
+
+  const loadReelData = async () => {
+    try {
+      const data = await api.request(`/reels/${reelId}/`);
+      if (data?.user) {
+        setReelUserId(data.user.id);
+        setReelUsername(data.user.username);
+      }
+    } catch (error) {
+      console.error('Error loading reel data:', error);
+    }
+  };
 
   // Mention autocomplete
   useEffect(() => {
@@ -926,5 +939,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#F5F5F7',
     fontWeight: '600',
+  },
+}); fontWeight: '600',
   },
 });
