@@ -133,13 +133,13 @@ function MainStack() {
       <Stack.Screen name="ProfileDetail"  component={ProfileDetailScreen}  options={{ title: 'Profile' }} />
       <Stack.Screen name="EditProfile"    component={EditProfileScreen}     options={{ headerShown: false }} />
       <Stack.Screen name="Comments"           component={CommentsScreen}           options={{ title: 'Comments', headerBackTitleVisible: false }} />
-      <Stack.Screen name="Campaigns"          component={CampaignsScreen}          options={{ title: 'Campaigns' }} />
-      <Stack.Screen name="CampaignDetail"     component={CampaignDetailScreen}     options={{ title: 'Campaign' }} />
-      <Stack.Screen name="CampaignFeed"       component={CampaignFeedScreen}       options={{ title: 'Campaign Feed' }} />
-      <Stack.Screen name="CampaignLeaderboard" component={CampaignLeaderboardScreen} options={{ title: 'Leaderboard' }} />
+      <Stack.Screen name="Campaigns"          component={CampaignsScreen}          options={{ headerShown: false }} />
+      <Stack.Screen name="CampaignDetail"     component={CampaignDetailScreen}     options={{ headerShown: false }} />
+      <Stack.Screen name="CampaignFeed"       component={CampaignFeedScreen}       options={{ headerShown: false }} />
+      <Stack.Screen name="CampaignLeaderboard" component={CampaignLeaderboardScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Settings"           component={SettingsScreen}           options={{ headerShown: false }} />
       <Stack.Screen name="FollowList"         component={FollowListScreen}         options={{ headerShown: false }} />
-      <Stack.Screen name="Wallet"             component={WalletScreen}             options={{ title: 'Wallet' }} />
+      <Stack.Screen name="Wallet"             component={WalletScreen}             options={{ headerShown: false }} />
       <Stack.Screen name="GiftSelector"       component={GiftSelectorScreen}       options={{ headerShown: false }} />
       <Stack.Screen name="CustomCamera"       component={CustomCameraScreen}       options={{ headerShown: false }} />
     </Stack.Navigator>
