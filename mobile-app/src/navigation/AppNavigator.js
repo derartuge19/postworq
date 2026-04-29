@@ -37,7 +37,7 @@ import CustomCameraScreen from '../screens/CustomCameraScreen';
 
 // ── Brand theme — keep in sync with web selfi_star theme ──────────────────────
 const BRAND = {
-  pri:      '#F9E08B',   // gold accent — matches web T.pri
+  pri:      '#D4AF37',   // gold accent — matches web T.pri
   bg:       '#ffffff',
   cardBg:   '#ffffff',
   border:   '#e5e5e5',
@@ -55,12 +55,12 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#F9E08B',
-        tabBarInactiveTintColor: '#F9E08B',
+        tabBarActiveTintColor: '#D4AF37',
+        tabBarInactiveTintColor: '#D4AF37',
         tabBarStyle: {
-          backgroundColor: '#0d0d0d',
+          backgroundColor: '#0B0B0C',
           borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: '#F9E08B30',
+          borderTopColor: '#D4AF3730',
           height: 60,
           paddingBottom: 8,
           paddingTop: 6,
@@ -84,10 +84,10 @@ function MainTabs() {
             return (
               <View style={{
                 width: 44, height: 44, borderRadius: 22,
-                backgroundColor: '#F9E08B',
+                backgroundColor: '#D4AF37',
                 justifyContent: 'center', alignItems: 'center',
                 marginBottom: 4,
-                shadowColor: '#F9E08B',
+                shadowColor: '#D4AF37',
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.5,
                 shadowRadius: 8,
@@ -97,7 +97,7 @@ function MainTabs() {
               </View>
             );
           }
-          return <Ionicons name={icons[route.name]} size={size} color={color} style={focused ? { textShadowColor: '#F9E08B', textShadowRadius: 8 } : {}} />;
+          return <Ionicons name={icons[route.name]} size={size} color={color} style={focused ? { textShadowColor: '#D4AF37', textShadowRadius: 8 } : {}} />;
         },
         tabBarLabel: ({ focused, color }) => {
           const label = route.name;
@@ -307,4 +307,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+
 

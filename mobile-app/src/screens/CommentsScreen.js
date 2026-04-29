@@ -20,7 +20,7 @@ import api from '../api';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 // Build comment tree from flat list
 function buildCommentTree(flatList) {
@@ -564,7 +564,7 @@ export default function CommentsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
   },
   header: {
     flexDirection: 'row',
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   scrollView: {
     flex: 1,
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 8,
   },
   emptySubtext: {
@@ -655,10 +655,10 @@ const styles = StyleSheet.create({
   },
   username: {
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   commentBody: {
-    color: '#F9E08B',
+    color: '#D4AF37',
     lineHeight: 18,
   },
   commentActions: {
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 10,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   actionBtn: {
     flexDirection: 'row',
@@ -678,13 +678,13 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontSize: 10,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   replyBtn: {
     padding: 0,
   },
   replyText: {
-    color: '#F9E08B',
+    color: '#D4AF37',
     fontSize: 11,
     fontWeight: '600',
   },
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     borderTopWidth: 1,
     borderTopColor: '#e5e5e5',
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     paddingHorizontal: 16,
     paddingTop: 10,
   },
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
   },
   replyingToText: {
     fontSize: 12,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   replyingToUser: {
     fontWeight: '700',
@@ -734,13 +734,13 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     maxHeight: 80,
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   sendButton: {
     width: 40,
@@ -760,20 +760,20 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
   },
   mentionSuggestionsContainer: {
     position: 'absolute',
     bottom: '100%',
     left: 16,
     right: 16,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e5e5e5',
     maxHeight: 200,
     marginBottom: 8,
-    shadowcolor: '#F9E08B',
+    shadowcolor: '#D4AF37',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -808,7 +808,7 @@ const styles = StyleSheet.create({
   mentionUsername: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   reportBtn: {
     padding: 0,
@@ -829,7 +829,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   viewRepliesText: {
-    color: '#F9E08B',
+    color: '#D4AF37',
     fontSize: 11,
     fontWeight: '600',
     marginLeft: 8,
@@ -840,7 +840,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   reportModal: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -863,11 +863,11 @@ const styles = StyleSheet.create({
   reportTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   reportSubtitle: {
     fontSize: 13,
-    color: '#999',
+    color: '#71717A',
     marginBottom: 16,
   },
   reportScroll: {
@@ -882,7 +882,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#e5e5e5',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     gap: 12,
   },
   reportIcon: {
@@ -890,21 +890,22 @@ const styles = StyleSheet.create({
   },
   reportLabel: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     fontWeight: '500',
   },
   reportCancel: {
     marginTop: 12,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderRadius: 10,
   },
   reportCancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
 });
+
 
 

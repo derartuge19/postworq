@@ -8,8 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
-const GOLD     = '#F9E08B';
-const BG       = '#1a1a1a';
+const GOLD     = '#D4AF37';
+const BG       = '#121214';
 const INPUT_BG = '#2a2a2a';
 
 const ethioLogo = require('../../image/Ethio telecom Logo PNG format.png');
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     gap: 8, marginVertical: 24,
   },
   stepDot: {
-    width: 10, height: 10, borderRadius: 5, backgroundColor: '#262626',
+    width: 10, height: 10, borderRadius: 5, backgroundColor: '#2A2A2E',
   },
   stepDotActive: {
     width: 22, height: 22, borderRadius: 11, backgroundColor: GOLD,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     color: '#000', fontSize: 11, fontWeight: '700',
   },
   stepLine: {
-    width: 32, height: 2, backgroundColor: '#262626', borderRadius: 1,
+    width: 32, height: 2, backgroundColor: '#2A2A2E', borderRadius: 1,
   },
   stepLineActive: {
     backgroundColor: GOLD,
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: INPUT_BG, borderRadius: 18, padding: 24,
-    borderWidth: 1, borderColor: '#F9E08B30', marginHorizontal: 16,
+    borderWidth: 1, borderColor: '#D4AF3730', marginHorizontal: 16,
   },
 
   errorBox: {
@@ -425,8 +425,8 @@ const styles = StyleSheet.create({
 
   inputWrapper: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#1A1A1A', borderRadius: 10,
-    borderWidth: 1.5, borderColor: '#262626',
+    backgroundColor: '#121214', borderRadius: 10,
+    borderWidth: 1.5, borderColor: '#2A2A2E',
     paddingHorizontal: 14, height: 54,
   },
   inputIcon: { marginRight: 10 },
@@ -440,8 +440,8 @@ const styles = StyleSheet.create({
   otpInput: {
     width: 46, height: 54, borderRadius: 10, textAlign: 'center',
     fontSize: 22, fontWeight: '800', color: '#fff',
-    backgroundColor: '#1A1A1A',
-    borderWidth: 2, borderColor: '#262626',
+    backgroundColor: '#121214',
+    borderWidth: 2, borderColor: '#2A2A2E',
   },
 
   btn: {
@@ -466,4 +466,5 @@ const styles = StyleSheet.create({
   footerText: { fontSize: 13, color: '#666' },
   footerLink: { fontSize: 13, color: GOLD, fontWeight: '700' },
 });
+
 

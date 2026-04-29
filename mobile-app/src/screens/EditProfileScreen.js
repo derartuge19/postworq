@@ -20,7 +20,7 @@ import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import config from '../config';
 
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -225,7 +225,7 @@ export default function EditProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0d0d0d' },
+  root: { flex: 1, backgroundColor: '#0B0B0C' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#eee',
   },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#F9E08B' },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: '#D4AF37' },
   backBtn: { padding: 4 },
   saveBtnText: { fontSize: 16, fontWeight: '800', color: BRAND_GOLD },
   scrollContent: { padding: 20 },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   changePhotoText: { color: BRAND_GOLD, fontSize: 14, fontWeight: '700', marginTop: 12 },
   form: { gap: 20 },
   inputGroup: { gap: 8 },
-  label: { fontSize: 13, fontWeight: '700', color: '#F9E08B' },
+  label: { fontSize: 13, fontWeight: '700', color: '#D4AF37' },
   input: {
     backgroundColor: '#f9f9f9',
     borderWidth: 1,
@@ -269,13 +269,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   row: { flexDirection: 'row', gap: 12 },
   bioInput: { minHeight: 80, textAlignVertical: 'top' },
-  charCount: { alignSelf: 'flex-end', fontSize: 11, color: '#F9E08B', marginTop: 4 },
+  charCount: { alignSelf: 'flex-end', fontSize: 11, color: '#D4AF37', marginTop: 4 },
   logoutBtn: { marginTop: 40, alignItems: 'center' },
   logoutBtnText: { color: '#FF3B30', fontSize: 16, fontWeight: '700' },
 });
+
 
 

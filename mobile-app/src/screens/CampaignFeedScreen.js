@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -173,7 +173,7 @@ export default function CampaignFeedScreen({ route, navigation }) {
       if (rank === 1) return { bg: '#FFD70020', border: '#FFD700', text: '#B8860B', label: '🥇' };
       if (rank === 2) return { bg: '#C0C0C020', border: '#C0C0C0', text: '#808080', label: '🥈' };
       if (rank === 3) return { bg: '#CD7F3220', border: '#CD7F32', text: '#8B4513', label: '🥉' };
-      return { bg: '#f5f5f5', border: '#e5e5e5', text: '#666', label: `#${index + 1}` };
+      return { bg: '#0B0B0C', border: '#e5e5e5', text: '#666', label: `#${index + 1}` };
     };
     const rankStyle = getRankStyle(index + 1);
 
@@ -296,7 +296,7 @@ export default function CampaignFeedScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
   },
   centerContent: {
     justifyContent: 'center',
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
   },
@@ -315,28 +315,28 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     fontWeight: '600',
-    color: '#C2994B',
+    color: '#A1A1AA',
   },
   campaignInfo: {
     padding: 16,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
   },
   campaignTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 4,
   },
   campaignSubtitle: {
     fontSize: 14,
-    color: '#C2994B',
+    color: '#A1A1AA',
   },
   tabsContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
     gap: 8,
@@ -345,9 +345,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
     borderWidth: 2,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   tabActive: {
     backgroundColor: BRAND_GOLD,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   tabTextActive: {
     color: '#fff',
@@ -365,11 +365,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   postCard: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowcolor: '#F9E08B',
+    shadowcolor: '#D4AF37',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -408,11 +408,11 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   score: {
     fontSize: 12,
-    color: '#C2994B',
+    color: '#A1A1AA',
   },
   voteButton: {
     flexDirection: 'row',
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   },
   mediaContainer: {
     aspectRatio: 9 / 16,
-    backgroundcolor: '#F9E08B',
+    backgroundcolor: '#D4AF37',
   },
   media: {
     width: '100%',
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   mediaPlaceholder: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
   },
   actions: {
     flexDirection: 'row',
@@ -461,10 +461,10 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   actionTextDisabled: {
-    color: '#999',
+    color: '#71717A',
   },
   captionContainer: {
     paddingHorizontal: 12,
@@ -474,11 +474,11 @@ const styles = StyleSheet.create({
   captionUsername: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   captionText: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     lineHeight: 20,
     flex: 1,
   },
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontSize: 12,
-    color: '#C2994B',
+    color: '#A1A1AA',
   },
   scoreValue: {
     fontSize: 14,
@@ -500,26 +500,27 @@ const styles = StyleSheet.create({
     color: BRAND_GOLD,
   },
   emptyContainer: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderRadius: 16,
     padding: 40,
     alignItems: 'center',
     marginTop: 20,
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginTop: 12,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#C2994B',
+    color: '#A1A1AA',
     textAlign: 'center',
   },
 });
+
 
 

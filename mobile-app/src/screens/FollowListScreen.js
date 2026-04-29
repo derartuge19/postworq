@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
 import config from '../config';
 
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 export default function FollowListScreen({ route, navigation }) {
   const { userId, type } = route.params; // type: 'followers' | 'following'
@@ -119,7 +119,7 @@ export default function FollowListScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0d0d0d' },
+  root: { flex: 1, backgroundColor: '#0B0B0C' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   backBtn: { padding: 8 },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: '#F9E08B' },
+  headerTitle: { fontSize: 17, fontWeight: '700', color: '#D4AF37' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { paddingVertical: 8 },
   userItem: {
@@ -144,10 +144,11 @@ const styles = StyleSheet.create({
   avatarFallback: { backgroundColor: '#f0f0f0', alignItems: 'center', justifyContent: 'center' },
   avatarInitial: { fontSize: 20, fontWeight: 'bold', color: BRAND_GOLD },
   userInfo: { flex: 1 },
-  username: { fontSize: 15, fontWeight: '700', color: '#F9E08B' },
-  fullName: { fontSize: 13, color: '#F9E08B', marginTop: 2 },
+  username: { fontSize: 15, fontWeight: '700', color: '#D4AF37' },
+  fullName: { fontSize: 13, color: '#D4AF37', marginTop: 2 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100 },
-  emptyText: { fontSize: 16, color: '#F9E08B', marginTop: 16 },
+  emptyText: { fontSize: 16, color: '#D4AF37', marginTop: 16 },
 });
+
 
 

@@ -21,7 +21,7 @@ import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 const CATEGORY_ICONS = {
   flowers: '🌹',
@@ -532,7 +532,7 @@ export default function GiftSelectorScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
   },
   centered: {
     justifyContent: 'center',
@@ -550,12 +550,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   coinBalanceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
   },
   recipientLabel: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginRight: 8,
   },
   recipientName: {
@@ -596,14 +596,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginRight: 8,
     borderRadius: 20,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
   },
   categoryTabSelected: {
     backgroundColor: BRAND_GOLD,
   },
   categoryTabText: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     fontWeight: '500',
   },
   categoryTabTextSelected: {
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 12,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
   giftName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     textAlign: 'center',
     marginBottom: 4,
   },
@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
-    shadowcolor: '#F9E08B',
+    shadowcolor: '#D4AF37',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   modalGiftPreview: {
     alignItems: 'center',
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
   modalGiftName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 4,
   },
   modalGiftPrice: {
@@ -752,14 +752,14 @@ const styles = StyleSheet.create({
   quantityLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 12,
   },
   quantityControls: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderRadius: 12,
     padding: 4,
   },
@@ -768,13 +768,13 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderRadius: 8,
   },
   quantityValue: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   messageContainer: {
     marginBottom: 20,
@@ -782,15 +782,15 @@ const styles = StyleSheet.create({
   messageLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 12,
   },
   messageInput: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderRadius: 12,
     padding: 16,
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     minHeight: 80,
     textAlignVertical: 'top',
   },
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
   totalCostLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   totalCostValue: {
     fontSize: 20,
@@ -831,7 +831,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   rechargeModalContent: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -849,12 +849,12 @@ const styles = StyleSheet.create({
   rechargeTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 8,
   },
   rechargeSubtitle: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -869,15 +869,15 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderRadius: 12,
     padding: 16,
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   quickRechargeContainer: {
     marginBottom: 24,
@@ -885,7 +885,7 @@ const styles = StyleSheet.create({
   quickRechargeTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 12,
   },
   quickRechargeButton: {
@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
   },
   quickRechargePrice: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   rechargeButtons: {
     flexDirection: 'row',
@@ -917,12 +917,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rechargeCancelButton: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
   },
   rechargeCancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   rechargeWalletButton: {
     backgroundColor: BRAND_GOLD,
@@ -945,5 +945,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
   },
 });
+
 
 

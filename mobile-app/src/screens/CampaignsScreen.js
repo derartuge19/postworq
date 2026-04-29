@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../api';
 
 const { width } = Dimensions.get('window');
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 const ALL_TABS = ['All', 'Active', 'Voting', 'Upcoming', 'Completed'];
 
@@ -213,13 +213,13 @@ export default function CampaignsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
   },
   hero: {
     padding: 20,
@@ -245,31 +245,31 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 4,
     textAlign: 'center',
   },
   heroSubtitle: {
     fontSize: 13,
-    color: '#C2994B',
+    color: '#A1A1AA',
     textAlign: 'center',
     maxWidth: 280,
   },
   tabsContainer: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderBottomWidth: 1,
-    borderBottomColor: '#262626',
+    borderBottomColor: '#2A2A2E',
     gap: 8,
   },
   tab: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
     borderWidth: 2,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   tabActive: {
     backgroundColor: BRAND_GOLD,
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   tabTextActive: {
     color: '#000',
@@ -287,17 +287,17 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   campaignCard: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderRadius: 14,
     marginBottom: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   campaignImage: {
     width: '100%',
     height: 160,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
   },
   imagePlaceholder: {
     backgroundColor: 'rgba(249, 224, 139, 0.15)',
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
-    shadowcolor: '#F9E08B',
+    shadowcolor: '#D4AF37',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -345,12 +345,12 @@ const styles = StyleSheet.create({
   campaignTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 6,
   },
   campaignDescription: {
     fontSize: 13,
-    color: '#C2994B',
+    color: '#A1A1AA',
     marginBottom: 12,
     lineHeight: 18,
   },
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   },
   prizeLabel: {
     fontSize: 10,
-    color: '#C2994B',
+    color: '#A1A1AA',
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   prizeTitle: {
     fontSize: 13,
-    color: '#F9E08B',
+    color: '#D4AF37',
     fontWeight: '600',
   },
   statsContainer: {
@@ -401,19 +401,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#262626',
+    borderTopColor: '#2A2A2E',
   },
   stat: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
     borderRadius: 6,
     marginHorizontal: 4,
   },
   statLabel: {
     fontSize: 9,
-    color: '#C2994B',
+    color: '#A1A1AA',
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -447,27 +447,28 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   emptyContainer: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderRadius: 16,
     padding: 40,
     alignItems: 'center',
     marginTop: 20,
     marginHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginTop: 12,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#C2994B',
+    color: '#A1A1AA',
     textAlign: 'center',
   },
 });
+
 
 

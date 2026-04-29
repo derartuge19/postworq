@@ -34,7 +34,7 @@ async function writeCache(balance, packages) {
   } catch {}
 }
 
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 export default function WalletScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -299,7 +299,7 @@ export default function WalletScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
   },
   centered: {
     justifyContent: 'center',
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   content: {
     flex: 1,
@@ -380,12 +380,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 12,
   },
   packageCard: {
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   packageName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   packageCoins: {
     fontSize: 20,
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   packagePriceText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   featuredBadge: {
     backgroundColor: BRAND_GOLD,
@@ -441,12 +441,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 4,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     textAlign: 'center',
   },
   infoBox: {
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   selectedPackagePreview: {
     flexDirection: 'row',
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
   packagePreviewName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 4,
   },
   packagePreviewCoins: {
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   packagePreviewPrice: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   formGroup: {
     marginBottom: 20,
@@ -534,15 +534,15 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderRadius: 12,
     padding: 16,
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   payButton: {
     backgroundColor: BRAND_GOLD,
@@ -563,5 +563,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
 });
+
 
 

@@ -13,7 +13,7 @@ import api from '../api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 const PERIODS = [
   { id: 'overall', label: 'All Time' },
@@ -64,7 +64,7 @@ export default function CampaignLeaderboardScreen({ route, navigation }) {
       if (rank === 1) return { height: 140, bg: '#FFD700', border: '#FFD700' };
       if (rank === 2) return { height: 100, bg: '#A8A8A8', border: '#A8A8A8' };
       if (rank === 3) return { height: 80, bg: '#CD7F32', border: '#CD7F32' };
-      return { height: 60, bg: '#f5f5f5', border: '#e5e5e5' };
+      return { height: 60, bg: '#0B0B0C', border: '#e5e5e5' };
     };
 
     return (
@@ -247,14 +247,14 @@ export default function CampaignLeaderboardScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
   },
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 14,
     fontWeight: '600',
-    color: '#C2994B',
+    color: '#A1A1AA',
   },
   headerTitle: {
     flexDirection: 'row',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   campaignTypeRow: {
     flexDirection: 'row',
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   },
   campaignName: {
     fontSize: 13,
-    color: '#C2994B',
+    color: '#A1A1AA',
     marginRight: 8,
   },
   campaignType: {
@@ -319,9 +319,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderWidth: 1.5,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   periodTabActive: {
     backgroundColor: BRAND_GOLD,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   periodTabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#C2994B',
+    color: '#A1A1AA',
   },
   periodTabTextActive: {
     color: '#fff',
@@ -340,17 +340,17 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   podiumContainer: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderRadius: 14,
     padding: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   podiumTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#C2994B',
+    color: '#A1A1AA',
     textTransform: 'uppercase',
     letterSpacing: 0.05,
     marginBottom: 20,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   podiumAvatarText: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   podiumAvatarTextFirst: {
     fontSize: 26,
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   podiumName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 4,
   },
   podiumNameFirst: {
@@ -425,16 +425,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   leaderboardList: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   listTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#C2994B',
+    color: '#A1A1AA',
     textTransform: 'uppercase',
     letterSpacing: 0.05,
     marginBottom: 12,
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0B0B0C',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -475,12 +475,12 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   username: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   scoreInfo: {
     alignItems: 'flex-end',
@@ -492,27 +492,28 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontSize: 10,
-    color: '#C2994B',
+    color: '#A1A1AA',
     fontWeight: '600',
   },
   emptyContainer: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderRadius: 14,
     padding: 48,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#C2994B',
+    color: '#A1A1AA',
   },
 });
+
 
 

@@ -8,10 +8,10 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
-const GOLD = '#F9E08B';
-const BG   = '#1a1a1a';
+const GOLD = '#D4AF37';
+const BG   = '#121214';
 const INPUT_BG = '#2a2a2a';
-const CARD_BG = '#1A1A1A';
+const CARD_BG = '#121214';
 
 const ethioLogo = require('../../image/Ethio telecom Logo PNG format.png');
 const flipLogo  = require('../../image/final_logo.png');
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: CARD_BG, borderRadius: 18, padding: 24,
-    borderWidth: 1, borderColor: '#F9E08B30', marginHorizontal: 16,
+    borderWidth: 1, borderColor: '#D4AF3730', marginHorizontal: 16,
   },
 
   titleArea: { alignItems: 'center', marginBottom: 24 },
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: CARD_BG, borderRadius: 10,
-    borderWidth: 1.5, borderColor: '#262626',
+    borderWidth: 1.5, borderColor: '#2A2A2E',
     paddingHorizontal: 14, marginBottom: 16, height: 54,
   },
   inputIcon: { marginRight: 10 },
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     gap: 24, marginTop: 20, paddingBottom: 20,
   },
   footerLink: { color: GOLD, fontSize: 13, fontWeight: '600' },
-  footerSeparator: { color: '#262626' },
+  footerSeparator: { color: '#2A2A2E' },
 
   // Modal styles
   modalContainer: {
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   modalDesc: { fontSize: 13, color: GOLD, marginBottom: 16 },
   modalInput: {
     width: '100%', padding: 12, backgroundColor: CARD_BG, borderWidth: 1.5,
-    borderColor: '#262626', borderRadius: 10, fontSize: 14, color: '#fff',
+    borderColor: '#2A2A2E', borderRadius: 10, fontSize: 14, color: '#fff',
     marginBottom: 12,
   },
   modalBtn: {
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   successEmoji: { fontSize: 48, marginBottom: 12 },
   successTitle: { fontSize: 18, fontWeight: '800', color: GOLD, marginBottom: 8 },
   successDesc: { fontSize: 13, color: GOLD, marginBottom: 24 },
-  faqItem: { borderBottomWidth: 1, borderBottomColor: '#262626', marginBottom: 2 },
+  faqItem: { borderBottomWidth: 1, borderBottomColor: '#2A2A2E', marginBottom: 2 },
   faqQuestion: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 14,
@@ -451,4 +451,5 @@ const styles = StyleSheet.create({
   faqAnswer: { fontSize: 13, color: GOLD, paddingBottom: 14, lineHeight: 20 },
   termsText: { fontSize: 12, color: GOLD, lineHeight: 20 },
 });
+
 

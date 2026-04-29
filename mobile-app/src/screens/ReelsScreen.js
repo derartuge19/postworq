@@ -29,7 +29,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const BRAND_GOLD = '#DA9B2A';
+const BRAND_GOLD = '#D4AF37';
 
 // ─────────────────────────────────────────────────────────────
 // Single Reel Item Component
@@ -196,7 +196,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
               blurRadius={Platform.OS === 'ios' ? 20 : 10} // Adjust for platform
             />
           ) : (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0B0B0C' }]} />
           )}
           <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.7)' }]} />
         </View>
@@ -656,15 +656,15 @@ export default function ReelsScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundcolor: '#F9E08B' },
-  loader: { flex: 1, backgroundcolor: '#F9E08B', alignItems: 'center', justifyContent: 'center' },
-  slide: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, backgroundcolor: '#F9E08B' },
+  root: { flex: 1, backgroundcolor: '#D4AF37' },
+  loader: { flex: 1, backgroundcolor: '#D4AF37', alignItems: 'center', justifyContent: 'center' },
+  slide: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, backgroundcolor: '#D4AF37' },
   heartOverlay: { 
     ...StyleSheet.absoluteFillObject, 
     alignItems: 'center', 
     justifyContent: 'center', 
     zIndex: 10,
-    shadowcolor: '#F9E08B',
+    shadowcolor: '#D4AF37',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 10,
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
-    shadowcolor: '#F9E08B',
+    shadowcolor: '#D4AF37',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -706,23 +706,23 @@ const styles = StyleSheet.create({
   caption: { color: '#fff', fontSize: 14, lineHeight: 18 },
   moreLabel: { color: 'rgba(255,255,255,0.7)', fontWeight: '700' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  bottomSheet: { backgroundColor: '#0d0d0d', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
+  bottomSheet: { backgroundColor: '#0B0B0C', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 40, maxHeight: '80%', marginHorizontal: 0 },
   sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15, marginTop: 8 },
   iconCircleGrid: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   iconGrid: { flexDirection: 'row', justifyContent: 'space-around', padding: '8px 16px 16px', gap: 8 },
   iconGridItem: { alignItems: 'center', gap: 4 },
-  iconGridText: { fontSize: 11, color: '#F9E08B', marginTop: 4, fontWeight: '500' },
+  iconGridText: { fontSize: 11, color: '#D4AF37', marginTop: 4, fontWeight: '500' },
   sheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
   sheetItemText: { fontSize: 16, fontWeight: '600', color: '#1C1917' },
-  menuCard: { width: SCREEN_WIDTH * 0.7, backgroundColor: '#0d0d0d', borderRadius: 20, overflow: 'hidden' },
+  menuCard: { width: SCREEN_WIDTH * 0.7, backgroundColor: '#0B0B0C', borderRadius: 20, overflow: 'hidden' },
   menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
-  menuItemText: { marginLeft: 12, fontSize: 16, fontWeight: '600', color: '#F9E08B' },
+  menuItemText: { marginLeft: 12, fontSize: 16, fontWeight: '600', color: '#D4AF37' },
   header: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 30 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
   
   // Gifting Styles
-  giftBottomSheet: { backgroundColor: '#0d0d0d', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '80%' },
+  giftBottomSheet: { backgroundColor: '#0B0B0C', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, maxHeight: '80%' },
   sheetHeader: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#F5F5F4' },
   sheetHandle: { width: 40, height: 4, backgroundColor: '#E7E5E4', borderRadius: 2, alignSelf: 'center', marginBottom: 15 },
   sheetTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
@@ -738,5 +738,6 @@ const styles = StyleSheet.create({
   sendGiftBtn: { backgroundColor: BRAND_GOLD, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 10 },
   sendGiftBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });
+
 
 

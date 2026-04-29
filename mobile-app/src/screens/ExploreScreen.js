@@ -25,15 +25,15 @@ const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 12) / 3; // 3 columns with 3px gaps
 
 const T = {
-  bg:     '#0D0D0D',
-  cardBg: '#1A1A1A',
-  border: '#262626',
+  bg:     '#0B0B0C',
+  cardBg: '#121214',
+  border: '#2A2A2E',
   txt:    '#FFFFFF',
-  sub:    '#C2994B',
-  pri:    '#F9E08B',
+  sub:    '#A1A1AA',
+  pri:    '#D4AF37',
 };
 
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 const CATEGORIES = [
   { id: 'all', label: 'Trending', emoji: '🔥' },
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: T.border,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
   },
   backBtn: {
     width: 40,
@@ -592,7 +592,7 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderBottomWidth: 1,
     borderBottomColor: T.border,
   },
@@ -617,7 +617,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   categoriesContainer: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     paddingHorizontal: 16,
     paddingBottom: 8,
     borderBottomWidth: 1,
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderBottomWidth: 1,
     borderBottomColor: T.border,
   },
@@ -685,7 +685,7 @@ const styles = StyleSheet.create({
   trendingHashtags: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     marginBottom: 8,
   },
   hashtagDropdownHeader: {
@@ -827,7 +827,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 12,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     marginBottom: 8,
   },
   userAvatar: {
@@ -899,6 +899,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 });
+
 
 
 

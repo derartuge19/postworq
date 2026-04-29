@@ -25,7 +25,7 @@ import config from '../config';
 import GamificationBar from '../components/GamificationBar';
 
 const { width } = Dimensions.get('window');
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -410,7 +410,7 @@ export default function ProfileScreen({ navigation }) {
           {/* Navigation row */}
           <View style={styles.navRow}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Ionicons name="chevron-back" size={24} color="#F9E08B" />
+              <Ionicons name="chevron-back" size={24} color="#D4AF37" />
             </TouchableOpacity>
             <View style={styles.navCenter}>
               <Text style={styles.navUsername}>{profile?.username || user?.username || 'user'}</Text>
@@ -419,13 +419,13 @@ export default function ProfileScreen({ navigation }) {
             {profile?.id === user?.id && (
               <View style={styles.navActions}>
                 <TouchableOpacity onPress={() => setShowGamModal(true)} style={styles.navActionBtn}>
-                  <Ionicons name="diamond-outline" size={24} color="#F9E08B" />
+                  <Ionicons name="diamond-outline" size={24} color="#D4AF37" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Wallet')} style={styles.navActionBtn}>
-                  <Ionicons name="wallet-outline" size={24} color="#F9E08B" />
+                  <Ionicons name="wallet-outline" size={24} color="#D4AF37" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.navActionBtn}>
-                  <Ionicons name="settings-outline" size={24} color="#F9E08B" />
+                  <Ionicons name="settings-outline" size={24} color="#D4AF37" />
                 </TouchableOpacity>
               </View>
             )}
@@ -479,7 +479,7 @@ export default function ProfileScreen({ navigation }) {
               style={styles.editBtn}
               onPress={() => navigation.navigate('EditProfile')}
             >
-              <Ionicons name="pencil-outline" size={16} color="#F9E08B" />
+              <Ionicons name="pencil-outline" size={16} color="#D4AF37" />
               <Text style={styles.editBtnText}>Edit Profile</Text>
             </TouchableOpacity>
           ) : (
@@ -488,7 +488,7 @@ export default function ProfileScreen({ navigation }) {
                 style={styles.followBtn}
                 onPress={handleFollowToggle}
               >
-                <Ionicons name={isFollowing ? 'checkmark-circle' : 'person-add'} size={18} color={isFollowing ? '#F9E08B' : '#000'} />
+                <Ionicons name={isFollowing ? 'checkmark-circle' : 'person-add'} size={18} color={isFollowing ? '#D4AF37' : '#000'} />
                 <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
                   {isFollowing ? 'Following' : 'Follow'}
                 </Text>
@@ -497,7 +497,7 @@ export default function ProfileScreen({ navigation }) {
                 style={styles.iconBtn}
                 onPress={handleShareProfile}
               >
-                <Ionicons name="share-social-outline" size={18} color="#F9E08B" />
+                <Ionicons name="share-social-outline" size={18} color="#D4AF37" />
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.iconBtn, styles.reportBtn]}
@@ -518,7 +518,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons 
               name="grid-outline" 
               size={22} 
-              color="#F9E08B" 
+              color="#D4AF37" 
               strokeWidth={activeTab === 'posts' ? 2.5 : 1.8} 
             />
             <Text style={[styles.tabLabel, activeTab === 'posts' && styles.activeTabLabel]}>Posts</Text>
@@ -530,7 +530,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons 
               name="film-outline" 
               size={22} 
-              color="#F9E08B" 
+              color="#D4AF37" 
               strokeWidth={activeTab === 'reels' ? 2.5 : 1.8} 
             />
             <Text style={[styles.tabLabel, activeTab === 'reels' && styles.activeTabLabel]}>Reels</Text>
@@ -542,7 +542,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons 
               name="trophy-outline" 
               size={22} 
-              color="#F9E08B" 
+              color="#D4AF37" 
               strokeWidth={activeTab === 'campaigns' ? 2.5 : 1.8} 
             />
             <Text style={[styles.tabLabel, activeTab === 'campaigns' && styles.activeTabLabel]}>Campaigns</Text>
@@ -554,7 +554,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons 
               name="bookmark-outline" 
               size={22} 
-              color="#F9E08B" 
+              color="#D4AF37" 
               strokeWidth={activeTab === 'saved' ? 2.5 : 1.8} 
             />
             <Text style={[styles.tabLabel, activeTab === 'saved' && styles.activeTabLabel]}>Saved</Text>
@@ -828,10 +828,10 @@ export default function ProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#1A1A1A' },
+  root: { flex: 1, backgroundColor: '#121214' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   headerContainer: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(226,179,85,0.35)',
   },
@@ -850,11 +850,11 @@ const styles = StyleSheet.create({
   navUsername: {
     fontSize: 16,
     fontWeight: 700,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   navPosts: {
     fontSize: 12,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   navActions: {
     flexDirection: 'row',
@@ -904,11 +904,11 @@ const styles = StyleSheet.create({
   statCount: {
     fontSize: 18,
     fontWeight: 700,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   statLabel: {
     fontSize: 13,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   bioSection: {
     marginBottom: 16,
@@ -916,12 +916,12 @@ const styles = StyleSheet.create({
   fullName: {
     fontSize: 15,
     fontWeight: 700,
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 4,
   },
   bioText: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     lineHeight: 20,
   },
   actionButtons: {
@@ -934,7 +934,7 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#F9E08B',
+    borderColor: '#D4AF37',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -944,12 +944,12 @@ const styles = StyleSheet.create({
   editBtnText: {
     fontSize: 14,
     fontWeight: 700,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   followBtn: {
     flex: 1,
     height: 40,
-    backgroundColor: '#F9E08B',
+    backgroundColor: '#D4AF37',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -967,12 +967,12 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   followBtnTextActive: {
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   iconBtn: {
     height: 40,
     width: 40,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderWidth: 1,
     borderColor: 'rgba(226,179,85,0.35)',
     borderRadius: 8,
@@ -998,9 +998,9 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
     gap: 3,
   },
-  activeTab: { borderBottomColor: '#F9E08B' },
-  tabLabel: { fontSize: 10, fontWeight: 400, color: '#F9E08B', letterSpacing: 0.3 },
-  activeTabLabel: { color: '#F9E08B', fontWeight: 700 },
+  activeTab: { borderBottomColor: '#D4AF37' },
+  tabLabel: { fontSize: 10, fontWeight: 400, color: '#D4AF37', letterSpacing: 0.3 },
+  activeTabLabel: { color: '#D4AF37', fontWeight: 700 },
   grid: { padding: 4 },
   postThumb: { 
     width: width / 3 - 4, 
@@ -1031,7 +1031,7 @@ const styles = StyleSheet.create({
   campaignThumbTitle: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     textAlign: 'center',
     marginTop: 8,
   },
@@ -1054,7 +1054,7 @@ const styles = StyleSheet.create({
   campaignHeaderText: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -1063,25 +1063,25 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '48%',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderRadius: 14,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
     marginBottom: 8,
     marginRight: '2%',
   },
   statValue: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginTop: 8,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 11,
-    color: '#F9E08B',
+    color: '#D4AF37',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -1091,20 +1091,20 @@ const styles = StyleSheet.create({
   campaignListTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 12,
   },
   campaignListItem: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
     marginBottom: 10,
   },
   campaignListItemInfo: {
@@ -1113,12 +1113,12 @@ const styles = StyleSheet.create({
   campaignListItemTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 3,
   },
   campaignListItemSubtitle: {
     fontSize: 12,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   campaignListItemScore: {
     backgroundColor: 'rgba(218, 155, 42, 0.15)',
@@ -1139,7 +1139,7 @@ const styles = StyleSheet.create({
   badgesTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 12,
@@ -1166,17 +1166,17 @@ const styles = StyleSheet.create({
     color: BRAND_GOLD,
   },
   empty: { height: 200, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: '#F9E08B', marginTop: 10 },
+  emptyText: { color: '#D4AF37', marginTop: 10 },
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginTop: 12,
     marginBottom: 6,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   postMenuBtn: {
     position: 'absolute',
@@ -1192,7 +1192,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   bottomSheet: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingBottom: 40,
@@ -1213,16 +1213,16 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#262626',
+    borderBottomColor: '#2A2A2E',
     gap: 14,
   },
   sheetItemText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   editModal: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderRadius: 20,
     padding: 24,
     margin: 20,
@@ -1231,12 +1231,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 4,
   },
   modalSubtitle: {
     fontSize: 13,
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 20,
   },
   formGroup: {
@@ -1245,7 +1245,7 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 8,
   },
   mediaPreview: {
@@ -1253,9 +1253,9 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   mediaImage: {
     width: '100%',
@@ -1270,14 +1270,14 @@ const styles = StyleSheet.create({
   videoPlaceholderText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   changeMediaBtn: {
     marginTop: 10,
     padding: 10,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     borderWidth: 1.5,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
     borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1287,7 +1287,7 @@ const styles = StyleSheet.create({
   changeMediaBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   newMediaSelectedText: {
     fontSize: 12,
@@ -1297,16 +1297,16 @@ const styles = StyleSheet.create({
   },
   formHelperText: {
     fontSize: 12,
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginTop: 4,
   },
   textInput: {
     width: '100%',
     padding: 12,
     fontSize: 15,
-    color: '#F9E08B',
+    color: '#D4AF37',
     borderWidth: 1.5,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
     borderRadius: 12,
     minHeight: 80,
   },
@@ -1322,14 +1322,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelBtn: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   cancelBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   saveBtn: {
     backgroundColor: BRAND_GOLD,
@@ -1340,7 +1340,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   confirmModal: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderRadius: 20,
     padding: 28,
     margin: 20,
@@ -1353,12 +1353,12 @@ const styles = StyleSheet.create({
   confirmTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 8,
   },
   confirmSubtitle: {
     fontSize: 14,
-    color: '#F9E08B',
+    color: '#D4AF37',
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -1374,14 +1374,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   confirmCancelBtn: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
   },
   confirmCancelBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#F9E08B',
+    color: '#D4AF37',
   },
   confirmDeleteBtn: {
     backgroundColor: '#EF4444',
@@ -1409,11 +1409,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   gamModalSheet: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#121214',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: '#2A2A2E',
     borderBottomWidth: 0,
     paddingTop: 8,
     maxHeight: '75%',
@@ -1421,7 +1421,7 @@ const styles = StyleSheet.create({
   gamModalHandle: {
     width: 36,
     height: 4,
-    backgroundcolor: '#F9E08B',
+    backgroundcolor: '#D4AF37',
     borderRadius: 4,
     alignSelf: 'center',
     marginBottom: 4,
@@ -1440,6 +1440,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+
 
 
 

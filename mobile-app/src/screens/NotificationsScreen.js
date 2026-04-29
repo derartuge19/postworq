@@ -20,7 +20,7 @@ import { useAuth } from '../contexts/AuthContext';
 import config from '../config';
 
 const { width } = Dimensions.get('window');
-const BRAND_GOLD = '#F9E08B';
+const BRAND_GOLD = '#D4AF37';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -30,12 +30,12 @@ const mediaUrl = (url) => {
 
 const getIcon = (type) => {
   switch (type) {
-    case 'like':    return { name: 'heart', color: '#F9E08B', bg: '#F9E08B20' };
-    case 'comment': return { name: 'chatbubble', color: '#F9E08B', bg: '#F9E08B20' };
-    case 'follow':  return { name: 'person-add', color: '#F9E08B', bg: '#F9E08B20' };
-    case 'mention': return { name: 'at', color: '#F9E08B', bg: '#F9E08B20' };
-    case 'campaign':return { name: 'trophy', color: '#F9E08B', bg: '#F9E08B20' };
-    default:        return { name: 'notifications', color: BRAND_GOLD, bg: '#F9E08B20' };
+    case 'like':    return { name: 'heart', color: '#D4AF37', bg: '#D4AF3720' };
+    case 'comment': return { name: 'chatbubble', color: '#D4AF37', bg: '#D4AF3720' };
+    case 'follow':  return { name: 'person-add', color: '#D4AF37', bg: '#D4AF3720' };
+    case 'mention': return { name: 'at', color: '#D4AF37', bg: '#D4AF3720' };
+    case 'campaign':return { name: 'trophy', color: '#D4AF37', bg: '#D4AF3720' };
+    default:        return { name: 'notifications', color: BRAND_GOLD, bg: '#D4AF3720' };
   }
 };
 
@@ -188,7 +188,7 @@ export default function NotificationsScreen({ navigation }) {
         <View style={styles.headerTop}>
           <Text style={styles.headerTitle}>Notifications</Text>
           <TouchableOpacity onPress={() => fetchNotifications(true)}>
-            <Ionicons name="refresh" size={20} color="#F9E08B" />
+            <Ionicons name="refresh" size={20} color="#D4AF37" />
           </TouchableOpacity>
         </View>
 
@@ -207,7 +207,7 @@ export default function NotificationsScreen({ navigation }) {
               <Ionicons 
                 name={f.icon} 
                 size={14} 
-                color={activeFilter === f.id ? '#000' : '#F9E08B'} 
+                color={activeFilter === f.id ? '#000' : '#D4AF37'} 
               />
               <Text style={[styles.filterLabel, activeFilter === f.id && styles.activeLabel]}>
                 {f.label}
@@ -228,7 +228,7 @@ export default function NotificationsScreen({ navigation }) {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="notifications-off-outline" size={60} color="#F9E08B" />
+            <Ionicons name="notifications-off-outline" size={60} color="#D4AF37" />
             <Text style={styles.emptyText}>No notifications yet</Text>
           </View>
         }
@@ -248,12 +248,12 @@ function getRelativeTime(date) {
 
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0d0d0d' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0d0d0d' },
+  root: { flex: 1, backgroundColor: '#0B0B0C' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B0B0C' },
   header: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0B0B0C',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#F9E08B30',
+    borderBottomColor: '#D4AF3730',
     paddingBottom: 10,
   },
   headerTop: {
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 15,
   },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#F9E08B' },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: '#D4AF37' },
   filterBar: { paddingHorizontal: 16, gap: 8 },
   filterChip: {
     flexDirection: 'row',
@@ -271,12 +271,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#121214',
     gap: 6,
   },
   activeChip: { backgroundColor: BRAND_GOLD },
-  filterLabel: { fontSize: 13, fontWeight: '600', color: '#F9E08B' },
-  activeLabel: { color: '#F9E08B' },
+  filterLabel: { fontSize: 13, fontWeight: '600', color: '#D4AF37' },
+  activeLabel: { color: '#D4AF37' },
   list: { paddingBottom: 100 },
   notifItem: {
     flexDirection: 'row',
@@ -284,11 +284,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#F9E08B15',
+    borderBottomColor: '#D4AF3715',
   },
-  unreadItem: { backgroundColor: '#F9E08B08' },
+  unreadItem: { backgroundColor: '#D4AF3708' },
   avatarWrap: { position: 'relative' },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#1a1a1a' },
+  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#121214' },
   avatarFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND_GOLD + '20' },
   avatarInitial: { fontSize: 18, fontWeight: 'bold', color: BRAND_GOLD },
   typeBadge: {
@@ -301,16 +301,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#0d0d0d',
+    borderColor: '#0B0B0C',
   },
   content: { flex: 1, marginLeft: 15 },
-  message: { fontSize: 14, color: '#F9E08B', lineHeight: 18 },
-  username: { fontWeight: '800', color: '#F9E08B' },
-  comment: { fontSize: 12, color: '#F9E08B', opacity: 0.6, marginTop: 4, fontStyle: 'italic' },
-  time: { fontSize: 11, color: '#F9E08B', opacity: 0.5, marginTop: 4 },
-  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#F9E08B', marginLeft: 10 },
+  message: { fontSize: 14, color: '#D4AF37', lineHeight: 18 },
+  username: { fontWeight: '800', color: '#D4AF37' },
+  comment: { fontSize: 12, color: '#D4AF37', opacity: 0.6, marginTop: 4, fontStyle: 'italic' },
+  time: { fontSize: 11, color: '#D4AF37', opacity: 0.5, marginTop: 4 },
+  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D4AF37', marginLeft: 10 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100 },
-  emptyText: { color: '#F9E08B', opacity: 0.5, marginTop: 15, fontSize: 16 },
+  emptyText: { color: '#D4AF37', opacity: 0.5, marginTop: 15, fontSize: 16 },
 });
+
 
 
