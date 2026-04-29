@@ -251,17 +251,6 @@ export default function ProfileScreen({ navigation }) {
 
   const filteredPosts = posts;
 
-  const handleShareProfile = async () => {
-    try {
-      const profileUrl = `${config.API_BASE_URL.replace('/api', '')}/profile/${profile?.username || user?.username}`;
-      await Share.share({
-        message: `Check out @${profile?.username || user?.username}'s profile on FlipStar! ${profileUrl}`,
-      });
-    } catch (error) {
-      console.error('Share error:', error);
-    }
-  };
-
   const handleDeletePost = async (postId) => {
     setConfirmDeleteId(null);
     try {
