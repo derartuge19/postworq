@@ -247,7 +247,7 @@ export function PostPage({ user, onBack }) {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          padding: "70px 20px 40px",
+          padding: "100px 20px 40px",
           width: "100%",
           maxWidth: 480,
           margin: "0 auto",
@@ -264,10 +264,16 @@ export function PostPage({ user, onBack }) {
               justifyContent: "center",
               boxShadow: "0 10px 30px rgba(217,155,42,0.4), 0 0 0 8px rgba(217,155,42,0.1)",
             }}>
-              <svg width="38" height="38" fill="none" viewBox="0 0 24 24">
-                <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#fff"/>
-                <path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#fff" strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
-              </svg>
+              <img 
+                src="/create_img.jpg" 
+                alt="Create" 
+                style={{ 
+                  width: 38, 
+                  height: 38, 
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }} 
+              />
             </div>
             <div style={{
               position: "absolute",

@@ -244,7 +244,7 @@ export default function GiftSelectorScreen({ route, navigation }) {
             />
           ) : (
             <View style={styles.giftPlaceholder}>
-              <Text style={{ fontSize: 32 }}>{CATEGORY_ICONS[item.category] || '🎁'}</Text>
+              <Text style={{ fontSize: 24 }}>{CATEGORY_ICONS[item.category] || '🎁'}</Text>
             </View>
           )}
         </Animated.View>
@@ -626,31 +626,31 @@ const styles = StyleSheet.create({
     color: BRAND_GOLD,
   },
   categoryTabs: {
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   categoryTabsContent: {
     paddingHorizontal: 16,
-    gap: 8,
+    gap: 6,
   },
   categoryTab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
     backgroundColor: '#2A2A2E',
-    minWidth: 80,
+    minWidth: 70,
     justifyContent: 'center',
   },
   categoryTabSelected: {
     backgroundColor: BRAND_GOLD,
   },
   categoryIcon: {
-    fontSize: 16,
-    marginRight: 6,
+    fontSize: 14,
+    marginRight: 4,
   },
   categoryTabText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#F5F5F7',
     fontWeight: '600',
   },
@@ -664,10 +664,10 @@ const styles = StyleSheet.create({
   },
   giftItem: {
     width: (SCREEN_WIDTH - 48) / 4,
-    height: 100,
-    margin: 3,
-    padding: 10,
-    borderRadius: 12,
+    height: 85,
+    margin: 2,
+    padding: 8,
+    borderRadius: 10,
     backgroundColor: '#2A2A2E',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -678,24 +678,24 @@ const styles = StyleSheet.create({
     borderColor: BRAND_GOLD,
   },
   giftImageContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   giftImageContainerSelected: {
     backgroundColor: 'transparent',
   },
   giftImage: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
   },
   giftPlaceholder: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -711,10 +711,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   giftPrice: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: BRAND_GOLD,
-    marginLeft: 4,
+    marginLeft: 3,
   },
   messageSection: {
     paddingHorizontal: 16,

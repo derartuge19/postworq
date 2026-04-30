@@ -9,6 +9,7 @@ import {
   Alert,
   Modal,
   TextInput,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../api';
 
+const { width } = Dimensions.get('window');
 const CACHE_KEY = 'wallet_cache';
 const CACHE_TTL = 60 * 1000; // 1 minute
 
@@ -190,46 +192,81 @@ export default function WalletScreen({ navigation }) {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
-        {/* Balance Card - matches web app gradient design */}
-        <LinearGradient
-          colors={['#C8B56A', '#6366F1']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.balanceCard}
-        >
-          <View style={styles.balanceHeader}>
-            <Ionicons name="wallet" size={16} color="#fff" />
-            <Text style={styles.balanceLabel}>Total Balance</Text>
-          </View>
-          <Text style={styles.balanceAmount}>{balance?.balance?.total ?? 0}</Text>
-          <Text style={styles.balanceSubtext}>
-            ≈ {((balance?.balance?.total ?? 0) / (balance?.config?.coins_per_birr ?? 10)).toFixed(2)} ETB (Birr)
-          </Text>
-
-          {/* Two-bucket breakdown */}
-          <View style={styles.balanceBreakdown}>
-            <View style={styles.balanceBucket}>
-              <Text style={styles.balanceBucketLabel}>Earned</Text>
-              <Text style={styles.balanceBucketValue}>{balance?.balance?.earned ?? balance?.earned_total ?? 0}</Text>
-              <Text style={styles.balanceBucketSub}>Withdrawable to Birr</Text>
+        {/* Hero Balance Card */}
+        <View style={styles.heroSection}>
+          <LinearGradient
+            colors={['#C8B56A', '#E6C96A', '#F4D03F']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.balanceCard}
+          >
+            {/* Decorative elements */}
+            <View style={styles.decorativeCircle1} />
+            <View style={styles.decorativeCircle2} />
+            <View style={styles.decorativeCircle3} />
+            
+            <View style={styles.balanceHeader}>
+              <View style={styles.walletIconContainer}>
+                <Ionicons name="wallet" size={24} color="#000" />
+              </View>
+              <Text style={styles.balanceLabel}>My Wallet</Text>
             </View>
-            <View style={styles.balanceBucket}>
-              <Text style={styles.balanceBucketLabel}>Purchased</Text>
-              <Text style={styles.balanceBucketValue}>{balance?.balance?.purchased ?? 0}</Text>
-              <Text style={styles.balanceBucketSub}>For gifts & boosts</Text>
+            
+            <Text style={styles.balanceAmount}>{balance?.balance?.total ?? 0}</Text>
+            <Text style={styles.coinLabel}>💰 Coins</Text>
+            
+            <View style={styles.balanceBreakdown}>
+              <View style={styles.balanceBucket}>
+                <View style={styles.bucketIconContainer}>
+                  <Text style={styles.bucketIcon}>⭐</Text>
+                </View>
+                <Text style={styles.balanceBucketValue}>{balance?.balance?.earned ?? balance?.earned_total ?? 0}</Text>
+                <Text style={styles.balanceBucketLabel}>Earned</Text>
+              </View>
+              
+              <View style={styles.divider} />
+              
+              <View style={styles.balanceBucket}>
+                <View style={styles.bucketIconContainer}>
+                  <Text style={styles.bucketIcon}>💎</Text>
+                </View>
+                <Text style={styles.balanceBucketValue}>{balance?.balance?.purchased ?? 0}</Text>
+                <Text style={styles.balanceBucketLabel}>Purchased</Text>
+              </View>
             </View>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
+        </View>
 
-        {/* Action buttons */}
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButtonPrimary} onPress={() => setShowTopUpModal(true)}>
-            <Ionicons name="arrow-down" size={18} color="#000" />
-            <Text style={styles.actionButtonTextPrimary}>Buy Coins</Text>
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => setShowTopUpModal(true)}>
+            <LinearGradient
+              colors={['#4ECDC4', '#44A08D']}
+              style={styles.quickActionGradient}
+            >
+              <Ionicons name="add-circle" size={28} color="#fff" />
+              <Text style={styles.quickActionText}>Buy Coins</Text>
+            </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButtonSecondary} onPress={() => Alert.alert('Coming Soon', 'Withdrawal feature coming soon')}>
-            <Ionicons name="arrow-up" size={18} color="#C8B56A" />
-            <Text style={styles.actionButtonTextSecondary}>Withdraw to Birr</Text>
+          
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => Alert.alert('Coming Soon', 'Withdrawal feature coming soon')}>
+            <LinearGradient
+              colors={['#667eea', '#764ba2']}
+              style={styles.quickActionGradient}
+            >
+              <Ionicons name="arrow-up-circle" size={28} color="#fff" />
+              <Text style={styles.quickActionText}>Withdraw</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.quickActionCard} onPress={() => handleTabChange('transactions')}>
+            <LinearGradient
+              colors={['#f093fb', '#f5576c']}
+              style={styles.quickActionGradient}
+            >
+              <Ionicons name="receipt" size={28} color="#fff" />
+              <Text style={styles.quickActionText}>History</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -326,18 +363,27 @@ export default function WalletScreen({ navigation }) {
                   setShowTopUpModal(true);
                 }}
               >
-                <View>
-                  <Text style={styles.packageName}>{pkg.name}</Text>
-                  <Text style={styles.packageCoins}>{pkg.coin_amount} coins</Text>
-                  {pkg.bonus_coins > 0 && (
-                    <Text style={styles.packageBonus}>+{pkg.bonus_coins} bonus</Text>
-                  )}
+                {/* Decorative gradient overlay */}
+                <View style={styles.packageCardOverlay} />
+                
+                <View style={styles.packageInfo}>
+                  <View style={styles.packageIconContainer}>
+                    <Text style={styles.packageIcon}>💰</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.packageName}>{pkg.name}</Text>
+                    <Text style={styles.packageCoins}>{pkg.coin_amount} coins</Text>
+                    {pkg.bonus_coins > 0 && (
+                      <Text style={styles.packageBonus}>+{pkg.bonus_coins} bonus ✨</Text>
+                    )}
+                  </View>
                 </View>
+                
                 <View style={styles.packagePrice}>
                   <Text style={styles.packagePriceText}>{pkg.price_etb} ETB</Text>
                   {pkg.is_featured && (
                     <View style={styles.featuredBadge}>
-                      <Text style={styles.featuredText}>Popular</Text>
+                      <Text style={styles.featuredText}>🔥 Popular</Text>
                     </View>
                   )}
                 </View>
@@ -364,7 +410,7 @@ export default function WalletScreen({ navigation }) {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setShowTopUpModal(false)}>
-                <Ionicons name="close" size={24} color="#000" />
+                <Ionicons name="close" size={24} color="#F5F5F7" />
               </TouchableOpacity>
               <Text style={styles.modalTitle}>Buy Coins with Telebirr</Text>
               <View style={{ width: 24 }} />
@@ -447,6 +493,40 @@ const styles = StyleSheet.create({
     margin: 16,
     padding: 24,
     borderRadius: 20,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  decorativeCircle1: {
+    position: 'absolute',
+    top: -30,
+    right: -30,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  decorativeCircle2: {
+    position: 'absolute',
+    bottom: -20,
+    left: -20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  decorativeCircle3: {
+    position: 'absolute',
+    top: 50,
+    left: -10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  walletIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 8,
+    padding: 6,
   },
   balanceHeader: {
     flexDirection: 'row',
@@ -458,6 +538,7 @@ const styles = StyleSheet.create({
   balanceLabel: {
     fontSize: 13,
     color: '#fff',
+    fontWeight: '600',
   },
   balanceAmount: {
     fontSize: 42,
@@ -466,10 +547,26 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 4,
   },
-  balanceSubtext: {
-    fontSize: 13,
+  coinLabel: {
+    fontSize: 14,
     color: '#fff',
+    fontWeight: '500',
     opacity: 0.9,
+  },
+  bucketIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 6,
+    padding: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  bucketIcon: {
+    fontSize: 12,
+  },
+  divider: {
+    width: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    marginHorizontal: 8,
   },
   balanceBreakdown: {
     flexDirection: 'row',
@@ -495,10 +592,29 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginTop: 2,
   },
-  balanceBucketSub: {
-    fontSize: 11,
+  heroSection: {
+    marginBottom: 8,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 12,
+    marginBottom: 20,
+  },
+  quickActionCard: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  quickActionGradient: {
+    padding: 16,
+    alignItems: 'center',
+    gap: 8,
+  },
+  quickActionText: {
     color: '#fff',
-    opacity: 0.8,
+    fontSize: 12,
+    fontWeight: '600',
   },
   actionButtons: {
     flexDirection: 'row',
@@ -617,6 +733,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 24,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -633,20 +750,50 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  packageCardOverlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 60,
+    height: 60,
+    backgroundColor: 'rgba(200, 181, 106, 0.05)',
+    borderRadius: 30,
+    transform: [{ translateX: 20 }, { translateY: -20 }],
+  },
+  packageInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  packageIconContainer: {
+    backgroundColor: 'rgba(200, 181, 106, 0.1)',
+    borderRadius: 12,
+    padding: 8,
+    marginRight: 12,
+  },
+  packageIcon: {
+    fontSize: 20,
   },
   packageName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#C8B56A',
+    color: '#F5F5F7',
+    marginBottom: 4,
   },
   packageCoins: {
     fontSize: 20,
     fontWeight: '700',
     color: BRAND_GOLD,
+    marginBottom: 2,
   },
   packageBonus: {
     fontSize: 12,
@@ -659,44 +806,49 @@ const styles = StyleSheet.create({
   packagePriceText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#C8B56A',
+    color: '#F5F5F7',
   },
   featuredBadge: {
     backgroundColor: BRAND_GOLD,
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingVertical: 4,
+    borderRadius: 6,
     marginTop: 4,
   },
   featuredText: {
     fontSize: 10,
-    color: '#fff',
-    fontWeight: '600',
+    color: '#000',
+    fontWeight: '700',
   },
   emptyState: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
     padding: 32,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
   },
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#C8B56A',
+    color: '#F5F5F7',
     marginBottom: 4,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#C8B56A',
+    color: '#78716C',
     textAlign: 'center',
   },
   infoBox: {
     flexDirection: 'row',
     backgroundColor: '#1A1A1A',
     borderRadius: 12,
-    padding: 12,
+    padding: 16,
     alignItems: 'flex-start',
     gap: 12,
+    marginHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   infoText: {
     flex: 1,
@@ -721,49 +873,96 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 24,
     paddingBottom: 40,
+    borderTopWidth: 1,
+    borderTopColor: '#333',
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+    color: '#F5F5F7',
   },
-  modalSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 16,
-  },
-  phoneInput: {
+  selectedPackagePreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 14,
-    marginBottom: 16,
+    borderColor: '#333',
   },
-  modalButton: {
+  packagePreviewIcon: {
+    backgroundColor: 'rgba(200, 181, 106, 0.1)',
+    borderRadius: 12,
+    padding: 12,
+    marginRight: 16,
+  },
+  packagePreviewInfo: {
+    flex: 1,
+  },
+  packagePreviewName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#F5F5F7',
+    marginBottom: 2,
+  },
+  packagePreviewCoins: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: BRAND_GOLD,
+  },
+  packagePreviewBonus: {
+    fontSize: 12,
+    color: '#10B981',
+    fontWeight: '600',
+  },
+  packagePreviewPrice: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#F5F5F7',
+  },
+  formGroup: {
+    marginBottom: 24,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F5F5F7',
+    marginBottom: 8,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: '#F5F5F7',
+    backgroundColor: '#1A1A1A',
+  },
+  payButton: {
     backgroundColor: BRAND_GOLD,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 12,
   },
-  modalButtonDisabled: {
-    backgroundColor: '#ccc',
+  payButtonDisabled: {
+    backgroundColor: '#333',
   },
   payButtonText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   packageCardSelected: {
     borderColor: BRAND_GOLD,
     borderWidth: 2,
+    backgroundColor: 'rgba(200, 181, 106, 0.05)',
   },
 });
 

@@ -190,8 +190,12 @@ export default function CreateScreen({ navigation }) {
         <ScrollView style={{ flex: 1 }} contentContainerStyle={s.newPickBody}>
           {/* Hero Section */}
           <View style={s.heroSection}>
-            <View style={s.heroCircle}>
-              <Ionicons name="camera" size={30} color="#000" />
+            <View style={s.heroImageContainer}>
+              <Image 
+                source={require('../image/create_img.jpg')} 
+                style={s.heroImage}
+                resizeMode="cover"
+              />
               <View style={s.sparkle}>
                 <Text style={{ fontSize: 11 }}>✨</Text>
               </View>
@@ -511,6 +515,19 @@ const s = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(249,224,139,0.4)',
     position: 'relative',
+  },
+  heroImageContainer: {
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    position: 'relative',
+  },
+  heroImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
   },
   sparkle: {
     position: 'absolute',
