@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Lock, Eye, EyeOff, Loader, User, ChevronDown, ChevronUp, X, ChevronLeft } from "lucide-react";
 import api from "../api";
 import { useTheme } from "../contexts/ThemeContext";
@@ -180,6 +180,20 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [modal, setModal] = useState(null); // 'forgot' | 'faq' | 'terms'
+  const [subscriptionOtpMode, setSubscriptionOtpMode] = useState(false);
+  const [subPhone, setSubPhone] = useState("");
+  const [subUsername, setSubUsername] = useState("");
+  const [subOtp, setSubOtp] = useState("");
+  const [subPassword, setSubPassword] = useState("");
+  const [showSubPassword, setShowSubPassword] = useState(false);
+
+  // Check URL params for subscription OTP mode
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('subscription_tp') === 'true') {
+      setSubscriptionOtpMode(true);
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e?.preventDefault();
@@ -231,6 +245,55 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
     }
   };
 
+  const handleSubscriptionOtpLogin = async (e) => {
+    e?.preventDefault();
+    
+    if (!subPhone || !subUsername || !subOtp || !subPassword) {
+      setError("Please fill in all fields");
+      return;
+    }
+    
+    if (!/^\d{6}$/.test(subPassword)) {
+      setError("Password must be exactly 6 digits");
+      return;
+    }
+    
+    setError("");
+    setLoading(true);
+    
+    try {
+      const res = await api.post('/auth/login-with-subscription-otp/', {
+        phone: subPhone,
+        username: subUsername,
+        otp: subOtp,
+        password: subPassword
+      });
+      
+      api.setAuthToken(res.token);
+      
+      const userData = {
+        id: res.user.id,
+        username: res.user.username,
+        email: res.user.email,
+        first_name: res.user.first_name || "",
+        last_name: res.user.last_name || "",
+        name: res.user.first_name || res.user.username,
+        profile_photo: res.user.profile_photo || null,
+        bio: res.user.bio || "",
+        followers_count: res.user.followers_count || 0,
+        following_count: res.user.following_count || 0,
+        is_staff: res.user.is_staff || false,
+      };
+      
+      onSuccess(userData);
+    } catch (e) {
+      console.error('❌ Subscription OTP login error:', e);
+      setError(e?.response?.data?.error || "Invalid OTP or subscription not found");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const inp = (focused) => ({
     width: "100%", padding: "13px 16px 13px 46px",
     background: T.cardBg || "#1A1A1A",
@@ -258,73 +321,156 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
         {/* Card */}
         <div style={{ background: T.cardBg || "#1A1A1A", borderRadius: 18, padding: "28px 24px", border: "1px solid #F9E08B30" }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ fontSize: 26, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>Welcome Back!</div>
-            <div style={{ fontSize: 13, color: "#F9E08B" }}>Log in to continue to FLIPSTAR</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>
+              {subscriptionOtpMode ? "Create Your Account" : "Welcome Back!"}
+            </div>
+            <div style={{ fontSize: 13, color: "#F9E08B" }}>
+              {subscriptionOtpMode ? "Set up your account with your subscription OTP" : "Log in to continue to FLIPSTAR"}
+            </div>
           </div>
 
         {/* Form */}
-        <form onSubmit={handleLogin}>
-          {error && (
-            <div style={{ padding: "10px 14px", background: "#2D1010", border: "1px solid #EF4444", borderRadius: 8, color: "#EF4444", fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
-              ⚠️ {error}
-            </div>
-          )}
+        {subscriptionOtpMode ? (
+          <form onSubmit={handleSubscriptionOtpLogin}>
+            {error && (
+              <div style={{ padding: "10px 14px", background: "#2D1010", border: "1px solid #EF4444", borderRadius: 8, color: "#EF4444", fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
+                ⚠️ {error}
+              </div>
+            )}
 
-          {/* Username field */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>Username</label>
-            <div style={{ position: "relative" }}>
-              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><User size={17} /></div>
-              <input type="text" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="Enter your username"
-                style={inp(false)}
-                onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
-                onBlur={e => e.target.style.border = "1.5px solid #262626"}
-              />
+            {/* Phone field */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Phone Number</label>
+              <div style={{ position: "relative" }}>
+                <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><User size={17} /></div>
+                <input type="tel" value={subPhone} onChange={e => setSubPhone(e.target.value)}
+                  placeholder="09XXXXXXXX"
+                  style={inp(false)}
+                  onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
+                  onBlur={e => e.target.style.border = "1.5px solid #262626"}
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Password field */}
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>6-Digit PIN</label>
-            <div style={{ position: "relative" }}>
-              <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><Lock size={17} /></div>
-              <input
-                type={showPassword ? "text" : "password"}
-                inputMode="numeric" maxLength={6}
-                value={password} onChange={e => setPassword(e.target.value)}
-                placeholder="••••••"
-                style={{ ...inp(false), paddingRight: 46 }}
-                onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
-                onBlur={e => e.target.style.border = "1.5px solid #262626"}
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}>
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+            {/* Username field */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Username</label>
+              <div style={{ position: "relative" }}>
+                <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><User size={17} /></div>
+                <input type="text" value={subUsername} onChange={e => setSubUsername(e.target.value)}
+                  placeholder="Choose a username"
+                  style={inp(false)}
+                  onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
+                  onBlur={e => e.target.style.border = "1.5px solid #262626"}
+                />
+              </div>
+            </div>
+
+            {/* OTP field */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>Subscription OTP</label>
+              <div style={{ position: "relative" }}>
+                <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><Lock size={17} /></div>
+                <input type="text" inputMode="numeric" maxLength={6} value={subOtp} onChange={e => setSubOtp(e.target.value)}
+                  placeholder="Enter OTP from SMS"
+                  style={inp(false)}
+                  onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
+                  onBlur={e => e.target.style.border = "1.5px solid #262626"}
+                />
+              </div>
+            </div>
+
+            {/* New Password field */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>New Password (6 digits)</label>
+              <div style={{ position: "relative" }}>
+                <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><Lock size={17} /></div>
+                <input
+                  type={showSubPassword ? "text" : "password"}
+                  inputMode="numeric" maxLength={6}
+                  value={subPassword} onChange={e => setSubPassword(e.target.value)}
+                  placeholder="••••••"
+                  style={{ ...inp(false), paddingRight: 46 }}
+                  onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
+                  onBlur={e => e.target.style.border = "1.5px solid #262626"}
+                />
+                <button type="button" onClick={() => setShowSubPassword(!showSubPassword)}
+                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}>
+                  {showSubPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button type="submit" disabled={loading}
+              style={{ width: "100%", padding: "14px", background: loading ? "#3A3A3A" : GOLD, border: "none", borderRadius: 10, color: loading ? "#888" : "#000", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+              {loading ? <><Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Creating Account…</> : "Create Account"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleLogin}>
+            {error && (
+              <div style={{ padding: "10px 14px", background: "#2D1010", border: "1px solid #EF4444", borderRadius: 8, color: "#EF4444", fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
+                ⚠️ {error}
+              </div>
+            )}
+
+            {/* Username field */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>Username</label>
+              <div style={{ position: "relative" }}>
+                <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><User size={17} /></div>
+                <input type="text" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="Enter your username"
+                  style={inp(false)}
+                  onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
+                  onBlur={e => e.target.style.border = "1.5px solid #262626"}
+                />
+              </div>
+            </div>
+
+            {/* Password field */}
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#F9E08B", marginBottom: 7, textTransform: "uppercase", letterSpacing: 0.5 }}>6-Digit PIN</label>
+              <div style={{ position: "relative" }}>
+                <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#F9E08B", display: "flex" }}><Lock size={17} /></div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  inputMode="numeric" maxLength={6}
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••"
+                  style={{ ...inp(false), paddingRight: 46 }}
+                  onFocus={e => e.target.style.border = "1.5px solid #F9E08B"}
+                  onBlur={e => e.target.style.border = "1.5px solid #262626"}
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#F9E08B" }}>
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Forgot password */}
+            <div style={{ textAlign: "right", marginBottom: 20 }}>
+              <button type="button" onClick={() => setModal("forgot")}
+                style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                Forgot password?
               </button>
             </div>
-          </div>
 
-          {/* Forgot password */}
-          <div style={{ textAlign: "right", marginBottom: 20 }}>
-            <button type="button" onClick={() => setModal("forgot")}
-              style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-              Forgot password?
+            {/* Submit */}
+            <button type="submit" disabled={loading}
+              style={{ width: "100%", padding: "14px", background: loading ? "#3A3A3A" : GOLD, border: "none", borderRadius: 10, color: loading ? "#888" : "#000", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+              {loading ? <><Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Logging in…</> : "Log In"}
             </button>
-          </div>
-
-          {/* Submit */}
-          <button type="submit" disabled={loading}
-            style={{ width: "100%", padding: "14px", background: loading ? "#3A3A3A" : GOLD, border: "none", borderRadius: 10, color: loading ? "#888" : "#000", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
-            {loading ? <><Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Logging in…</> : "Log In"}
-          </button>
+          </form>
+        )}
 
           {/* Sign up */}
           <div style={{ textAlign: "center", fontSize: 13, color: "#666", marginBottom: 0 }}>
             Don't have an account?{" "}
             <button type="button" onClick={onRegister} style={{ background: "none", border: "none", color: "#F9E08B", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>Sign up free</button>
           </div>
-        </form>
         </div>
 
         {/* Footer links */}
