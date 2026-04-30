@@ -129,7 +129,7 @@ function MainStack() {
     >
       <Stack.Screen name="MainTabs"       component={MainTabs}             options={{ headerShown: false }} />
       <Stack.Screen name="Explore"        component={ExploreScreen}        options={{ headerShown: false }} />
-      <Stack.Screen name="Reels"          component={ReelsScreen}          options={{ headerShown: false }} />
+      <Stack.Screen name="ReelsDetail"    component={ReelsScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="VideoDetail"    component={VideoDetailScreen}    options={{ title: 'Video' }} />
       <Stack.Screen name="ProfileDetail"  component={ProfileDetailScreen}  options={{ title: 'Profile' }} />
       <Stack.Screen name="EditProfile"    component={EditProfileScreen}     options={{ headerShown: false }} />

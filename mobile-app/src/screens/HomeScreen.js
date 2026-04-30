@@ -17,7 +17,7 @@ import { Image } from 'expo-image';
 import { FlashList } from '@shopify/flash-list';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useIsFocused } from '@react-navigation/native';
 import api from '../api';
 import GamificationBar from '../components/GamificationBar';
 import SuggestedUsers from '../components/SuggestedUsers';
@@ -62,16 +62,44 @@ const mediaUrl = (url) => {
 };
 
 // Memoized post item component
-const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD }) => {
+const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD, screenFocused }) => {
+  const videoRef = useRef(null);
   const isVideo = !!item.media && (
     /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
     item.media.includes('/video/upload/') ||
-    !item.image
+    item.media.includes('video') ||
+    (!item.image && item.media) // If no image but has media, assume it's video
   );
   const mediaSrc = mediaUrl(item.media || item.image);
+  console.log('PostItem render:', { 
+    id: item.id, 
+    isVideo, 
+    mediaSrc, 
+    hasMedia: !!item.media, 
+    hasImage: !!item.image,
+    mediaUrl: item.media,
+    imageUrl: item.image
+  });
   const avatarSrc = mediaUrl(item.user?.profile_photo);
   const isVisible = visibleItems.includes(item.id);
   const currentLiked = item.has_voted || item.is_liked || false;
+
+  // Pause video when screen loses focus or item becomes invisible
+  useEffect(() => {
+    if (videoRef.current && (!screenFocused || !isVisible)) {
+      console.log('Pausing video for item:', item.id, 'screenFocused:', screenFocused, 'isVisible:', isVisible);
+      videoRef.current.pauseAsync().catch(() => {});
+    }
+  }, [screenFocused, isVisible, item.id]);
+
+  // Cleanup video when component unmounts
+  useEffect(() => {
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.pauseAsync().catch(() => {});
+      }
+    };
+  }, []);
 
   const isFollowing = followStates[item.user?.id] ?? item.user?.is_following;
   const isOwnPost = user?.id === item.user?.id;
@@ -119,7 +147,7 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
               <TouchableOpacity onPress={() => handleProfile(item.user?.id)}>
                 <Text style={styles.username}>{item.user?.username || 'user'}</Text>
               </TouchableOpacity>
-              <Ionicons name="checkmark-circle" size={14} color={T.pri} style={{ marginLeft: 4 }} />
+              <Ionicons name="crown" size={14} color={T.pri} style={{ marginLeft: 4 }} />
               
               {!isOwnPost && !isFollowing && (
                 <>
@@ -140,22 +168,30 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
         {/* Media */}
         <TouchableOpacity 
           activeOpacity={0.9} 
-          onPress={() => isVideo && handleVideoPress(item.id)}
+          onPress={() => {
+            console.log('Media touched:', { isVideo, itemId: item.id });
+            if (isVideo) {
+              handleVideoPress(item.id);
+            }
+          }}
           style={styles.mediaContainer}
         >
           {mediaSrc ? (
             isVideo ? (
               <>
                 <Video
+                  ref={videoRef}
                   source={{ uri: mediaSrc }}
                   style={styles.media}
-                  shouldPlay={isVisible}
+                  shouldPlay={isVisible && screenFocused}
                   isLooping
                   resizeMode={ResizeMode.COVER}
                   useNativeControls={false}
-                  isMuted={true}
+                  isMuted={false}
+                  onLoad={() => console.log('Home video loaded:', mediaSrc)}
+                  onError={(error) => console.error('Home video error:', error)}
                 />
-                {!isVisible && (
+                {(!isVisible || !screenFocused) && (
                   <View style={styles.playOverlay}>
                     <View style={styles.playCircle}>
                       <Ionicons name="play" size={24} color="#000" style={{ marginLeft: 3 }} />
@@ -281,7 +317,8 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
 });
 
 export default function HomeScreen({ navigation }) {
-  const nav = useNavigation();
+  const nav            = useNavigation();
+  const screenFocused  = useIsFocused();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('For You');
@@ -327,6 +364,17 @@ export default function HomeScreen({ navigation }) {
     loadPosts();
   }, []);
 
+  // Pause all videos when screen loses focus
+  useFocusEffect(
+    useCallback(() => {
+      // Screen gained focus - videos will auto-play based on visibility
+      return () => {
+        // Screen lost focus - pause all videos
+        console.log('HomeScreen lost focus - pausing all videos');
+      };
+    }, [])
+  );
+
   // Refresh posts when screen comes into focus (e.g., returning from Comments)
   useFocusEffect(
     useCallback(() => {
@@ -348,11 +396,13 @@ export default function HomeScreen({ navigation }) {
     return unsubscribe;
   }, [nav, loadPosts]);
 
-  const loadPosts = async () => {
+  const loadPosts = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.getReels();
       const posts = Array.isArray(data) ? data : (data.results || []);
+      console.log('HomeScreen: Loaded posts:', posts.length);
+      console.log('HomeScreen: Sample post media URLs:', posts.slice(0, 3).map(p => ({ id: p.id, media: p.media, image: p.image })));
       setPosts(posts);
     } catch (error) {
       console.error('Error loading posts:', error);
@@ -360,7 +410,7 @@ export default function HomeScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -437,7 +487,14 @@ export default function HomeScreen({ navigation }) {
   }, [navigation]);
 
   const handleVideoPress = useCallback((reelId) => {
-     navigation.navigate('Reels', { reelId });
+    console.log('handleVideoPress called with reelId:', reelId);
+    console.log('Navigation object:', navigation);
+    try {
+      navigation.navigate('ReelsDetail', { reelId });
+      console.log('Navigation.navigate called successfully to ReelsDetail');
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
   }, [navigation]);
 
   const handleFollow = useCallback(async (userId) => {
@@ -518,9 +575,10 @@ export default function HomeScreen({ navigation }) {
         user={user}
         T={T}
         BRAND_GOLD={BRAND_GOLD}
+        screenFocused={screenFocused}
       />
     );
-  }, [visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD, navigation]);
+  }, [visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD, navigation, screenFocused]);
 
   const feedData = React.useMemo(() => {
     if (posts.length === 0) return posts;

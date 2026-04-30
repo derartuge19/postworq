@@ -125,7 +125,7 @@ export default function NotificationsScreen({ navigation }) {
     if (notif.type === 'follow' && notif.user) {
       navigation.navigate('ProfileDetail', { userId: notif.user.id });
     } else if (notif.reel_id) {
-      navigation.navigate('Reels', { reelId: notif.reel_id });
+      navigation.navigate('ReelsDetail', { reelId: notif.reel_id });
     }
   };
 
