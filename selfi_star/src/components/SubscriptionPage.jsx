@@ -74,7 +74,7 @@ export function SubscriptionPage({ user, onBack }) {
     }
   ];
 
-  const handleSubscribe = (tier) => {
+  const getSmsUrl = (tier) => {
     // Get tier code for SMS
     const tierCode = tier.duration_type === 'daily' ? 'A' : 
                      tier.duration_type === 'weekly' ? 'B' : 
@@ -84,16 +84,8 @@ export function SubscriptionPage({ user, onBack }) {
     const shortCode = '9286';
     const message = tierCode;
     
-    // Use SMS link format - create anchor element for better mobile browser compatibility
-    const smsUrl = `sms:${shortCode}?body=${encodeURIComponent(message)}`;
-    
-    // Create a temporary anchor element and click it - most reliable for mobile browsers
-    const anchor = document.createElement('a');
-    anchor.href = smsUrl;
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
+    // Use SMS link format - smsto: works better on Android
+    return `smsto:${shortCode}?body=${encodeURIComponent(message)}`;
   };
 
   const handlePayment = async () => {
@@ -373,38 +365,58 @@ export function SubscriptionPage({ user, onBack }) {
                   ))}
                 </div>
 
-                <button
-                  disabled={isCurrent}
-                  onClick={() => !isCurrent && handleSubscribe(tier)}
-                  style={{
-                    width: '100%',
-                    padding: 16,
-                    borderRadius: 12,
-                    border: isCurrent ? 'none' : `2px solid #1a1a1a`,
-                    background: isCurrent ? '#1a1a1a' : '#1a1a1a',
-                    color: '#fff',
-                    fontSize: 18,
-                    fontWeight: 800,
-                    cursor: isCurrent ? 'default' : 'pointer',
-                    opacity: isCurrent ? 0.8 : 1,
-                    boxShadow: isCurrent ? 'none' : '0 4px 15px rgba(0,0,0,0.3)',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseOver={(e) => {
-                    if (!isCurrent) {
+                {isCurrent ? (
+                  <button
+                    disabled={true}
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      background: '#1a1a1a',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 12,
+                      fontSize: 18,
+                      fontWeight: 800,
+                      cursor: 'default',
+                      opacity: 0.8,
+                      boxShadow: 'none',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    ✓ Subscribed
+                  </button>
+                ) : (
+                  <a
+                    href={getSmsUrl(tier)}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '16px',
+                      background: '#1a1a1a',
+                      color: '#fff',
+                      border: '2px solid #1a1a1a',
+                      borderRadius: 12,
+                      fontSize: 18,
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      opacity: 1,
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                      transition: 'all 0.2s',
+                      textDecoration: 'none',
+                      textAlign: 'center',
+                    }}
+                    onMouseOver={(e) => {
                       e.target.style.transform = 'translateY(-2px)';
                       e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    if (!isCurrent) {
+                    }}
+                    onMouseOut={(e) => {
                       e.target.style.transform = 'translateY(0)';
                       e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
-                    }
-                  }}
-                >
-                  {isCurrent ? '✓ Subscribed' : '📱 Subscribe via SMS'}
-                </button>
+                    }}
+                  >
+                    📱 Subscribe via SMS
+                  </a>
+                )}
               </div>
             );
           })}
