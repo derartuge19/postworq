@@ -61,46 +61,31 @@ export default function ProfileScreen({ navigation }) {
 
   const fetchProfileData = useCallback(async () => {
     const currentUserId = user?.id;
-    console.log('ProfileScreen: fetchProfileData starting. Auth User ID:', currentUserId);
     
     if (!currentUserId) {
-      console.log('ProfileScreen: No auth user ID yet, skipping fetch');
       return;
     }
 
     try {
       setLoading(true);
       const targetUserId = profile?.id || currentUserId;
-      console.log('ProfileScreen: Fetching for targetUserId:', targetUserId);
       
-      const [profileData, followersRaw, followingRaw, subscriptionData] = await Promise.all([
+      // Only fetch essential data, skip followers/following lists for performance
+      const [profileData, subscriptionData] = await Promise.all([
         api.getProfile().catch(err => { console.error('getProfile error:', err); return null; }),
-        api.getFollowers(targetUserId).catch(err => { console.error('getFollowers error:', err); return []; }),
-        api.getFollowing(targetUserId).catch(err => { console.error('getFollowing error:', err); return []; }),
         api.request('/subscriptions/').catch(err => { console.error('getSubscription error:', err); return null; }),
       ]);
 
-      console.log('ProfileScreen: API Results:', { 
-        hasProfile: !!profileData, 
-        followersCount: Array.isArray(followersRaw) ? followersRaw.length : 'non-array',
-        followingCount: Array.isArray(followingRaw) ? followingRaw.length : 'non-array'
-      });
-
       if (profileData) {
         const actualProfile = profileData.user || profileData;
-        console.log('ProfileScreen: Setting profile data. Stats:', {
-          followers: actualProfile.followers_count,
-          following: actualProfile.following_count
-        });
         setProfile(actualProfile);
         
-        // Use counts from profile object if available, otherwise use list length
-        setFollowers(actualProfile.followers_count ?? (Array.isArray(followersRaw) ? followersRaw.length : (followersRaw.results?.length || 0)));
-        setFollowing(actualProfile.following_count ?? (Array.isArray(followingRaw) ? followingRaw.length : (followingRaw.results?.length || 0)));
+        // Use counts from profile object
+        setFollowers(actualProfile.followers_count || 0);
+        setFollowing(actualProfile.following_count || 0);
         setSubscriptionStatus(subscriptionData);
       } else if (user) {
         // Fallback to auth user if profile fetch fails
-        console.log('ProfileScreen: Profile fetch failed, falling back to auth user');
         setProfile(user);
         setFollowers(user.followers_count || 0);
         setFollowing(user.following_count || 0);
@@ -113,7 +98,7 @@ export default function ProfileScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [user, profile?.id]);
+  }, [user?.id]);
 
   const getVideoThumbnail = (url) => {
     if (!url) return null;
@@ -179,7 +164,6 @@ export default function ProfileScreen({ navigation }) {
   const fetchPosts = useCallback(async () => {
     try {
       const userId = profile?.id || user?.id;
-      console.log('ProfileScreen: fetchPosts starting. ID:', userId, 'Tab:', activeTab);
       
       if (!userId && activeTab !== 'saved') return;
 
@@ -203,7 +187,6 @@ export default function ProfileScreen({ navigation }) {
         data = Array.isArray(raw) ? raw : (raw.results || []);
       }
       
-      console.log(`ProfileScreen: Fetched ${data.length} posts for ${activeTab}`);
       setPosts(data);
     } catch (error) {
       console.error('ProfileScreen fetchPosts error:', error);
@@ -443,7 +426,14 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.mainInfoRow}>
             <View style={styles.avatarWrap}>
               {profile?.profile_photo ? (
-                <Image source={{ uri: mediaUrl(profile.profile_photo) }} style={styles.avatar} />
+        <Image 
+          source={{ uri: mediaUrl(profile.profile_photo) }} 
+          style={styles.avatar}
+          cachePolicy="memory-disk"
+          priority="high"
+          placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+          transition={200}
+        />
               ) : (
                 <View style={[styles.avatar, styles.avatarFallback]}>
                   <Text style={styles.avatarEmoji}>👤</Text>

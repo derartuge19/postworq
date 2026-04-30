@@ -186,8 +186,6 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
     mediaUri.includes('video')
   );
 
-  console.log('ReelItem render:', { mediaUri, isValidVideo, isActive, isFocused });
-
   const onReadyForDisplay = (event) => {
     if (event.naturalSize) {
       const { width, height } = event.naturalSize;
@@ -399,22 +397,29 @@ export default function ReelsScreen({ route, navigation }) {
   // Refresh reels when screen comes into focus (e.g., returning from Comments)
   useFocusEffect(
     useCallback(() => {
-      fetchReels(0);
-    }, [fetchReels])
+      // Only load if we don't have reels or it's been more than 5 minutes
+      const shouldRefresh = reels.length === 0 || (Date.now() - lastLoadTime.current > 300000);
+      if (shouldRefresh) {
+        fetchReels(0);
+      }
+    }, [reels.length])
   );
+
+  const lastLoadTime = useRef(Date.now());
 
   // Listen for tab press event to refresh when already on Reels screen
   useEffect(() => {
     const unsubscribe = nav.addListener('tabPress', (e) => {
-      // Refresh reels when tab is pressed while already on screen
+      // Refresh reels when tab is pressed while already on screen and it's been more than 30 seconds
       const currentRoute = nav.getState()?.routes[nav.getState()?.index];
-      if (currentRoute?.name === 'Reels') {
+      const timeSinceLastLoad = Date.now() - lastLoadTime.current;
+      if (currentRoute?.name === 'Reels' && timeSinceLastLoad > 30000) {
         fetchReels(0);
       }
     });
 
     return unsubscribe;
-  }, [nav, fetchReels]);
+  }, [nav]);
 
   const handleShare = async (reel) => {
     try {
@@ -428,7 +433,7 @@ export default function ReelsScreen({ route, navigation }) {
 
   const fetchReels = useCallback(async (offset = 0) => {
     try {
-      const data    = await api.request(`/reels/?limit=15&offset=${offset}`);
+      const data    = await api.request(`/reels/?limit=10&offset=${offset}`);
       const raw     = Array.isArray(data) ? data : (data.results || []);
       
       // Filter to show only videos in Reels page
@@ -439,9 +444,7 @@ export default function ReelsScreen({ route, navigation }) {
       
       let items = raw.filter(r => {
         const mediaUrl = r.media || r.image;
-        const hasVideo = isVideoFile(mediaUrl);
-        console.log('Filtering reel:', r.id, 'URL:', mediaUrl, 'isVideo:', hasVideo);
-        return hasVideo;
+        return isVideoFile(mediaUrl);
       });
       
       if (offset === 0 && initialId) {

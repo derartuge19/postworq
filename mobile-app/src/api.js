@@ -24,7 +24,7 @@ const initAuthToken = async () => {
 // Cache configuration
 const _cache = new Map();
 const _inflight = new Map();
-const CACHE_TTL = 60_000; // 60s default TTL
+const CACHE_TTL = 300_000; // 5 minutes default TTL for better performance
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
 
