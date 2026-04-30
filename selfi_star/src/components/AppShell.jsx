@@ -454,7 +454,16 @@ export function AppShell({
                     flexShrink: 0,
                     border: '3px solid rgba(255,255,255,0.15)',
                   }}>
-                    <Plus size={26} strokeWidth={2.8} color='#1A0A00' />
+                    <img 
+                      src="/create_img.jpg" 
+                      alt="Create" 
+                      style={{ 
+                        width: 26, 
+                        height: 26, 
+                        borderRadius: 13,
+                        objectFit: 'cover'
+                      }} 
+                    />
                   </div>
                 ) : (
                   <div style={{

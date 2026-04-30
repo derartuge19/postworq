@@ -191,7 +191,11 @@ export default function CreateScreen({ navigation }) {
           {/* Hero Section */}
           <View style={s.heroSection}>
             <View style={s.heroCircle}>
-              <Ionicons name="camera" size={30} color="#000" />
+              <Image 
+                source={require('../image/create_img.jpg')} 
+                style={{ width: 36, height: 36, borderRadius: 18 }}
+                resizeMode="cover"
+              />
               <View style={s.sparkle}>
                 <Text style={{ fontSize: 11 }}>✨</Text>
               </View>
