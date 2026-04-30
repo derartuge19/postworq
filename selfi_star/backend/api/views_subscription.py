@@ -134,29 +134,38 @@ class OnevasWebhookView(APIView):
         """Handle subscription, unsubscription, renewal, and stop webhooks"""
         try:
             payload = request.data
+            print(f"[SUBSCRIPTION DEBUG] Webhook received - type: {webhook_type}")
+            print(f"[SUBSCRIPTION DEBUG] Webhook payload: {payload}")
             
             # Log the webhook
             log = OnevasWebhookLog.objects.create(
                 webhook_type=webhook_type,
                 payload=payload
             )
+            print(f"[SUBSCRIPTION DEBUG] Webhook log created: ID {log.id}")
             
             if webhook_type == 'subscription':
+                print(f"[SUBSCRIPTION DEBUG] Routing to handle_subscription")
                 response = self.handle_subscription(payload, log)
             elif webhook_type == 'unsubscription':
+                print(f"[SUBSCRIPTION DEBUG] Routing to handle_unsubscription")
                 response = self.handle_unsubscription(payload, log)
             elif webhook_type == 'renewal':
+                print(f"[SUBSCRIPTION DEBUG] Routing to handle_renewal")
                 response = self.handle_renewal(payload, log)
             elif webhook_type == 'stop':
                 phone_number = payload.get('phone_number')
+                print(f"[SUBSCRIPTION DEBUG] Routing to handle_stop_command for {phone_number}")
                 response = self.handle_stop_command(phone_number)
             else:
+                print(f"[SUBSCRIPTION DEBUG] Invalid webhook type: {webhook_type}")
                 response = Response({'error': 'Invalid webhook type'}, status=400)
             
             log.response_status = response.status_code
             log.response_body = response.data if hasattr(response, 'data') else {}
             log.processed = True
             log.save()
+            print(f"[SUBSCRIPTION DEBUG] Webhook processed - status: {response.status_code}")
             
             return response
             
@@ -168,22 +177,30 @@ class OnevasWebhookView(APIView):
         phone_number = payload.get('phone_number')
         product_number = payload.get('product_number', '').upper()  # Convert to uppercase
         
+        print(f"[SUBSCRIPTION DEBUG] Received subscription webhook - phone: {phone_number}, product: {product_number}")
+        print(f"[SUBSCRIPTION DEBUG] Full payload: {payload}")
+        
         # Find user by phone number
         try:
             profile = UserProfile.objects.get(phone_number=phone_number)
             user = profile.user
             user_exists = True
+            print(f"[SUBSCRIPTION DEBUG] User found: {user.username}")
         except UserProfile.DoesNotExist:
             user_exists = False
+            print(f"[SUBSCRIPTION DEBUG] User not found for phone: {phone_number}")
         
         # Find tier by product number
         try:
             tier = SubscriptionTier.objects.get(product_id=product_number)
+            print(f"[SUBSCRIPTION DEBUG] Tier found: {tier.name} (ID: {tier.id})")
         except SubscriptionTier.DoesNotExist:
+            print(f"[SUBSCRIPTION DEBUG] Tier not found for product: {product_number}")
             return Response({'error': 'Tier not found'}, status=404)
         
         # If user is not registered, create active subscription (SMS-first flow)
         if not user_exists:
+            print(f"[SUBSCRIPTION DEBUG] Creating SMS-first subscription (user not registered)")
             # Create active subscription linked to phone number (user can log in without OTP)
             with transaction.atomic():
                 subscription = UserSubscription.objects.create(
@@ -197,6 +214,7 @@ class OnevasWebhookView(APIView):
                     end_date=timezone.now() + timedelta(days=tier.duration_days or 30),
                     subscription_source='sms'  # Track that this came from SMS
                 )
+                print(f"[SUBSCRIPTION DEBUG] Subscription created: ID {subscription.id}, status: active")
                 
                 # Record payment
                 SubscriptionPayment.objects.create(
@@ -209,6 +227,7 @@ class OnevasWebhookView(APIView):
                     period_end=subscription.end_date,
                     status='completed'
                 )
+                print(f"[SUBSCRIPTION DEBUG] Payment recorded: {tier.price_etb} ETB")
                 
                 # Record history
                 SubscriptionHistory.objects.create(
@@ -219,13 +238,17 @@ class OnevasWebhookView(APIView):
                     reason='Subscription created via Onevas SMS (active, user not registered yet)',
                     metadata={'webhook_payload': payload, 'sms_subscription': True}
                 )
+                print(f"[SUBSCRIPTION DEBUG] History recorded: action=created")
             
             # Send success SMS with registration info (no OTP needed)
             success_message = f"You are successfully subscribed to {tier.name} plan! To use your service, register with phone number {phone_number}:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}\n\nNo OTP required - you can log in directly with your phone number."
+            print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number}")
             self.send_sms(phone_number, success_message, tier.duration_type)
+            print(f"[SUBSCRIPTION DEBUG] SMS-first subscription completed successfully")
             return Response({'status': 'success', 'message': 'Active subscription created via SMS, user can log in without OTP'})
         
         # User exists - proceed with subscription
+        print(f"[SUBSCRIPTION DEBUG] User exists, proceeding with subscription for {user.username}")
         # Check if user already has active subscription
         active_sub = UserSubscription.objects.filter(
             user=user,
@@ -233,6 +256,7 @@ class OnevasWebhookView(APIView):
         ).first()
         
         if active_sub:
+            print(f"[SUBSCRIPTION DEBUG] Found active subscription, renewing...")
             # Update existing subscription
             active_sub.tier = tier
             active_sub.duration_type = tier.duration_type
