@@ -244,22 +244,14 @@ export default function GiftSelectorScreen({ route, navigation }) {
             />
           ) : (
             <View style={styles.giftPlaceholder}>
-              <Text style={{ fontSize: 32 }}>{CATEGORY_ICONS[item.category] || '🎁'}</Text>
+              <Text style={{ fontSize: 40 }}>{CATEGORY_ICONS[item.category] || '🎁'}</Text>
             </View>
           )}
         </Animated.View>
         
-        <Text style={styles.giftName} numberOfLines={1}>
-          {item.name}
-        </Text>
-        
         <View style={styles.giftPriceContainer}>
-          <Ionicons name="cash" size={12} color={BRAND_GOLD} />
           <Text style={styles.giftPrice}>{item.coin_value}</Text>
-        </View>
-        
-        <View style={[styles.rarityBadge, { backgroundColor: RARITY_COLORS[item.rarity] }]}>
-          <Text style={styles.rarityText}>{item.rarity}</Text>
+          <Ionicons name="cash" size={16} color={BRAND_GOLD} />
         </View>
       </TouchableOpacity>
     );
@@ -267,6 +259,21 @@ export default function GiftSelectorScreen({ route, navigation }) {
 
   const renderCategoryTab = (category) => {
     const isSelected = selectedCategory === category;
+    
+    const getCategoryDisplay = (cat) => {
+      switch(cat) {
+        case 'all': return { icon: '', text: 'All' };
+        case 'flowers': return { icon: '🌹', text: 'Flowers' };
+        case 'hearts': return { icon: '❤️', text: 'Hearts' };
+        case 'special': return { icon: '⭐', text: 'Special' };
+        case 'animals': return { icon: '🐻', text: 'Animals' };
+        case 'gems': return { icon: '💎', text: 'Gems' };
+        case 'vehicles': return { icon: '🚗', text: 'Vehicles' };
+        default: return { icon: CATEGORY_ICONS[cat] || '🎁', text: cat };
+      }
+    };
+    
+    const { icon, text } = getCategoryDisplay(category);
     
     return (
       <TouchableOpacity
@@ -277,11 +284,12 @@ export default function GiftSelectorScreen({ route, navigation }) {
         ]}
         onPress={() => setSelectedCategory(category)}
       >
+        {icon && <Text style={styles.categoryIcon}>{icon}</Text>}
         <Text style={[
           styles.categoryTabText,
           isSelected && styles.categoryTabTextSelected,
         ]}>
-          {category === 'all' ? 'All' : CATEGORY_ICONS[category] || category}
+          {text}
         </Text>
       </TouchableOpacity>
     );
@@ -518,18 +526,40 @@ export default function GiftSelectorScreen({ route, navigation }) {
         numColumns={4}
         contentContainerStyle={styles.giftGrid}
         style={{ opacity: fadeAnim }}
+        scrollEnabled={false}
       />
 
+      {/* Message Input */}
+      <View style={styles.messageSection}>
+        <TextInput
+          style={styles.messageInputField}
+          placeholder="Add a message (optional)..."
+          placeholderTextColor="#666"
+          value={message}
+          onChangeText={setMessage}
+          maxLength={500}
+        />
+      </View>
+
       {/* Send Button */}
-      {selectedGift && (
+      <View style={styles.sendButtonContainer}>
         <TouchableOpacity
-          style={styles.floatingSendButton}
-          onPress={() => setShowSendModal(true)}
+          style={[
+            styles.sendButton,
+            !selectedGift && styles.sendButtonDisabled,
+          ]}
+          onPress={() => selectedGift && setShowSendModal(true)}
+          disabled={!selectedGift}
         >
-          <Ionicons name="send" size={20} color="#fff" />
-          <Text style={styles.floatingSendButtonText}>Send</Text>
+          <Ionicons name="send" size={20} color={selectedGift ? "#000" : "#666"} />
+          <Text style={[
+            styles.sendButtonText,
+            !selectedGift && styles.sendButtonTextDisabled,
+          ]}>
+            Send Gift
+          </Text>
         </TouchableOpacity>
-      )}
+      </View>
 
       {renderSendModal()}
       {renderRechargeModal()}
@@ -596,32 +626,32 @@ const styles = StyleSheet.create({
     color: BRAND_GOLD,
   },
   categoryTabs: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A2A2E',
+    paddingVertical: 8,
   },
   categoryTabsContent: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    gap: 6,
+    paddingHorizontal: 16,
+    gap: 8,
   },
   categoryTab: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    marginRight: 6,
-    borderRadius: 16,
-    backgroundColor: '#121214',
-    borderWidth: 1,
-    borderColor: '#2A2A2E',
-    height: 28,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    backgroundColor: '#2A2A2E',
+    minWidth: 80,
     justifyContent: 'center',
   },
   categoryTabSelected: {
     backgroundColor: BRAND_GOLD,
-    borderColor: BRAND_GOLD,
+  },
+  categoryIcon: {
+    fontSize: 16,
+    marginRight: 6,
   },
   categoryTabText: {
-    fontSize: 12,
-    color: '#A1A1AA',
+    fontSize: 14,
+    color: '#F5F5F7',
     fontWeight: '600',
   },
   categoryTabTextSelected: {
@@ -629,37 +659,39 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   giftGrid: {
-    padding: 8,
-    paddingTop: 4,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   giftItem: {
-    width: (SCREEN_WIDTH - 56) / 4,
-    margin: 3,
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#121214',
+    width: (SCREEN_WIDTH - 48) / 4,
+    height: 120,
+    margin: 4,
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: '#2A2A2E',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   giftItemSelected: {
-    backgroundColor: 'rgba(200,181,106,0.13)',
-    borderWidth: 1.5,
+    backgroundColor: 'rgba(200,181,106,0.2)',
+    borderWidth: 2,
     borderColor: BRAND_GOLD,
   },
   giftImageContainer: {
     width: 48,
     height: 48,
-    borderRadius: 10,
-    backgroundColor: '#0B0B0C',
+    borderRadius: 12,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   giftImageContainerSelected: {
-    backgroundColor: BRAND_GOLD + '20',
+    backgroundColor: 'transparent',
   },
   giftImage: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
   },
   giftPlaceholder: {
     width: 48,
@@ -668,22 +700,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   giftName: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: '#F5F5F7',
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   giftPriceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 3,
   },
   giftPrice: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     color: BRAND_GOLD,
-    marginLeft: 2,
+    marginLeft: 4,
+  },
+  messageSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  messageInputField: {
+    backgroundColor: '#2A2A2E',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 14,
+    color: '#F5F5F7',
+    minHeight: 50,
+  },
+  sendButtonContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  sendButton: {
+    backgroundColor: BRAND_GOLD,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  sendButtonDisabled: {
+    backgroundColor: '#2A2A2E',
+  },
+  sendButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+  },
+  sendButtonTextDisabled: {
+    color: '#666',
   },
   rarityBadge: {
     paddingHorizontal: 5,
