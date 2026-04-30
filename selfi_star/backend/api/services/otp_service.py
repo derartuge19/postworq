@@ -49,9 +49,9 @@ class OTPService:
         return True, None
     
     @classmethod
-    def send_otp(cls, phone_number, application_key):
+    def send_otp(cls, phone_number, application_key, product_number='10000302850'):
         """Send OTP via Onevas SMS"""
-        print(f"[OTP SERVICE DEBUG] send_otp called for phone: {phone_number}, app_key: {application_key}")
+        print(f"[OTP SERVICE DEBUG] send_otp called for phone: {phone_number}, app_key: {application_key}, product_number: {product_number}")
         
         can_send, error = cls.can_send_otp(phone_number)
         print(f"[OTP SERVICE DEBUG] can_send_otp result: {can_send}, error: {error}")
@@ -93,7 +93,7 @@ class OTPService:
                 'phone_number': phone_number,
                 'application_key': application_key,
                 'text': message,
-                'product_number': '9286'  # Short code
+                'product_number': product_number
             }
             print(f"[OTP SERVICE DEBUG] Sending SMS to Onevas URL: {url}")
             print(f"[OTP SERVICE DEBUG] Payload: {payload}")
