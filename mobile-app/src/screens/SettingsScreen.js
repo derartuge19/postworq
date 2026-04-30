@@ -287,7 +287,7 @@ export default function SettingsScreen({ navigation }) {
 
         <Text style={[styles.sectionLabel, { color: T.sub }]}>{t('help')}</Text>
         <View style={[styles.sectionCard, { backgroundColor: T.card, borderColor: T.border }]}>
-          <SettingRow icon="help-circle-outline" title={t('helpCenter')} onPress={() => Alert.alert('Help', 'Contact support@flipstar.com')} />
+          <SettingRow icon="crown" title={t('helpCenter')} onPress={() => Alert.alert('Help', 'Contact support@flipstar.com')} />
           <SettingRow icon="shield-checkmark-outline" title={t('privacyPolicy')} />
           <SettingRow icon="document-text-outline" title={t('termsOfService')} />
         </View>
