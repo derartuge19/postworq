@@ -103,6 +103,16 @@ class OTPService:
             response = requests.post(url, json=payload, timeout=30)
             print(f"[OTP SERVICE DEBUG] Onevas response status: {response.status_code}")
             print(f"[OTP SERVICE DEBUG] Onevas response body: {response.text}")
+            print(f"[OTP SERVICE DEBUG] Response headers: {dict(response.headers)}")
+            
+            # Verify response is from Onevas by checking expected response patterns
+            if response.status_code == 200:
+                response_text = response.text.strip().lower()
+                # Onevas typically returns "Accepted for Delivery" or similar success messages
+                if 'accepted' not in response_text and 'success' not in response_text and 'delivered' not in response_text:
+                    print(f"[OTP SERVICE DEBUG] WARNING: Response may not be from Onevas - unexpected response: {response.text}")
+            else:
+                print(f"[OTP SERVICE DEBUG] Onevas returned error status: {response.status_code}")
             
             if response.status_code == 200:
                 return True, f'OTP sent to {phone_number}'
