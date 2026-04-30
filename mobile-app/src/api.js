@@ -256,12 +256,10 @@ const api = {
     }),
 
   login: async (identifier, password) => {
-    // For phone numbers, use them as username since backend expects username/password
-    // We already created users with phone numbers as usernames
-    
-    const data = await api.request('/auth/login/', {
+    // identifier is now a phone number - use phone login endpoint
+    const data = await api.request('/auth/login-with-phone/', {
       method: 'POST',
-      body: JSON.stringify({ username: identifier, password }),
+      body: JSON.stringify({ phone: identifier, password }),
     });
     
     if (data.token) {

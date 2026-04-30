@@ -49,7 +49,24 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const data = await api.register(userData);
+      // Support both object form and legacy separate params
+      const payload = typeof userData === 'object' ? userData : { username: userData };
+      const { fullName, phone, password, first_name, last_name } = payload;
+      
+      // Use phone-based registration
+      const data = await api.request('/auth/register-with-phone/', {
+        method: 'POST',
+        body: JSON.stringify({
+          phone,
+          username: (fullName || '').toLowerCase().replace(/\s+/g, '_') + '_' + Date.now().toString().slice(-4),
+          password,
+          first_name: first_name || (fullName || '').split(' ')[0],
+          last_name: last_name || (fullName || '').split(' ').slice(1).join(' '),
+          email: '',
+          skip_otp: true,
+        }),
+      });
+      if (data.token) await api.setAuthToken(data.token);
       setUser(data.user);
       setIsAuthenticated(true);
       return data;
