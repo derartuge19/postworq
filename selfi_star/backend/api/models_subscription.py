@@ -222,7 +222,7 @@ class SubscriptionHistory(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_history')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_history', null=True, blank=True)
     subscription = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True, blank=True, related_name='history')
     tier = models.ForeignKey(SubscriptionTier, on_delete=models.SET_NULL, null=True, blank=True, related_name='history')
     
