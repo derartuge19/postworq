@@ -27,7 +27,7 @@ const FILTERS = [
   { id: 'golden',    name: 'Golden',   overlay: 'rgba(218,155,42,0.2)' },
 ];
 
-const TEXT_COLORS = ['#FFFFFF','#000000','#FF3B57','#C8B56A','#3B82F6','#10B981','#EC4899'];
+const TEXT_COLORS = ['#FFFFFF','#000000','#FF3B57','#C8B56A','#C8B56A','#10B981','#EC4899'];
 
 
 

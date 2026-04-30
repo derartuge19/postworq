@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 const BRAND_GOLD = '#C8B56A';
-const CYAN_COLOR = '#3B82F6';
+const CYAN_COLOR = '#C8B56A';
 
 const PERIODS = [
   { id: 'overall', label: 'All Time' },

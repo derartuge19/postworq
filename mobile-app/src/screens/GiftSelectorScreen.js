@@ -34,7 +34,7 @@ const CATEGORY_ICONS = {
 
 const RARITY_COLORS = {
   common: '#A0A0A0',
-  rare: '#3B82F6',
+  rare: '#C8B56A',
   epic: '#8B5CF6',
   legendary: '#F59E0B',
 };
