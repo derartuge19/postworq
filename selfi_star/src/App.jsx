@@ -192,30 +192,38 @@ export default function WerqRoot() {
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     }
-    if (params.get('login') === 'true') {
-      setShowLogin(true);
-      // Clean up URL
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-    if (params.get('subscription_tp') === 'true') {
-      setShowLogin(true);
-      // Clean up URL but keep the subscription_tp parameter for the login screen
-      window.history.replaceState({}, '', window.location.pathname + '?subscription_tp=true');
-    }
+    // Don't clean up login or subscription_tp params - they will be handled by the second useEffect
   }, []);
 
   // Show login screen when URL params change (e.g., when clicking link while already logged in)
   useEffect(() => {
-    const handleUrlChange = () => {
+    const checkUrlParams = () => {
       const params = new URLSearchParams(window.location.search);
       if (params.get('login') === 'true' || params.get('subscription_tp') === 'true') {
         setShowLogin(true);
       }
     };
 
-    window.addEventListener('popstate', handleUrlChange);
-    return () => window.removeEventListener('popstate', handleUrlChange);
+    // Check on mount
+    checkUrlParams();
+
+    // Also listen for URL changes
+    window.addEventListener('popstate', checkUrlParams);
+    return () => window.removeEventListener('popstate', checkUrlParams);
   }, []);
+
+  // Force show login screen if URL params are present (runs on every render)
+  const forceShowLogin = (() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('login') === 'true' || params.get('subscription_tp') === 'true';
+  })();
+
+  // Update showLogin state if URL params are present
+  useEffect(() => {
+    if (forceShowLogin && !showLogin) {
+      setShowLogin(true);
+    }
+  }, [forceShowLogin, showLogin]);
 
   // ── Restore navigation state from browser history on initial load ──
   // This ensures that refreshing the page maintains the current view
