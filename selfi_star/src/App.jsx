@@ -192,6 +192,16 @@ export default function WerqRoot() {
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     }
+    if (params.get('login') === 'true') {
+      setShowLogin(true);
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (params.get('subscription_tp') === 'true') {
+      setShowLogin(true);
+      // Clean up URL but keep the subscription_tp parameter for the login screen
+      window.history.replaceState({}, '', window.location.pathname + '?subscription_tp=true');
+    }
   }, []);
 
   // ── Restore navigation state from browser history on initial load ──
