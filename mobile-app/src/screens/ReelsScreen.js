@@ -175,10 +175,11 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
     mediaUri.includes('.mp4') || 
     mediaUri.includes('.webm') || 
     mediaUri.includes('.mov') || 
-    mediaUri.includes('/video/upload/')
+    mediaUri.includes('/video/upload/') ||
+    mediaUri.includes('video')
   );
 
-  console.log('ReelItem render:', { mediaUri, isValidVideo, isActive });
+  console.log('ReelItem render:', { mediaUri, isValidVideo, isActive, isFocused });
 
   const onReadyForDisplay = (event) => {
     if (event.naturalSize) {
@@ -220,7 +221,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
             resizeMode={orientation === 'landscape' ? ResizeMode.CONTAIN : ResizeMode.COVER}
             isLooping
             isMuted={muted}
-            shouldPlay={isActive && isFocused && !paused && videoLoaded}
+            shouldPlay={isActive && isFocused && !paused}
             useNativeControls={false}
             onReadyForDisplay={onReadyForDisplay}
             onLoad={() => {
@@ -229,11 +230,10 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
             }}
             onError={(error) => {
               console.error('Video error for URL:', mediaUri, error);
-              setVideoLoaded(false);
+              setVideoLoaded(true); // Set to true to prevent infinite loading
             }}
             onLoadStart={() => {
               console.log('Video loading started:', mediaUri);
-              setVideoLoaded(false);
             }}
           />
         ) : (
@@ -270,7 +270,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
       )}
 
       {/* ── Video Loading indicator ── */}
-      {!videoLoaded && (
+      {!videoLoaded && isValidVideo && (
         <View style={styles.pauseCenter} pointerEvents="none">
           <ActivityIndicator size="large" color={BRAND_GOLD} />
         </View>

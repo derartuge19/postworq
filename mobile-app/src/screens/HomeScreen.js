@@ -66,9 +66,11 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
   const isVideo = !!item.media && (
     /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
     item.media.includes('/video/upload/') ||
-    !item.image
+    item.media.includes('video') ||
+    (!item.image && item.media) // If no image but has media, assume it's video
   );
   const mediaSrc = mediaUrl(item.media || item.image);
+  console.log('PostItem render:', { id: item.id, isVideo, mediaSrc, hasMedia: !!item.media, hasImage: !!item.image });
   const avatarSrc = mediaUrl(item.user?.profile_photo);
   const isVisible = visibleItems.includes(item.id);
   const currentLiked = item.has_voted || item.is_liked || false;
@@ -153,7 +155,9 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
                   isLooping
                   resizeMode={ResizeMode.COVER}
                   useNativeControls={false}
-                  isMuted={true}
+                  isMuted={false}
+                  onLoad={() => console.log('Home video loaded:', mediaSrc)}
+                  onError={(error) => console.error('Home video error:', error)}
                 />
                 {!isVisible && (
                   <View style={styles.playOverlay}>
@@ -348,11 +352,13 @@ export default function HomeScreen({ navigation }) {
     return unsubscribe;
   }, [nav, loadPosts]);
 
-  const loadPosts = async () => {
+  const loadPosts = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.getReels();
       const posts = Array.isArray(data) ? data : (data.results || []);
+      console.log('HomeScreen: Loaded posts:', posts.length);
+      console.log('HomeScreen: Sample post media URLs:', posts.slice(0, 3).map(p => ({ id: p.id, media: p.media, image: p.image })));
       setPosts(posts);
     } catch (error) {
       console.error('Error loading posts:', error);
@@ -360,7 +366,7 @@ export default function HomeScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -437,7 +443,8 @@ export default function HomeScreen({ navigation }) {
   }, [navigation]);
 
   const handleVideoPress = useCallback((reelId) => {
-     navigation.navigate('Reels', { reelId });
+    console.log('Navigating to Reels with ID:', reelId);
+    navigation.navigate('Reels', { reelId });
   }, [navigation]);
 
   const handleFollow = useCallback(async (userId) => {
