@@ -76,7 +76,7 @@ export function SubscriptionPage({ user, onBack }) {
     }
   };
 
-  const getSmsUrl = (tier) => {
+  const handleSubscribe = (tier) => {
     // Get tier code for SMS
     const tierCode = tier.duration_type === 'daily' ? 'A' : 
                      tier.duration_type === 'weekly' ? 'B' : 
@@ -87,8 +87,8 @@ export function SubscriptionPage({ user, onBack }) {
     const shortCode = '+2519286';
     const message = tierCode;
     
-    // Use sms: format with country code for Android compatibility
-    return `sms:${shortCode}?body=${encodeURIComponent(message)}`;
+    // Use window.location.href for most reliable SMS app opening
+    window.location.href = `sms:${shortCode}?body=${encodeURIComponent(message)}`;
   };
 
   const handlePayment = async () => {
@@ -389,10 +389,9 @@ export function SubscriptionPage({ user, onBack }) {
                     ✓ Subscribed
                   </button>
                 ) : (
-                  <a
-                    href={getSmsUrl(tier)}
+                  <button
+                    onClick={() => handleSubscribe(tier)}
                     style={{
-                      display: 'block',
                       width: '100%',
                       padding: '16px',
                       background: '#1a1a1a',
@@ -405,8 +404,6 @@ export function SubscriptionPage({ user, onBack }) {
                       opacity: 1,
                       boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
                       transition: 'all 0.2s',
-                      textDecoration: 'none',
-                      textAlign: 'center',
                     }}
                     onMouseOver={(e) => {
                       e.target.style.transform = 'translateY(-2px)';
@@ -418,7 +415,7 @@ export function SubscriptionPage({ user, onBack }) {
                     }}
                   >
                     📱 Subscribe via SMS
-                  </a>
+                  </button>
                 )}
               </div>
             );
