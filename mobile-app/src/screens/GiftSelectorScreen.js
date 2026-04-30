@@ -601,18 +601,18 @@ const styles = StyleSheet.create({
   },
   categoryTabsContent: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 4,
     gap: 6,
   },
   categoryTab: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 4,
     marginRight: 6,
     borderRadius: 16,
     backgroundColor: '#121214',
     borderWidth: 1,
     borderColor: '#2A2A2E',
-    height: 32,
+    height: 28,
     justifyContent: 'center',
   },
   categoryTabSelected: {
@@ -629,7 +629,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   giftGrid: {
-    padding: 12,
+    padding: 8,
+    paddingTop: 4,
   },
   giftItem: {
     width: (SCREEN_WIDTH - 56) / 4,
