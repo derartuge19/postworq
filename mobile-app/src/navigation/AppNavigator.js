@@ -39,12 +39,12 @@ import SubscriptionScreen from '../screens/SubscriptionScreen';
 // ── Brand theme — keep in sync with web selfi_star theme ──────────────────────
 const BRAND = {
   pri:      '#C8B56A',   // gold accent — matches web T.pri
-  bg:       '#ffffff',
-  cardBg:   '#ffffff',
-  border:   '#e5e5e5',
-  txt:      '#000000',
-  sub:      '#999999',
-  inactive: '#999999',
+  bg:       '#0B0B0C',   // dark background
+  cardBg:   '#121214',   // dark card background
+  border:   '#2A2A2E',   // dark border
+  txt:      '#F5F5F7',   // light text
+  sub:      '#A1A1AA',   // subdued text
+  inactive: '#666666',   // inactive elements
 };
 
 const Tab   = createBottomTabNavigator();
@@ -133,7 +133,7 @@ function MainStack() {
       <Stack.Screen name="VideoDetail"    component={VideoDetailScreen}    options={{ title: 'Video' }} />
       <Stack.Screen name="ProfileDetail"  component={ProfileDetailScreen}  options={{ title: 'Profile' }} />
       <Stack.Screen name="EditProfile"    component={EditProfileScreen}     options={{ headerShown: false }} />
-      <Stack.Screen name="Comments"           component={CommentsScreen}           options={{ title: 'Comments', headerBackTitleVisible: false }} />
+      <Stack.Screen name="Comments"           component={CommentsScreen}           options={{ headerShown: false }} />
       <Stack.Screen name="Campaigns"          component={CampaignsScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="CampaignDetail"     component={CampaignDetailScreen}     options={{ headerShown: false }} />
       <Stack.Screen name="CampaignFeed"       component={CampaignFeedScreen}       options={{ headerShown: false }} />
