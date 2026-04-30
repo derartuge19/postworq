@@ -80,7 +80,13 @@ IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER
 # Database configuration
 if IS_RENDER:
     # Render deployment: Use Neon database
-    database_url = config('DATABASE_URL', default=None)
+    # Check for multiple possible environment variable names
+    database_url = (config('DATABASE_URL', default=None) or
+                    config('POSTGRES_URL', default=None) or
+                    config('POSTGRESQL_URL', default=None) or
+                    os.environ.get('DATABASE_URL') or
+                    os.environ.get('POSTGRES_URL') or
+                    os.environ.get('POSTGRESQL_URL'))
 
     if database_url:
         # Parse DATABASE_URL
@@ -100,6 +106,9 @@ if IS_RENDER:
                 'CONN_MAX_AGE': 0,
             }
         }
+        print(f"=== USING DATABASE_URL ===")
+        print(f"DATABASE_HOST: {parsed.hostname}")
+        print(f"DATABASE_NAME: {parsed.path.lstrip('/')}")
     else:
         # Fallback to individual environment variables
         DATABASES = {
@@ -117,6 +126,8 @@ if IS_RENDER:
                 'CONN_MAX_AGE': 0,
             }
         }
+        print(f"=== USING INDIVIDUAL ENV VARS ===")
+        print(f"DATABASE_HOST: {DATABASES['default']['HOST']}")
 
     # Debug: Print database configuration (remove in production)
     print(f"=== NEW DEPLOYMENT DETECTED ===")
