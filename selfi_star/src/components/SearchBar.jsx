@@ -257,3 +257,5 @@ export function SearchBar({ onUserClick, onHashtagClick, onPostClick }) {
 }
 
 
+
+

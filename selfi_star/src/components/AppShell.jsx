@@ -196,7 +196,7 @@ export function AppShell({
             minHeight: 80
           }}>
             <img 
-              src="/final_logo.png" 
+              src="/flipstar-logo.png" 
               alt="FlipStar" 
               style={{ 
                 height: 80, 
@@ -512,5 +512,7 @@ export function AppShell({
     </div>
   );
 }
+
+
 
 
