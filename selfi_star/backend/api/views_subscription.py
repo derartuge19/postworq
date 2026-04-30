@@ -263,7 +263,7 @@ class OnevasWebhookView(APIView):
                 print(f"[SUBSCRIPTION DEBUG] History recorded: action=created")
             
             # Send success SMS with registration info (no OTP needed)
-            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on {WEB_APP_LINK} using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
+            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?subscription_tp=true using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
             print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
             self.send_sms(phone_number, success_message, tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] SMS-first subscription completed successfully")
@@ -354,7 +354,7 @@ class OnevasWebhookView(APIView):
             
             # Send SMS confirmation
             duration_text = f"{tier.duration_days} days" if tier.duration_days else tier.duration_type
-            confirmation_message = f"You are successfully subscribed to {tier.name} plan for {duration_text}. Thank you for your subscription!"
+            confirmation_message = f"You are successfully subscribed to {tier.name} plan for {duration_text}. To enjoy the service click on https://postworqq.vercel.app?login=true Thank you for your subscription!"
             self.send_sms(phone_number, confirmation_message, tier.duration_type)
             
             return Response({'status': 'success', 'message': 'Subscription created'})
