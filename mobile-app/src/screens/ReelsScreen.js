@@ -49,6 +49,8 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
   const [paused, setPaused]         = useState(false);
   const [saved, setSaved]           = useState(item.is_saved || false);
   const [expanded, setExpanded]     = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [orientation, setOrientation] = useState('portrait');
 
   // Heart animation state
   const heartScale = useRef(new Animated.Value(0)).current;
@@ -58,15 +60,17 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
 
   // Play / pause based on visibility AND screen focus
   useEffect(() => {
-    if (!videoRef.current) return;
-    if (isActive && isFocused && !paused) {
-      videoRef.current.playAsync().catch((err) => {
-        console.log('Play error:', err.message);
-      });
-    } else {
-      videoRef.current.pauseAsync().catch(() => {});
-    }
-  }, [isActive, isFocused, paused]);
+    console.log('Video state changed:', { isActive, isFocused, paused, videoLoaded });
+  }, [isActive, isFocused, paused, videoLoaded]);
+
+  // Cleanup video when component unmounts
+  useEffect(() => {
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.pauseAsync().catch(() => {});
+      }
+    };
+  }, []);
 
   const handleLike = async () => {
     const next = !liked;
@@ -92,17 +96,6 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
     const nextPaused = !paused;
     console.log('ReelItem: Toggling pause to:', nextPaused);
     setPaused(nextPaused);
-    
-    // Immediate playback control
-    if (videoRef.current) {
-      if (nextPaused) {
-        videoRef.current.pauseAsync().catch(() => {});
-      } else if (isActive && isFocused) {
-        videoRef.current.playAsync().catch((err) => {
-          console.log('Resume play error:', err.message);
-        });
-      }
-    }
   };
 
   const handleVideoTap = () => {
@@ -160,9 +153,12 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 30 && Math.abs(gesture.dy) < 10,
       onPanResponderRelease: (_, gesture) => {
-        if (gesture.dx > 100) { // Swipe right to restart
-          videoRef.current?.setPositionAsync(0);
-          videoRef.current?.playAsync();
+        if (gesture.dx > 100 && videoRef.current) { // Swipe right to restart
+          videoRef.current.setPositionAsync(0).then(() => {
+            if (isActive && isFocused && !paused) {
+              videoRef.current.playAsync().catch(console.log);
+            }
+          }).catch(console.log);
         }
       }
     })
@@ -174,7 +170,15 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
   const initial = username[0]?.toUpperCase() || '?';
   const bottomBase = 60 + insets.bottom;
 
-  const [orientation, setOrientation] = useState('portrait'); // 'portrait' | 'landscape'
+  // Validate video URL
+  const isValidVideo = mediaUri && (
+    mediaUri.includes('.mp4') || 
+    mediaUri.includes('.webm') || 
+    mediaUri.includes('.mov') || 
+    mediaUri.includes('/video/upload/')
+  );
+
+  console.log('ReelItem render:', { mediaUri, isValidVideo, isActive });
 
   const onReadyForDisplay = (event) => {
     if (event.naturalSize) {
@@ -208,17 +212,36 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
 
       {/* ── Full-screen Video ── */}
       <View style={StyleSheet.absoluteFill}>
-        <Video
-          ref={videoRef}
-          source={{ uri: mediaUri }}
-          style={StyleSheet.absoluteFill}
-          resizeMode={orientation === 'landscape' ? ResizeMode.CONTAIN : ResizeMode.COVER}
-          isLooping
-          isMuted={muted}
-          shouldPlay={isActive && isFocused && !paused}
-          useNativeControls={false}
-          onReadyForDisplay={onReadyForDisplay}
-        />
+        {isValidVideo ? (
+          <Video
+            ref={videoRef}
+            source={{ uri: mediaUri }}
+            style={StyleSheet.absoluteFill}
+            resizeMode={orientation === 'landscape' ? ResizeMode.CONTAIN : ResizeMode.COVER}
+            isLooping
+            isMuted={muted}
+            shouldPlay={isActive && isFocused && !paused && videoLoaded}
+            useNativeControls={false}
+            onReadyForDisplay={onReadyForDisplay}
+            onLoad={() => {
+              console.log('Video loaded successfully:', mediaUri);
+              setVideoLoaded(true);
+            }}
+            onError={(error) => {
+              console.error('Video error for URL:', mediaUri, error);
+              setVideoLoaded(false);
+            }}
+            onLoadStart={() => {
+              console.log('Video loading started:', mediaUri);
+              setVideoLoaded(false);
+            }}
+          />
+        ) : (
+          <View style={[StyleSheet.absoluteFill, styles.videoError]}>
+            <Ionicons name="videocam-off" size={60} color="#666" />
+            <Text style={styles.errorText}>Video not available</Text>
+          </View>
+        )}
         {/* Transparent touch layer to capture gestures */}
         <TouchableOpacity
           activeOpacity={1}
@@ -243,6 +266,13 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
           <View style={styles.pauseCircle}>
             <Ionicons name="play" size={40} color="#fff" style={{ marginLeft: 4 }} />
           </View>
+        </View>
+      )}
+
+      {/* ── Video Loading indicator ── */}
+      {!videoLoaded && (
+        <View style={styles.pauseCenter} pointerEvents="none">
+          <ActivityIndicator size="large" color={BRAND_GOLD} />
         </View>
       )}
 
@@ -389,18 +419,23 @@ export default function ReelsScreen({ route, navigation }) {
     }
   };
 
-  const fetchReels = async (offset = 0) => {
+  const fetchReels = useCallback(async (offset = 0) => {
     try {
       const data    = await api.request(`/reels/?limit=15&offset=${offset}`);
       const raw     = Array.isArray(data) ? data : (data.results || []);
       
       // Filter to show only videos in Reels page
-      const isVideo = (url) => {
+      const isVideoFile = (url) => {
         if (!url) return false;
         return url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('/video/upload/');
       };
       
-      let items = raw.filter(r => isVideo(r.media || r.image));
+      let items = raw.filter(r => {
+        const mediaUrl = r.media || r.image;
+        const hasVideo = isVideoFile(mediaUrl);
+        console.log('Filtering reel:', r.id, 'URL:', mediaUrl, 'isVideo:', hasVideo);
+        return hasVideo;
+      });
       
       if (offset === 0 && initialId) {
         const idx = items.findIndex(r => r.id === initialId);
@@ -420,7 +455,7 @@ export default function ReelsScreen({ route, navigation }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [initialId]);
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) {
@@ -650,6 +685,8 @@ const styles = StyleSheet.create({
   header: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 30 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
+  videoError: { backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
+  errorText: { color: '#666', fontSize: 16, marginTop: 10, fontWeight: '500' },
 });
 
 
