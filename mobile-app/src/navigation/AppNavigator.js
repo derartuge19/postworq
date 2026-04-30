@@ -83,23 +83,11 @@ function MainTabs() {
           const isCreate = route.name === 'Create';
           if (isCreate) {
             return (
-              <View style={{
-                width: 44, height: 44, borderRadius: 22,
-                backgroundColor: '#C8B56A',
-                justifyContent: 'center', alignItems: 'center',
-                marginBottom: 4,
-                shadowColor: '#C8B56A',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.5,
-                shadowRadius: 8,
-                elevation: 8,
-              }}>
-                <Image 
-                  source={require('../image/create_img.jpg')} 
-                  style={{ width: 24, height: 24, borderRadius: 12 }}
-                  resizeMode="cover"
-                />
-              </View>
+              <Image 
+                source={require('../image/create_img.jpg')} 
+                style={{ width: 32, height: 32, borderRadius: 16, marginBottom: 4 }}
+                resizeMode="cover"
+              />
             );
           }
           return <Ionicons name={icons[route.name]} size={size} color={color} style={focused ? { textShadowColor: '#C8B56A', textShadowRadius: 8 } : {}} />;

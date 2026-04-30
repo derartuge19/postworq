@@ -438,33 +438,20 @@ export function AppShell({
               >
                 {/* Icon */}
                 {isCreate ? (
-                  <div style={{
-                    position: 'absolute',
-                    top: -18,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: 54,
-                    height: 54,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(145deg, #F9E08B 0%, #D4A017 100%)',
-                    boxShadow: '0 4px 18px rgba(249,224,139,0.5), 0 2px 6px rgba(0,0,0,0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    border: '3px solid rgba(255,255,255,0.15)',
-                  }}>
-                    <img 
-                      src="/create_img.jpg" 
-                      alt="Create" 
-                      style={{ 
-                        width: 26, 
-                        height: 26, 
-                        borderRadius: 13,
-                        objectFit: 'cover'
-                      }} 
-                    />
-                  </div>
+                  <img 
+                    src="/create_img.jpg" 
+                    alt="Create" 
+                    style={{ 
+                      position: 'absolute',
+                      top: -18,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 32, 
+                      height: 32, 
+                      borderRadius: 16,
+                      objectFit: 'cover'
+                    }} 
+                  />
                 ) : (
                   <div style={{
                     position: 'relative',
