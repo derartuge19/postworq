@@ -218,6 +218,13 @@ export default function WerqRoot() {
     return params.get('login') === 'true' || params.get('subscription_tp') === 'true';
   })();
 
+  // Force screen to landing when subscription or login params are present
+  useEffect(() => {
+    if (forceShowLogin && screen === 'app') {
+      setScreen('landing');
+    }
+  }, [forceShowLogin, screen]);
+
   // Update showLogin state if URL params are present
   useEffect(() => {
     if (forceShowLogin && !showLogin) {
