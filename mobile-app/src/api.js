@@ -83,6 +83,20 @@ const api = {
     _cache.clear();
   },
 
+  // Test backend connectivity
+  testBackend: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return response.status !== 401;
+    } catch (error) {
+      console.error('Backend test failed:', error);
+      return false;
+    }
+  },
+
   getAuthToken: async () => {
     if (!authToken) {
       await initAuthToken();
@@ -241,11 +255,25 @@ const api = {
       body: JSON.stringify({ phone, username, password, email }),
     }),
 
-  login: async (username, password) => {
-    const data = await api.request('/auth/login/', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    });
+  login: async (identifier, password) => {
+    // Detect if identifier is a phone number or username
+    const isPhone = /^(\+?251|0)\d{9,}$/.test(identifier.replace(/\s/g, ''));
+    
+    let data;
+    if (isPhone) {
+      // Use phone-specific login endpoint
+      data = await api.request('/auth/login-phone/', {
+        method: 'POST',
+        body: JSON.stringify({ phone: identifier, pin: password }),
+      });
+    } else {
+      // Use regular username login
+      data = await api.request('/auth/login/', {
+        method: 'POST',
+        body: JSON.stringify({ username: identifier, password }),
+      });
+    }
+    
     if (data.token) {
       await api.setAuthToken(data.token);
     }
