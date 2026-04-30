@@ -191,7 +191,13 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         }
         setStep(2);
       } catch (otpErr) {
-        setError(otpErr?.message || "Failed to send OTP. Check your phone number.");
+        // Check for specific error messages
+        const errorMessage = otpErr?.response?.data?.error || otpErr?.message || "Failed to send OTP. Check your phone number.";
+        if (errorMessage.includes("already registered")) {
+          setError("This phone number is already in use. Please use a different number or log in to your existing account.");
+        } else {
+          setError(errorMessage);
+        }
       }
     } finally {
       setLoading(false);

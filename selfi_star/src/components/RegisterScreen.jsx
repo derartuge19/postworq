@@ -58,7 +58,13 @@ export function RegisterScreen({ onSuccess, onLogin, onBack }) {
           setErr("Failed to send OTP");
         }
       } catch (otpErr) {
-        setErr("Failed to send OTP. Please try again.");
+        // Check for specific error messages
+        const errorMessage = otpErr.response?.data?.error || otpErr.message || "Failed to send OTP. Please try again.";
+        if (errorMessage.includes("already registered")) {
+          setErr("This phone number is already in use. Please use a different number or log in to your existing account.");
+        } else {
+          setErr(errorMessage);
+        }
       }
     }
     setLoading(false);

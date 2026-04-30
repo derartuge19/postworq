@@ -13,7 +13,7 @@ class OTPService:
     OTP_LENGTH = 6
     OTP_EXPIRY_MINUTES = 5
     MAX_ATTEMPTS = 3
-    RATE_LIMIT_MINUTES = 60  # 1 OTP per hour per phone number
+    RATE_LIMIT_MINUTES = 1  # 1 OTP per minute per phone number (reduced for testing)
     
     @classmethod
     def generate_otp(cls):
@@ -49,15 +49,20 @@ class OTPService:
         return True, None
     
     @classmethod
-    def send_otp(cls, phone_number, application_key):
+    def send_otp(cls, phone_number, application_key, product_number='10000302850'):
         """Send OTP via Onevas SMS"""
+        print(f"[OTP SERVICE DEBUG] send_otp called for phone: {phone_number}, app_key: {application_key}, product_number: {product_number}")
+        
         can_send, error = cls.can_send_otp(phone_number)
+        print(f"[OTP SERVICE DEBUG] can_send_otp result: {can_send}, error: {error}")
+        
         if not can_send:
             return False, error
         
         # Generate OTP
         otp_code = cls.generate_otp()
         expires_at = timezone.now() + timedelta(minutes=cls.OTP_EXPIRY_MINUTES)
+        print(f"[OTP SERVICE DEBUG] Generated OTP: {otp_code}, expires at: {expires_at}")
         
         # Store OTP in cache
         cache.set(
@@ -69,6 +74,7 @@ class OTPService:
             },
             timeout=cls.OTP_EXPIRY_MINUTES * 60
         )
+        print(f"[OTP SERVICE DEBUG] OTP stored in cache")
         
         # Set rate limit
         cache.set(
@@ -76,20 +82,27 @@ class OTPService:
             timezone.now().isoformat(),
             timeout=cls.RATE_LIMIT_MINUTES * 60
         )
+        print(f"[OTP SERVICE DEBUG] Rate limit set")
         
         # Send SMS via Onevas
         try:
             message = f'Your verification code is: {otp_code}. Valid for {cls.OTP_EXPIRY_MINUTES} minutes.'
+            print(f"[OTP SERVICE DEBUG] Generated message: {message}")
+            print(f"[OTP SERVICE DEBUG] OTP code value: {otp_code}")
             
             url = 'https://onevas.alet.io/api/partnerSms/send'
             payload = {
                 'phone_number': phone_number,
                 'application_key': application_key,
                 'text': message,
-                'product_number': '9286'  # Short code
+                'product_number': product_number
             }
+            print(f"[OTP SERVICE DEBUG] Sending SMS to Onevas URL: {url}")
+            print(f"[OTP SERVICE DEBUG] Payload: {payload}")
             
             response = requests.post(url, json=payload, timeout=30)
+            print(f"[OTP SERVICE DEBUG] Onevas response status: {response.status_code}")
+            print(f"[OTP SERVICE DEBUG] Onevas response body: {response.text}")
             
             if response.status_code == 200:
                 return True, f'OTP sent to {phone_number}'
@@ -98,6 +111,7 @@ class OTPService:
                 return True, f'OTP generated (SMS delivery failed: {response.text})'
         
         except Exception as e:
+            print(f"[OTP SERVICE DEBUG] Exception during SMS send: {str(e)}")
             # Even if SMS fails, OTP is stored in cache for testing
             return True, f'OTP generated (SMS error: {str(e)})'
     
