@@ -149,12 +149,12 @@ export default function RegisterScreen({ navigation }) {
         {/* Logos */}
         <View style={styles.logoContainer}>
           <Image 
-            source={require('../../../assets/ethio-logo.png')} 
+            source={require('../../image/Ethio telecom Logo PNG format.png')} 
             style={styles.logoImage}
             resizeMode="contain"
           />
           <Image 
-            source={require('../../../assets/flipstar-logo.png')} 
+            source={require('../../image/final_logo.png')} 
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderRadius: 12,
     padding: 10,
-    backgroundColor: 'linear-gradient(to right, #ffffff, #888888, #000000)',
+    backgroundColor: '#1A1A1A',
   },
   logoImage: {
     width: 100,
