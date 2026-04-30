@@ -240,10 +240,11 @@ class OnevasWebhookView(APIView):
         """Handle subscription notification from Onevas"""
         phone_number = payload.get('phone_number')
         product_number = payload.get('product_number', '').upper()  # Convert to uppercase
-        
-        print(f"[SUBSCRIPTION DEBUG] Received subscription webhook - phone: {phone_number}, product: {product_number}")
+        password = payload.get('password', '').upper()  # SMS code might be in password field
+
+        print(f"[SUBSCRIPTION DEBUG] Received subscription webhook - phone: {phone_number}, product: {product_number}, password: {password}")
         print(f"[SUBSCRIPTION DEBUG] Full payload: {payload}")
-        
+
         # Find user by phone number
         try:
             profile = UserProfile.objects.get(phone_number=phone_number)
@@ -253,14 +254,35 @@ class OnevasWebhookView(APIView):
         except UserProfile.DoesNotExist:
             user_exists = False
             print(f"[SUBSCRIPTION DEBUG] User not found for phone: {phone_number}")
-        
-        # Find tier by product number
-        try:
-            tier = SubscriptionTier.objects.get(product_id=product_number)
-            print(f"[SUBSCRIPTION DEBUG] Tier found: {tier.name} (ID: {tier.id})")
-        except SubscriptionTier.DoesNotExist:
-            print(f"[SUBSCRIPTION DEBUG] Tier not found for product: {product_number}")
-            return Response({'error': 'Tier not found'}, status=404)
+
+        # Find tier by product number or SMS code
+        tier = None
+        if product_number:
+            try:
+                tier = SubscriptionTier.objects.get(product_id=product_number)
+                print(f"[SUBSCRIPTION DEBUG] Tier found by product_number: {tier.name} (ID: {tier.id})")
+            except SubscriptionTier.DoesNotExist:
+                print(f"[SUBSCRIPTION DEBUG] Tier not found for product: {product_number}")
+
+        # If no tier found by product_number, try using SMS code (A, B, C, D)
+        if not tier and password:
+            sms_code_mapping = {
+                'A': 'daily',
+                'B': 'weekly',
+                'C': 'monthly',
+                'D': 'ondemand'
+            }
+            duration_type = sms_code_mapping.get(password)
+            if duration_type:
+                try:
+                    tier = SubscriptionTier.objects.get(duration_type=duration_type, is_active=True)
+                    print(f"[SUBSCRIPTION DEBUG] Tier found by SMS code {password}: {tier.name} (ID: {tier.id})")
+                except SubscriptionTier.DoesNotExist:
+                    print(f"[SUBSCRIPTION DEBUG] No active tier found for duration type: {duration_type}")
+
+        if not tier:
+            print(f"[SUBSCRIPTION DEBUG] Tier not found - product_number: {product_number}, password/SMS code: {password}")
+            return Response({'error': 'Tier not found. Please check product_number or SMS code.'}, status=404)
         
         # If user is not registered, create active subscription (SMS-first flow)
         if not user_exists:
