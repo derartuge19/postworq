@@ -90,7 +90,7 @@ class OTPService:
             print(f"[OTP SERVICE DEBUG] Generated message: {message}")
             print(f"[OTP SERVICE DEBUG] OTP code value: {otp_code}")
             
-            url = 'https://onevas.alet.io/api/partnerSms/send'
+            url = 'https://onevas.et/api/partnerSms/send'
             payload = {
                 'phone_number': phone_number,
                 'application_key': application_key,

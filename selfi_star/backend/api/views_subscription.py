@@ -22,7 +22,7 @@ import uuid
 from datetime import timedelta
 
 # Onevas SMS Configuration
-ONEVAS_SMS_URL = "https://onevas.alet.io/api/partnerSms/send"
+ONEVAS_SMS_URL = "https://onevas.et/api/partnerSms/send"
 ONEVAS_APPLICATION_KEY = settings.ONEVAS_APPLICATION_KEY if hasattr(settings, 'ONEVAS_APPLICATION_KEY') else "YOUR_APPLICATION_KEY"
 ONEVAS_PRODUCT_NUMBER = settings.ONEVAS_PRODUCT_NUMBER if hasattr(settings, 'ONEVAS_PRODUCT_NUMBER') else "YOUR_PRODUCT_NUMBER"
 
