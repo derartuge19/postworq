@@ -150,6 +150,12 @@ export default function ProfileScreen({ navigation, route }) {
               <TouchableOpacity style={styles.walletBtn} onPress={() => navigation.navigate('Wallet')}>
                 <Ionicons name="wallet-outline" size={18} color={GOLD} />
               </TouchableOpacity>
+              <TouchableOpacity style={styles.walletBtn} onPress={() => navigation.navigate('Gamification')}>
+                <Ionicons name="trophy-outline" size={18} color={GOLD} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.walletBtn} onPress={() => navigation.navigate('Campaigns')}>
+                <Ionicons name="flag-outline" size={18} color={GOLD} />
+              </TouchableOpacity>
               <TouchableOpacity style={styles.walletBtn} onPress={() => navigation.navigate('Settings')}>
                 <Ionicons name="settings-outline" size={18} color={GOLD} />
               </TouchableOpacity>

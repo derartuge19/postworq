@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Modal } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  ScrollView, Modal, ActivityIndicator, KeyboardAvoidingView,
+  Platform, StatusBar,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api';
+
+const GOLD = '#C8B56A';
+const BG = '#0D0D0D';
+const CARD = '#1A1A1A';
+const BORDER = '#262626';
 
 const FAQ_ITEMS = [
   { q: "What is FlipStar?", a: "FlipStar is an Ethiopian social video platform where you can share short videos, join campaigns, win prizes, and earn coins." },
@@ -37,418 +48,308 @@ FlipStar reserves the right to update these terms at any time. Continued use con
 
 Contact: support@flipstar.app`;
 
-export default function LoginScreen({ navigation }) {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+// ── Forgot Password Modal ──────────────────────────────────────────────────
+function ForgotModal({ onClose }) {
+  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [pwd, setPwd] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [modal, setModal] = useState(null); // 'forgot' | 'faq' | 'terms'
-  const [faqOpen, setFaqOpen] = useState(null);
-  const { login } = useAuth();
+  const [msg, setMsg] = useState('');
 
-  const handleLogin = async () => {
-    if (!phoneNumber || !password) {
-      setError('Please fill in all fields');
-      return;
-    }
-    
-    setError('');
+  const sendCode = async () => {
+    setError(''); setMsg('');
+    if (!email) { setError('Enter your email'); return; }
     setLoading(true);
-    
     try {
-      await login(phoneNumber, password);
-    } catch (e) {
-      setError(e.message || 'Invalid credentials. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+      await api.request('/auth/forgot-password/', { method: 'POST', body: JSON.stringify({ email }) });
+      setMsg('Reset code sent! Check your email.');
+      setStep(2);
+    } catch (e) { setError(e?.message || 'Failed to send code'); }
+    finally { setLoading(false); }
+  };
+
+  const confirmReset = async () => {
+    setError(''); setMsg('');
+    if (code.length !== 6) { setError('Enter the 6-digit code from your email'); return; }
+    if (!/^\d{6}$/.test(pwd)) { setError('New password must be exactly 6 digits'); return; }
+    if (pwd !== confirm) { setError('Passwords do not match'); return; }
+    setLoading(true);
+    try {
+      await api.request('/auth/forgot-password/confirm/', { method: 'POST', body: JSON.stringify({ email, code, new_password: pwd }) });
+      setStep(3);
+    } catch (e) { setError(e?.message || 'Invalid or expired code'); }
+    finally { setLoading(false); }
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      {/* FAQ Modal */}
-      <Modal visible={modal === 'faq'} animationType="slide" presentationStyle="pageSheet">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>FAQ</Text>
-            <TouchableOpacity onPress={() => setModal(null)}>
-              <Text style={styles.closeButton}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          {FAQ_ITEMS.map((item, i) => (
-            <View key={i} style={styles.faqItem}>
-              <TouchableOpacity 
-                onPress={() => setFaqOpen(faqOpen === i ? null : i)}
-                style={styles.faqQuestion}
-              >
-                <Text style={styles.faqQuestionText}>{item.q}</Text>
-                <Text style={styles.faqToggle}>{faqOpen === i ? '−' : '+'}</Text>
-              </TouchableOpacity>
-              {faqOpen === i && <Text style={styles.faqAnswer}>{item.a}</Text>}
-            </View>
-          ))}
-        </View>
-      </Modal>
-
-      {/* Terms Modal */}
-      <Modal visible={modal === 'terms'} animationType="slide" presentationStyle="pageSheet">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Terms & Conditions</Text>
-            <TouchableOpacity onPress={() => setModal(null)}>
-              <Text style={styles.closeButton}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView style={styles.termsContent}>
-            <Text style={styles.termsText}>{TERMS}</Text>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      {/* Forgot Password Modal */}
-      <Modal visible={modal === 'forgot'} animationType="slide" presentationStyle="pageSheet">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Forgot Password</Text>
-            <TouchableOpacity onPress={() => setModal(null)}>
-              <Text style={styles.closeButton}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.forgotDescription}>Enter your email to receive a password reset code.</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="your@email.com"
-            placeholderTextColor="#666"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Send Reset Code</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-
-      <View style={styles.content}>
-        {/* Logos */}
-        <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>⭐ FLIPSTAR</Text>
-        </View>
-
-        {/* Card */}
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Welcome Back!</Text>
-            <Text style={styles.subtitle}>Log in to continue to FLIPSTAR</Text>
-          </View>
-
-          {error ? <Text style={styles.error}>⚠️ {error}</Text> : null}
-
-          {/* Phone Number field */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Phone Number</Text>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputIcon}>📱</Text>
-              <TextInput
-                style={styles.textInput}
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                placeholder="09XXXXXXXX or +251XXXXXXXXX"
-                placeholderTextColor="#666"
-                keyboardType="phone-pad"
-              />
-            </View>
-          </View>
-
-          {/* Password field */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>6-Digit PIN</Text>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputIcon}>🔒</Text>
-              <TextInput
-                style={styles.textInput}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••"
-                placeholderTextColor="#666"
-                secureTextEntry={!showPassword}
-                maxLength={6}
-                keyboardType="numeric"
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
-                <Text style={styles.eyeText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Forgot password */}
-          <TouchableOpacity onPress={() => setModal('forgot')}>
-            <Text style={styles.forgotLink}>Forgot password?</Text>
-          </TouchableOpacity>
-
-          {/* Submit button */}
-          <TouchableOpacity 
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Logging in...' : 'Log In'}
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+      <View style={s.modalOverlay}>
+        <View style={s.modalSheet}>
+          <View style={s.modalHeader}>
+            <Text style={s.modalTitle}>
+              {step === 1 ? 'Forgot Password' : step === 2 ? 'Enter Reset Code' : 'Password Reset!'}
             </Text>
-          </TouchableOpacity>
-
-          {/* Sign up link */}
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.signupLink}>Sign up free</Text>
-            </TouchableOpacity>
+            <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={GOLD} /></TouchableOpacity>
           </View>
-        </View>
 
-        {/* Footer links */}
-        <View style={styles.footer}>
-          <TouchableOpacity onPress={() => setModal('faq')}>
-            <Text style={styles.footerLink}>FAQ</Text>
-          </TouchableOpacity>
-          <Text style={styles.footerSeparator}>|</Text>
-          <TouchableOpacity onPress={() => setModal('terms')}>
-            <Text style={styles.footerLink}>Terms & Conditions</Text>
-          </TouchableOpacity>
+          {!!error && <View style={s.errorBox}><Text style={s.errorText}>⚠️ {error}</Text></View>}
+          {!!msg && <View style={s.successBox}><Text style={s.successText}>{msg}</Text></View>}
+
+          {step === 1 && (
+            <>
+              <Text style={s.modalDesc}>Enter the email you registered with. A 6-digit reset code will be sent to it.</Text>
+              <TextInput style={s.input} placeholder="your@email.com" placeholderTextColor="#555" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+              <TouchableOpacity style={[s.goldBtn, loading && s.goldBtnDisabled]} onPress={sendCode} disabled={loading}>
+                {loading ? <ActivityIndicator color="#000" /> : <Text style={s.goldBtnText}>Send Reset Code</Text>}
+              </TouchableOpacity>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <Text style={s.modalDesc}>Enter the 6-digit code sent to <Text style={{ color: '#fff', fontWeight: '700' }}>{email}</Text> and your new 6-digit PIN.</Text>
+              <TextInput style={s.input} placeholder="6-digit code from email" placeholderTextColor="#555" value={code} onChangeText={t => setCode(t.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" maxLength={6} />
+              <View style={{ position: 'relative' }}>
+                <TextInput style={[s.input, { paddingRight: 48 }]} placeholder="New 6-digit PIN" placeholderTextColor="#555" value={pwd} onChangeText={t => setPwd(t.replace(/\D/g, '').slice(0, 6))} secureTextEntry={!showPwd} keyboardType="number-pad" maxLength={6} />
+                <TouchableOpacity style={s.eyeBtn} onPress={() => setShowPwd(v => !v)}>
+                  <Ionicons name={showPwd ? 'eye-off' : 'eye'} size={18} color={GOLD} />
+                </TouchableOpacity>
+              </View>
+              <TextInput style={s.input} placeholder="Confirm new PIN" placeholderTextColor="#555" value={confirm} onChangeText={t => setConfirm(t.replace(/\D/g, '').slice(0, 6))} secureTextEntry keyboardType="number-pad" maxLength={6} />
+              <TouchableOpacity style={[s.goldBtn, loading && s.goldBtnDisabled]} onPress={confirmReset} disabled={loading}>
+                {loading ? <ActivityIndicator color="#000" /> : <Text style={s.goldBtnText}>Reset Password</Text>}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => { setStep(1); setCode(''); setError(''); setMsg(''); }} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12 }}>
+                <Ionicons name="chevron-back" size={14} color={GOLD} />
+                <Text style={{ color: GOLD, fontSize: 13 }}>Back</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {step === 3 && (
+            <View style={{ alignItems: 'center', padding: 20 }}>
+              <Text style={{ fontSize: 48, marginBottom: 12 }}>✅</Text>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: GOLD, marginBottom: 8 }}>Password Reset!</Text>
+              <Text style={{ fontSize: 13, color: GOLD, marginBottom: 24, textAlign: 'center' }}>You can now log in with your new PIN.</Text>
+              <TouchableOpacity style={s.goldBtn} onPress={onClose}>
+                <Text style={s.goldBtnText}>Go to Login</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
-    </ScrollView>
+    </Modal>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0D0D0D',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  content: {
-    maxWidth: 420,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    borderRadius: 12,
-    padding: 10,
-    backgroundColor: '#1A1A1A',
-  },
-  logoText: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#F9E08B',
-    letterSpacing: 2,
-  },
-  logoImage: {
-    width: 100,
-    height: 50,
-  },
-  card: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 18,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#F9E08B30',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: '#F9E08B',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#F9E08B',
-  },
-  error: {
-    color: '#EF4444',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 16,
-    textAlign: 'center',
-    padding: 10,
-    backgroundColor: '#2D1010',
-    borderWidth: 1,
-    borderColor: '#EF4444',
-    borderRadius: 8,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#F9E08B',
-    marginBottom: 7,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  inputWrapper: {
-    position: 'relative',
-  },
-  inputIcon: {
-    position: 'absolute',
-    left: 14,
-    top: '50%',
-    transform: [{ translateY: -10 }],
-    color: '#F9E08B',
-    fontSize: 17,
-  },
-  textInput: {
-    width: '100%',
-    padding: 13,
-    paddingLeft: 46,
-    paddingRight: 46,
-    backgroundColor: '#1A1A1A',
-    borderWidth: 1.5,
-    borderColor: '#262626',
-    borderRadius: 10,
-    fontSize: 15,
-    color: '#fff',
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: 14,
-    top: '50%',
-    transform: [{ translateY: -10 }],
-  },
-  eyeText: {
-    color: '#F9E08B',
-    fontSize: 17,
-  },
-  forgotLink: {
-    color: '#F9E08B',
-    fontSize: 12,
-    fontWeight: '700',
-    textAlign: 'right',
-    marginBottom: 20,
-  },
-  button: {
-    width: '100%',
-    padding: 14,
-    backgroundColor: '#F9E08B',
-    borderWidth: 0,
-    borderRadius: 10,
-    marginBottom: 16,
-  },
-  buttonDisabled: {
-    backgroundColor: '#3A3A3A',
-  },
-  buttonText: {
-    color: '#000',
-    fontSize: 15,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  signupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  signupText: {
-    color: '#666',
-    fontSize: 13,
-  },
-  signupLink: {
-    color: '#F9E08B',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 24,
-    marginTop: 20,
-    paddingBottom: 20,
-  },
-  footerLink: {
-    color: '#F9E08B',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  footerSeparator: {
-    color: '#262626',
-    fontSize: 13,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#111',
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    padding: 24,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#F9E08B',
-  },
-  closeButton: {
-    color: '#F9E08B',
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  faqItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#262626',
-    marginBottom: 2,
-  },
-  faqQuestion: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-  },
-  faqQuestionText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-    flex: 1,
-  },
-  faqToggle: {
-    fontSize: 16,
-    color: '#F9E08B',
-  },
-  faqAnswer: {
-    fontSize: 13,
-    color: '#F9E08B',
-    paddingBottom: 14,
-    lineHeight: 20,
-  },
-  termsContent: {
-    flex: 1,
-  },
-  termsText: {
-    fontSize: 12,
-    color: '#F9E08B',
-    lineHeight: 20,
-    fontFamily: 'monospace',
-  },
-  forgotDescription: {
-    fontSize: 13,
-    color: '#F9E08B',
-    marginBottom: 16,
-  },
+// ── FAQ Modal ──────────────────────────────────────────────────────────────
+function FaqModal({ onClose }) {
+  const [open, setOpen] = useState(null);
+  return (
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+      <View style={s.modalOverlay}>
+        <View style={s.modalSheet}>
+          <View style={s.modalHeader}>
+            <Text style={s.modalTitle}>FAQ</Text>
+            <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={GOLD} /></TouchableOpacity>
+          </View>
+          <ScrollView>
+            {FAQ_ITEMS.map((item, i) => (
+              <View key={i} style={s.faqItem}>
+                <TouchableOpacity style={s.faqQ} onPress={() => setOpen(open === i ? null : i)}>
+                  <Text style={s.faqQText}>{item.q}</Text>
+                  <Ionicons name={open === i ? 'chevron-up' : 'chevron-down'} size={16} color={GOLD} />
+                </TouchableOpacity>
+                {open === i && <Text style={s.faqA}>{item.a}</Text>}
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ── Terms Modal ────────────────────────────────────────────────────────────
+function TermsModal({ onClose }) {
+  return (
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+      <View style={s.modalOverlay}>
+        <View style={s.modalSheet}>
+          <View style={s.modalHeader}>
+            <Text style={s.modalTitle}>Terms & Conditions</Text>
+            <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color={GOLD} /></TouchableOpacity>
+          </View>
+          <ScrollView><Text style={s.termsText}>{TERMS}</Text></ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ── Main Login Screen ──────────────────────────────────────────────────────
+export default function LoginScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const { login } = useAuth();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [modal, setModal] = useState(null); // 'forgot' | 'faq' | 'terms'
+  const [focusedUser, setFocusedUser] = useState(false);
+  const [focusedPwd, setFocusedPwd] = useState(false);
+
+  const handleLogin = async () => {
+    if (!username || !password) { setError('Please fill in all fields'); return; }
+    setError('');
+    setLoading(true);
+    try {
+      await login(username, password);
+    } catch (e) {
+      setError('Invalid credentials. Please try again.');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar barStyle="light-content" />
+      {modal === 'forgot' && <ForgotModal onClose={() => setModal(null)} />}
+      {modal === 'faq' && <FaqModal onClose={() => setModal(null)} />}
+      {modal === 'terms' && <TermsModal onClose={() => setModal(null)} />}
+
+      <ScrollView style={s.container} contentContainerStyle={[s.scroll, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
+        {/* Logos */}
+        <View style={s.logosRow}>
+          <View style={s.logoPlaceholder}>
+            <Text style={s.logoText}>Ethio Telecom</Text>
+          </View>
+          <Text style={s.brandLogo}>⭐ FlipStar</Text>
+        </View>
+
+        {/* Card */}
+        <View style={s.card}>
+          <View style={s.cardHeader}>
+            <Text style={s.cardTitle}>Welcome Back!</Text>
+            <Text style={s.cardSubtitle}>Log in to continue to FLIPSTAR</Text>
+          </View>
+
+          {!!error && <View style={s.errorBox}><Text style={s.errorText}>⚠️ {error}</Text></View>}
+
+          {/* Username */}
+          <Text style={s.label}>USERNAME</Text>
+          <View style={[s.inputRow, focusedUser && s.inputRowFocused]}>
+            <Ionicons name="person-outline" size={17} color={GOLD} style={s.inputIcon} />
+            <TextInput
+              style={s.textInput}
+              placeholder="Enter your username"
+              placeholderTextColor="#555"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              onFocus={() => setFocusedUser(true)}
+              onBlur={() => setFocusedUser(false)}
+            />
+          </View>
+
+          {/* Password */}
+          <Text style={s.label}>6-DIGIT PIN</Text>
+          <View style={[s.inputRow, focusedPwd && s.inputRowFocused]}>
+            <Ionicons name="lock-closed-outline" size={17} color={GOLD} style={s.inputIcon} />
+            <TextInput
+              style={[s.textInput, { flex: 1 }]}
+              placeholder="••••••"
+              placeholderTextColor="#555"
+              value={password}
+              onChangeText={t => setPassword(t.replace(/\D/g, '').slice(0, 6))}
+              secureTextEntry={!showPwd}
+              keyboardType="number-pad"
+              maxLength={6}
+              onFocus={() => setFocusedPwd(true)}
+              onBlur={() => setFocusedPwd(false)}
+            />
+            <TouchableOpacity onPress={() => setShowPwd(v => !v)} style={{ padding: 4 }}>
+              <Ionicons name={showPwd ? 'eye-off-outline' : 'eye-outline'} size={17} color={GOLD} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Forgot */}
+          <TouchableOpacity style={s.forgotRow} onPress={() => setModal('forgot')}>
+            <Text style={s.forgotText}>Forgot password?</Text>
+          </TouchableOpacity>
+
+          {/* Submit */}
+          <TouchableOpacity style={[s.goldBtn, loading && s.goldBtnDisabled]} onPress={handleLogin} disabled={loading}>
+            {loading ? <ActivityIndicator color="#000" /> : <Text style={s.goldBtnText}>Log In</Text>}
+          </TouchableOpacity>
+
+          {/* Sign up */}
+          <View style={s.signupRow}>
+            <Text style={s.signupText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <Text style={s.signupLink}>Sign up free</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={s.footer}>
+          <TouchableOpacity onPress={() => setModal('faq')}><Text style={s.footerLink}>FAQ</Text></TouchableOpacity>
+          <Text style={s.footerSep}>|</Text>
+          <TouchableOpacity onPress={() => setModal('terms')}><Text style={s.footerLink}>Terms & Conditions</Text></TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: BG },
+  scroll: { padding: 16, paddingBottom: 40 },
+  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1A1A1A', borderRadius: 12, padding: 12, marginBottom: 24 },
+  logoPlaceholder: { backgroundColor: '#333', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+  logoText: { color: '#aaa', fontSize: 12, fontWeight: '600' },
+  brandLogo: { fontSize: 18, fontWeight: '900', color: GOLD },
+  card: { backgroundColor: CARD, borderRadius: 18, padding: 24, borderWidth: 1, borderColor: GOLD + '30', marginBottom: 20 },
+  cardHeader: { alignItems: 'center', marginBottom: 24 },
+  cardTitle: { fontSize: 24, fontWeight: '900', color: GOLD, marginBottom: 4 },
+  cardSubtitle: { fontSize: 13, color: GOLD, opacity: 0.8 },
+  errorBox: { backgroundColor: '#2D1010', borderWidth: 1, borderColor: '#EF4444', borderRadius: 8, padding: 10, marginBottom: 16 },
+  errorText: { color: '#EF4444', fontSize: 13, fontWeight: '600' },
+  successBox: { backgroundColor: '#1A2A1A', borderWidth: 1, borderColor: '#22C55E', borderRadius: 8, padding: 10, marginBottom: 16 },
+  successText: { color: '#22C55E', fontSize: 13, fontWeight: '600' },
+  label: { fontSize: 12, fontWeight: '700', color: GOLD, marginBottom: 7, letterSpacing: 0.5 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: BG, borderRadius: 10, borderWidth: 1.5, borderColor: BORDER, paddingHorizontal: 14, height: 50, marginBottom: 16 },
+  inputRowFocused: { borderColor: GOLD },
+  inputIcon: { marginRight: 10 },
+  textInput: { flex: 1, fontSize: 15, color: '#fff' },
+  eyeBtn: { padding: 4 },
+  forgotRow: { alignItems: 'flex-end', marginBottom: 20, marginTop: -8 },
+  forgotText: { color: GOLD, fontSize: 12, fontWeight: '700' },
+  goldBtn: { backgroundColor: GOLD, borderRadius: 10, height: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  goldBtnDisabled: { backgroundColor: '#3A3A3A' },
+  goldBtnText: { color: '#000', fontSize: 15, fontWeight: '800' },
+  signupRow: { flexDirection: 'row', justifyContent: 'center' },
+  signupText: { fontSize: 13, color: '#666' },
+  signupLink: { fontSize: 13, color: GOLD, fontWeight: '700' },
+  footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 24, paddingBottom: 20 },
+  footerLink: { color: GOLD, fontSize: 13, fontWeight: '600' },
+  footerSep: { color: BORDER, fontSize: 13 },
+  // Modal styles
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
+  modalSheet: { backgroundColor: '#111', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 24, paddingBottom: 40, maxHeight: '88%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: '900', color: GOLD },
+  modalDesc: { fontSize: 13, color: GOLD, marginBottom: 16, lineHeight: 20 },
+  input: { backgroundColor: CARD, borderRadius: 10, borderWidth: 1.5, borderColor: BORDER, paddingHorizontal: 14, paddingVertical: 12, color: '#fff', fontSize: 15, marginBottom: 12 },
+  faqItem: { borderBottomWidth: 1, borderBottomColor: BORDER },
+  faqQ: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14 },
+  faqQText: { fontSize: 14, fontWeight: '700', color: '#fff', flex: 1, marginRight: 8 },
+  faqA: { fontSize: 13, color: GOLD, paddingBottom: 14, lineHeight: 20 },
+  termsText: { fontSize: 12, color: GOLD, lineHeight: 20 },
+  position: { position: 'relative' },
 });

@@ -170,9 +170,14 @@ export default function HomeScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>⭐ FlipStar</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Explore')}>
-          <Ionicons name="search" size={24} color={GOLD} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 14 }}>
+          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
+            <Ionicons name="notifications-outline" size={24} color={GOLD} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Explore')}>
+            <Ionicons name="search" size={24} color={GOLD} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (

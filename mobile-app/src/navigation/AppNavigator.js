@@ -19,7 +19,7 @@ import RegisterScreen from '../screens/auth/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ReelsScreen from '../screens/ReelsScreen';
 import CreateScreen from '../screens/CreateScreen';
-import NotificationsScreen from '../screens/NotificationsScreen';
+import MessagesScreen from '../screens/MessagesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 // Stack screens
@@ -32,6 +32,7 @@ import CampaignsScreen from '../screens/CampaignsScreen';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
 import WalletScreen from '../screens/WalletScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
+import GamificationScreen from '../screens/GamificationScreen';
 
 const GOLD = '#C8B56A';
 const BG = '#0B0B0C';
@@ -57,11 +58,11 @@ function MainTabs() {
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
         tabBarIcon: ({ focused, color, size }) => {
           const icons = {
-            Home:    focused ? 'home'          : 'home-outline',
-            Reels:   focused ? 'film'          : 'film-outline',
-            Create:  'add',
-            Alert:   focused ? 'notifications' : 'notifications-outline',
-            Profile: focused ? 'person'        : 'person-outline',
+            Home:     focused ? 'home'          : 'home-outline',
+            Reels:    focused ? 'film'          : 'film-outline',
+            Create:   'add',
+            Messages: focused ? 'chatbubble'    : 'chatbubble-outline',
+            Profile:  focused ? 'person'        : 'person-outline',
           };
           if (route.name === 'Create') {
             return (
@@ -74,16 +75,16 @@ function MainTabs() {
         },
         tabBarLabel: ({ color }) => {
           if (route.name === 'Create') return null;
-          const labels = { Home: 'Home', Reels: 'Reels', Alert: 'Alerts', Profile: 'Profile' };
+          const labels = { Home: 'Home', Reels: 'Reels', Messages: 'Messages', Profile: 'Profile' };
           return <Text style={{ fontSize: 10, color, fontWeight: '600' }}>{labels[route.name]}</Text>;
         },
       })}
     >
-      <Tab.Screen name="Home"    component={HomeScreen} />
-      <Tab.Screen name="Reels"   component={ReelsScreen} />
-      <Tab.Screen name="Create"  component={CreateScreen} />
-      <Tab.Screen name="Alert"   component={NotificationsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Home"     component={HomeScreen} />
+      <Tab.Screen name="Reels"    component={ReelsScreen} />
+      <Tab.Screen name="Create"   component={CreateScreen} />
+      <Tab.Screen name="Messages" component={MessagesScreen} />
+      <Tab.Screen name="Profile"  component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
@@ -103,6 +104,8 @@ function MainStack() {
       <Stack.Screen name="CampaignDetail"  component={CampaignDetailScreen} />
       <Stack.Screen name="Wallet"          component={WalletScreen} />
       <Stack.Screen name="Subscription"    component={SubscriptionScreen} />
+      <Stack.Screen name="Gamification"    component={GamificationScreen} />
+      <Stack.Screen name="Notifications"   component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
