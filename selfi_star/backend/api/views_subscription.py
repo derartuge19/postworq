@@ -63,10 +63,18 @@ class OnevasWebhookView(APIView):
     """Handle Onevas webhook notifications"""
     permission_classes = [AllowAny]
     
-    def handle_stop_command(self, phone_number):
+    def handle_stop_command(self, phone_number, stop_keyword='STOP'):
         """Handle STOP command for subscription cancellation"""
-        print(f"[SUBSCRIPTION DEBUG] STOP command received for phone: {phone_number}")
-        
+        print(f"[SUBSCRIPTION DEBUG] {stop_keyword} command received for phone: {phone_number}")
+
+        # Map STOP keywords to tier duration types
+        stop_keyword_mapping = {
+            'STOP': 'daily',
+            'STOP2': 'weekly',
+            'STOP3': 'monthly'
+        }
+        target_duration_type = stop_keyword_mapping.get(stop_keyword, None)
+
         # First try to find registered user
         user = None
         try:
@@ -76,21 +84,37 @@ class OnevasWebhookView(APIView):
         except UserProfile.DoesNotExist:
             print(f"[SUBSCRIPTION DEBUG] User not registered, checking for SMS-first subscription")
             user = None
-        
+
         # Find active subscription (either by user or by phone number for SMS-first)
         subscription = None
         if user:
-            subscription = UserSubscription.objects.filter(
-                user=user,
-                status='active'
-            ).first()
+            if target_duration_type:
+                subscription = UserSubscription.objects.filter(
+                    user=user,
+                    status='active',
+                    tier__duration_type=target_duration_type
+                ).first()
+            else:
+                # No specific duration type, find any active subscription
+                subscription = UserSubscription.objects.filter(
+                    user=user,
+                    status='active'
+                ).first()
         else:
             # Check for SMS-first subscription (user not registered yet)
-            subscription = UserSubscription.objects.filter(
-                onevas_phone_number=phone_number,
-                status='active',
-                subscription_source='sms'
-            ).first()
+            if target_duration_type:
+                subscription = UserSubscription.objects.filter(
+                    onevas_phone_number=phone_number,
+                    status='active',
+                    subscription_source='sms',
+                    tier__duration_type=target_duration_type
+                ).first()
+            else:
+                subscription = UserSubscription.objects.filter(
+                    onevas_phone_number=phone_number,
+                    status='active',
+                    subscription_source='sms'
+                ).first()
         
         if not subscription:
             # No active subscription
@@ -116,15 +140,22 @@ class OnevasWebhookView(APIView):
 
         # Send SMS confirmation
         if subscription.tier:
-            # Map duration type to resubscribe keyword
+            # Map duration type to resubscribe keyword and stop keyword
             resubscribe_keywords = {
-                'daily': 'OK1',
-                'weekly': 'OK2',
-                'monthly': 'OK3',
-                'ondemand': 'OK4'
+                'daily': 'A',
+                'weekly': 'B',
+                'monthly': 'C',
+                'ondemand': 'D'
             }
-            resubscribe_keyword = resubscribe_keywords.get(subscription.tier.duration_type, 'OK1')
-            cancellation_message = f"Dear customer, you have successfully unsubscribed from FLIPSTAR {subscription.tier.name} service. To subscribe again please send {resubscribe_keyword} to {subscription.tier.short_code}. Thank you."
+            stop_keywords = {
+                'daily': 'STOP',
+                'weekly': 'STOP2',
+                'monthly': 'STOP3',
+                'ondemand': 'STOP'
+            }
+            resubscribe_keyword = resubscribe_keywords.get(subscription.tier.duration_type, 'A')
+            stop_keyword = stop_keywords.get(subscription.tier.duration_type, 'STOP')
+            cancellation_message = f"Dear customer, you have successfully unsubscribed from FLIPSTAR {subscription.tier.name} service. To subscribe again please send {resubscribe_keyword} to {subscription.tier.short_code}. To unsubscribe send {stop_keyword} to {subscription.tier.short_code}. Thank you."
             print(f"[SUBSCRIPTION DEBUG] Sending cancellation SMS to {phone_number}")
             sms_sent = self.send_sms(phone_number, cancellation_message, subscription.tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] Cancellation SMS sent: {sms_sent}")
@@ -187,8 +218,9 @@ class OnevasWebhookView(APIView):
                 response = self.handle_renewal(payload, log)
             elif webhook_type == 'stop':
                 phone_number = payload.get('phone_number')
-                print(f"[SUBSCRIPTION DEBUG] Routing to handle_stop_command for {phone_number}")
-                response = self.handle_stop_command(phone_number)
+                stop_keyword = payload.get('keyword', 'STOP')  # Default to STOP if not specified
+                print(f"[SUBSCRIPTION DEBUG] Routing to handle_stop_command for {phone_number} with keyword: {stop_keyword}")
+                response = self.handle_stop_command(phone_number, stop_keyword)
             else:
                 print(f"[SUBSCRIPTION DEBUG] Invalid webhook type: {webhook_type}")
                 response = Response({'error': 'Invalid webhook type'}, status=400)
@@ -280,7 +312,14 @@ class OnevasWebhookView(APIView):
                 print(f"[SUBSCRIPTION DEBUG] History recorded: action=created")
             
             # Send success SMS with registration info (no OTP needed)
-            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?subscription_tp=true using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
+            stop_keywords = {
+                'daily': 'STOP1',
+                'weekly': 'STOP2',
+                'monthly': 'STOP3',
+                'ondemand': 'STOP'
+            }
+            stop_keyword = stop_keywords.get(tier.duration_type, 'STOP')
+            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?subscription_tp=true using OTP {otp_code} To unsubscribe, send {stop_keyword} to {tier.short_code}."
             print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
             self.send_sms(phone_number, success_message, tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] SMS-first subscription completed successfully")
@@ -332,7 +371,14 @@ class OnevasWebhookView(APIView):
             active_sub.setup_otp = otp_code
             active_sub.save()
             duration_text = f"{tier.duration_days} days" if tier.duration_days else tier.duration_type
-            renewal_message = f"Dear customer, your {tier.name} Flipstar subscription has been renewed successfully, effective from {active_sub.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?login=true using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
+            stop_keywords = {
+                'daily': 'STOP',
+                'weekly': 'STOP2',
+                'monthly': 'STOP3',
+                'ondemand': 'STOP'
+            }
+            stop_keyword = stop_keywords.get(tier.duration_type, 'STOP')
+            renewal_message = f"Dear customer, your {tier.name} Flipstar subscription has been renewed successfully, effective from {active_sub.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?login=true using OTP {otp_code} To unsubscribe, send {stop_keyword} to {tier.short_code}."
             print(f"[SUBSCRIPTION DEBUG] Sending renewal SMS to {phone_number} with OTP: {otp_code}")
             self.send_sms(phone_number, renewal_message, tier.duration_type)
 
@@ -383,7 +429,14 @@ class OnevasWebhookView(APIView):
                 subscription.setup_otp = otp_code
                 subscription.save()
                 duration_text = f"{tier.duration_days} days" if tier.duration_days else tier.duration_type
-                confirmation_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?login=true using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
+                stop_keywords = {
+                    'daily': 'STOP',
+                    'weekly': 'STOP2',
+                    'monthly': 'STOP3',
+                    'ondemand': 'STOP'
+                }
+                stop_keyword = stop_keywords.get(tier.duration_type, 'STOP')
+                confirmation_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?login=true using OTP {otp_code} To unsubscribe, send {stop_keyword} to {tier.short_code}."
                 print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
                 self.send_sms(phone_number, confirmation_message, tier.duration_type)
             
