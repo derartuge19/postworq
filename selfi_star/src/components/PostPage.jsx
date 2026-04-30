@@ -247,7 +247,7 @@ export function PostPage({ user, onBack }) {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          padding: "70px 20px 40px",
+          padding: "100px 20px 40px",
           width: "100%",
           maxWidth: 480,
           margin: "0 auto",

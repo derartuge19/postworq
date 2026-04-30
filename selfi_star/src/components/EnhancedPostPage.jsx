@@ -1283,7 +1283,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               </div>
 
               {/* Hero icon + title */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 24, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 48, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
                 <div style={{ position: 'relative', marginBottom: 14 }}>
                   <img 
                     src="/create_img.jpg" 
