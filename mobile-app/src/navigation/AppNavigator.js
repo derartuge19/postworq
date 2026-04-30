@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { enableScreens } from 'react-native-screens';
 
 enableScreens();
-import { View, Text, TouchableOpacity, StyleSheet, Platform, ActivityIndicator, Alert, Linking, Image } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../api';
-import Constants from 'expo-constants';
 
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
-import { LanguageProvider, useLanguage } from '../contexts/LanguageContext';
-import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
+import { LanguageProvider } from '../contexts/LanguageContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
+
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -20,30 +19,14 @@ import ExploreScreen from '../screens/ExploreScreen';
 import CreateScreen from '../screens/CreateScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
 import ReelsScreen from '../screens/ReelsScreen';
-import VideoDetailScreen from '../screens/VideoDetailScreen';
-import ProfileDetailScreen from '../screens/ProfileDetailScreen';
-import CommentsScreen from '../screens/CommentsScreen';
-import CampaignsScreen from '../screens/CampaignsScreen';
-import CampaignDetailScreen from '../screens/CampaignDetailScreen';
-import CampaignFeedScreen from '../screens/CampaignFeedScreen';
-import CampaignLeaderboardScreen from '../screens/CampaignLeaderboardScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import FollowListScreen from '../screens/FollowListScreen';
-import WalletScreen from '../screens/WalletScreen';
-import GiftSelectorScreen from '../screens/GiftSelectorScreen';
-import CustomCameraScreen from '../screens/CustomCameraScreen';
-import SubscriptionScreen from '../screens/SubscriptionScreen';
 
 const BRAND = {
   pri:      '#C8B56A',
   bg:       '#0B0B0C',
   cardBg:   '#121214',
-  border:   '#2A2A2E',
   txt:      '#F5F5F7',
   sub:      '#A1A1AA',
-  inactive: '#666666',
 };
 
 const Tab   = createBottomTabNavigator();
@@ -55,7 +38,7 @@ function MainTabs() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: '#C8B56A',
-        tabBarInactiveTintColor: '#F5F5F7',
+        tabBarInactiveTintColor: '#666666',
         tabBarStyle: {
           backgroundColor: '#0B0B0C',
           borderTopWidth: StyleSheet.hairlineWidth,
@@ -123,23 +106,9 @@ function MainStack() {
         headerBackTitleVisible: false,
       }}
     >
-      <Stack.Screen name="MainTabs"              component={MainTabs}                options={{ headerShown: false }} />
-      <Stack.Screen name="Explore"               component={ExploreScreen}           options={{ headerShown: false }} />
-      <Stack.Screen name="ReelsDetail"           component={ReelsScreen}             options={{ headerShown: false }} />
-      <Stack.Screen name="VideoDetail"           component={VideoDetailScreen}       options={{ title: 'Video' }} />
-      <Stack.Screen name="ProfileDetail"         component={ProfileDetailScreen}     options={{ title: 'Profile' }} />
-      <Stack.Screen name="EditProfile"           component={EditProfileScreen}       options={{ headerShown: false }} />
-      <Stack.Screen name="Comments"              component={CommentsScreen}          options={{ headerShown: false }} />
-      <Stack.Screen name="Campaigns"             component={CampaignsScreen}         options={{ headerShown: false }} />
-      <Stack.Screen name="CampaignDetail"        component={CampaignDetailScreen}    options={{ headerShown: false }} />
-      <Stack.Screen name="CampaignFeed"          component={CampaignFeedScreen}      options={{ headerShown: false }} />
-      <Stack.Screen name="CampaignLeaderboard"   component={CampaignLeaderboardScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Settings"              component={SettingsScreen}          options={{ headerShown: false }} />
-      <Stack.Screen name="FollowList"            component={FollowListScreen}        options={{ headerShown: false }} />
-      <Stack.Screen name="Wallet"                component={WalletScreen}            options={{ headerShown: false }} />
-      <Stack.Screen name="GiftSelector"          component={GiftSelectorScreen}      options={{ headerShown: false }} />
-      <Stack.Screen name="CustomCamera"          component={CustomCameraScreen}      options={{ headerShown: false }} />
-      <Stack.Screen name="Subscription"         component={SubscriptionScreen}      options={{ headerShown: false }} />
+      <Stack.Screen name="MainTabs"   component={MainTabs}          options={{ headerShown: false }} />
+      <Stack.Screen name="Explore"    component={ExploreScreen}     options={{ headerShown: false }} />
+      <Stack.Screen name="ReelsDetail" component={ReelsScreen}      options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -154,66 +123,12 @@ function AuthStack() {
 }
 
 function RootNavigator() {
-  const { user, loading: authLoading } = useAuth();
-  const [appLoading, setAppLoading] = useState(true);
-  const [forceUpdate, setForceUpdate] = useState(null);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    checkMobileConfig();
-  }, []);
-
-  const checkMobileConfig = async () => {
-    try {
-      const config = await api.getPublicSettings();
-      if (config?.force_update?.enabled) {
-        const minVersion = config.force_update.min_version;
-        const currentVersion = Constants.expoConfig?.version || '1.0.0';
-        if (isVersionLower(currentVersion, minVersion)) {
-          setForceUpdate(config.force_update);
-          return;
-        }
-      }
-    } catch (e) {
-      // ignore config errors
-    } finally {
-      setAppLoading(false);
-    }
-  };
-
-  const isVersionLower = (current, min) => {
-    const c = current.split('.').map(Number);
-    const m = min.split('.').map(Number);
-    for (let i = 0; i < 3; i++) {
-      if ((c[i] || 0) < (m[i] || 0)) return true;
-      if ((c[i] || 0) > (m[i] || 0)) return false;
-    }
-    return false;
-  };
-
-  if (authLoading || appLoading) {
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={BRAND.pri} />
-      </View>
-    );
-  }
-
-  if (forceUpdate) {
-    return (
-      <View style={styles.updateContainer}>
-        <View style={styles.updateCard}>
-          <Ionicons name="cloud-download" size={64} color={BRAND.pri} />
-          <Text style={styles.updateTitle}>Update Required</Text>
-          <Text style={styles.updateMessage}>
-            {forceUpdate.message || 'A new version of FlipStar is available. Please update to continue.'}
-          </Text>
-          <TouchableOpacity
-            style={styles.updateBtn}
-            onPress={() => Linking.openURL(Platform.OS === 'ios' ? 'https://apps.apple.com' : 'https://play.google.com')}
-          >
-            <Text style={styles.updateBtnText}>Update Now</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     );
   }
@@ -241,46 +156,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: BRAND.bg,
-  },
-  updateContainer: {
-    flex: 1,
-    backgroundColor: BRAND.bg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  updateCard: {
-    width: '100%',
-    backgroundColor: BRAND.cardBg,
-    borderRadius: 24,
-    padding: 32,
-    alignItems: 'center',
-  },
-  updateTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: BRAND.txt,
-    marginTop: 20,
-    marginBottom: 12,
-  },
-  updateMessage: {
-    fontSize: 15,
-    color: BRAND.sub,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 28,
-  },
-  updateBtn: {
-    width: '100%',
-    height: 52,
-    backgroundColor: BRAND.pri,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  updateBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
   },
 });
