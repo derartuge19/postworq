@@ -268,9 +268,11 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
         otp: subOtp,
         password: subPassword
       });
-      
+
+      console.log('✅ Subscription OTP login response:', res);
+
       api.setAuthToken(res.token);
-      
+
       const userData = {
         id: res.user.id,
         username: res.user.username,
@@ -284,10 +286,12 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
         following_count: res.user.following_count || 0,
         is_staff: res.user.is_staff || false,
       };
-      
+
+      console.log('✅ Calling onSuccess with userData:', userData);
       onSuccess(userData);
     } catch (e) {
       console.error('❌ Subscription OTP login error:', e);
+      console.error('❌ Error response:', e?.response?.data);
       setError(e?.response?.data?.error || "Invalid OTP or subscription not found");
     } finally {
       setLoading(false);
