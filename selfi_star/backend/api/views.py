@@ -322,22 +322,34 @@ def send_phone_otp(request):
     from decouple import config
     
     phone_raw = request.data.get('phone', '').strip()
+    print(f"[OTP DEBUG] send_phone_otp called with phone_raw: {phone_raw}")
+    
     if not phone_raw:
+        print("[OTP DEBUG] No phone number provided")
         return Response({'error': 'Phone number required'}, status=status.HTTP_400_BAD_REQUEST)
+    
     phone = _normalize_ethiopian_phone(phone_raw)
+    print(f"[OTP DEBUG] Normalized phone: {phone}")
+    
     if not phone:
+        print("[OTP DEBUG] Invalid phone number format")
         return Response(
             {'error': 'Invalid Ethiopian phone number. Use format 09XXXXXXXX or +251XXXXXXXXX'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+    
     if UserProfile.objects.filter(phone_number=phone).exists():
+        print(f"[OTP DEBUG] Phone {phone} already registered")
         return Response({'error': 'This phone number is already registered'}, status=status.HTTP_400_BAD_REQUEST)
     
     # Use Onevas application key from config
     application_key = config('ONEVAS_APPLICATION_KEY', default='UPJG5ZM3X6C9LLDSKKCME4MA86UQRKWV')
+    print(f"[OTP DEBUG] Application key: {application_key}")
     
     # Send OTP via Onevas SMS
+    print(f"[OTP DEBUG] Calling OTPService.send_otp for phone: {phone}")
     success, message = OTPService.send_otp(phone, application_key)
+    print(f"[OTP DEBUG] OTPService result - success: {success}, message: {message}")
     
     if success:
         return Response({'message': message, 'phone': phone})

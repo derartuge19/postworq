@@ -51,13 +51,18 @@ class OTPService:
     @classmethod
     def send_otp(cls, phone_number, application_key):
         """Send OTP via Onevas SMS"""
+        print(f"[OTP SERVICE DEBUG] send_otp called for phone: {phone_number}, app_key: {application_key}")
+        
         can_send, error = cls.can_send_otp(phone_number)
+        print(f"[OTP SERVICE DEBUG] can_send_otp result: {can_send}, error: {error}")
+        
         if not can_send:
             return False, error
         
         # Generate OTP
         otp_code = cls.generate_otp()
         expires_at = timezone.now() + timedelta(minutes=cls.OTP_EXPIRY_MINUTES)
+        print(f"[OTP SERVICE DEBUG] Generated OTP: {otp_code}, expires at: {expires_at}")
         
         # Store OTP in cache
         cache.set(
@@ -69,6 +74,7 @@ class OTPService:
             },
             timeout=cls.OTP_EXPIRY_MINUTES * 60
         )
+        print(f"[OTP SERVICE DEBUG] OTP stored in cache")
         
         # Set rate limit
         cache.set(
@@ -76,6 +82,7 @@ class OTPService:
             timezone.now().isoformat(),
             timeout=cls.RATE_LIMIT_MINUTES * 60
         )
+        print(f"[OTP SERVICE DEBUG] Rate limit set")
         
         # Send SMS via Onevas
         try:
@@ -88,8 +95,12 @@ class OTPService:
                 'text': message,
                 'product_number': '9286'  # Short code
             }
+            print(f"[OTP SERVICE DEBUG] Sending SMS to Onevas URL: {url}")
+            print(f"[OTP SERVICE DEBUG] Payload: {payload}")
             
             response = requests.post(url, json=payload, timeout=30)
+            print(f"[OTP SERVICE DEBUG] Onevas response status: {response.status_code}")
+            print(f"[OTP SERVICE DEBUG] Onevas response body: {response.text}")
             
             if response.status_code == 200:
                 return True, f'OTP sent to {phone_number}'
@@ -98,6 +109,7 @@ class OTPService:
                 return True, f'OTP generated (SMS delivery failed: {response.text})'
         
         except Exception as e:
+            print(f"[OTP SERVICE DEBUG] Exception during SMS send: {str(e)}")
             # Even if SMS fails, OTP is stored in cache for testing
             return True, f'OTP generated (SMS error: {str(e)})'
     
