@@ -203,6 +203,9 @@ export function AppShell({
                 width: '100%', 
                 objectFit: 'contain', 
                 display: 'block',
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                padding: '4px 8px',
               }}
               onError={(e) => {
                 console.error('Flip logo failed to load');
