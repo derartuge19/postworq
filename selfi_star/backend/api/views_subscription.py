@@ -115,7 +115,7 @@ class OnevasWebhookView(APIView):
         print(f"[SUBSCRIPTION DEBUG] Subscription cancelled successfully")
         
         # Send SMS confirmation
-        cancellation_message = f"Your {subscription.tier.name} subscription has been cancelled. Thank you for using our service!"
+        cancellation_message = f"Dear customer, you have successfully unsubscribed from FLIPSTAR_SKYSKIN_{tier.short_code}_{tier.name.upper()} service. To subscribe again please send OK1 to {tier.short_code}. Thank you. Ethio telecom."
         self.send_sms(phone_number, cancellation_message, subscription.tier.duration_type)
         
         return Response({'status': 'success', 'message': 'Subscription cancelled via STOP command'})
@@ -263,7 +263,7 @@ class OnevasWebhookView(APIView):
                 print(f"[SUBSCRIPTION DEBUG] History recorded: action=created")
             
             # Send success SMS with registration info (no OTP needed)
-            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 days remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on {WEB_APP_LINK} using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
+            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on {WEB_APP_LINK} using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
             print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
             self.send_sms(phone_number, success_message, tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] SMS-first subscription completed successfully")
