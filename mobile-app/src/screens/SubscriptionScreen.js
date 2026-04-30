@@ -334,25 +334,26 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     margin: 20,
-    borderRadius: 20,
+    marginBottom: 16,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   heroGradient: {
-    padding: 32,
+    padding: 20,
     alignItems: 'center',
   },
   heroIcon: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#000',
+    fontSize: 32,
     marginBottom: 8,
   },
+  heroTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#000',
+    marginBottom: 6,
+  },
   heroSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#1a1a1a',
     textAlign: 'center',
     fontWeight: '500',
