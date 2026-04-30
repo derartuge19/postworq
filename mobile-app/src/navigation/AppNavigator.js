@@ -26,13 +26,13 @@ import ProfileScreen from '../screens/ProfileScreen';
 import ExploreScreen from '../screens/ExploreScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import MessagesScreen from '../screens/MessagesScreen';
 import FollowListScreen from '../screens/FollowListScreen';
 import CampaignsScreen from '../screens/CampaignsScreen';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
 import WalletScreen from '../screens/WalletScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import GamificationScreen from '../screens/GamificationScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 const GOLD = '#C8B56A';
 const BG = '#0B0B0C';

@@ -256,12 +256,11 @@ const api = {
     }),
 
   login: async (identifier, password) => {
-    // identifier is now a phone number - use phone login endpoint
-    const data = await api.request('/auth/login-with-phone/', {
+    // Use same endpoint as website - username/password login
+    const data = await api.request('/auth/login/', {
       method: 'POST',
-      body: JSON.stringify({ phone: identifier, password }),
+      body: JSON.stringify({ username: identifier, password }),
     });
-    
     if (data.token) {
       await api.setAuthToken(data.token);
     }
