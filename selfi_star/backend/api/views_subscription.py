@@ -159,7 +159,7 @@ class OnevasWebhookView(APIView):
             }
             resubscribe_keyword = resubscribe_keywords.get(subscription.tier.duration_type, 'A')
             stop_keyword = stop_keywords.get(subscription.tier.duration_type, 'STOP')
-            cancellation_message = f"Dear customer, you have successfully unsubscribed from FLIPSTAR {subscription.tier.name} service. To subscribe again please send {resubscribe_keyword} to {subscription.tier.short_code}. To unsubscribe send {stop_keyword} to {subscription.tier.short_code}. Thank you."
+            cancellation_message = f"Dear valued customer, you have successfully unsubscribed from the FLIPSTAR {subscription.tier.name} service. To resubscribe at any time, please send {resubscribe_keyword} to {subscription.tier.short_code}. To cancel your subscription, please send {stop_keyword} to {subscription.tier.short_code}. We appreciate your business and thank you for choosing FLIPSTAR."
             print(f"[SUBSCRIPTION DEBUG] Sending cancellation SMS to {phone_number}")
             sms_sent = self.send_sms(phone_number, cancellation_message, subscription.tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] Cancellation SMS sent: {sms_sent}")
@@ -378,7 +378,15 @@ class OnevasWebhookView(APIView):
                 'ondemand': 'STOP'
             }
             stop_keyword = stop_keywords.get(tier.duration_type, 'STOP')
-            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?subscription_tp=true using OTP {otp_code} To unsubscribe, send {stop_keyword} to {tier.short_code}."
+            # Determine price period based on tier
+            price_periods = {
+                'daily': 'day',
+                'weekly': 'week',
+                'monthly': 'month',
+                'ondemand': 'use'
+            }
+            price_period = price_periods.get(tier.duration_type, 'day')
+            success_message = f"Dear valued customer, you have successfully subscribed to the {tier.name} Flipstar service, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your complimentary free trial. After your free trial concludes, the subscription price will be {tier.price_etb} ETB per {price_period}. To access your premium service, please click on https://postworqq.vercel.app?subscription_tp=true and enter your OTP: {otp_code}. To cancel your subscription at any time, please send {stop_keyword} to {tier.short_code}."
             print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
             self.send_sms(phone_number, success_message, tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] SMS-first subscription completed successfully")
@@ -437,7 +445,15 @@ class OnevasWebhookView(APIView):
                 'ondemand': 'STOP'
             }
             stop_keyword = stop_keywords.get(tier.duration_type, 'STOP')
-            renewal_message = f"Dear customer, your {tier.name} Flipstar subscription has been renewed successfully, effective from {active_sub.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?login=true using OTP {otp_code} To unsubscribe, send {stop_keyword} to {tier.short_code}."
+            # Determine price period based on tier
+            price_periods = {
+                'daily': 'day',
+                'weekly': 'week',
+                'monthly': 'month',
+                'ondemand': 'use'
+            }
+            price_period = price_periods.get(tier.duration_type, 'day')
+            renewal_message = f"Dear valued customer, your {tier.name} Flipstar subscription has been successfully renewed, effective from {active_sub.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your complimentary free trial. After your free trial concludes, the subscription price will be {tier.price_etb} ETB per {price_period}. To access your premium service, please click on https://postworqq.vercel.app?login=true and enter your OTP: {otp_code}. To cancel your subscription at any time, please send {stop_keyword} to {tier.short_code}."
             print(f"[SUBSCRIPTION DEBUG] Sending renewal SMS to {phone_number} with OTP: {otp_code}")
             self.send_sms(phone_number, renewal_message, tier.duration_type)
 
@@ -495,7 +511,15 @@ class OnevasWebhookView(APIView):
                     'ondemand': 'STOP'
                 }
                 stop_keyword = stop_keywords.get(tier.duration_type, 'STOP')
-                confirmation_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?login=true using OTP {otp_code} To unsubscribe, send {stop_keyword} to {tier.short_code}."
+                # Determine price period based on tier
+                price_periods = {
+                    'daily': 'day',
+                    'weekly': 'week',
+                    'monthly': 'month',
+                    'ondemand': 'use'
+                }
+                price_period = price_periods.get(tier.duration_type, 'day')
+                confirmation_message = f"Dear valued customer, you have successfully subscribed to the {tier.name} Flipstar service, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your complimentary free trial. After your free trial concludes, the subscription price will be {tier.price_etb} ETB per {price_period}. To access your premium service, please click on https://postworqq.vercel.app?login=true and enter your OTP: {otp_code}. To cancel your subscription at any time, please send {stop_keyword} to {tier.short_code}."
                 print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
                 self.send_sms(phone_number, confirmation_message, tier.duration_type)
             
