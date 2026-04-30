@@ -16,7 +16,7 @@ import config from '../config';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const BRAND_GOLD = '#C8B56A';
-const CYAN_COLOR = '#3B82F6';
+const CYAN_COLOR = '#C8B56A';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -139,7 +139,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
   }
 
   const statusColor = campaign.status === 'active' ? BRAND_GOLD : 
-                       campaign.status === 'voting' ? '#3B82F6' : 
+                       campaign.status === 'voting' ? '#C8B56A' : 
                        campaign.status === 'upcoming' ? '#F97316' : '#999999';
   const toggleSection = (k) => setOpenSections(s => ({ ...s, [k]: !s[k] }));
 
@@ -220,10 +220,10 @@ export default function CampaignDetailScreen({ route, navigation }) {
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
               <View style={styles.statHeader}>
-                <Ionicons name="people-outline" size={11} color="#3B82F6" />
+                <Ionicons name="people-outline" size={11} color="#C8B56A" />
                 <Text style={styles.statLabel}>Entries</Text>
               </View>
-              <Text style={[styles.statValueBox, { color: '#3B82F6' }]}>{campaign.total_entries || 0}</Text>
+              <Text style={[styles.statValueBox, { color: '#C8B56A' }]}>{campaign.total_entries || 0}</Text>
             </View>
             <View style={styles.statBox}>
               <View style={styles.statHeader}>
@@ -313,12 +313,12 @@ export default function CampaignDetailScreen({ route, navigation }) {
           </Accordion>
 
           {hasRequirements && (
-            <Accordion id="reqs" icon="flag-outline" title="Entry Requirements" subtitle="What you need to qualify" color="#3B82F6">
+            <Accordion id="reqs" icon="flag-outline" title="Entry Requirements" subtitle="What you need to qualify" color="#C8B56A">
               {campaign.required_hashtags ? (
                 <View style={styles.reqRow}><Text style={styles.reqLabel}>Required tags</Text><Text style={[styles.reqValue, { color: BRAND_GOLD }]}>{campaign.required_hashtags}</Text></View>
               ) : null}
               {campaign.min_followers > 0 && (
-                <View style={styles.reqRow}><Text style={styles.reqLabel}>Min followers</Text><Text style={[styles.reqValue, { color: '#3B82F6' }]}>{campaign.min_followers}+</Text></View>
+                <View style={styles.reqRow}><Text style={styles.reqLabel}>Min followers</Text><Text style={[styles.reqValue, { color: '#C8B56A' }]}>{campaign.min_followers}+</Text></View>
               )}
               {campaign.min_level > 0 && (
                 <View style={styles.reqRow}><Text style={styles.reqLabel}>Min level</Text><Text style={[styles.reqValue, { color: '#F97316' }]}>Level {campaign.min_level}</Text></View>
@@ -336,7 +336,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
             {[
               { label: 'Starts',          date: campaign.start_date,      color: '#10B981' },
               { label: 'Entry Deadline',  date: campaign.entry_deadline,  color: '#F59E0B' },
-              { label: 'Voting Begins',   date: campaign.voting_start,    color: '#3B82F6' },
+              { label: 'Voting Begins',   date: campaign.voting_start,    color: '#C8B56A' },
               { label: 'Voting Ends',     date: campaign.voting_end,      color: '#EF4444' },
             ].map((t, i) => (
               <View key={i} style={styles.tlRow}>
@@ -354,7 +354,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
             <View style={styles.metricsGrid}>
               {[
                 { label: 'Likes',    icon: 'heart-outline',         color: '#EF4444' },
-                { label: 'Comments', icon: 'chatbubble-outline',    color: '#3B82F6' },
+                { label: 'Comments', icon: 'chatbubble-outline',    color: '#C8B56A' },
                 { label: 'Shares',   icon: 'share-social-outline',  color: '#8B5CF6' },
                 { label: 'Votes',    icon: 'ribbon-outline',        color: BRAND_GOLD },
               ].map((m, i) => (
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
   },
   voteButton: {
     flexDirection: 'row',
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#C8B56A',
     borderRadius: 12,
     padding: 16,
     justifyContent: 'center',

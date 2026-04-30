@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import api from '../api';
 
 const BRAND_GOLD = '#C8B56A';
-const CYAN_COLOR = '#3B82F6';
+const CYAN_COLOR = '#C8B56A';
 
 export default function SubscriptionScreen({ navigation }) {
   const insets = useSafeAreaInsets();

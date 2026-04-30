@@ -36,7 +36,7 @@ async function writeCache(balance, packages) {
 }
 
 const BRAND_GOLD = '#C8B56A';
-const CYAN_COLOR = '#3B82F6';
+const CYAN_COLOR = '#C8B56A';
 
 export default function WalletScreen({ navigation }) {
   const insets = useSafeAreaInsets();

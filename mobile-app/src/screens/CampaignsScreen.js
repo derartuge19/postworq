@@ -16,7 +16,7 @@ import api from '../api';
 
 const { width } = Dimensions.get('window');
 const BRAND_GOLD = '#C8B56A';
-const CYAN_COLOR = '#3B82F6';
+const CYAN_COLOR = '#C8B56A';
 
 const ALL_TABS = ['All', 'Active', 'Voting', 'Upcoming', 'Completed'];
 
@@ -51,7 +51,7 @@ export default function CampaignsScreen({ navigation }) {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return BRAND_GOLD;
-      case 'voting': return '#3B82F6';
+      case 'voting': return '#C8B56A';
       case 'upcoming': return '#F97316';
       case 'completed': return '#999999';
       default: return BRAND_GOLD;
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#3B82F6',
+    color: '#C8B56A',
   },
   votesText: {
     color: '#EF4444',
