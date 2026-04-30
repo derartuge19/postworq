@@ -83,12 +83,17 @@ export function SubscriptionPage({ user, onBack }) {
                      tier.duration_type === 'monthly' ? 'C' : 'D';
     
     // Open SMS app with pre-filled message
-    // Android requires country code for short codes to be recognized as valid
-    const shortCode = '+2519286';
-    const message = tierCode;
+    const shortCode = '9286';
+    const messageBody = tierCode;
     
-    // Use window.location.href for most reliable SMS app opening
-    window.location.href = `sms:${shortCode}?body=${encodeURIComponent(message)}`;
+    // Encode the message to handle spaces and special characters
+    const encodedMessage = encodeURIComponent(messageBody);
+    
+    // Use the most compatible SMS URL format for both iOS and Android
+    const smsUrl = `sms:${shortCode}?body=${encodedMessage}`;
+    
+    // Trigger the system messaging app
+    window.location.href = smsUrl;
   };
 
   const handlePayment = async () => {
