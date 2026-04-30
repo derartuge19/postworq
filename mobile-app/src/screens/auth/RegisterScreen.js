@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Modal, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Modal } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 
 const FAQ_ITEMS = [
@@ -148,16 +148,7 @@ export default function RegisterScreen({ navigation }) {
       <View style={styles.content}>
         {/* Logos */}
         <View style={styles.logoContainer}>
-          <Image 
-            source={require('../../image/Ethio telecom Logo PNG format.png')} 
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-          <Image 
-            source={require('../../image/final_logo.png')} 
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+          <Text style={styles.logoText}>⭐ FLIPSTAR</Text>
         </View>
 
         {/* Step indicator */}
@@ -373,12 +364,18 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
     borderRadius: 12,
     padding: 10,
     backgroundColor: '#1A1A1A',
+  },
+  logoText: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#F9E08B',
+    letterSpacing: 2,
   },
   logoImage: {
     width: 100,
