@@ -166,7 +166,6 @@ class OnevasWebhookView(APIView):
     def handle_subscription(self, payload, log):
         """Handle subscription notification from Onevas"""
         phone_number = payload.get('phone_number')
-        password = payload.get('password')
         product_number = payload.get('product_number', '').upper()  # Convert to uppercase
         
         # Find user by phone number
