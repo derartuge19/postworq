@@ -856,20 +856,24 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 WebkitTapHighlightColor: 'transparent',
                 outline: 'none',
               }}>
-              <img 
-                src="/create_img.jpg" 
-                alt="Create" 
-                style={{
-                  position: 'absolute',
-                  top: -18,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  objectFit: 'cover'
-                }} 
-              />
+              <div style={{
+                position: 'absolute',
+                top: -18,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 54,
+                height: 54,
+                borderRadius: '50%',
+                background: 'linear-gradient(145deg, #F9E08B 0%, #D4A017 100%)',
+                boxShadow: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                border: '3px solid rgba(255,255,255,0.15)',
+              }}>
+                <Plus size={26} strokeWidth={2.8} color='#1A0A00' />
+              </div>
             <span style={{ fontSize: 10, fontWeight: 500, color: '#F9E08B', lineHeight: 1, marginTop: 'auto', paddingBottom: 4 }}>Create</span>
           </button>
         );
