@@ -1363,7 +1363,7 @@ export default function WerqRoot() {
           />
         )}
       </AppShell>
-      {showLogin && (
+      {(showLogin || forceShowLogin) && (
         <div
           style={{
             position: 'fixed',
