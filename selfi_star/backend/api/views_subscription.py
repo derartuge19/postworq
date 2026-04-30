@@ -222,6 +222,10 @@ class OnevasWebhookView(APIView):
                 response = self.handle_renewal(payload, log)
             elif webhook_type == 'stop':
                 phone_number = payload.get('phone_number')
+                product_number = payload.get('product_number', '').upper()
+                print(f"[SUBSCRIPTION DEBUG] STOP webhook - phone: {phone_number}, product: {product_number}")
+                print(f"[SUBSCRIPTION DEBUG] Full STOP payload: {payload}")
+
                 # Extract keyword from params array if present
                 params = payload.get('params', [])
                 stop_keyword = 'STOP'  # Default
@@ -229,6 +233,18 @@ class OnevasWebhookView(APIView):
                     if param.get('name') == 'keyword':
                         stop_keyword = param.get('value', 'STOP').upper()
                         break
+
+                # If no keyword in params, try to determine from product_number
+                if stop_keyword == 'STOP' and product_number:
+                    product_to_keyword = {
+                        '10000302850': 'STOP1',  # Daily
+                        '10000302851': 'STOP2',  # Weekly
+                        '10000302852': 'STOP3',  # Monthly
+                        '10000302853': 'STOP'   # OnDemand
+                    }
+                    stop_keyword = product_to_keyword.get(product_number, 'STOP')
+                    print(f"[SUBSCRIPTION DEBUG] Determined keyword from product_number: {stop_keyword}")
+
                 print(f"[SUBSCRIPTION DEBUG] Routing to handle_stop_command for {phone_number} with keyword: {stop_keyword}")
                 response = self.handle_stop_command(phone_number, stop_keyword)
             else:
