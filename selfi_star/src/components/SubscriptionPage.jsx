@@ -83,11 +83,12 @@ export function SubscriptionPage({ user, onBack }) {
                      tier.duration_type === 'monthly' ? 'C' : 'D';
     
     // Open SMS app with pre-filled message
-    const shortCode = '9286';
+    // Android requires country code for short codes to be recognized as valid
+    const shortCode = '+2519286';
     const message = tierCode;
     
-    // Use SMS link format - smsto: works better on Android
-    return `smsto:${shortCode}?body=${encodeURIComponent(message)}`;
+    // Use sms: format with country code for Android compatibility
+    return `sms:${shortCode}?body=${encodeURIComponent(message)}`;
   };
 
   const handlePayment = async () => {
