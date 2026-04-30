@@ -94,11 +94,7 @@ function MainTabs() {
                 shadowRadius: 8,
                 elevation: 8,
               }}>
-                <Image 
-                  source={require('../image/create_img.jpg')} 
-                  style={{ width: 24, height: 24, borderRadius: 12 }}
-                  resizeMode="cover"
-                />
+                <Ionicons name="add" size={24} color="#000" />
               </View>
             );
           }
