@@ -515,6 +515,87 @@ def register_with_phone(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def login_with_subscription_otp(request):
+    """Login with subscription OTP and create user account with password"""
+    from .models_subscription import SubscriptionPlan as UserSubscription
+    from .models import UserProfile
+    
+    phone = request.data.get('phone', '').strip()
+    username = request.data.get('username', '').strip()
+    otp = request.data.get('otp', '').strip()
+    password = request.data.get('password', '').strip()
+    
+    print(f"[SUBSCRIPTION LOGIN DEBUG] Login attempt - phone: {phone}, username: {username}, otp: {otp}")
+    
+    # Validate inputs
+    if not phone or not username or not otp or not password:
+        return Response({'error': 'phone, username, otp, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not password.isdigit() or len(password) != 6:
+        return Response({'error': 'Password must be exactly 6 digits (numbers only)'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Normalize phone
+    phone = _normalize_ethiopian_phone(phone)
+    if not phone:
+        return Response({'error': 'Invalid Ethiopian phone number'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Find SMS-first subscription with matching OTP
+    subscription = UserSubscription.objects.filter(
+        onevas_phone_number=phone,
+        setup_otp=otp,
+        status='active',
+        subscription_source='sms',
+        user__isnull=True
+    ).first()
+    
+    if not subscription:
+        print(f"[SUBSCRIPTION LOGIN DEBUG] No matching subscription found")
+        return Response({'error': 'Invalid OTP or no active subscription found'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    print(f"[SUBSCRIPTION LOGIN DEBUG] Subscription found: ID {subscription.id}")
+    
+    # Check if username already exists
+    if User.objects.filter(username=username).exists():
+        return Response({'error': 'Username already taken'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Create user account
+    try:
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=username,
+                password=password,
+                email=f"{username}@flipstar.app"  # Placeholder email
+            )
+            
+            # Create profile
+            profile = UserProfile.objects.create(
+                user=user,
+                phone_number=phone
+            )
+            
+            # Link subscription to user
+            subscription.user = user
+            subscription.setup_otp = None  # Clear OTP after use
+            subscription.save()
+            
+            print(f"[SUBSCRIPTION LOGIN DEBUG] User created: {username}, subscription linked")
+        
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({
+            'user': UserSerializer(user).data, 
+            'token': token.key,
+            'message': 'Account created successfully'
+        }, status=status.HTTP_201_CREATED)
+    
+    except Exception as e:
+        print(f"[SUBSCRIPTION LOGIN DEBUG] Error: {str(e)}")
+        import traceback
+        print(f"[SUBSCRIPTION LOGIN DEBUG] Traceback: {traceback.format_exc()}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def forgot_password_request(request):
     """Send 6-digit reset code to the user's email."""
     from .models_auth import PasswordResetToken

@@ -216,6 +216,12 @@ class OnevasWebhookView(APIView):
         # If user is not registered, create active subscription (SMS-first flow)
         if not user_exists:
             print(f"[SUBSCRIPTION DEBUG] Creating SMS-first subscription (user not registered)")
+            
+            # Generate OTP for user to set up their account
+            from .services.otp_service import OTPService
+            otp_code = OTPService.generate_otp()
+            print(f"[SUBSCRIPTION DEBUG] Generated OTP for account setup: {otp_code}")
+            
             # Create active subscription linked to phone number (user can log in without OTP)
             with transaction.atomic():
                 subscription = UserSubscription.objects.create(
@@ -227,7 +233,8 @@ class OnevasWebhookView(APIView):
                     status='active',  # Active immediately, not pending
                     start_date=timezone.now(),
                     end_date=timezone.now() + timedelta(days=tier.duration_days or 30),
-                    subscription_source='sms'  # Track that this came from SMS
+                    subscription_source='sms',  # Track that this came from SMS
+                    setup_otp=otp_code  # Store OTP for account setup
                 )
                 print(f"[SUBSCRIPTION DEBUG] Subscription created: ID {subscription.id}, status: active")
                 
@@ -256,8 +263,8 @@ class OnevasWebhookView(APIView):
                 print(f"[SUBSCRIPTION DEBUG] History recorded: action=created")
             
             # Send success SMS with registration info (no OTP needed)
-            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 days remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on {WEB_APP_LINK} To unsubscribe, send STOP to {tier.short_code}."
-            print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number}")
+            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 days remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on {WEB_APP_LINK} using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
+            print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
             self.send_sms(phone_number, success_message, tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] SMS-first subscription completed successfully")
             return Response({'status': 'success', 'message': 'Active subscription created via SMS, user can log in without OTP'})

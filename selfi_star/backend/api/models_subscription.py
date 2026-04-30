@@ -108,6 +108,7 @@ class SubscriptionPlan(models.Model):
     onevas_phone_number = models.CharField(max_length=20, null=True, blank=True)
     onevas_transaction_id = models.CharField(max_length=100, null=True, blank=True)
     subscription_source = models.CharField(max_length=20, choices=[('sms', 'SMS'), ('app', 'App')], default='app')
+    setup_otp = models.CharField(max_length=6, null=True, blank=True, help_text='OTP for account setup after SMS subscription')
     
     # Status and dates
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')

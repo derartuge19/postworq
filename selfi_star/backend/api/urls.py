@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from .views import (
     register, login, reset_password, change_password, delete_account, download_data,
     send_phone_otp, verify_phone_otp, register_with_phone, login_with_phone,
-    forgot_password_request, forgot_password_confirm,
+    forgot_password_request, forgot_password_confirm, login_with_subscription_otp,
     create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
     get_user_notifications, mark_notifications_read, get_unread_notification_count,
@@ -225,6 +225,7 @@ urlpatterns = [
     path('auth/send-phone-otp/', send_phone_otp, name='auth-send-otp'),
     path('auth/verify-phone-otp/', verify_phone_otp, name='auth-verify-otp'),
     path('auth/register-with-phone/', register_with_phone, name='auth-register-phone'),
+    path('auth/login-with-subscription-otp/', login_with_subscription_otp, name='auth-login-subscription-otp'),
     path('auth/forgot-password/', forgot_password_request, name='auth-forgot-password'),
     path('auth/forgot-password/confirm/', forgot_password_confirm, name='auth-forgot-password-confirm'),
     path('setup-admin/', setup_admin, name='setup-admin'),
