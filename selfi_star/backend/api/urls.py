@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from .views import (
     register, login, reset_password, change_password, delete_account, download_data,
-    send_phone_otp, verify_phone_otp, register_with_phone,
+    send_phone_otp, verify_phone_otp, register_with_phone, login_with_phone,
     forgot_password_request, forgot_password_confirm,
     create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
     SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
@@ -217,6 +217,7 @@ urlpatterns = [
     path('cleanup-reels/', cleanup_broken_reels, name='cleanup-reels'),
     path('auth/register/', register, name='auth-register'),
     path('auth/login/', login, name='auth-login'),
+    path('auth/login-with-phone/', login_with_phone, name='auth-login-with-phone'),
     path('auth/reset-password/', reset_password, name='auth-reset-password'),
     path('auth/change-password/', change_password, name='auth-change-password'),
     path('auth/delete-account/', delete_account, name='auth-delete-account'),

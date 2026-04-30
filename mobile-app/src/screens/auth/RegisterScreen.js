@@ -50,13 +50,31 @@ export default function RegisterScreen({ navigation }) {
     if (password !== confirm) { setError('Passwords do not match'); return; }
     setLoading(true);
     try {
-      const res = await api.sendPhoneOtp(phone);
-      setVerifiedPhone(res.phone);
-      setResendTimer(60);
-      if (res.dev_code) setDevCode(res.dev_code);
-      setStep(2);
+      // Check if user has active SMS subscription (OTP-less flow)
+      const res = await api.post('/auth/login-with-phone/', { phone, password: 'check' });
+      
+      // If user has SMS subscription, skip OTP and register directly
+      if (res.data.requires_registration) {
+        await handleRegisterWithPhone(true); // skip_otp = true
+      } else {
+        // No SMS subscription, send OTP normally
+        const otpRes = await api.sendPhoneOtp(phone);
+        setVerifiedPhone(otpRes.phone);
+        setResendTimer(60);
+        if (otpRes.dev_code) setDevCode(otpRes.dev_code);
+        setStep(2);
+      }
     } catch (e) {
-      setError(e?.message || 'Failed to send OTP. Check your phone number.');
+      // If no SMS subscription found, send OTP normally
+      try {
+        const otpRes = await api.sendPhoneOtp(phone);
+        setVerifiedPhone(otpRes.phone);
+        setResendTimer(60);
+        if (otpRes.dev_code) setDevCode(otpRes.dev_code);
+        setStep(2);
+      } catch (otpErr) {
+        setError(otpErr?.message || 'Failed to send OTP. Check your phone number.');
+      }
     } finally { setLoading(false); }
   };
 
@@ -66,10 +84,32 @@ export default function RegisterScreen({ navigation }) {
     setLoading(true);
     try {
       await api.verifyPhoneOtp(verifiedPhone, otp);
-      await register(username, email, password, '', '');
+      // OTP verified — now create account
+      await handleRegisterWithPhone(false); // skip_otp = false
     } catch (e) {
       setError(e?.message || 'Invalid code or registration failed.');
     } finally { setLoading(false); }
+  };
+
+  // ── Register with phone (supports both OTP and OTP-less flows) ──────────────────────────────────
+  const handleRegisterWithPhone = async (skipOtp = false) => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/register-with-phone/', {
+        phone: phone,
+        username: username,
+        password: password,
+        email: email,
+        skip_otp: skipOtp
+      });
+      // Call the register function from AuthContext
+      await register(username, email, password, '', '');
+    } catch (e) {
+      setError(e?.response?.data?.error || e?.message || 'Registration failed.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const Field = ({ label, icon, children }) => (

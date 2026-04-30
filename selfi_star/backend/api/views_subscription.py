@@ -183,19 +183,20 @@ class OnevasWebhookView(APIView):
         except SubscriptionTier.DoesNotExist:
             return Response({'error': 'Tier not found'}, status=404)
         
-        # If user is not registered, create pending subscription and send registration link SMS
+        # If user is not registered, create active subscription (SMS-first flow)
         if not user_exists:
-            # Create pending subscription linked to phone number
+            # Create active subscription linked to phone number (user can log in without OTP)
             with transaction.atomic():
                 subscription = UserSubscription.objects.create(
-                    user=None,  # No user yet
+                    user=None,  # No user yet - will be linked when they register
                     tier=tier,
                     duration_type=tier.duration_type,
                     onevas_phone_number=phone_number,
                     onevas_subscription_id=str(uuid.uuid4()),
-                    status='pending',
+                    status='active',  # Active immediately, not pending
                     start_date=timezone.now(),
-                    end_date=timezone.now() + timedelta(days=tier.duration_days or 30)
+                    end_date=timezone.now() + timedelta(days=tier.duration_days or 30),
+                    subscription_source='sms'  # Track that this came from SMS
                 )
                 
                 # Record payment
@@ -216,14 +217,14 @@ class OnevasWebhookView(APIView):
                     subscription=subscription,
                     tier=tier,
                     action='created',
-                    reason='Subscription created via Onevas (pending registration)',
-                    metadata={'webhook_payload': payload, 'pending_registration': True}
+                    reason='Subscription created via Onevas SMS (active, user not registered yet)',
+                    metadata={'webhook_payload': payload, 'sms_subscription': True}
                 )
             
-            # Send registration link SMS
-            registration_message = f"To activate your {tier.name} subscription, please register with phone number {phone_number}:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}\n\nYour subscription is pending activation. It will be activated automatically after registration."
-            self.send_sms(phone_number, registration_message, tier.duration_type)
-            return Response({'status': 'pending_registration', 'message': 'Pending subscription created, registration link sent via SMS'})
+            # Send success SMS with registration info (no OTP needed)
+            success_message = f"You are successfully subscribed to {tier.name} plan! To use your service, register with phone number {phone_number}:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}\n\nNo OTP required - you can log in directly with your phone number."
+            self.send_sms(phone_number, success_message, tier.duration_type)
+            return Response({'status': 'success', 'message': 'Active subscription created via SMS, user can log in without OTP'})
         
         # User exists - proceed with subscription
         # Check if user already has active subscription
