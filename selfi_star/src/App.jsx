@@ -192,14 +192,20 @@ export default function WerqRoot() {
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     }
-    // Don't clean up login or subscription_tp params - they will be handled by the second useEffect
+    // Check for subscription params (both with and without underscore)
+    if (params.get('subscription_tp') === 'true' || params.get('subscriptiontp') === 'true') {
+      setShowLogin(true);
+    }
+    if (params.get('login') === 'true') {
+      setShowLogin(true);
+    }
   }, []);
 
   // Show login screen when URL params change (e.g., when clicking link while already logged in)
   useEffect(() => {
     const checkUrlParams = () => {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('login') === 'true' || params.get('subscription_tp') === 'true') {
+      if (params.get('login') === 'true' || params.get('subscription_tp') === 'true' || params.get('subscriptiontp') === 'true') {
         setShowLogin(true);
       }
     };
@@ -215,7 +221,7 @@ export default function WerqRoot() {
   // Force show login screen if URL params are present (runs on every render)
   const forceShowLogin = (() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get('login') === 'true' || params.get('subscription_tp') === 'true';
+    return params.get('login') === 'true' || params.get('subscription_tp') === 'true' || params.get('subscriptiontp') === 'true';
   })();
 
   // Force screen to landing when subscription or login params are present
