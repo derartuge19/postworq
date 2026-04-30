@@ -18,16 +18,16 @@ def _generate_otp():
 
 
 def _normalize_ethiopian_phone(phone):
-    """Normalize to +251XXXXXXXXX. Returns None if invalid."""
+    """Normalize to 251XXXXXXXXX (without + for Onevas). Returns None if invalid."""
     phone = phone.strip().replace(' ', '').replace('-', '')
-    if phone.startswith('+251') and len(phone) == 13:
-        return phone
+    # Remove + prefix if present
+    phone = phone.replace('+', '')
     if phone.startswith('251') and len(phone) == 12:
-        return '+' + phone
+        return phone
     if phone.startswith('0') and len(phone) == 10:
-        return '+251' + phone[1:]
+        return '251' + phone[1:]
     if len(phone) == 9 and phone[0] in '79':
-        return '+251' + phone
+        return '251' + phone
     return None
 
 

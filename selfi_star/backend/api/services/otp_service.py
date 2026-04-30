@@ -13,7 +13,7 @@ class OTPService:
     OTP_LENGTH = 6
     OTP_EXPIRY_MINUTES = 5
     MAX_ATTEMPTS = 3
-    RATE_LIMIT_MINUTES = 60  # 1 OTP per hour per phone number
+    RATE_LIMIT_MINUTES = 1  # 1 OTP per minute per phone number (reduced for testing)
     
     @classmethod
     def generate_otp(cls):
@@ -87,6 +87,8 @@ class OTPService:
         # Send SMS via Onevas
         try:
             message = f'Your verification code is: {otp_code}. Valid for {cls.OTP_EXPIRY_MINUTES} minutes.'
+            print(f"[OTP SERVICE DEBUG] Generated message: {message}")
+            print(f"[OTP SERVICE DEBUG] OTP code value: {otp_code}")
             
             url = 'https://onevas.alet.io/api/partnerSms/send'
             payload = {
