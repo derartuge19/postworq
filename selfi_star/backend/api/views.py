@@ -574,11 +574,15 @@ def login_with_subscription_otp(request):
                 email=f"{username}@flipstar.app"  # Placeholder email
             )
             
-            # Create profile
-            profile = UserProfile.objects.create(
+            # Create profile (use get_or_create in case profile already exists)
+            profile, created = UserProfile.objects.get_or_create(
                 user=user,
-                phone_number=phone
+                defaults={'phone_number': phone}
             )
+            if not created:
+                # Profile already exists, update phone number if different
+                profile.phone_number = phone
+                profile.save()
             
             # Link subscription to user
             subscription.user = user
