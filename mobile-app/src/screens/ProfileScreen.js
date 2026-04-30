@@ -57,6 +57,7 @@ export default function ProfileScreen({ navigation }) {
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState(null);
   const [showGamModal, setShowGamModal] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null);
 
   const fetchProfileData = useCallback(async () => {
     const currentUserId = user?.id;
@@ -72,10 +73,11 @@ export default function ProfileScreen({ navigation }) {
       const targetUserId = profile?.id || currentUserId;
       console.log('ProfileScreen: Fetching for targetUserId:', targetUserId);
       
-      const [profileData, followersRaw, followingRaw] = await Promise.all([
+      const [profileData, followersRaw, followingRaw, subscriptionData] = await Promise.all([
         api.getProfile().catch(err => { console.error('getProfile error:', err); return null; }),
         api.getFollowers(targetUserId).catch(err => { console.error('getFollowers error:', err); return []; }),
         api.getFollowing(targetUserId).catch(err => { console.error('getFollowing error:', err); return []; }),
+        api.request('/subscriptions/').catch(err => { console.error('getSubscription error:', err); return null; }),
       ]);
 
       console.log('ProfileScreen: API Results:', { 
@@ -95,6 +97,7 @@ export default function ProfileScreen({ navigation }) {
         // Use counts from profile object if available, otherwise use list length
         setFollowers(actualProfile.followers_count ?? (Array.isArray(followersRaw) ? followersRaw.length : (followersRaw.results?.length || 0)));
         setFollowing(actualProfile.following_count ?? (Array.isArray(followingRaw) ? followingRaw.length : (followingRaw.results?.length || 0)));
+        setSubscriptionStatus(subscriptionData);
       } else if (user) {
         // Fallback to auth user if profile fetch fails
         console.log('ProfileScreen: Profile fetch failed, falling back to auth user');
@@ -425,7 +428,7 @@ export default function ProfileScreen({ navigation }) {
                   <Ionicons name="wallet-outline" size={24} color="#C8B56A" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Subscription')} style={styles.navActionBtn}>
-                  <Ionicons name="diamond-outline" size={24} color="#C8B56A" />
+                  <Ionicons name="crown" size={24} color="#C8B56A" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.navActionBtn}>
                   <Ionicons name="settings-outline" size={24} color="#C8B56A" />
@@ -476,6 +479,28 @@ export default function ProfileScreen({ navigation }) {
             </Text>
             {(profile?.bio || user?.bio) && <Text style={styles.bioText}>{profile?.bio || user?.bio}</Text>}
           </View>
+
+          {/* Subscription Status Badge */}
+          {subscriptionStatus && subscriptionStatus.status !== 'no_subscription' && (
+            <View style={[
+              styles.subscriptionBadge,
+              subscriptionStatus.status === 'active' && styles.activeBadge,
+              subscriptionStatus.status === 'trial' && styles.trialBadge
+            ]}>
+              <Ionicons 
+                name={subscriptionStatus.status === 'active' ? 'checkmark-circle' : 'time'} 
+                size={16} 
+                color={subscriptionStatus.status === 'active' ? '#4CAF50' : BRAND_GOLD} 
+              />
+              <Text style={[
+                styles.subscriptionBadgeText,
+                subscriptionStatus.status === 'active' && styles.activeBadgeText,
+                subscriptionStatus.status === 'trial' && styles.trialBadgeText
+              ]}>
+                {subscriptionStatus.status === 'active' ? subscriptionStatus.tier?.name : 'Free Trial'}
+              </Text>
+            </View>
+          )}
 
           {profile?.id === user?.id ? (
             <TouchableOpacity 
@@ -1450,6 +1475,36 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
     marginLeft: 8,
+  },
+  subscriptionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+  activeBadge: {
+    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  trialBadge: {
+    backgroundColor: 'rgba(200, 181, 106, 0.15)',
+    borderWidth: 1,
+    borderColor: BRAND_GOLD,
+  },
+  subscriptionBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  activeBadgeText: {
+    color: '#4CAF50',
+  },
+  trialBadgeText: {
+    color: BRAND_GOLD,
   },
 });
 
