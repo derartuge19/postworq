@@ -17,8 +17,8 @@
    DB_ENGINE=django.db.backends.postgresql
    DB_NAME=neondb
    DB_USER=neondb_owner
-   DB_PASSWORD=npg_Ck3JqV2u5m1x
-   DB_HOST=flat-thunder-79099653.aws.neon.tech
+   DB_PASSWORD=your-db-password-here
+   DB_HOST=your-db-host-here
    DB_PORT=5432
    SECRET_KEY=auto-generated-by-render
    DEBUG=False

@@ -85,8 +85,8 @@ if IS_RENDER:
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': config('DB_NAME', default='neondb'),
             'USER': config('DB_USER', default='neondb_owner'),
-            'PASSWORD': config('DB_PASSWORD', default='npg_gQpuHj7IBoC1'),
-            'HOST': config('DB_HOST', default='ep-rough-math-anwwqd2n-pooler.c-6.us-east-1.aws.neon.tech'),
+            'PASSWORD': config('DB_PASSWORD', default='your-db-password-here'),
+            'HOST': config('DB_HOST', default='your-db-host-here'),
             'PORT': config('DB_PORT', default='5432'),
             'OPTIONS': {
                 'sslmode': 'require',

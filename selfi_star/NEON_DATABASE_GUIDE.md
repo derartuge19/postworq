@@ -36,8 +36,8 @@ This script will:
    ```
    DB_NAME=neondb
    DB_USER=neondb_owner
-   DB_HOST=flat-thunder-79099653.aws.neon.tech
-   DB_PASSWORD=npg_Ck3JqV2u5m1x
+   DB_HOST=your-db-host-here
+   DB_PASSWORD=your-db-password-here
    ```
 
 ## 🔧 Common Issues & Solutions
