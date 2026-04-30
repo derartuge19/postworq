@@ -55,7 +55,7 @@ ONEVAS_PRODUCTS = {
 }
 
 # App Links (placeholders - update with actual URLs)
-WEB_APP_LINK = "https://postworqq.vercel.app?register=true"
+WEB_APP_LINK = "https://postworqq.vercel.app?login=true"
 MOBILE_APP_LINK = "https://play.google.com/store/apps/details?id=com.postworq.mobile"
 
 
@@ -241,7 +241,7 @@ class OnevasWebhookView(APIView):
                 print(f"[SUBSCRIPTION DEBUG] History recorded: action=created")
             
             # Send success SMS with registration info (no OTP needed)
-            success_message = f"You are successfully subscribed to {tier.name} plan! To use your service, register with phone number {phone_number}:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}\n\nNo OTP required - you can log in directly with your phone number."
+            success_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 days remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on {WEB_APP_LINK} To unsubscribe, send STOP to {tier.short_code}."
             print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number}")
             self.send_sms(phone_number, success_message, tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] SMS-first subscription completed successfully")
