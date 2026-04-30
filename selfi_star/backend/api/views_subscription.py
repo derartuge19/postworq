@@ -55,7 +55,7 @@ ONEVAS_PRODUCTS = {
 }
 
 # App Links (placeholders - update with actual URLs)
-WEB_APP_LINK = "https://postworqq.vercel.app?login=true"
+WEB_APP_LINK = "https://postworqq.vercel.app?subscription_tp=true"
 MOBILE_APP_LINK = "https://play.google.com/store/apps/details?id=com.postworq.mobile"
 
 
