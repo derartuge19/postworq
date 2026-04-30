@@ -276,15 +276,21 @@ def login_with_phone(request):
     phone = request.data.get('phone', '').strip()
     password = request.data.get('password', '').strip()
     
+    print(f"[LOGIN WITH PHONE DEBUG] login_with_phone called - phone: {phone}")
+    
     if not phone or not password:
+        print(f"[LOGIN WITH PHONE DEBUG] Missing phone or password")
         return Response({'error': 'Phone and password required'}, status=status.HTTP_400_BAD_REQUEST)
     
     # Normalize phone number
     phone = _normalize_ethiopian_phone(phone)
+    print(f"[LOGIN WITH PHONE DEBUG] Normalized phone: {phone}")
     if not phone:
+        print(f"[LOGIN WITH PHONE DEBUG] Invalid phone format")
         return Response({'error': 'Invalid Ethiopian phone number'}, status=status.HTTP_400_BAD_REQUEST)
     
     # Check if user has active SMS subscription
+    print(f"[LOGIN WITH PHONE DEBUG] Checking for SMS subscription")
     sms_subscription = UserSubscription.objects.filter(
         onevas_phone_number=phone,
         status='active',
@@ -292,18 +298,25 @@ def login_with_phone(request):
     ).first()
     
     if not sms_subscription:
+        print(f"[LOGIN WITH PHONE DEBUG] No SMS subscription found")
         return Response({'error': 'No active SMS subscription found. Please register with OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    print(f"[LOGIN WITH PHONE DEBUG] Found SMS subscription, user: {sms_subscription.user}")
     
     # If user already exists, try regular login
     if sms_subscription.user:
         user = sms_subscription.user
+        print(f"[LOGIN WITH PHONE DEBUG] User exists, attempting login: {user.username}")
         if user.check_password(password):
             token, _ = Token.objects.get_or_create(user=user)
+            print(f"[LOGIN WITH PHONE DEBUG] Login successful: {user.username}")
             return Response({'user': UserSerializer(user).data, 'token': token.key})
         else:
+            print(f"[LOGIN WITH PHONE DEBUG] Invalid password for user: {user.username}")
             return Response({'error': 'Invalid password'}, status=status.HTTP_401_UNAUTHORIZED)
     
     # User doesn't exist yet - need to register first
+    print(f"[LOGIN WITH PHONE DEBUG] User does not exist, requires registration")
     return Response({
         'error': 'User account not created yet',
         'message': 'Please register your account first. Your SMS subscription will be linked automatically.',
@@ -365,11 +378,16 @@ def verify_phone_otp(request):
     
     phone = request.data.get('phone', '').strip()
     code = request.data.get('code', '').strip()
+    print(f"[OTP DEBUG] verify_phone_otp called - phone: {phone}, code: {code}")
+    
     if not phone or not code:
+        print(f"[OTP DEBUG] verify_phone_otp failed - missing phone or code")
         return Response({'error': 'Phone and code required'}, status=status.HTTP_400_BAD_REQUEST)
     
     # Verify OTP using OTPService
+    print(f"[OTP DEBUG] Calling OTPService.verify_otp")
     success, message = OTPService.verify_otp(phone, code)
+    print(f"[OTP DEBUG] OTPService.verify_otp result - success: {success}, message: {message}")
     
     if success:
         return Response({'message': message, 'phone': phone})
@@ -390,12 +408,17 @@ def register_with_phone(request):
     email = request.data.get('email', '').strip()
     skip_otp = request.data.get('skip_otp', False)  # Allow skipping OTP for SMS subscribers
     
+    print(f"[REGISTRATION DEBUG] register_with_phone called - phone: {phone}, username: {username}, email: {email}, skip_otp: {skip_otp}")
+    
     if not phone or not username or not password:
+        print(f"[REGISTRATION DEBUG] Missing required fields")
         return Response({'error': 'phone, username, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
     if not password.isdigit() or len(password) != 6:
+        print(f"[REGISTRATION DEBUG] Invalid password format: {len(password)} digits")
         return Response({'error': 'Password must be exactly 6 digits (numbers only)'}, status=status.HTTP_400_BAD_REQUEST)
     
     # Check if user has active SMS subscription (OTP-less flow)
+    print(f"[REGISTRATION DEBUG] Checking for SMS subscription for phone: {phone}")
     sms_subscription = UserSubscription.objects.filter(
         onevas_phone_number=phone,
         status='active',
@@ -404,33 +427,45 @@ def register_with_phone(request):
     ).first()
     
     if sms_subscription:
+        print(f"[REGISTRATION DEBUG] Found active SMS subscription, skipping OTP")
         skip_otp = True  # Skip OTP verification for SMS subscribers
+    else:
+        print(f"[REGISTRATION DEBUG] No SMS subscription found, will check OTP verification")
     
     if not skip_otp:
         # Require OTP verification for app-first flow
+        print(f"[REGISTRATION DEBUG] Requiring OTP verification")
         from .models_auth import PhoneOTP
         try:
             otp = PhoneOTP.objects.get(phone=phone, verified=True)
+            print(f"[REGISTRATION DEBUG] OTP found and verified")
         except PhoneOTP.DoesNotExist:
+            print(f"[REGISTRATION DEBUG] OTP not found or not verified")
             return Response({'error': 'Phone not verified. Please complete OTP step first.'}, status=status.HTTP_400_BAD_REQUEST)
         if timezone.now() > otp.expires_at:
+            print(f"[REGISTRATION DEBUG] OTP expired")
             otp.delete()
             return Response({'error': 'Session expired. Please start registration again.'}, status=status.HTTP_400_BAD_REQUEST)
     
     if User.objects.filter(username=username).exists():
+        print(f"[REGISTRATION DEBUG] Username already taken: {username}")
         return Response({'error': 'Username already taken. Please choose another.'}, status=status.HTTP_400_BAD_REQUEST)
     if UserProfile.objects.filter(phone_number=phone).exists():
+        print(f"[REGISTRATION DEBUG] Phone number already registered: {phone}")
         return Response({'error': 'Phone number already registered'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
+        print(f"[REGISTRATION DEBUG] Creating user account...")
         user = User.objects.create_user(username=username, password=password, email=email or '')
         profile = user.profile
         profile.phone_number = phone
         profile.save()
+        print(f"[REGISTRATION DEBUG] User created successfully: {user.username} (ID: {user.id})")
         
         if not skip_otp:
             from .models_auth import PhoneOTP
             otp.delete()
+            print(f"[REGISTRATION DEBUG] OTP deleted after successful registration")
         
         # Link any SMS subscriptions to the new user
         with transaction.atomic():
@@ -441,6 +476,8 @@ def register_with_phone(request):
                 subscription_source='sms',
                 user__isnull=True
             )
+            sms_count = sms_subs.count()
+            print(f"[REGISTRATION DEBUG] Found {sms_count} SMS subscriptions to link")
             
             for sub in sms_subs:
                 # Link subscription to user
@@ -462,10 +499,15 @@ def register_with_phone(request):
                 # Update user trial status
                 profile.is_trial_user = False
                 profile.save()
+                print(f"[REGISTRATION DEBUG] Linked subscription {sub.id} to user {user.username}")
         
         token, _ = Token.objects.get_or_create(user=user)
+        print(f"[REGISTRATION DEBUG] Registration successful - token generated for user: {user.username}")
         return Response({'user': UserSerializer(user).data, 'token': token.key}, status=status.HTTP_201_CREATED)
     except Exception as e:
+        print(f"[REGISTRATION DEBUG] Registration failed with error: {str(e)}")
+        import traceback
+        print(f"[REGISTRATION DEBUG] Traceback: {traceback.format_exc()}")
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
