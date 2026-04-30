@@ -4,75 +4,77 @@ import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
+const getFallbackTiers = () => [
+  {
+    id: 1,
+    name: 'Daily',
+    duration_type: 'daily',
+    price_etb: 3,
+    price_coins: null,
+    description: 'Access for 24 hours',
+    features: ['Full access for 24 hours', 'Ad-free experience', 'HD quality videos']
+  },
+  {
+    id: 2,
+    name: 'Weekly',
+    duration_type: 'weekly',
+    price_etb: 20,
+    price_coins: null,
+    description: 'Access for 7 days',
+    features: ['Full access for 7 days', 'Ad-free experience', 'HD quality videos']
+  },
+  {
+    id: 3,
+    name: 'Monthly',
+    duration_type: 'monthly',
+    price_etb: 70,
+    price_coins: null,
+    description: 'Access for 30 days',
+    features: ['Full access for 30 days', 'Ad-free experience', 'HD quality videos']
+  },
+  {
+    id: 4,
+    name: 'OnDemand',
+    duration_type: 'ondemand',
+    price_etb: 10,
+    price_coins: 100,
+    description: 'Pay per use with coins',
+    features: ['Flexible payment', 'No recurring charges', 'Use coins as needed']
+  }
+];
+
 export function SubscriptionPage({ user, onBack }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   
-  const [tiers, setTiers] = useState([]);
+  const [tiers, setTiers] = useState(getFallbackTiers());
   const [currentSubscription, setCurrentSubscription] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedTier, setSelectedTier] = useState(null);
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
+    // Load tiers and subscription in background
     loadSubscriptionData();
   }, []);
 
   const loadSubscriptionData = async () => {
     try {
-      setLoading(true);
+      // Fetch both in parallel but don't block UI
       const [tiersData, subscriptionData] = await Promise.all([
         api.request('/subscriptions/tiers/active/').catch(() => []),
         api.request('/subscriptions/').catch(() => null),
       ]);
-      setTiers(Array.isArray(tiersData) && tiersData.length > 0 ? tiersData : getFallbackTiers());
+      // Only update tiers if API returns valid data
+      if (Array.isArray(tiersData) && tiersData.length > 0) {
+        setTiers(tiersData);
+      }
       setCurrentSubscription(subscriptionData);
     } catch (error) {
       console.error('Error loading subscription data:', error);
-      setTiers(getFallbackTiers());
-    } finally {
-      setLoading(false);
+      // Keep using fallback tiers
     }
   };
-
-  const getFallbackTiers = () => [
-    {
-      id: 1,
-      name: 'Daily',
-      duration_type: 'daily',
-      price_etb: 3,
-      price_coins: null,
-      description: 'Access for 24 hours',
-      features: ['Full access for 24 hours', 'Ad-free experience', 'HD quality videos']
-    },
-    {
-      id: 2,
-      name: 'Weekly',
-      duration_type: 'weekly',
-      price_etb: 20,
-      price_coins: null,
-      description: 'Access for 7 days',
-      features: ['Full access for 7 days', 'Ad-free experience', 'HD quality videos', 'Priority support']
-    },
-    {
-      id: 3,
-      name: 'Monthly',
-      duration_type: 'monthly',
-      price_etb: 70,
-      price_coins: null,
-      description: 'Access for 30 days',
-      features: ['Full access for 30 days', 'Ad-free experience', 'HD quality videos', 'Priority support', 'Exclusive content']
-    },
-    {
-      id: 4,
-      name: 'OnDemand',
-      duration_type: 'ondemand',
-      price_etb: 10,
-      price_coins: 100,
-      description: 'Pay per use with coins',
-      features: ['Flexible payment', 'No recurring charges', 'Use coins as needed']
-    }
-  ];
 
   const handleSubscribe = (tier) => {
     // Get tier code for SMS
@@ -81,14 +83,12 @@ export function SubscriptionPage({ user, onBack }) {
                      tier.duration_type === 'monthly' ? 'C' : 'D';
     
     // Open SMS app with pre-filled message
-    const shortCode = '9286';
+    // Android requires country code for short codes to be recognized as valid
+    const shortCode = '+2519286';
     const message = tierCode;
     
-    // Use SMS link format - window.location.href works better on Android
-    const smsUrl = `sms:${shortCode}?body=${encodeURIComponent(message)}`;
-    
-    // Use window.location.href instead of window.open for better Android compatibility
-    window.location.href = smsUrl;
+    // Use window.location.href for most reliable SMS app opening
+    window.location.href = `sms:${shortCode}?body=${encodeURIComponent(message)}`;
   };
 
   const handlePayment = async () => {
@@ -368,38 +368,55 @@ export function SubscriptionPage({ user, onBack }) {
                   ))}
                 </div>
 
-                <button
-                  disabled={isCurrent}
-                  onClick={() => !isCurrent && handleSubscribe(tier)}
-                  style={{
-                    width: '100%',
-                    padding: 16,
-                    borderRadius: 12,
-                    border: isCurrent ? 'none' : `2px solid #1a1a1a`,
-                    background: isCurrent ? '#1a1a1a' : '#1a1a1a',
-                    color: '#fff',
-                    fontSize: 18,
-                    fontWeight: 800,
-                    cursor: isCurrent ? 'default' : 'pointer',
-                    opacity: isCurrent ? 0.8 : 1,
-                    boxShadow: isCurrent ? 'none' : '0 4px 15px rgba(0,0,0,0.3)',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseOver={(e) => {
-                    if (!isCurrent) {
+                {isCurrent ? (
+                  <button
+                    disabled={true}
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      background: '#1a1a1a',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 12,
+                      fontSize: 18,
+                      fontWeight: 800,
+                      cursor: 'default',
+                      opacity: 0.8,
+                      boxShadow: 'none',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    ✓ Subscribed
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleSubscribe(tier)}
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      background: '#1a1a1a',
+                      color: '#fff',
+                      border: '2px solid #1a1a1a',
+                      borderRadius: 12,
+                      fontSize: 18,
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      opacity: 1,
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseOver={(e) => {
                       e.target.style.transform = 'translateY(-2px)';
                       e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    if (!isCurrent) {
+                    }}
+                    onMouseOut={(e) => {
                       e.target.style.transform = 'translateY(0)';
                       e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
-                    }
-                  }}
-                >
-                  {isCurrent ? '✓ Subscribed' : '📱 Subscribe via SMS'}
-                </button>
+                    }}
+                  >
+                    📱 Subscribe via SMS
+                  </button>
+                )}
               </div>
             );
           })}
