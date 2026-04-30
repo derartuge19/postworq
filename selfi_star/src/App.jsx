@@ -204,6 +204,19 @@ export default function WerqRoot() {
     }
   }, []);
 
+  // Show login screen when URL params change (e.g., when clicking link while already logged in)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('login') === 'true' || params.get('subscription_tp') === 'true') {
+        setShowLogin(true);
+      }
+    };
+
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
+
   // ── Restore navigation state from browser history on initial load ──
   // This ensures that refreshing the page maintains the current view
   const _historyState = (() => {
