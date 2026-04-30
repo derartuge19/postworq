@@ -256,23 +256,13 @@ const api = {
     }),
 
   login: async (identifier, password) => {
-    // Detect if identifier is a phone number or username
-    const isPhone = /^(\+?251|0)\d{9,}$/.test(identifier.replace(/\s/g, ''));
+    // For phone numbers, use them as username since backend expects username/password
+    // We already created users with phone numbers as usernames
     
-    let data;
-    if (isPhone) {
-      // Use phone-specific login endpoint
-      data = await api.request('/auth/login-phone/', {
-        method: 'POST',
-        body: JSON.stringify({ phone: identifier, pin: password }),
-      });
-    } else {
-      // Use regular username login
-      data = await api.request('/auth/login/', {
-        method: 'POST',
-        body: JSON.stringify({ username: identifier, password }),
-      });
-    }
+    const data = await api.request('/auth/login/', {
+      method: 'POST',
+      body: JSON.stringify({ username: identifier, password }),
+    });
     
     if (data.token) {
       await api.setAuthToken(data.token);
