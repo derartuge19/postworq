@@ -184,6 +184,16 @@ export default function WerqRoot() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
+  // Check URL parameters for register=true to open registration screen
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('register') === 'true') {
+      setShowRegister(true);
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // ── Restore navigation state from browser history on initial load ──
   // This ensures that refreshing the page maintains the current view
   const _historyState = (() => {
