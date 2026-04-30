@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
   },
   infoBox: {
     flexDirection: 'row',
-    backgroundColor: '#FFF8F0',
+    backgroundColor: '#1A1A1A',
     borderRadius: 12,
     padding: 12,
     alignItems: 'flex-start',
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0B0B0C',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
