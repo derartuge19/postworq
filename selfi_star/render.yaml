@@ -1,0 +1,42 @@
+services:
+  # Backend Django Service
+  - type: web
+    name: selfi-star-backend
+    env: python
+    plan: free
+    buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements_py314.txt
+    startCommand: cd backend && python manage.py migrate --verbosity=2 && python manage.py collectstatic --noinput 2>/dev/null; echo "Running admin setup..." && python setup_admin.py || echo "Admin setup failed but continuing..." && python setup_campaigns.py && echo "Seeding default gifts..." && python manage.py seed_default_gifts || echo "Gift seeding failed but continuing..." && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    healthCheckPath: /api/
+    envVars:
+      # Admin credentials (auto-created on deploy)
+      - key: ADMIN_USERNAME
+        value: derartu
+      - key: ADMIN_EMAIL
+        value: derartu@postworq.com
+      - key: ADMIN_PASSWORD
+        value: Derartu123!
+      # Database (Neon PostgreSQL)
+      - key: DB_ENGINE
+        value: django.db.backends.postgresql
+      - key: DB_NAME
+        value: neondb
+      - key: DB_USER
+        value: neondb_owner
+      - key: DB_PASSWORD
+        value: npg_Ck3JqV2u5m1x
+      - key: DB_HOST
+        value: flat-thunder-79099653.aws.neon.tech
+      - key: DB_PORT
+        value: 5432
+      # Django settings
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: postworq.onrender.com,.onrender.com,localhost,127.0.0.1
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://postworqq.vercel.app,https://postworq.onrender.com,http://localhost:3000,http://localhost:5173
+
+databases:
+  # We're using external Neon database, so no Render database needed
