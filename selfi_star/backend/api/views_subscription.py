@@ -75,6 +75,7 @@ class OnevasWebhookView(APIView):
             'STOP3': 'monthly'
         }
         target_duration_type = stop_keyword_mapping.get(stop_keyword, None)
+        print(f"[SUBSCRIPTION DEBUG] Target duration type for {stop_keyword}: {target_duration_type}")
 
         # First try to find registered user
         user = None
@@ -116,15 +117,17 @@ class OnevasWebhookView(APIView):
                     status='active',
                     subscription_source='sms'
                 ).first()
-        
+
         if not subscription:
             # No active subscription
             print(f"[SUBSCRIPTION DEBUG] No active subscription found for phone: {phone_number}")
             no_sub_message = "You don't have an active subscription to cancel."
-            self.send_sms(phone_number, no_sub_message)
+            print(f"[SUBSCRIPTION DEBUG] Sending no-subscription SMS to {phone_number}")
+            sms_sent = self.send_sms(phone_number, no_sub_message)
+            print(f"[SUBSCRIPTION DEBUG] No-subscription SMS sent: {sms_sent}")
             return Response({'status': 'no_active_subscription', 'message': 'No active subscription found'})
-        
-        print(f"[SUBSCRIPTION DEBUG] Cancelling subscription: ID {subscription.id}")
+
+        print(f"[SUBSCRIPTION DEBUG] Cancelling subscription: ID {subscription.id}, Tier: {subscription.tier.name}, Status: {subscription.status}")
         # Cancel subscription
         subscription.cancel(reason='User cancelled via STOP SMS')
         
