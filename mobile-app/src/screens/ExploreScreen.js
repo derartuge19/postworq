@@ -1,271 +1,230 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList,
+  Image, ActivityIndicator, Dimensions, ScrollView,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import api from '../api';
 
-export default function ExploreScreen() {
-  const [searchText, setSearchText] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+const { width } = Dimensions.get('window');
+const GOLD = '#C8B56A';
+const BG = '#0D0D0D';
+const CARD = '#1A1A1A';
+const BORDER = '#262626';
+const COLS = 3;
+const ITEM_SIZE = (width - 4) / COLS;
 
-  const categories = ['All', 'Music', 'Dance', 'Food', 'Travel', 'Comedy', 'Sports', 'Education'];
-  const trending = [
-    { id: 1, title: 'Ethiopian Coffee Ceremony', views: '1.2M', category: 'Food' },
-    { id: 2, title: 'Traditional Eskista Dance', views: '890K', category: 'Dance' },
-    { id: 3, title: 'Addis Ababa City Tour', views: '2.3M', category: 'Travel' },
-    { id: 4, title: 'Ethiopian Jazz Music', views: '567K', category: 'Music' },
-  ];
+const CATEGORIES = ['Trending', 'Dance', 'Comedy', 'Sports', 'Food', 'Travel', 'Art', 'Gaming', 'Beauty', 'Fashion'];
+const TIME_RANGES = [{ label: '24h', value: '24h' }, { label: '7 days', value: '7d' }, { label: '30 days', value: '30d' }];
+
+export default function ExploreScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('Trending');
+  const [timeRange, setTimeRange] = useState('7d');
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchResults, setSearchResults] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [hashtags, setHashtags] = useState([]);
+
+  useEffect(() => { fetchTrending(); fetchHashtags(); }, [category, timeRange]);
+
+  const fetchTrending = async () => {
+    setLoading(true);
+    try {
+      const cat = category === 'Trending' ? 'all' : category.toLowerCase();
+      const data = await api.request(`/explorer/trending/?category=${cat}&time_range=${timeRange}&limit=30`);
+      setItems(Array.isArray(data) ? data : (data.results || []));
+    } catch { setItems([]); }
+    finally { setLoading(false); }
+  };
+
+  const fetchHashtags = async () => {
+    try {
+      const data = await api.request(`/explorer/trending-hashtags/?time_range=${timeRange}&limit=10`);
+      setHashtags(Array.isArray(data) ? data : (data.results || []));
+    } catch { setHashtags([]); }
+  };
+
+  const doSearch = useCallback(async (q) => {
+    if (!q.trim()) { setSearchResults(null); return; }
+    setSearching(true);
+    try {
+      const data = await api.request(`/search/?q=${encodeURIComponent(q.trim())}`);
+      setSearchResults(data);
+    } catch { setSearchResults(null); }
+    finally { setSearching(false); }
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => doSearch(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const renderGridItem = ({ item, index }) => (
+    <TouchableOpacity
+      style={styles.gridItem}
+      onPress={() => navigation.navigate('ReelsDetail', { initialVideoId: item.id })}
+    >
+      {item.thumbnail_url || item.image_url
+        ? <Image source={{ uri: item.thumbnail_url || item.image_url }} style={styles.gridImage} resizeMode="cover" />
+        : <View style={[styles.gridImage, { backgroundColor: '#222', justifyContent: 'center', alignItems: 'center' }]}>
+            <Ionicons name={item.video_url ? 'play' : 'image'} size={24} color="#444" />
+          </View>}
+      {item.video_url && (
+        <View style={styles.videoIcon}>
+          <Ionicons name="play" size={10} color="#fff" />
+        </View>
+      )}
+      {index < 3 && (
+        <View style={styles.rankBadge}>
+          <Text style={styles.rankText}>{['🥇', '🥈', '🥉'][index]}</Text>
+        </View>
+      )}
+      <View style={styles.gridOverlay}>
+        <Ionicons name="heart" size={12} color="#fff" />
+        <Text style={styles.gridStat}>{item.likes_count || 0}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search videos, creators, hashtags..."
-            placeholderTextColor="#666"
-            value={searchText}
-            onChangeText={setSearchText}
-          />
-          <TouchableOpacity style={styles.searchButton}>
-            <Text style={styles.searchIcon}>🔍</Text>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Search bar */}
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={18} color="#666" style={{ marginRight: 8 }} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search users, posts, hashtags..."
+          placeholderTextColor="#666"
+          value={query}
+          onChangeText={setQuery}
+          returnKeyType="search"
+        />
+        {!!query && (
+          <TouchableOpacity onPress={() => { setQuery(''); setSearchResults(null); }}>
+            <Ionicons name="close-circle" size={18} color="#666" />
           </TouchableOpacity>
-        </View>
+        )}
+      </View>
 
-        {/* Categories */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.categoryChip,
-                selectedCategory === category && styles.categoryChipActive
-              ]}
-              onPress={() => setSelectedCategory(category)}
-            >
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === category && styles.categoryTextActive
-              ]}>
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Trending Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🔥 Trending Now</Text>
-          {trending.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.trendingItem}>
-              <View style={styles.trendingThumbnail}>
-                <Text style={styles.thumbnailIcon}>▶️</Text>
-              </View>
-              <View style={styles.trendingInfo}>
-                <Text style={styles.trendingTitle}>{item.title}</Text>
-                <Text style={styles.trendingMeta}>{item.views} views • {item.category}</Text>
-              </View>
-              <TouchableOpacity style={styles.moreButton}>
-                <Text style={styles.moreIcon}>⋯</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Popular Creators */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🌟 Popular Creators</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {['Creator1', 'Creator2', 'Creator3', 'Creator4'].map((creator, index) => (
-              <TouchableOpacity key={index} style={styles.creatorCard}>
-                <View style={styles.creatorAvatar} />
-                <Text style={styles.creatorName}>{creator}</Text>
-                <Text style={styles.creatorFollowers}>{(Math.random() * 100).toFixed(1)}K followers</Text>
-                <TouchableOpacity style={styles.followButton}>
-                  <Text style={styles.followButtonText}>Follow</Text>
+      {/* Search results */}
+      {searchResults ? (
+        <ScrollView style={{ flex: 1 }}>
+          {searching && <ActivityIndicator color={GOLD} style={{ padding: 20 }} />}
+          {/* Users */}
+          {searchResults.users?.length > 0 && (
+            <View>
+              <Text style={styles.sectionTitle}>Users</Text>
+              {searchResults.users.map(u => (
+                <TouchableOpacity key={u.id} style={styles.userRow} onPress={() => navigation.navigate('Profile', { userId: u.id })}>
+                  {u.profile_photo
+                    ? <Image source={{ uri: u.profile_photo }} style={styles.userAvatar} />
+                    : <View style={[styles.userAvatar, { backgroundColor: GOLD, justifyContent: 'center', alignItems: 'center' }]}>
+                        <Text style={{ color: '#000', fontWeight: '700' }}>{(u.username || '?')[0].toUpperCase()}</Text>
+                      </View>}
+                  <View style={{ marginLeft: 12 }}>
+                    <Text style={styles.userName}>{u.username}</Text>
+                    {u.bio && <Text style={styles.userBio} numberOfLines={1}>{u.bio}</Text>}
+                  </View>
                 </TouchableOpacity>
+              ))}
+            </View>
+          )}
+          {/* Posts */}
+          {searchResults.posts?.length > 0 && (
+            <View>
+              <Text style={styles.sectionTitle}>Posts</Text>
+              <View style={styles.grid}>
+                {searchResults.posts.map((item, i) => renderGridItem({ item, index: i }))}
+              </View>
+            </View>
+          )}
+          {!searching && !searchResults.users?.length && !searchResults.posts?.length && (
+            <Text style={{ color: '#666', textAlign: 'center', padding: 32 }}>No results found</Text>
+          )}
+        </ScrollView>
+      ) : (
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          {/* Categories */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories} contentContainerStyle={{ paddingHorizontal: 12, gap: 8 }}>
+            {CATEGORIES.map(cat => (
+              <TouchableOpacity
+                key={cat}
+                style={[styles.catChip, category === cat && styles.catChipActive]}
+                onPress={() => setCategory(cat)}
+              >
+                <Text style={[styles.catText, category === cat && styles.catTextActive]}>{cat}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
 
-        {/* Hashtags */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📱 Trending Hashtags</Text>
-          <View style={styles.hashtagsContainer}>
-            {['#Ethiopian', '#Coffee', '#Dance', '#Music', '#Travel', '#Food'].map((tag, index) => (
-              <TouchableOpacity key={index} style={styles.hashtagChip}>
-                <Text style={styles.hashtagText}>{tag}</Text>
+          {/* Time range */}
+          <View style={styles.timeRow}>
+            {TIME_RANGES.map(t => (
+              <TouchableOpacity
+                key={t.value}
+                style={[styles.timeChip, timeRange === t.value && styles.timeChipActive]}
+                onPress={() => setTimeRange(t.value)}
+              >
+                <Text style={[styles.timeText, timeRange === t.value && styles.timeTextActive]}>{t.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
-        </View>
-      </ScrollView>
+
+          {/* Trending hashtags */}
+          {hashtags.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.hashtagRow} contentContainerStyle={{ paddingHorizontal: 12, gap: 8 }}>
+              {hashtags.map((h, i) => (
+                <TouchableOpacity key={i} style={styles.hashChip}>
+                  <Text style={styles.hashText}>#{h.tag || h.name || h}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+
+          {/* Grid */}
+          {loading
+            ? <ActivityIndicator color={GOLD} style={{ padding: 40 }} />
+            : <View style={styles.grid}>
+                {items.map((item, i) => renderGridItem({ item, index: i }))}
+              </View>}
+        </ScrollView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0D0D0D',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 80,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    margin: 16,
-    marginBottom: 8,
-  },
-  searchInput: {
-    flex: 1,
-    backgroundColor: '#1A1A1A',
-    borderWidth: 1,
-    borderColor: '#262626',
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    color: '#fff',
-    fontSize: 14,
-  },
-  searchButton: {
-    marginLeft: 12,
-    width: 40,
-    height: 40,
-    backgroundColor: '#F9E08B',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchIcon: {
-    fontSize: 16,
-  },
-  categoriesContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  categoryChip: {
-    backgroundColor: '#1A1A1A',
-    borderWidth: 1,
-    borderColor: '#262626',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-  },
-  categoryChipActive: {
-    backgroundColor: '#F9E08B',
-    borderColor: '#F9E08B',
-  },
-  categoryText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  categoryTextActive: {
-    color: '#000',
-  },
-  section: {
-    margin: 16,
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#F9E08B',
-    marginBottom: 12,
-  },
-  trendingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-  },
-  trendingThumbnail: {
-    width: 80,
-    height: 60,
-    backgroundColor: '#333',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  thumbnailIcon: {
-    fontSize: 20,
-  },
-  trendingInfo: {
-    flex: 1,
-  },
-  trendingTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  trendingMeta: {
-    fontSize: 12,
-    color: '#666',
-  },
-  moreButton: {
-    padding: 8,
-  },
-  moreIcon: {
-    fontSize: 16,
-    color: '#666',
-  },
-  creatorCard: {
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  creatorAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#333',
-    marginBottom: 8,
-  },
-  creatorName: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  creatorFollowers: {
-    fontSize: 10,
-    color: '#666',
-    marginBottom: 8,
-  },
-  followButton: {
-    backgroundColor: '#F9E08B',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  followButtonText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  hashtagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  hashtagChip: {
-    backgroundColor: '#1A1A1A',
-    borderWidth: 1,
-    borderColor: '#262626',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  hashtagText: {
-    fontSize: 12,
-    color: '#F9E08B',
-  },
+  container: { flex: 1, backgroundColor: BG },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: CARD, margin: 12, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: BORDER },
+  searchInput: { flex: 1, color: '#fff', fontSize: 15 },
+  categories: { marginBottom: 8 },
+  catChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: CARD, borderWidth: 1, borderColor: BORDER },
+  catChipActive: { backgroundColor: GOLD, borderColor: GOLD },
+  catText: { color: '#aaa', fontSize: 13, fontWeight: '600' },
+  catTextActive: { color: '#000', fontWeight: '700' },
+  timeRow: { flexDirection: 'row', paddingHorizontal: 12, gap: 8, marginBottom: 8 },
+  timeChip: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12, backgroundColor: CARD, borderWidth: 1, borderColor: BORDER },
+  timeChipActive: { backgroundColor: GOLD + '30', borderColor: GOLD },
+  timeText: { color: '#aaa', fontSize: 12 },
+  timeTextActive: { color: GOLD, fontWeight: '700' },
+  hashtagRow: { marginBottom: 8 },
+  hashChip: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12, backgroundColor: GOLD + '20', borderWidth: 1, borderColor: GOLD + '40' },
+  hashText: { color: GOLD, fontSize: 12, fontWeight: '600' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 2, paddingHorizontal: 2 },
+  gridItem: { width: ITEM_SIZE, height: ITEM_SIZE, position: 'relative' },
+  gridImage: { width: '100%', height: '100%' },
+  videoIcon: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 4, padding: 2 },
+  rankBadge: { position: 'absolute', top: 4, left: 4 },
+  rankText: { fontSize: 16 },
+  gridOverlay: { position: 'absolute', bottom: 4, left: 4, flexDirection: 'row', alignItems: 'center', gap: 3 },
+  gridStat: { color: '#fff', fontSize: 11, fontWeight: '600', textShadowColor: '#000', textShadowRadius: 4 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: GOLD, padding: 12 },
+  userRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: BORDER },
+  userAvatar: { width: 44, height: 44, borderRadius: 22 },
+  userName: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  userBio: { fontSize: 12, color: '#666', marginTop: 2 },
 });
