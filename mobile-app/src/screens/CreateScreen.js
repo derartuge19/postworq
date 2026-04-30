@@ -1,261 +1,347 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+  View, Text, StyleSheet, TouchableOpacity, Image, Alert,
+  TextInput, ActivityIndicator, ScrollView, Dimensions,
+  Platform, KeyboardAvoidingView, StatusBar, Modal,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { Video, ResizeMode } from 'expo-av';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../contexts/AuthContext';
+import api from '../api';
 
-export default function CreateScreen() {
-  const createOptions = [
-    { id: 1, title: 'Short Video', icon: '🎬', description: 'Create 15-60 second video' },
-    { id: 2, title: 'Photo Post', icon: '📸', description: 'Share photos with captions' },
-    { id: 3, title: 'Live Stream', icon: '🔴', description: 'Go live with your followers' },
-    { id: 4, title: 'Campaign Entry', icon: '🏆', description: 'Submit to active campaigns' },
-    { id: 5, title: 'Story', icon: '📱', description: 'Share 24-hour content' },
-    { id: 6, title: 'Audio', icon: '🎵', description: 'Share music or podcast' },
-  ];
+const { width } = Dimensions.get('window');
+const GOLD = '#C8B56A';
+const BG = '#0D0D0D';
+const CARD = '#1A1A1A';
+const BORDER = '#262626';
 
-  return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
+const FILTERS = [
+  { id: 'none',    name: 'Original', overlay: 'transparent' },
+  { id: 'warm',    name: 'Warm',     overlay: 'rgba(255,140,0,0.15)' },
+  { id: 'cool',    name: 'Cool',     overlay: 'rgba(30,80,200,0.12)' },
+  { id: 'vintage', name: 'Vintage',  overlay: 'rgba(120,70,10,0.2)' },
+  { id: 'golden',  name: 'Golden',   overlay: 'rgba(218,155,42,0.18)' },
+  { id: 'dark',    name: 'Dark',     overlay: 'rgba(0,0,0,0.25)' },
+];
+
+// Stage: 'pick' | 'edit' | 'details' | 'uploading'
+export default function CreateScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const [stage, setStage] = useState('pick');
+  const [media, setMedia] = useState(null);
+  const [caption, setCaption] = useState('');
+  const [hashtags, setHashtags] = useState('');
+  const [filter, setFilter] = useState(FILTERS[0]);
+  const [progress, setProgress] = useState(0);
+  const videoRef = useRef(null);
+
+  const pickFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please allow access to your photo library.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: false,
+      quality: 0.85,
+      videoMaxDuration: 60,
+    });
+    if (!result.canceled && result.assets?.length) {
+      const asset = result.assets[0];
+      setMedia({ uri: asset.uri, type: asset.type || 'image' });
+      setStage('edit');
+    }
+  };
+
+  const pickFromCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please allow camera access.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: false,
+      quality: 0.85,
+      videoMaxDuration: 60,
+    });
+    if (!result.canceled && result.assets?.length) {
+      const asset = result.assets[0];
+      setMedia({ uri: asset.uri, type: asset.type || 'image' });
+      setStage('edit');
+    }
+  };
+
+  const handlePost = async () => {
+    if (!media) return;
+    if (!user) { Alert.alert('Login Required', 'Please login to post.'); return; }
+    setStage('uploading');
+    setProgress(0);
+    try {
+      const isVideo = media.type === 'video';
+      const fd = new FormData();
+      fd.append('file', {
+        uri: Platform.OS === 'ios' ? media.uri.replace('file://', '') : media.uri,
+        type: isVideo ? 'video/mp4' : 'image/jpeg',
+        name: isVideo ? 'upload.mp4' : 'upload.jpg',
+      });
+      fd.append('caption', caption || '');
+      if (hashtags) fd.append('hashtags', hashtags);
+
+      await api.createPost(fd, { onProgress: pct => setProgress(Math.min(pct, 99)) });
+      setProgress(100);
+      setTimeout(() => {
+        setMedia(null); setCaption(''); setHashtags('');
+        setFilter(FILTERS[0]); setStage('pick');
+        navigation.navigate('Home');
+      }, 600);
+    } catch (err) {
+      const msg = typeof err === 'object' ? (err.detail || err.error || err.message || 'Upload failed') : String(err);
+      Alert.alert('Upload Failed', msg);
+      setStage('details');
+    }
+  };
+
+  // ── PICK STAGE ──────────────────────────────────────────────────────────────
+  if (stage === 'pick') {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="light-content" />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Create</Text>
-          <Text style={styles.headerSubtitle}>Share your Ethiopian content</Text>
+          <Text style={styles.headerTitle}>New Post</Text>
         </View>
-
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity style={styles.quickActionButton}>
-            <View style={styles.quickActionIcon}>
-              <Text style={styles.quickActionEmoji}>📹</Text>
+        <ScrollView contentContainerStyle={styles.pickBody}>
+          {/* Hero */}
+          <View style={styles.heroSection}>
+            <View style={styles.heroCircle}>
+              <Image
+                source={require('../image/create_img.jpg')}
+                style={{ width: 72, height: 72, borderRadius: 36 }}
+                resizeMode="cover"
+              />
+              <View style={styles.sparkle}><Text style={{ fontSize: 11 }}>✨</Text></View>
             </View>
-            <Text style={styles.quickActionText}>Record</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionButton}>
-            <View style={styles.quickActionIcon}>
-              <Text style={styles.quickActionEmoji}>🖼️</Text>
-            </View>
-            <Text style={styles.quickActionText}>Upload</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionButton}>
-            <View style={styles.quickActionIcon}>
-              <Text style={styles.quickActionEmoji}>✏️</Text>
-            </View>
-            <Text style={styles.quickActionText}>Edit</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Create Options */}
-        <View style={styles.optionsContainer}>
-          <Text style={styles.sectionTitle}>Content Types</Text>
-          {createOptions.map((option) => (
-            <TouchableOpacity key={option.id} style={styles.optionCard}>
-              <View style={styles.optionIcon}>
-                <Text style={styles.optionEmoji}>{option.icon}</Text>
-              </View>
-              <View style={styles.optionContent}>
-                <Text style={styles.optionTitle}>{option.title}</Text>
-                <Text style={styles.optionDescription}>{option.description}</Text>
-              </View>
-              <TouchableOpacity style={styles.optionArrow}>
-                <Text style={styles.arrowIcon}>→</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Recent Drafts */}
-        <View style={styles.draftsContainer}>
-          <Text style={styles.sectionTitle}>Recent Drafts</Text>
-          {[1, 2, 3].map((item) => (
-            <TouchableOpacity key={item} style={styles.draftItem}>
-              <View style={styles.draftThumbnail}>
-                <Text style={styles.draftIcon}>🎬</Text>
-              </View>
-              <View style={styles.draftInfo}>
-                <Text style={styles.draftTitle}>Draft {item}</Text>
-                <Text style={styles.draftTime}>Edited 2h ago</Text>
-              </View>
-              <TouchableOpacity style={styles.draftMenu}>
-                <Text style={styles.menuIcon}>⋯</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Tips */}
-        <View style={styles.tipsContainer}>
-          <Text style={styles.sectionTitle}>💡 Creator Tips</Text>
-          <View style={styles.tipCard}>
-            <Text style={styles.tipText}>Showcase Ethiopian culture, music, and traditions to reach a global audience!</Text>
+            <Text style={styles.heroTitle}>Create Post</Text>
+            <Text style={styles.heroSub}>Choose how you want to create content</Text>
           </View>
-          <View style={styles.tipCard}>
-            <Text style={styles.tipText}>Use trending hashtags like #Ethiopian, #AddisAbaba, #CoffeeCulture</Text>
+
+          {/* Action cards */}
+          <View style={styles.actionCards}>
+            <TouchableOpacity style={styles.actionCard} onPress={pickFromCamera} activeOpacity={0.85}>
+              <View style={styles.cardIcon}>
+                <Ionicons name="camera" size={24} color={GOLD} />
+              </View>
+              <View style={styles.cardText}>
+                <Text style={styles.cardTitle}>Take Photo/Video</Text>
+                <Text style={styles.cardSub}>Use camera with filters</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionCard} onPress={pickFromLibrary} activeOpacity={0.85}>
+              <View style={styles.cardIcon}>
+                <Ionicons name="cloud-upload-outline" size={24} color={GOLD} />
+              </View>
+              <View style={styles.cardText}>
+                <Text style={styles.cardTitle}>Upload Photo/Video</Text>
+                <Text style={styles.cardSub}>From gallery or files</Text>
+              </View>
+              <Text style={{ color: GOLD, fontSize: 22, fontWeight: '300' }}>+</Text>
+            </TouchableOpacity>
           </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // ── EDIT STAGE ──────────────────────────────────────────────────────────────
+  if (stage === 'edit') {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
+        <StatusBar barStyle="light-content" />
+        <View style={StyleSheet.absoluteFill}>
+          {media.type === 'video' ? (
+            <Video ref={videoRef} source={{ uri: media.uri }} style={StyleSheet.absoluteFill}
+              resizeMode={ResizeMode.COVER} shouldPlay isLooping isMuted />
+          ) : (
+            <Image source={{ uri: media.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          )}
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: filter.overlay }]} pointerEvents="none" />
         </View>
-      </ScrollView>
+
+        {/* Top bar */}
+        <View style={[styles.editTop, { top: insets.top + 8 }]}>
+          <TouchableOpacity onPress={() => setStage('pick')} style={styles.editIconBtn}>
+            <Ionicons name="close" size={26} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setStage('details')} style={styles.nextPill}>
+            <Text style={styles.nextPillText}>Next →</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Filter bar */}
+        <View style={[styles.filterBar, { bottom: insets.bottom + 20 }]}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12, gap: 8 }}>
+            {FILTERS.map(f => (
+              <TouchableOpacity key={f.id} onPress={() => setFilter(f)}
+                style={[styles.filterChip, filter.id === f.id && styles.filterChipActive]}>
+                <Text style={[styles.filterChipText, filter.id === f.id && { color: '#000' }]}>{f.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+    );
+  }
+
+  // ── DETAILS STAGE ───────────────────────────────────────────────────────────
+  if (stage === 'details') {
+    return (
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+        <StatusBar barStyle="light-content" />
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+          <TouchableOpacity onPress={() => setStage('edit')}>
+            <Ionicons name="chevron-back" size={24} color={GOLD} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Post Details</Text>
+          <TouchableOpacity onPress={handlePost} style={styles.postBtn}>
+            <Text style={styles.postBtnText}>Post</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
+          {/* Preview */}
+          <View style={styles.thumb}>
+            <Image source={{ uri: media.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: filter.overlay }]} pointerEvents="none" />
+            {media.type === 'video' && (
+              <View style={styles.videoIcon}>
+                <Ionicons name="videocam" size={16} color="#fff" />
+              </View>
+            )}
+          </View>
+
+          <TextInput
+            style={styles.captionInput}
+            placeholder="Write a caption..."
+            placeholderTextColor="#555"
+            value={caption}
+            onChangeText={setCaption}
+            multiline
+          />
+
+          <View style={styles.hashRow}>
+            <Text style={styles.hashSymbol}>#</Text>
+            <TextInput
+              style={styles.hashInput}
+              placeholder="Add hashtags (e.g. flipstar ethiopia)"
+              placeholderTextColor="#555"
+              value={hashtags}
+              onChangeText={setHashtags}
+              autoCapitalize="none"
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // ── UPLOADING STAGE ─────────────────────────────────────────────────────────
+  return (
+    <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={styles.uploadCard}>
+        <ActivityIndicator size="large" color={GOLD} />
+        <Text style={styles.uploadTitle}>Posting your content...</Text>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+        </View>
+        <Text style={{ color: GOLD, fontSize: 14, fontWeight: '600' }}>{progress}%</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0D0D0D',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 80,
-  },
+  container: { flex: 1, backgroundColor: BG },
   header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#262626',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: BORDER,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#F9E08B',
-    marginBottom: 4,
+  headerTitle: { fontSize: 17, fontWeight: '800', color: GOLD },
+  pickBody: { paddingHorizontal: 20, paddingBottom: 40 },
+  heroSection: { alignItems: 'center', paddingTop: 48, paddingBottom: 32 },
+  heroCircle: { position: 'relative', marginBottom: 16 },
+  sparkle: {
+    position: 'absolute', top: -2, right: -2,
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: BG,
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#666',
+  heroTitle: { fontSize: 22, fontWeight: '800', color: GOLD, marginBottom: 6 },
+  heroSub: { fontSize: 13, color: '#888', textAlign: 'center' },
+  actionCards: { gap: 16 },
+  actionCard: {
+    backgroundColor: CARD, borderRadius: 16, padding: 18,
+    flexDirection: 'row', alignItems: 'center', gap: 16,
+    borderWidth: 1.5, borderColor: GOLD + '40',
   },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#262626',
+  cardIcon: {
+    width: 52, height: 52, borderRadius: 12,
+    backgroundColor: BG, borderWidth: 1, borderColor: BORDER,
+    alignItems: 'center', justifyContent: 'center',
   },
-  quickActionButton: {
-    alignItems: 'center',
+  cardText: { flex: 1 },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: GOLD, marginBottom: 3 },
+  cardSub: { fontSize: 13, color: '#888' },
+  editTop: {
+    position: 'absolute', left: 0, right: 0,
+    flexDirection: 'row', justifyContent: 'space-between',
+    paddingHorizontal: 14, zIndex: 10,
   },
-  quickActionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#F9E08B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
+  editIconBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center',
   },
-  quickActionEmoji: {
-    fontSize: 24,
+  nextPill: { backgroundColor: GOLD, paddingHorizontal: 20, paddingVertical: 9, borderRadius: 22 },
+  nextPillText: { color: '#000', fontWeight: '800', fontSize: 14 },
+  filterBar: { position: 'absolute', left: 0, right: 0, zIndex: 10 },
+  filterChip: {
+    paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
   },
-  quickActionText: {
-    fontSize: 12,
-    color: '#fff',
-    fontWeight: '600',
+  filterChipActive: { backgroundColor: GOLD, borderColor: GOLD },
+  filterChipText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  thumb: {
+    width: '100%', height: 220, borderRadius: 16,
+    overflow: 'hidden', backgroundColor: '#111',
   },
-  optionsContainer: {
-    padding: 16,
+  videoIcon: {
+    position: 'absolute', top: 10, right: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 6, padding: 4,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#F9E08B',
-    marginBottom: 12,
+  captionInput: {
+    fontSize: 15, color: '#fff',
+    borderBottomWidth: 1, borderBottomColor: BORDER,
+    paddingBottom: 12, minHeight: 80,
   },
-  optionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#262626',
+  hashRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: CARD, borderRadius: 12,
+    paddingHorizontal: 12, height: 48,
   },
-  optionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#333',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+  hashSymbol: { fontSize: 20, fontWeight: '800', color: GOLD, marginRight: 6 },
+  hashInput: { flex: 1, fontSize: 14, color: '#fff' },
+  postBtn: { backgroundColor: GOLD, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20 },
+  postBtnText: { color: '#000', fontWeight: '800', fontSize: 14 },
+  uploadCard: { alignItems: 'center', padding: 32, gap: 16 },
+  uploadTitle: { fontSize: 18, fontWeight: '800', color: '#fff' },
+  progressTrack: {
+    width: width * 0.7, height: 8,
+    backgroundColor: '#333', borderRadius: 4, overflow: 'hidden',
   },
-  optionEmoji: {
-    fontSize: 20,
-  },
-  optionContent: {
-    flex: 1,
-  },
-  optionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  optionDescription: {
-    fontSize: 12,
-    color: '#666',
-  },
-  optionArrow: {
-    padding: 8,
-  },
-  arrowIcon: {
-    fontSize: 16,
-    color: '#666',
-  },
-  draftsContainer: {
-    padding: 16,
-  },
-  draftItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-  },
-  draftThumbnail: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: '#333',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  draftIcon: {
-    fontSize: 20,
-  },
-  draftInfo: {
-    flex: 1,
-  },
-  draftTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  draftTime: {
-    fontSize: 12,
-    color: '#666',
-  },
-  draftMenu: {
-    padding: 8,
-  },
-  menuIcon: {
-    fontSize: 16,
-    color: '#666',
-  },
-  tipsContainer: {
-    padding: 16,
-  },
-  tipCard: {
-    backgroundColor: '#1A2A1A',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#F9E08B',
-  },
-  tipText: {
-    fontSize: 13,
-    color: '#F9E08B',
-    lineHeight: 18,
-  },
+  progressFill: { height: '100%', backgroundColor: GOLD },
 });

@@ -6,6 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import api from '../api';
 
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
@@ -41,6 +42,20 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 function MainTabs() {
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  useEffect(() => {
+    // Poll unread DM count every 30s
+    const fetchUnread = async () => {
+      try {
+        const data = await api.request('/messages/unread-count/').catch(() => null);
+        if (data?.count !== undefined) setUnreadMessages(data.count);
+      } catch {}
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, []);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -68,6 +83,16 @@ function MainTabs() {
             return (
               <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: GOLD, justifyContent: 'center', alignItems: 'center', marginBottom: 4, elevation: 8, shadowColor: GOLD, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 8 }}>
                 <Ionicons name="add" size={26} color="#000" />
+              </View>
+            );
+          }
+          if (route.name === 'Messages' && unreadMessages > 0) {
+            return (
+              <View>
+                <Ionicons name={focused ? 'chatbubble' : 'chatbubble-outline'} size={size} color={color} />
+                <View style={{ position: 'absolute', top: -4, right: -6, backgroundColor: '#EF4444', borderRadius: 8, minWidth: 16, height: 16, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 3 }}>
+                  <Text style={{ color: '#fff', fontSize: 9, fontWeight: '800' }}>{unreadMessages > 99 ? '99+' : unreadMessages}</Text>
+                </View>
               </View>
             );
           }
