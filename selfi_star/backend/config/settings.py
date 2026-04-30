@@ -79,30 +79,52 @@ IS_RENDER = config('RENDER', default=False, cast=bool) or os.environ.get('RENDER
 
 # Database configuration
 if IS_RENDER:
-    # Render deployment: Use Neon database with hardcoded credentials
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='neondb'),
-            'USER': config('DB_USER', default='neondb_owner'),
-            'PASSWORD': config('DB_PASSWORD', default='your-db-password-here'),
-            'HOST': config('DB_HOST', default='your-db-host-here'),
-            'PORT': config('DB_PORT', default='5432'),
-            'OPTIONS': {
-                'sslmode': 'require',
-                'connect_timeout': 10,
-            },
-            'CONN_MAX_AGE': 0,  # Disable connection pooling for better error handling
+    # Render deployment: Use Neon database
+    database_url = config('DATABASE_URL', default=None)
+
+    if database_url:
+        # Parse DATABASE_URL
+        import urllib.parse
+        parsed = urllib.parse.urlparse(database_url)
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': parsed.path.lstrip('/'),
+                'USER': parsed.username,
+                'PASSWORD': parsed.password,
+                'HOST': parsed.hostname,
+                'PORT': parsed.port or 5432,
+                'OPTIONS': {
+                    'sslmode': 'require',
+                },
+                'CONN_MAX_AGE': 0,
+            }
         }
-    }
-    
+    else:
+        # Fallback to individual environment variables
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': config('DB_NAME', default='neondb'),
+                'USER': config('DB_USER', default='neondb_owner'),
+                'PASSWORD': config('DB_PASSWORD', default='your-db-password-here'),
+                'HOST': config('DB_HOST', default='your-db-host-here'),
+                'PORT': config('DB_PORT', default='5432'),
+                'OPTIONS': {
+                    'sslmode': 'require',
+                    'connect_timeout': 10,
+                },
+                'CONN_MAX_AGE': 0,
+            }
+        }
+
     # Debug: Print database configuration (remove in production)
     print(f"=== NEW DEPLOYMENT DETECTED ===")
     print(f"DATABASE_HOST: {DATABASES['default']['HOST']}")
     print(f"DATABASE_NAME: {DATABASES['default']['NAME']}")
     print(f"DATABASE_USER: {DATABASES['default']['USER']}")
     print(f"=== DEPLOYMENT VERSION: 3.0 ===")
-    
+
     # Test database connection and handle errors gracefully
     try:
         from django.db import connection
