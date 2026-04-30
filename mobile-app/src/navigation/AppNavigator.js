@@ -11,14 +11,27 @@ import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 
+// Auth
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
+
+// Main tabs
 import HomeScreen from '../screens/HomeScreen';
-import ExploreScreen from '../screens/ExploreScreen';
+import ReelsScreen from '../screens/ReelsScreen';
 import CreateScreen from '../screens/CreateScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import ReelsScreen from '../screens/ReelsScreen';
+
+// Stack screens
+import ExploreScreen from '../screens/ExploreScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import MessagesScreen from '../screens/MessagesScreen';
+import FollowListScreen from '../screens/FollowListScreen';
+import CampaignsScreen from '../screens/CampaignsScreen';
+import CampaignDetailScreen from '../screens/CampaignDetailScreen';
+import WalletScreen from '../screens/WalletScreen';
+import SubscriptionScreen from '../screens/SubscriptionScreen';
 
 const GOLD = '#C8B56A';
 const BG = '#0B0B0C';
@@ -52,7 +65,7 @@ function MainTabs() {
           };
           if (route.name === 'Create') {
             return (
-              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: GOLD, justifyContent: 'center', alignItems: 'center', marginBottom: 4, elevation: 8 }}>
+              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: GOLD, justifyContent: 'center', alignItems: 'center', marginBottom: 4, elevation: 8, shadowColor: GOLD, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 8 }}>
                 <Ionicons name="add" size={26} color="#000" />
               </View>
             );
@@ -78,10 +91,18 @@ function MainTabs() {
 function MainStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: BG } }}>
-      <Stack.Screen name="MainTabs"    component={MainTabs} />
-      <Stack.Screen name="Explore"     component={ExploreScreen} />
-      <Stack.Screen name="ReelsDetail" component={ReelsScreen} />
-      <Stack.Screen name="Profile"     component={ProfileScreen} />
+      <Stack.Screen name="MainTabs"        component={MainTabs} />
+      <Stack.Screen name="Explore"         component={ExploreScreen} />
+      <Stack.Screen name="ReelsDetail"     component={ReelsScreen} />
+      <Stack.Screen name="Profile"         component={ProfileScreen} />
+      <Stack.Screen name="EditProfile"     component={EditProfileScreen} />
+      <Stack.Screen name="Settings"        component={SettingsScreen} />
+      <Stack.Screen name="Messages"        component={MessagesScreen} />
+      <Stack.Screen name="FollowList"      component={FollowListScreen} />
+      <Stack.Screen name="Campaigns"       component={CampaignsScreen} />
+      <Stack.Screen name="CampaignDetail"  component={CampaignDetailScreen} />
+      <Stack.Screen name="Wallet"          component={WalletScreen} />
+      <Stack.Screen name="Subscription"    component={SubscriptionScreen} />
     </Stack.Navigator>
   );
 }
