@@ -32,8 +32,8 @@ export default function SubscriptionScreen({ navigation }) {
     try {
       setLoading(true);
       const [tiersData, subscriptionData] = await Promise.all([
-        api.request('/subscriptions/tiers/active/').catch(() => []),
-        api.request('/subscriptions/').catch(() => null),
+        api.getSubscriptionTiers().catch(() => []),
+        api.getSubscription().catch(() => null),
       ]);
       setTiers(Array.isArray(tiersData) && tiersData.length > 0 ? tiersData : getFallbackTiers());
       setCurrentSubscription(subscriptionData);
@@ -62,6 +62,33 @@ export default function SubscriptionScreen({ navigation }) {
       console.error('Error opening SMS:', err);
       Alert.alert('Error', 'Could not open SMS app');
     });
+  };
+
+  const handleUnsubscribe = async () => {
+    Alert.alert(
+      'Cancel Subscription',
+      'Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your current billing period.',
+      [
+        {
+          text: 'Keep Subscription',
+          style: 'cancel',
+        },
+        {
+          text: 'Cancel Subscription',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.unsubscribe();
+              Alert.alert('Success', 'Subscription cancelled successfully');
+              loadSubscriptionData(); // Refresh data
+            } catch (error) {
+              console.error('Unsubscribe error:', error);
+              Alert.alert('Error', 'Failed to cancel subscription');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const getFallbackTiers = () => [
@@ -103,48 +130,69 @@ export default function SubscriptionScreen({ navigation }) {
     }
   ];
 
+  const getTierIcon = (durationType) => {
+    switch (durationType) {
+      case 'daily': return 'time-outline';
+      case 'weekly': return 'flash-outline';
+      case 'monthly': return 'crown';
+      case 'ondemand': return 'cash-outline';
+      default: return 'crown';
+    }
+  };
+
   const renderTierCard = (tier) => {
     const isCurrent = currentSubscription?.tier?.name === tier.name;
+    const tierIcon = getTierIcon(tier.duration_type);
 
     return (
       <TouchableOpacity
         key={tier.id}
-        style={[styles.tierCard, isCurrent && styles.currentTier]}
         onPress={() => !isCurrent && handleSubscribe(tier)}
         disabled={isCurrent}
+        activeOpacity={0.9}
       >
-        <View style={styles.tierHeader}>
-          <Text style={styles.tierName}>{tier.name}</Text>
-          {isCurrent && (
-            <View style={styles.currentBadge}>
-              <Text style={styles.currentBadgeText}>Current</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.tierPrice}>{tier.price_etb} ETB</Text>
-        {tier.price_coins && (
-          <Text style={styles.tierCoinPrice}>or {tier.price_coins} coins</Text>
-        )}
-        <Text style={styles.tierDescription}>{tier.description}</Text>
-        
-        <View style={styles.featuresList}>
-          {tier.features?.map((feature, index) => (
-            <View key={index} style={styles.featureItem}>
-              <Ionicons name="checkmark-circle" size={16} color={BRAND_GOLD} />
-              <Text style={styles.featureText}>{feature}</Text>
-            </View>
-          ))}
-        </View>
-
-        <TouchableOpacity
-          style={[styles.subscribeButton, isCurrent && styles.disabledButton]}
-          onPress={() => !isCurrent && handleSubscribe(tier)}
-          disabled={isCurrent}
+        <LinearGradient
+          colors={isCurrent ? ['#4CAF50', '#2E7D32'] : ['#E6C96A', '#C8B56A', '#A89245']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.tierCard, isCurrent && styles.currentTier]}
         >
-          <Text style={[styles.subscribeButtonText, isCurrent && styles.disabledButtonText]}>
-            {isCurrent ? '✓ Subscribed' : '📱 Subscribe via SMS'}
-          </Text>
-        </TouchableOpacity>
+          <View style={styles.tierHeader}>
+            <View style={styles.tierIconContainer}>
+              <Ionicons name={tierIcon} size={24} color="#000" />
+            </View>
+            {isCurrent && (
+              <View style={styles.currentBadge}>
+                <Text style={styles.currentBadgeText}>✓ Current</Text>
+              </View>
+            )}
+          </View>
+          <Text style={[styles.tierName, { color: '#000' }]}>{tier.name}</Text>
+          <Text style={[styles.tierPrice, { color: '#000' }]}>{tier.price_etb} ETB</Text>
+          {tier.price_coins && (
+            <Text style={[styles.tierCoinPrice, { color: '#1a1a1a' }]}>or {tier.price_coins} coins</Text>
+          )}
+          <Text style={[styles.tierDescription, { color: '#1a1a1a' }]}>{tier.description}</Text>
+          
+          <View style={styles.featuresList}>
+            {tier.features?.map((feature, index) => (
+              <View key={index} style={styles.featureItem}>
+                <Ionicons name="checkmark-circle" size={16} color="#000" />
+                <Text style={[styles.featureText, { color: '#1a1a1a' }]}>{feature}</Text>
+              </View>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.subscribeButton, isCurrent && styles.disabledButton]}
+            onPress={() => !isCurrent && handleSubscribe(tier)}
+            disabled={isCurrent}
+          >
+            <Text style={[styles.subscribeButtonText, isCurrent && styles.disabledButtonText]}>
+              {isCurrent ? '✓ Subscribed' : '📱 Subscribe via SMS'}
+            </Text>
+          </TouchableOpacity>
+        </LinearGradient>
       </TouchableOpacity>
     );
   };
@@ -182,10 +230,18 @@ export default function SubscriptionScreen({ navigation }) {
 
         {currentSubscription && currentSubscription.status === 'active' && (
           <View style={styles.activeBanner}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={styles.activeText}>
-              Active: {currentSubscription.tier?.name}
-            </Text>
+            <View style={styles.activeBannerLeft}>
+              <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+              <Text style={styles.activeText}>
+                Active: {currentSubscription.tier?.name}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.unsubscribeBtn} 
+              onPress={handleUnsubscribe}
+            >
+              <Text style={styles.unsubscribeBtnText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -271,11 +327,26 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
   },
+  activeBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   activeText: {
     color: '#4CAF50',
     marginLeft: 8,
     fontSize: 14,
-    flex: 1,
+  },
+  unsubscribeBtn: {
+    backgroundColor: '#FF5722',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  unsubscribeBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   expiredBanner: {
     flexDirection: 'row',
@@ -297,12 +368,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   tierCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: '#C8B56A',
+    overflow: 'hidden',
   },
   currentTier: {
     borderColor: '#4CAF50',
@@ -312,6 +383,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  tierIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tierName: {
     fontSize: 24,
@@ -362,25 +442,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   subscribeButton: {
-    backgroundColor: BRAND_GOLD,
-    paddingVertical: 16,
+    backgroundColor: '#1a1a1a',
+    paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: BRAND_GOLD,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
   },
   disabledButton: {
-    backgroundColor: '#4CAF50',
-    shadowOpacity: 0,
+    backgroundColor: '#2E7D32',
     elevation: 0,
   },
   subscribeButtonText: {
-    color: '#000',
-    fontSize: 18,
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '800',
   },
   infoSection: {

@@ -529,16 +529,21 @@ const api = {
   getWalletConfig: () => api.request('/wallet/config/'),
   getCoinPackages: () => api.request('/coins/packages/'),
 
-  // Competitions
-  getCompetitions: () => api.request('/competitions/'),
-  getActiveCompetitions: () => api.request('/competitions/?is_active=true'),
-
-  // Winners
-  getWinners: () => api.request('/winners/'),
-  getLatestWinners: () => api.request('/winners/latest/'),
-
   // Subscription
-  getSubscription: () => api.request('/subscription/'),
+  getSubscription: () => api.request('/subscriptions/'),
+  getSubscriptionTiers: () => api.request('/subscriptions/tiers/active/'),
+  subscribeToTier: (tierId, paymentMethod = 'sms') =>
+    api.request('/subscriptions/subscribe/', {
+      method: 'POST',
+      body: JSON.stringify({
+        tier_id: tierId,
+        payment_method: paymentMethod,
+      }),
+    }),
+  unsubscribe: () =>
+    api.request('/subscriptions/unsubscribe/', {
+      method: 'POST',
+    }),
   upgradeSubscription: (plan) =>
     api.request('/subscription/upgrade/', {
       method: 'POST',
@@ -554,6 +559,14 @@ const api = {
       method: 'POST',
       body: JSON.stringify({ plan: 'premium' }),
     }),
+
+  // Competitions
+  getCompetitions: () => api.request('/competitions/'),
+  getActiveCompetitions: () => api.request('/competitions/?is_active=true'),
+
+  // Winners
+  getWinners: () => api.request('/winners/'),
+  getLatestWinners: () => api.request('/winners/latest/'),
 
   // Quests
   getQuests: () => api.request('/quests/'),
