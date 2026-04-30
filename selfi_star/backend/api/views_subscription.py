@@ -113,11 +113,20 @@ class OnevasWebhookView(APIView):
             metadata={'method': 'stop_command', 'sms_subscription': user is None}
         )
         print(f"[SUBSCRIPTION DEBUG] Subscription cancelled successfully")
-        
+
         # Send SMS confirmation
-        cancellation_message = f"Dear customer, you have successfully unsubscribed from FLIPSTAR {subscription.tier.name} service. To subscribe again please send OK1 to {subscription.tier.short_code}. Thank you."
-        self.send_sms(phone_number, cancellation_message, subscription.tier.duration_type)
-        
+        if subscription.tier:
+            cancellation_message = f"Dear customer, you have successfully unsubscribed from FLIPSTAR {subscription.tier.name} service. To subscribe again please send OK1 to {subscription.tier.short_code}. Thank you."
+            print(f"[SUBSCRIPTION DEBUG] Sending cancellation SMS to {phone_number}")
+            sms_sent = self.send_sms(phone_number, cancellation_message, subscription.tier.duration_type)
+            print(f"[SUBSCRIPTION DEBUG] Cancellation SMS sent: {sms_sent}")
+        else:
+            print(f"[SUBSCRIPTION DEBUG] WARNING: subscription.tier is None, cannot send SMS with tier info")
+            cancellation_message = f"Dear customer, you have successfully unsubscribed from FLIPSTAR service. Thank you."
+            print(f"[SUBSCRIPTION DEBUG] Sending generic cancellation SMS to {phone_number}")
+            sms_sent = self.send_sms(phone_number, cancellation_message, None)
+            print(f"[SUBSCRIPTION DEBUG] Cancellation SMS sent: {sms_sent}")
+
         return Response({'status': 'success', 'message': 'Subscription cancelled via STOP command'})
     
     def send_sms(self, phone_number, text, tier_type=None):
