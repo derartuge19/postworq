@@ -4,6 +4,45 @@ import api from '../api';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
+const getFallbackTiers = () => [
+  {
+    id: 1,
+    name: 'Daily',
+    duration_type: 'daily',
+    price_etb: 3,
+    price_coins: null,
+    description: 'Access for 24 hours',
+    features: ['Full access for 24 hours', 'Ad-free experience', 'HD quality videos']
+  },
+  {
+    id: 2,
+    name: 'Weekly',
+    duration_type: 'weekly',
+    price_etb: 20,
+    price_coins: null,
+    description: 'Access for 7 days',
+    features: ['Full access for 7 days', 'Ad-free experience', 'HD quality videos']
+  },
+  {
+    id: 3,
+    name: 'Monthly',
+    duration_type: 'monthly',
+    price_etb: 70,
+    price_coins: null,
+    description: 'Access for 30 days',
+    features: ['Full access for 30 days', 'Ad-free experience', 'HD quality videos']
+  },
+  {
+    id: 4,
+    name: 'OnDemand',
+    duration_type: 'ondemand',
+    price_etb: 10,
+    price_coins: 100,
+    description: 'Pay per use with coins',
+    features: ['Flexible payment', 'No recurring charges', 'Use coins as needed']
+  }
+];
+
 export function SubscriptionPage({ user, onBack }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
@@ -36,45 +75,6 @@ export function SubscriptionPage({ user, onBack }) {
       // Keep using fallback tiers
     }
   };
-
-  const getFallbackTiers = () => [
-    {
-      id: 1,
-      name: 'Daily',
-      duration_type: 'daily',
-      price_etb: 3,
-      price_coins: null,
-      description: 'Access for 24 hours',
-      features: ['Full access for 24 hours', 'Ad-free experience', 'HD quality videos']
-    },
-    {
-      id: 2,
-      name: 'Weekly',
-      duration_type: 'weekly',
-      price_etb: 20,
-      price_coins: null,
-      description: 'Access for 7 days',
-      features: ['Full access for 7 days', 'Ad-free experience', 'HD quality videos', 'Priority support']
-    },
-    {
-      id: 3,
-      name: 'Monthly',
-      duration_type: 'monthly',
-      price_etb: 70,
-      price_coins: null,
-      description: 'Access for 30 days',
-      features: ['Full access for 30 days', 'Ad-free experience', 'HD quality videos', 'Priority support', 'Exclusive content']
-    },
-    {
-      id: 4,
-      name: 'OnDemand',
-      duration_type: 'ondemand',
-      price_etb: 10,
-      price_coins: 100,
-      description: 'Pay per use with coins',
-      features: ['Flexible payment', 'No recurring charges', 'Use coins as needed']
-    }
-  ];
 
   const getSmsUrl = (tier) => {
     // Get tier code for SMS
