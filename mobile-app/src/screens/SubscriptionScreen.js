@@ -9,20 +9,22 @@ import {
   Alert,
   SafeAreaView,
   Linking,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../api';
 
+const { width } = Dimensions.get('window');
 const BRAND_GOLD = '#C8B56A';
-const CYAN_COLOR = '#C8B56A';
 
 export default function SubscriptionScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const [tiers, setTiers] = useState([]);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedTier, setSelectedTier] = useState(null);
 
   useEffect(() => {
     loadSubscriptionData();
@@ -94,39 +96,39 @@ export default function SubscriptionScreen({ navigation }) {
   const getFallbackTiers = () => [
     {
       id: 1,
-      name: 'Daily',
+      name: 'Basic',
       duration_type: 'daily',
       price_etb: 3,
       price_coins: null,
-      description: 'Access for 24 hours',
-      features: ['Full access for 24 hours', 'Ad-free experience', 'HD quality videos']
+      description: '24 hours access',
+      features: ['Ad-free experience', 'HD videos', 'Basic support'],
+      popular: false,
+      icon: '⚡',
+      color: '#FF6B6B'
     },
     {
       id: 2,
-      name: 'Weekly',
+      name: 'Premium',
       duration_type: 'weekly',
       price_etb: 20,
       price_coins: null,
-      description: 'Access for 7 days',
-      features: ['Full access for 7 days', 'Ad-free experience', 'HD quality videos', 'Priority support']
+      description: '7 days access',
+      features: ['Everything in Basic', 'Priority support', 'Exclusive content', 'Early access'],
+      popular: true,
+      icon: '👑',
+      color: '#4ECDC4'
     },
     {
       id: 3,
-      name: 'Monthly',
+      name: 'Pro',
       duration_type: 'monthly',
       price_etb: 70,
       price_coins: null,
-      description: 'Access for 30 days',
-      features: ['Full access for 30 days', 'Ad-free experience', 'HD quality videos', 'Priority support', 'Exclusive content']
-    },
-    {
-      id: 4,
-      name: 'OnDemand',
-      duration_type: 'ondemand',
-      price_etb: 10,
-      price_coins: 100,
-      description: 'Pay per use with coins',
-      features: ['Flexible payment', 'No recurring charges', 'Use coins as needed']
+      description: '30 days access',
+      features: ['Everything in Premium', 'Advanced features', 'Personal manager', 'Custom themes'],
+      popular: false,
+      icon: '💎',
+      color: '#45B7D1'
     }
   ];
 
@@ -140,59 +142,55 @@ export default function SubscriptionScreen({ navigation }) {
     }
   };
 
-  const renderTierCard = (tier) => {
+  const renderTierCard = (tier, index) => {
     const isCurrent = currentSubscription?.tier?.name === tier.name;
-    const tierIcon = getTierIcon(tier.duration_type);
+    const isSelected = selectedTier?.id === tier.id;
 
     return (
       <TouchableOpacity
         key={tier.id}
-        onPress={() => !isCurrent && handleSubscribe(tier)}
-        disabled={isCurrent}
-        activeOpacity={0.9}
+        onPress={() => setSelectedTier(tier)}
+        activeOpacity={0.8}
+        style={[
+          styles.tierCard,
+          isSelected && styles.selectedTierCard,
+          tier.popular && styles.popularTierCard
+        ]}
       >
-        <LinearGradient
-          colors={isCurrent ? ['#4CAF50', '#2E7D32'] : ['#E6C96A', '#C8B56A', '#A89245']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.tierCard, isCurrent && styles.currentTier]}
-        >
-          <View style={styles.tierHeader}>
-            <View style={styles.tierIconContainer}>
-              <Ionicons name={tierIcon} size={24} color="#000" />
+        {tier.popular && (
+          <View style={styles.popularBadge}>
+            <Text style={styles.popularBadgeText}>Most Popular</Text>
+          </View>
+        )}
+        
+        <View style={styles.tierHeader}>
+          <View style={[styles.tierIconContainer, { backgroundColor: tier.color + '20' }]}>
+            <Text style={styles.tierIcon}>{tier.icon}</Text>
+          </View>
+          {isCurrent && (
+            <View style={styles.activeBadge}>
+              <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+              <Text style={styles.activeBadgeText}>Active</Text>
             </View>
-            {isCurrent && (
-              <View style={styles.currentBadge}>
-                <Text style={styles.currentBadgeText}>✓ Current</Text>
-              </View>
-            )}
-          </View>
-          <Text style={[styles.tierName, { color: '#000' }]}>{tier.name}</Text>
-          <Text style={[styles.tierPrice, { color: '#000' }]}>{tier.price_etb} ETB</Text>
-          {tier.price_coins && (
-            <Text style={[styles.tierCoinPrice, { color: '#1a1a1a' }]}>or {tier.price_coins} coins</Text>
           )}
-          <Text style={[styles.tierDescription, { color: '#1a1a1a' }]}>{tier.description}</Text>
-          
-          <View style={styles.featuresList}>
-            {tier.features?.map((feature, index) => (
-              <View key={index} style={styles.featureItem}>
-                <Ionicons name="checkmark-circle" size={16} color="#000" />
-                <Text style={[styles.featureText, { color: '#1a1a1a' }]}>{feature}</Text>
-              </View>
-            ))}
-          </View>
+        </View>
 
-          <TouchableOpacity
-            style={[styles.subscribeButton, isCurrent && styles.disabledButton]}
-            onPress={() => !isCurrent && handleSubscribe(tier)}
-            disabled={isCurrent}
-          >
-            <Text style={[styles.subscribeButtonText, isCurrent && styles.disabledButtonText]}>
-              {isCurrent ? '✓ Subscribed' : '📱 Subscribe via SMS'}
-            </Text>
-          </TouchableOpacity>
-        </LinearGradient>
+        <Text style={styles.tierName}>{tier.name}</Text>
+        <Text style={styles.tierDescription}>{tier.description}</Text>
+        
+        <View style={styles.priceContainer}>
+          <Text style={styles.tierPrice}>{tier.price_etb}</Text>
+          <Text style={styles.currency}>ETB</Text>
+        </View>
+
+        <View style={styles.featuresList}>
+          {tier.features?.slice(0, 3).map((feature, idx) => (
+            <View key={idx} style={styles.featureItem}>
+              <Ionicons name="checkmark" size={14} color={BRAND_GOLD} />
+              <Text style={styles.featureText}>{feature}</Text>
+            </View>
+          ))}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -208,79 +206,106 @@ export default function SubscriptionScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#C8B56A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Subscription</Text>
+        <Text style={styles.headerTitle}>Choose Your Plan</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
-        {/* Current Subscription Status */}
-        {currentSubscription && currentSubscription.status === 'trial' && (
-          <View style={styles.trialBanner}>
-            <Ionicons name="time" size={20} color={BRAND_GOLD} />
-            <Text style={styles.trialText}>
-              Free Trial - {currentSubscription.days_remaining || 0} days remaining
-            </Text>
-          </View>
-        )}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <LinearGradient
+            colors={['#C8B56A', '#E6C96A']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroGradient}
+          >
+            <Text style={styles.heroIcon}>✨</Text>
+            <Text style={styles.heroTitle}>Unlock Premium</Text>
+            <Text style={styles.heroSubtitle}>Get access to exclusive features and content</Text>
+          </LinearGradient>
+        </View>
 
-        {currentSubscription && currentSubscription.status === 'active' && (
-          <View style={styles.activeBanner}>
-            <View style={styles.activeBannerLeft}>
-              <Ionicons name="crown" size={20} color="#4CAF50" />
-              <Text style={styles.activeText}>
-                Active: {currentSubscription.tier?.name}
-              </Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.unsubscribeBtn} 
-              onPress={handleUnsubscribe}
-            >
-              <Text style={styles.unsubscribeBtnText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {currentSubscription && currentSubscription.status === 'no_subscription' && (
-          <View style={styles.expiredBanner}>
-            <Ionicons name="alert-circle" size={20} color="#FF5722" />
-            <Text style={styles.expiredText}>No active subscription</Text>
+        {/* Current Status */}
+        {currentSubscription && (
+          <View style={styles.statusContainer}>
+            {currentSubscription.status === 'active' && (
+              <View style={styles.statusCard}>
+                <Ionicons name="crown" size={20} color="#4CAF50" />
+                <Text style={styles.statusText}>Premium Active</Text>
+                <TouchableOpacity onPress={handleUnsubscribe} style={styles.cancelButton}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {currentSubscription.status === 'trial' && (
+              <View style={styles.statusCard}>
+                <Ionicons name="time" size={20} color={BRAND_GOLD} />
+                <Text style={styles.statusText}>
+                  Free Trial - {currentSubscription.days_remaining || 0} days left
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
         {/* Subscription Tiers */}
-        <Text style={styles.sectionTitle}>Choose Your Plan</Text>
-        {tiers.map(renderTierCard)}
+        <View style={styles.tiersContainer}>
+          {tiers.map((tier, index) => renderTierCard(tier, index))}
+        </View>
 
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>Subscription Benefits</Text>
-          <Text style={styles.infoText}>
-            • Access all premium features
-          </Text>
-          <Text style={styles.infoText}>
-            • Ad-free experience
-          </Text>
-          <Text style={styles.infoText}>
-            • HD quality videos
-          </Text>
-          <Text style={styles.infoText}>
-            • Priority support
-          </Text>
+        {/* Subscribe Button */}
+        {selectedTier && (
+          <TouchableOpacity
+            style={styles.subscribeButton}
+            onPress={() => handleSubscribe(selectedTier)}
+          >
+            <LinearGradient
+              colors={['#C8B56A', '#E6C96A']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.subscribeGradient}
+            >
+              <Ionicons name="send" size={20} color="#000" />
+              <Text style={styles.subscribeButtonText}>Subscribe via SMS</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
+        {/* Benefits Section */}
+        <View style={styles.benefitsSection}>
+          <Text style={styles.benefitsTitle}>Why Go Premium?</Text>
+          <View style={styles.benefitsList}>
+            {[
+              { icon: '🚫', title: 'Ad-Free Experience', desc: 'Enjoy content without interruptions' },
+              { icon: '🎥', title: 'HD Quality', desc: 'Watch videos in high definition' },
+              { icon: '⚡', title: 'Priority Support', desc: 'Get help when you need it' },
+              { icon: '🎁', title: 'Exclusive Content', desc: 'Access premium features first' }
+            ].map((benefit, index) => (
+              <View key={index} style={styles.benefitItem}>
+                <Text style={styles.benefitIcon}>{benefit.icon}</Text>
+                <View style={styles.benefitContent}>
+                  <Text style={styles.benefitTitle}>{benefit.title}</Text>
+                  <Text style={styles.benefitDesc}>{benefit.desc}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#0B0B0C',
   },
   centerContainer: {
     flex: 1,
@@ -291,188 +316,239 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#2A2A2E',
+  },
+  backButton: {
+    padding: 4,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: '700',
+    color: '#F5F5F7',
   },
   content: {
     flex: 1,
+  },
+  heroSection: {
+    margin: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  heroGradient: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  heroIcon: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#000',
+    marginBottom: 8,
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    color: '#1a1a1a',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  statusContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  statusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#121214',
     padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#2A2A2E',
   },
-  trialBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(200, 181, 106, 0.1)',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  trialText: {
-    color: BRAND_GOLD,
-    marginLeft: 8,
-    fontSize: 14,
-  },
-  activeBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  activeBannerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  statusText: {
     flex: 1,
-  },
-  activeText: {
-    color: '#4CAF50',
-    marginLeft: 8,
+    marginLeft: 12,
     fontSize: 14,
+    fontWeight: '600',
+    color: '#F5F5F7',
   },
-  unsubscribeBtn: {
-    backgroundColor: '#FF5722',
+  cancelButton: {
+    backgroundColor: '#EF4444',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: 8,
   },
-  unsubscribeBtnText: {
+  cancelButtonText: {
     color: '#fff',
     fontSize: 12,
     fontWeight: '600',
   },
-  expiredBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 87, 34, 0.1)',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  expiredText: {
-    color: '#FF5722',
-    marginLeft: 8,
-    fontSize: 14,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#fff',
+  tiersContainer: {
+    paddingHorizontal: 20,
     marginBottom: 20,
   },
   tierCard: {
-    borderRadius: 16,
+    backgroundColor: '#121214',
+    borderRadius: 20,
     padding: 20,
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#C8B56A',
-    overflow: 'hidden',
+    borderColor: '#2A2A2E',
   },
-  currentTier: {
-    borderColor: '#4CAF50',
+  selectedTierCard: {
+    borderColor: BRAND_GOLD,
+    backgroundColor: 'rgba(200,181,106,0.05)',
+  },
+  popularTierCard: {
+    borderColor: '#4ECDC4',
+    backgroundColor: 'rgba(78,205,196,0.05)',
+  },
+  popularBadge: {
+    position: 'absolute',
+    top: -1,
+    right: 20,
+    backgroundColor: '#4ECDC4',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 1,
+  },
+  popularBadgeText: {
+    color: '#000',
+    fontSize: 12,
+    fontWeight: '700',
   },
   tierHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   tierIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    display: 'flex',
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  tierIcon: {
+    fontSize: 28,
+  },
+  activeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(76,175,80,0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  activeBadgeText: {
+    color: '#4CAF50',
+    fontSize: 12,
+    fontWeight: '600',
   },
   tierName: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#fff',
-  },
-  currentBadge: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  currentBadgeText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  tierPrice: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: BRAND_GOLD,
-    marginBottom: 6,
-  },
-  tierCoinPrice: {
-    fontSize: 16,
-    color: '#fff',
-    marginBottom: 10,
-    fontWeight: '600',
+    color: '#F5F5F7',
+    marginBottom: 4,
   },
   tierDescription: {
-    fontSize: 16,
-    color: '#ddd',
-    marginBottom: 14,
-    fontWeight: '500',
+    fontSize: 14,
+    color: '#A1A1AA',
+    marginBottom: 16,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 20,
+  },
+  tierPrice: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: BRAND_GOLD,
+  },
+  currency: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: BRAND_GOLD,
+    marginLeft: 4,
   },
   featuresList: {
-    marginBottom: 16,
+    gap: 8,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    gap: 8,
   },
   featureText: {
-    color: '#ddd',
-    marginLeft: 10,
-    fontSize: 16,
+    fontSize: 14,
+    color: '#F5F5F7',
     fontWeight: '500',
   },
   subscribeButton: {
-    backgroundColor: '#1a1a1a',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  disabledButton: {
-    backgroundColor: '#2E7D32',
-    elevation: 0,
+  subscribeGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
   },
   subscribeButtonText: {
-    color: '#fff',
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
+    color: '#000',
   },
-  infoSection: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 8,
+  benefitsSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
-  infoTitle: {
+  benefitsTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#fff',
-    marginBottom: 14,
+    fontWeight: '700',
+    color: '#F5F5F7',
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  infoText: {
-    color: '#ddd',
+  benefitsList: {
+    gap: 16,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#121214',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#2A2A2E',
+  },
+  benefitIcon: {
+    fontSize: 24,
+    marginRight: 16,
+  },
+  benefitContent: {
+    flex: 1,
+  },
+  benefitTitle: {
     fontSize: 16,
-    marginBottom: 10,
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#F5F5F7',
+    marginBottom: 4,
+  },
+  benefitDesc: {
+    fontSize: 14,
+    color: '#A1A1AA',
   },
 });
