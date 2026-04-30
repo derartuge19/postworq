@@ -8,30 +8,32 @@ export function SubscriptionPage({ user, onBack }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   
-  const [tiers, setTiers] = useState([]);
+  const [tiers, setTiers] = useState(getFallbackTiers());
   const [currentSubscription, setCurrentSubscription] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedTier, setSelectedTier] = useState(null);
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
+    // Load tiers and subscription in background
     loadSubscriptionData();
   }, []);
 
   const loadSubscriptionData = async () => {
     try {
-      setLoading(true);
+      // Fetch both in parallel but don't block UI
       const [tiersData, subscriptionData] = await Promise.all([
         api.request('/subscriptions/tiers/active/').catch(() => []),
         api.request('/subscriptions/').catch(() => null),
       ]);
-      setTiers(Array.isArray(tiersData) && tiersData.length > 0 ? tiersData : getFallbackTiers());
+      // Only update tiers if API returns valid data
+      if (Array.isArray(tiersData) && tiersData.length > 0) {
+        setTiers(tiersData);
+      }
       setCurrentSubscription(subscriptionData);
     } catch (error) {
       console.error('Error loading subscription data:', error);
-      setTiers(getFallbackTiers());
-    } finally {
-      setLoading(false);
+      // Keep using fallback tiers
     }
   };
 
