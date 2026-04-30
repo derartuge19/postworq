@@ -70,6 +70,7 @@ class OnevasWebhookView(APIView):
         # Map STOP keywords to tier duration types
         stop_keyword_mapping = {
             'STOP': 'daily',
+            'STOP1': 'daily',
             'STOP2': 'weekly',
             'STOP3': 'monthly'
         }
@@ -218,7 +219,13 @@ class OnevasWebhookView(APIView):
                 response = self.handle_renewal(payload, log)
             elif webhook_type == 'stop':
                 phone_number = payload.get('phone_number')
-                stop_keyword = payload.get('keyword', 'STOP')  # Default to STOP if not specified
+                # Extract keyword from params array if present
+                params = payload.get('params', [])
+                stop_keyword = 'STOP'  # Default
+                for param in params:
+                    if param.get('name') == 'keyword':
+                        stop_keyword = param.get('value', 'STOP').upper()
+                        break
                 print(f"[SUBSCRIPTION DEBUG] Routing to handle_stop_command for {phone_number} with keyword: {stop_keyword}")
                 response = self.handle_stop_command(phone_number, stop_keyword)
             else:
