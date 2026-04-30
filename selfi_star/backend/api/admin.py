@@ -16,6 +16,7 @@ from .models_campaign_extended import (
 from .models_legal import LegalDocument, LegalDocumentVersion, UserLegalAcceptance
 from .models_gift import Gift, GiftTransaction, GiftCombo, UserGiftStats
 from .models_wallet import WalletConfig, WithdrawalRequest
+from .admin_subscription import *
 
 # Custom Admin Site Configuration
 class SelfieStarAdminSite(admin.AdminSite):

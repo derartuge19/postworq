@@ -23,6 +23,7 @@ const MessagesPage = lazy(() => import('./components/MessagesPage').then(m => ({
 const ExplorerPage = lazy(() => import('./components/ExplorerPage').then(m => ({ default: m.ExplorerPage })));
 const HomePage = lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })));
 const WalletPage = lazy(() => import('./pages/WalletPage').then(m => ({ default: m.WalletPage })));
+const SubscriptionPage = lazy(() => import('./components/SubscriptionPage').then(m => ({ default: m.SubscriptionPage })));
 const AdminApp = lazy(() => import('./admin/AdminApp').then(m => ({ default: m.AdminApp })));
 
 // Prefetch critical lazy chunks after initial load for faster navigation
@@ -215,8 +216,10 @@ export default function WerqRoot() {
   const [followersListUserId, setFollowersListUserId] = useState(_historyState.followersListUserId || null);
   const [showSettings, setShowSettings] = useState(_historyState.showSettings || false);
   const [showWallet, setShowWallet] = useState(_historyState.showWallet || false);
+  const [showSubscription, setShowSubscription] = useState(_historyState.showSubscription || false);
   const settingsReturnState = useRef(null); // tracks where to go back to when settings closes
   const walletReturnState = useRef(null); // tracks where to go back to when wallet closes
+  const subscriptionReturnState = useRef(null); // tracks where to go back to when subscription closes
   const prevNavState = useRef(null); // tracks nav state before any overlay page opens
   const [showNotifications, setShowNotifications] = useState(_historyState.showNotifications || false);
   const [showCampaigns, setShowCampaigns] = useState(_historyState.showCampaigns || false);
@@ -823,6 +826,51 @@ export default function WerqRoot() {
     pushHistoryState({ showWallet: false }, true);
   };
 
+  const handleShowSubscription = () => {
+    if (!authUser) {
+      setShowLogin(true);
+      return;
+    }
+    prevNavState.current = { activeTab, showProfile, profileUserId, showVideoDetail, videoDetailId };
+    setActiveTab('subscription');
+    setShowSubscription(true);
+    setShowProfile(false);
+    setShowPostPage(false);
+    setShowEditProfile(false);
+    setShowFollowersList(false);
+    setShowSettings(false);
+    setShowWallet(false);
+    setShowNotifications(false);
+    setShowCampaigns(false);
+    setShowCampaignDetail(false);
+    setShowCampaignLeaderboard(false);
+    setShowCampaignFeed(false);
+    setShowVideoDetail(false);
+    pushHistoryState({ showSubscription: true, activeTab: 'subscription' });
+  };
+
+  const handleCloseSubscription = () => {
+    setShowSubscription(false);
+    const ret = subscriptionReturnState.current;
+    if (ret) {
+      subscriptionReturnState.current = null;
+      if (ret.showProfile) {
+        setShowProfile(true);
+        setProfileUserId(ret.profileUserId);
+        setActiveTab(ret.activeTab || 'profile');
+        pushHistoryState({ showSubscription: false, showProfile: true, profileUserId: ret.profileUserId, activeTab: ret.activeTab || 'profile' }, true);
+        return;
+      }
+      if (ret.showSettings) {
+        setShowSettings(true);
+        setActiveTab(ret.activeTab || 'settings');
+        pushHistoryState({ showSubscription: false, showSettings: true, activeTab: ret.activeTab || 'settings' }, true);
+        return;
+      }
+    }
+    pushHistoryState({ showSubscription: false }, true);
+  };
+
   const handleCloseSettings = () => { goHome(); };
 
   const handleShowCampaigns = () => {
@@ -991,6 +1039,13 @@ export default function WerqRoot() {
             </Suspense>
           </LazyLoadErrorBoundary>
         )}
+        {showSubscription && (
+          <LazyLoadErrorBoundary>
+            <Suspense fallback={<PageSkeleton />}>
+              <SubscriptionPage user={authUser} onBack={handleCloseSubscription} />
+            </Suspense>
+          </LazyLoadErrorBoundary>
+        )}
         {showSettings && (
           <LazyLoadErrorBoundary>
             <Suspense fallback={<PageSkeleton />}>
@@ -999,6 +1054,7 @@ export default function WerqRoot() {
                 onClose={handleCloseSettings}
                 onLogout={handleLogout}
                 onShowWallet={handleShowWallet}
+                onShowSubscription={handleShowSubscription}
                 onShowEditProfile={handleShowEditProfile}
               />
             </Suspense>
@@ -1018,6 +1074,7 @@ export default function WerqRoot() {
                 onLogout={handleLogout}
                 onShowProfile={() => handleShowProfile(null)}
                 onShowSettings={handleShowSettings}
+                onShowSubscription={handleShowSubscription}
                 onShowCampaigns={handleShowCampaigns}
                 onShowVideoDetail={(reelId) => {
                   setShowNotifications(false);
@@ -1078,6 +1135,7 @@ export default function WerqRoot() {
                 onEditProfile={handleShowEditProfile}
                 onShowSettings={handleShowSettings}
                 onShowWallet={handleShowWallet}
+                onShowSubscription={handleShowSubscription}
                 onShowFollowers={(userId) =>
                   handleShowFollowers(userId, 'followers')
                 }

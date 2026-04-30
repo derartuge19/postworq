@@ -17,6 +17,12 @@ from .models_messaging import Conversation, Message, MessageRead
 from .models_gift import Gift, GiftTransaction, GiftCombo, UserGiftStats
 # Import wallet models
 from .models_wallet import WalletConfig, WithdrawalRequest
+# Import subscription models
+from .models_subscription import (
+    SubscriptionTier, SubscriptionPlan, SubscriptionPayment, SubscriptionHistory,
+    OnevasWebhookLog, PromoCode, UserPromoUsage, SubscriptionFeatureUsage,
+    ExpiredSubscriptionAction, TrialPopupLog, SubscriptionCoinTransaction, AdminRole, SubscriptionReport
+)
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -57,6 +63,18 @@ class UserProfile(models.Model):
     
     # Ethiopian phone number (e.g. +251912345678) — set during phone-OTP registration
     phone_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
+    
+    # Trial tracking
+    trial_start_date = models.DateTimeField(null=True, blank=True, help_text='When 3-day trial started')
+    trial_end_date = models.DateTimeField(null=True, blank=True, help_text='When 3-day trial ends')
+    is_trial_user = models.BooleanField(default=True, help_text='User is in trial period')
+    trial_popup_shown_count = models.IntegerField(default=0, help_text='How many times popup shown')
+    trial_interaction_count = models.IntegerField(default=0, help_text='How many interactions attempted')
+    
+    # OTP tracking
+    otp_code = models.CharField(max_length=6, blank=True, null=True)
+    otp_expires_at = models.DateTimeField(null=True, blank=True)
+    otp_attempts = models.IntegerField(default=0)
 
     # Privacy settings
     is_private = models.BooleanField(default=False)

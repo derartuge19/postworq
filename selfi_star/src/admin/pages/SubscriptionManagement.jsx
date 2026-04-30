@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Crown, Zap, Star } from 'lucide-react';
+import { Crown, Zap, Star, TrendingUp, DollarSign, Users, Clock } from 'lucide-react';
 import api from '../../api';
 
 export function SubscriptionManagement({ theme }) {
   const [stats, setStats] = useState(null);
+  const [chargingAnalytics, setChargingAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadStats();
+    loadChargingAnalytics();
   }, []);
 
   const loadStats = async () => {
@@ -18,6 +20,15 @@ export function SubscriptionManagement({ theme }) {
       console.error('Failed to load stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadChargingAnalytics = async () => {
+    try {
+      const response = await api.request('/admin/subscriptions/charging/');
+      setChargingAnalytics(response);
+    } catch (error) {
+      console.error('Failed to load charging analytics:', error);
     }
   };
 
@@ -71,9 +82,11 @@ export function SubscriptionManagement({ theme }) {
     );
   }
 
-  const totalSubscribers = plans.reduce((sum, plan) => sum + plan.count, 0);
-  const paidSubscribers = plans.slice(1).reduce((sum, plan) => sum + plan.count, 0);
-  const revenue = paidSubscribers * 999; // Assuming 999 ETB average
+  const totalSubscribers = stats?.total_subscriptions || 0;
+  const activeSubscriptions = stats?.active_subscriptions || 0;
+  const expiredSubscriptions = stats?.expired_subscriptions || 0;
+  const trialUsers = stats?.trial_users || 0;
+  const totalRevenue = stats?.total_revenue || 0;
 
   return (
     <div>
@@ -116,7 +129,7 @@ export function SubscriptionManagement({ theme }) {
             color: theme.sub,
             marginBottom: 8,
           }}>
-            Total Subscribers
+            Total Subscriptions
           </div>
           <div style={{
             fontSize: 32,
@@ -139,14 +152,14 @@ export function SubscriptionManagement({ theme }) {
             color: theme.sub,
             marginBottom: 8,
           }}>
-            Paid Subscribers
+            Active Subscriptions
           </div>
           <div style={{
             fontSize: 32,
             fontWeight: 700,
             color: theme.green,
           }}>
-            {paidSubscribers}
+            {activeSubscriptions}
           </div>
         </div>
 
@@ -162,14 +175,37 @@ export function SubscriptionManagement({ theme }) {
             color: theme.sub,
             marginBottom: 8,
           }}>
-            Est. Monthly Revenue
+            Trial Users
+          </div>
+          <div style={{
+            fontSize: 32,
+            fontWeight: 700,
+            color: theme.blue,
+          }}>
+            {trialUsers}
+          </div>
+        </div>
+
+        <div style={{
+          background: theme.card,
+          borderRadius: 12,
+          padding: 24,
+          border: `1px solid ${theme.border}`,
+        }}>
+          <div style={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: theme.sub,
+            marginBottom: 8,
+          }}>
+            Total Revenue (ETB)
           </div>
           <div style={{
             fontSize: 32,
             fontWeight: 700,
             color: theme.pri,
           }}>
-            ${revenue.toFixed(2)}
+            {totalRevenue.toFixed(2)}
           </div>
         </div>
       </div>
@@ -235,11 +271,31 @@ export function SubscriptionManagement({ theme }) {
                 </h3>
 
                 <div style={{
+                  fontSize: 18,
+                  fontWeight: 600,
+                  color: plan.color,
+                  marginBottom: 8,
+                }}>
+                  {plan.price} ETB
+                </div>
+
+                {plan.priceCoins && (
+                  <div style={{
+                    fontSize: 14,
+                    color: theme.sub,
+                    marginBottom: 8,
+                  }}>
+                    or {plan.priceCoins} coins
+                  </div>
+                )}
+
+                <div style={{
                   fontSize: 14,
                   color: theme.sub,
                   marginBottom: 20,
+                  textTransform: 'capitalize',
                 }}>
-                  {plan.count} subscribers ({percentage}%)
+                  {plan.duration} • {plan.count} subscribers ({percentage}%)
                 </div>
 
                 {/* Progress Bar */}
@@ -297,8 +353,287 @@ export function SubscriptionManagement({ theme }) {
           );
         })}
       </div>
+
+      {/* Charging Analytics */}
+      {chargingAnalytics && (
+        <div style={{
+          background: theme.card,
+          borderRadius: 12,
+          padding: 24,
+          border: `1px solid ${theme.border}`,
+          marginBottom: 32,
+        }}>
+          <h3 style={{
+            fontSize: 20,
+            fontWeight: 700,
+            color: theme.txt,
+            marginBottom: 24,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}>
+            <TrendingUp size={24} color={theme.pri} />
+            Real-Time Charging Analytics
+          </h3>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 24,
+            marginBottom: 32,
+          }}>
+            <div style={{
+              background: `${theme.green}15`,
+              borderRadius: 12,
+              padding: 20,
+              border: `1px solid ${theme.green}`,
+            }}>
+              <div style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: theme.green,
+                marginBottom: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+                <DollarSign size={18} />
+                Monthly Recurring Revenue (MRR)
+              </div>
+              <div style={{
+                fontSize: 28,
+                fontWeight: 800,
+                color: theme.green,
+              }}>
+                {chargingAnalytics.active_subscriptions.mrr.toFixed(2)} ETB
+              </div>
+            </div>
+
+            <div style={{
+              background: `${theme.blue}15`,
+              borderRadius: 12,
+              padding: 20,
+              border: `1px solid ${theme.blue}`,
+            }}>
+              <div style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: theme.blue,
+                marginBottom: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+                <Users size={18} />
+                Active Subscriptions
+              </div>
+              <div style={{
+                fontSize: 28,
+                fontWeight: 800,
+                color: theme.blue,
+              }}>
+                {chargingAnalytics.active_subscriptions.total}
+              </div>
+            </div>
+
+            <div style={{
+              background: `${theme.pri}15`,
+              borderRadius: 12,
+              padding: 20,
+              border: `1px solid ${theme.pri}`,
+            }}>
+              <div style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: theme.pri,
+                marginBottom: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+                <Clock size={18} />
+                Today's Revenue
+              </div>
+              <div style={{
+                fontSize: 28,
+                fontWeight: 800,
+                color: theme.pri,
+              }}>
+                {chargingAnalytics.revenue.today.total.toFixed(2)} ETB
+              </div>
+              <div style={{
+                fontSize: 12,
+                color: theme.sub,
+                marginTop: 4,
+              }}>
+                {chargingAnalytics.revenue.today.count} transactions
+              </div>
+            </div>
+
+            <div style={{
+              background: `${theme.sub}15`,
+              borderRadius: 12,
+              padding: 20,
+              border: `1px solid ${theme.sub}`,
+            }}>
+              <div style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: theme.sub,
+                marginBottom: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+                <Star size={18} />
+                This Month's Revenue
+              </div>
+              <div style={{
+                fontSize: 28,
+                fontWeight: 800,
+                color: theme.txt,
+              }}>
+                {chargingAnalytics.revenue.month.total.toFixed(2)} ETB
+              </div>
+              <div style={{
+                fontSize: 12,
+                color: theme.sub,
+                marginTop: 4,
+              }}>
+                {chargingAnalytics.revenue.month.count} transactions
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue by Tier */}
+          <div style={{ marginBottom: 32 }}>
+            <h4 style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: theme.txt,
+              marginBottom: 16,
+            }}>
+              Active Subscriptions by Tier
+            </h4>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: 16,
+            }}>
+              {chargingAnalytics.active_subscriptions.by_tier.map((tier, index) => (
+                <div key={index} style={{
+                  background: theme.card,
+                  borderRadius: 8,
+                  padding: 16,
+                  border: `1px solid ${theme.border}`,
+                }}>
+                  <div style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: theme.txt,
+                    marginBottom: 8,
+                  }}>
+                    {tier.tier__name}
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    color: theme.sub,
+                    marginBottom: 4,
+                  }}>
+                    {tier.count} subscribers
+                  </div>
+                  <div style={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color: theme.green,
+                  }}>
+                    {tier.total_revenue.toFixed(2)} ETB
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Transactions */}
+          <div>
+            <h4 style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: theme.txt,
+              marginBottom: 16,
+            }}>
+              Recent Transactions
+            </h4>
+            <div style={{
+              background: theme.card,
+              borderRadius: 8,
+              border: `1px solid ${theme.border}`,
+              overflow: 'hidden',
+            }}>
+              <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+              }}>
+                <thead>
+                  <tr style={{
+                    background: theme.bg,
+                    borderBottom: `1px solid ${theme.border}`,
+                  }}>
+                    <th style={{
+                      padding: 12,
+                      textAlign: 'left',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: theme.sub,
+                    }}>User</th>
+                    <th style={{
+                      padding: 12,
+                      textAlign: 'left',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: theme.sub,
+                    }}>Tier</th>
+                    <th style={{
+                      padding: 12,
+                      textAlign: 'left',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: theme.sub,
+                    }}>Amount</th>
+                    <th style={{
+                      padding: 12,
+                      textAlign: 'left',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: theme.sub,
+                    }}>Method</th>
+                    <th style={{
+                      padding: 12,
+                      textAlign: 'left',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: theme.sub,
+                    }}>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {chargingAnalytics.recent_transactions.map((tx, index) => (
+                    <tr key={index} style={{
+                      borderBottom: index < chargingAnalytics.recent_transactions.length - 1 ? `1px solid ${theme.border}` : 'none',
+                    }}>
+                      <td style={{ padding: 12, fontSize: 14, color: theme.txt }}>{tx.user}</td>
+                      <td style={{ padding: 12, fontSize: 14, color: theme.txt }}>{tx.tier}</td>
+                      <td style={{ padding: 12, fontSize: 14, fontWeight: 600, color: theme.green }}>{tx.amount.toFixed(2)} ETB</td>
+                      <td style={{ padding: 12, fontSize: 14, color: theme.txt }}>{tx.payment_method}</td>
+                      <td style={{ padding: 12, fontSize: 14, color: theme.sub }}>{tx.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-

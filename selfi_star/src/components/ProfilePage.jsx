@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from "react";
-import { Grid, Film, Bookmark, Settings, ChevronLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2, Wallet, Gem, X } from "lucide-react";
+import { Grid, Film, Bookmark, Settings, ChevronLeft, UserPlus, UserCheck, Edit, Trash2, Edit2, MoreVertical, Trophy, Flag, Share2, Wallet, Gem, X, Crown } from "lucide-react";
 import { GamificationBar } from "./GamificationBar";
 import api from "../api";
 import config from "../config";
@@ -55,7 +55,7 @@ function writeFollowCache(userId, data) {
   } catch {}
 }
 
-export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings, onShowWallet }) {
+export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowers, onShowFollowing, onShowSettings, onShowWallet, onShowSubscription }) {
   const { colors: T } = useTheme();
   const { t } = useLanguage();
   const isOwnProfile = !userId || userId === user?.id;
@@ -511,6 +511,16 @@ export function ProfilePage({ user, userId, onBack, onEditProfile, onShowFollowe
                     title="Wallet"
                   >
                     <Wallet size={24} />
+                  </button>
+                  <button
+                    onClick={onShowSubscription}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      padding: 8, display: 'flex', alignItems: 'center', color: '#F9E08B',
+                    }}
+                    title="Subscription"
+                  >
+                    <Crown size={24} />
                   </button>
                   <button
                     onClick={onShowSettings}
