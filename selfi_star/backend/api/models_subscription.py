@@ -435,7 +435,7 @@ class SubscriptionCoinTransaction(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coin_transactions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_coin_transactions')
     
     transaction_type = models.CharField(max_length=50, choices=TRANSACTION_TYPES)
     amount = models.IntegerField(help_text='Coin amount (positive or negative)')
