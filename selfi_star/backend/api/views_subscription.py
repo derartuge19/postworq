@@ -65,27 +65,41 @@ class OnevasWebhookView(APIView):
     
     def handle_stop_command(self, phone_number):
         """Handle STOP command for subscription cancellation"""
+        print(f"[SUBSCRIPTION DEBUG] STOP command received for phone: {phone_number}")
+        
+        # First try to find registered user
+        user = None
         try:
             profile = UserProfile.objects.get(phone_number=phone_number)
             user = profile.user
+            print(f"[SUBSCRIPTION DEBUG] Found registered user: {user.username}")
         except UserProfile.DoesNotExist:
-            # User not registered - send registration link
-            registration_message = f"To manage your subscription, please register first:\n\nWeb App: {WEB_APP_LINK}\nMobile App: {MOBILE_APP_LINK}"
-            self.send_sms(phone_number, registration_message)
-            return Response({'status': 'user_not_registered', 'message': 'Registration link sent via SMS'})
+            print(f"[SUBSCRIPTION DEBUG] User not registered, checking for SMS-first subscription")
+            user = None
         
-        # Find active subscription
-        subscription = UserSubscription.objects.filter(
-            user=user,
-            status='active'
-        ).first()
+        # Find active subscription (either by user or by phone number for SMS-first)
+        subscription = None
+        if user:
+            subscription = UserSubscription.objects.filter(
+                user=user,
+                status='active'
+            ).first()
+        else:
+            # Check for SMS-first subscription (user not registered yet)
+            subscription = UserSubscription.objects.filter(
+                onevas_phone_number=phone_number,
+                status='active',
+                subscription_source='sms'
+            ).first()
         
         if not subscription:
             # No active subscription
+            print(f"[SUBSCRIPTION DEBUG] No active subscription found for phone: {phone_number}")
             no_sub_message = "You don't have an active subscription to cancel."
             self.send_sms(phone_number, no_sub_message)
             return Response({'status': 'no_active_subscription', 'message': 'No active subscription found'})
         
+        print(f"[SUBSCRIPTION DEBUG] Cancelling subscription: ID {subscription.id}")
         # Cancel subscription
         subscription.cancel(reason='User cancelled via STOP SMS')
         
@@ -96,8 +110,9 @@ class OnevasWebhookView(APIView):
             tier=subscription.tier,
             action='cancelled',
             reason='User cancelled via STOP SMS',
-            metadata={'method': 'stop_command'}
+            metadata={'method': 'stop_command', 'sms_subscription': user is None}
         )
+        print(f"[SUBSCRIPTION DEBUG] Subscription cancelled successfully")
         
         # Send SMS confirmation
         cancellation_message = f"Your {subscription.tier.name} subscription has been cancelled. Thank you for using our service!"
