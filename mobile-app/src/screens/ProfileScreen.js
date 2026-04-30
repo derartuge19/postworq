@@ -428,10 +428,10 @@ export default function ProfileScreen({ navigation }) {
                   <Ionicons name="wallet-outline" size={24} color="#C8B56A" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Subscription')} style={styles.navActionBtn}>
-                  <Ionicons name="crown" size={24} color="#C8B56A" />
+                  <Ionicons name="trophy" size={24} color="#C8B56A" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => Alert.alert('Help', 'Contact support for assistance')} style={styles.navActionBtn}>
-                  <Ionicons name="crown" size={24} color="#C8B56A" />
+                  <Ionicons name="information-circle" size={24} color="#C8B56A" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.navActionBtn}>
                   <Ionicons name="settings-outline" size={24} color="#C8B56A" />
