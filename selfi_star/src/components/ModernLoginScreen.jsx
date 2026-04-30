@@ -190,7 +190,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
   // Check URL params for subscription OTP mode
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('subscription_tp') === 'true') {
+    if (params.get('subscription_tp') === 'true' || params.get('subscriptiontp') === 'true') {
       setSubscriptionOtpMode(true);
     }
   }, []);
