@@ -84,11 +84,16 @@ export function SubscriptionPage({ user, onBack }) {
     const shortCode = '9286';
     const message = tierCode;
     
-    // Use SMS link format - window.location.href works better on Android
+    // Use SMS link format - create anchor element for better mobile browser compatibility
     const smsUrl = `sms:${shortCode}?body=${encodeURIComponent(message)}`;
     
-    // Use window.location.href instead of window.open for better Android compatibility
-    window.location.href = smsUrl;
+    // Create a temporary anchor element and click it - most reliable for mobile browsers
+    const anchor = document.createElement('a');
+    anchor.href = smsUrl;
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
   };
 
   const handlePayment = async () => {
