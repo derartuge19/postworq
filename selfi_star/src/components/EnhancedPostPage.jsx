@@ -865,7 +865,7 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
                 height: 54,
                 borderRadius: '50%',
                 background: 'linear-gradient(145deg, #F9E08B 0%, #D4A017 100%)',
-        boxShadow: 'none',
+                boxShadow: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -874,11 +874,11 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               }}>
                 <Plus size={26} strokeWidth={2.8} color='#1A0A00' />
               </div>
-              <span style={{ fontSize: 10, fontWeight: 500, color: '#F9E08B', lineHeight: 1, marginTop: 'auto', paddingBottom: 4 }}>Create</span>
-            </button>
-          );
-          return (
-            <button key={id} className="ep-nav-btn"
+            <span style={{ fontSize: 10, fontWeight: 500, color: '#F9E08B', lineHeight: 1, marginTop: 'auto', paddingBottom: 4 }}>Create</span>
+          </button>
+        );
+        return (
+          <button key={id} className="ep-nav-btn"
               onClick={() => action?.()}
               style={{ 
                 flex: 1,
@@ -1287,11 +1287,18 @@ export function EnhancedPostPage({ user, onBack, onPostSuccess, onNavHome, onNav
               </div>
 
               {/* Hero icon + title */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 24, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 48, paddingBottom: 8, position: 'relative', zIndex: 1 }}>
                 <div style={{ position: 'relative', marginBottom: 14 }}>
-                  <div style={{ width: 72, height: 72, background: 'linear-gradient(145deg, #D4A017 0%, #8B6914 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(249,224,139,0.4)' }}>
-                    <svg width="30" height="30" fill="none" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="#000"/><path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9z" stroke="#000" strokeWidth="1.8" fill="none" strokeLinejoin="round"/></svg>
-                  </div>
+                  <img 
+                    src="/create_img.jpg" 
+                    alt="Create" 
+                    style={{ 
+                      width: 72, 
+                      height: 72, 
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }} 
+                  />
                   <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, background: '#F9E08B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, border: '2px solid #0D0D0D', boxShadow: '0 2px 6px rgba(249,224,139,0.5)' }}>✨</div>
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 800, background: 'linear-gradient(to bottom, #F9E08B 0%, #D4AF37 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 4 }}>Create Post</div>

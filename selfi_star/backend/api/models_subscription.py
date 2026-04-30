@@ -107,6 +107,7 @@ class SubscriptionPlan(models.Model):
     onevas_subscription_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     onevas_phone_number = models.CharField(max_length=20, null=True, blank=True)
     onevas_transaction_id = models.CharField(max_length=100, null=True, blank=True)
+    subscription_source = models.CharField(max_length=20, choices=[('sms', 'SMS'), ('app', 'App')], default='app')
     
     # Status and dates
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -175,7 +176,7 @@ class SubscriptionPayment(models.Model):
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     subscription = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE, related_name='payments')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_payments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_payments', null=True, blank=True)
     
     # Onevas reference
     onevas_transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
@@ -222,7 +223,7 @@ class SubscriptionHistory(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_history')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_history', null=True, blank=True)
     subscription = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True, blank=True, related_name='history')
     tier = models.ForeignKey(SubscriptionTier, on_delete=models.SET_NULL, null=True, blank=True, related_name='history')
     
@@ -435,7 +436,7 @@ class SubscriptionCoinTransaction(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coin_transactions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_coin_transactions')
     
     transaction_type = models.CharField(max_length=50, choices=TRANSACTION_TYPES)
     amount = models.IntegerField(help_text='Coin amount (positive or negative)')

@@ -18,16 +18,16 @@ def _generate_otp():
 
 
 def _normalize_ethiopian_phone(phone):
-    """Normalize to +251XXXXXXXXX. Returns None if invalid."""
+    """Normalize to 251XXXXXXXXX (without + for Onevas). Returns None if invalid."""
     phone = phone.strip().replace(' ', '').replace('-', '')
-    if phone.startswith('+251') and len(phone) == 13:
-        return phone
+    # Remove + prefix if present
+    phone = phone.replace('+', '')
     if phone.startswith('251') and len(phone) == 12:
-        return '+' + phone
+        return phone
     if phone.startswith('0') and len(phone) == 10:
-        return '+251' + phone[1:]
+        return '251' + phone[1:]
     if len(phone) == 9 and phone[0] in '79':
-        return '+251' + phone
+        return '251' + phone
     return None
 
 
@@ -265,119 +265,203 @@ def download_data(request):
     return Response(user_data)
 
 
+# ── OTP-less Login for SMS Subscribers ─────────────────────────────────────────
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_with_phone(request):
+    """OTP-less login for users with active SMS subscriptions"""
+    from .models_subscription import SubscriptionPlan as UserSubscription
+    
+    phone = request.data.get('phone', '').strip()
+    password = request.data.get('password', '').strip()
+    
+    if not phone or not password:
+        return Response({'error': 'Phone and password required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Normalize phone number
+    phone = _normalize_ethiopian_phone(phone)
+    if not phone:
+        return Response({'error': 'Invalid Ethiopian phone number'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if user has active SMS subscription
+    sms_subscription = UserSubscription.objects.filter(
+        onevas_phone_number=phone,
+        status='active',
+        subscription_source='sms'
+    ).first()
+    
+    if not sms_subscription:
+        return Response({'error': 'No active SMS subscription found. Please register with OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # If user already exists, try regular login
+    if sms_subscription.user:
+        user = sms_subscription.user
+        if user.check_password(password):
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({'user': UserSerializer(user).data, 'token': token.key})
+        else:
+            return Response({'error': 'Invalid password'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    # User doesn't exist yet - need to register first
+    return Response({
+        'error': 'User account not created yet',
+        'message': 'Please register your account first. Your SMS subscription will be linked automatically.',
+        'phone': phone,
+        'requires_registration': True
+    }, status=status.HTTP_400_BAD_REQUEST)
+
+
 # ── Phone OTP Registration ─────────────────────────────────────────────────
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def send_phone_otp(request):
-    """Step 1 of registration: validate Ethiopian phone and send 6-digit OTP via SMS."""
-    from .models_auth import PhoneOTP
+    """Step 1 of registration: validate Ethiopian phone and send 6-digit OTP via Onevas SMS."""
+    from .services.otp_service import OTPService
+    from decouple import config
+    
     phone_raw = request.data.get('phone', '').strip()
+    print(f"[OTP DEBUG] send_phone_otp called with phone_raw: {phone_raw}")
+    
     if not phone_raw:
+        print("[OTP DEBUG] No phone number provided")
         return Response({'error': 'Phone number required'}, status=status.HTTP_400_BAD_REQUEST)
+    
     phone = _normalize_ethiopian_phone(phone_raw)
+    print(f"[OTP DEBUG] Normalized phone: {phone}")
+    
     if not phone:
+        print("[OTP DEBUG] Invalid phone number format")
         return Response(
             {'error': 'Invalid Ethiopian phone number. Use format 09XXXXXXXX or +251XXXXXXXXX'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+    
     if UserProfile.objects.filter(phone_number=phone).exists():
+        print(f"[OTP DEBUG] Phone {phone} already registered")
         return Response({'error': 'This phone number is already registered'}, status=status.HTTP_400_BAD_REQUEST)
-    # Rate-limit: max 3 OTPs per number per 10 minutes
-    recent = PhoneOTP.objects.filter(phone=phone, created_at__gte=timezone.now() - timedelta(minutes=10)).count()
-    if recent >= 3:
-        return Response({'error': 'Too many requests. Please wait 10 minutes.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
-    code = _generate_otp()
-    PhoneOTP.objects.filter(phone=phone).delete()
-    PhoneOTP.objects.create(phone=phone, code=code, expires_at=timezone.now() + timedelta(minutes=10))
-    sms_sent = _send_sms(phone, f'Your FlipStar code: {code}. Valid 10 min. Do not share.')
-    resp = {'message': f'OTP sent to {phone}', 'phone': phone, 'sms_sent': sms_sent}
-    if not sms_sent:
-        resp['dev_code'] = code  # Remove this line in production once SMS is live
-    return Response(resp)
+    
+    # Use Onevas application key from config
+    application_key = config('ONEVAS_APPLICATION_KEY', default='UPJG5ZM3X6C9LLDSKKCME4MA86UQRKWV')
+    print(f"[OTP DEBUG] Application key: {application_key}")
+    
+    # Send OTP via Onevas SMS
+    print(f"[OTP DEBUG] Calling OTPService.send_otp for phone: {phone}")
+    success, message = OTPService.send_otp(phone, application_key)
+    print(f"[OTP DEBUG] OTPService result - success: {success}, message: {message}")
+    
+    if success:
+        return Response({'message': message, 'phone': phone})
+    else:
+        return Response({'error': message}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def verify_phone_otp(request):
     """Step 2: verify the OTP entered by the user."""
-    from .models_auth import PhoneOTP
+    from .services.otp_service import OTPService
+    
     phone = request.data.get('phone', '').strip()
     code = request.data.get('code', '').strip()
     if not phone or not code:
         return Response({'error': 'Phone and code required'}, status=status.HTTP_400_BAD_REQUEST)
-    try:
-        otp = PhoneOTP.objects.get(phone=phone, code=code, verified=False)
-    except PhoneOTP.DoesNotExist:
-        return Response({'error': 'Invalid or already used code'}, status=status.HTTP_400_BAD_REQUEST)
-    if timezone.now() > otp.expires_at:
-        otp.delete()
-        return Response({'error': 'OTP expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
-    otp.verified = True
-    otp.expires_at = timezone.now() + timedelta(minutes=30)  # Give 30 min to finish registration
-    otp.save()
-    return Response({'message': 'Phone verified successfully', 'phone': phone})
+    
+    # Verify OTP using OTPService
+    success, message = OTPService.verify_otp(phone, code)
+    
+    if success:
+        return Response({'message': message, 'phone': phone})
+    else:
+        return Response({'error': message}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_with_phone(request):
     """Step 3: create account after phone verified. Password must be exactly 6 digits."""
-    from .models_auth import PhoneOTP
+    from .models_subscription import SubscriptionPlan as UserSubscription, SubscriptionPayment, SubscriptionHistory
+    from django.db import transaction
+    
     phone = request.data.get('phone', '').strip()
     username = request.data.get('username', '').strip()
     password = request.data.get('password', '').strip()
     email = request.data.get('email', '').strip()
+    skip_otp = request.data.get('skip_otp', False)  # Allow skipping OTP for SMS subscribers
+    
     if not phone or not username or not password:
         return Response({'error': 'phone, username, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
     if not password.isdigit() or len(password) != 6:
         return Response({'error': 'Password must be exactly 6 digits (numbers only)'}, status=status.HTTP_400_BAD_REQUEST)
-    try:
-        otp = PhoneOTP.objects.get(phone=phone, verified=True)
-    except PhoneOTP.DoesNotExist:
-        return Response({'error': 'Phone not verified. Please complete OTP step first.'}, status=status.HTTP_400_BAD_REQUEST)
-    if timezone.now() > otp.expires_at:
-        otp.delete()
-        return Response({'error': 'Session expired. Please start registration again.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if user has active SMS subscription (OTP-less flow)
+    sms_subscription = UserSubscription.objects.filter(
+        onevas_phone_number=phone,
+        status='active',
+        subscription_source='sms',
+        user__isnull=True
+    ).first()
+    
+    if sms_subscription:
+        skip_otp = True  # Skip OTP verification for SMS subscribers
+    
+    if not skip_otp:
+        # Require OTP verification for app-first flow
+        from .models_auth import PhoneOTP
+        try:
+            otp = PhoneOTP.objects.get(phone=phone, verified=True)
+        except PhoneOTP.DoesNotExist:
+            return Response({'error': 'Phone not verified. Please complete OTP step first.'}, status=status.HTTP_400_BAD_REQUEST)
+        if timezone.now() > otp.expires_at:
+            otp.delete()
+            return Response({'error': 'Session expired. Please start registration again.'}, status=status.HTTP_400_BAD_REQUEST)
+    
     if User.objects.filter(username=username).exists():
         return Response({'error': 'Username already taken. Please choose another.'}, status=status.HTTP_400_BAD_REQUEST)
     if UserProfile.objects.filter(phone_number=phone).exists():
         return Response({'error': 'Phone number already registered'}, status=status.HTTP_400_BAD_REQUEST)
+    
     try:
         user = User.objects.create_user(username=username, password=password, email=email or '')
         profile = user.profile
         profile.phone_number = phone
         profile.save()
-        otp.delete()
         
-        # Activate any pending subscriptions for this phone number
-        from .models_subscription import UserSubscription as SubscriptionPlan, SubscriptionPayment, SubscriptionHistory
-        from django.db import transaction
+        if not skip_otp:
+            from .models_auth import PhoneOTP
+            otp.delete()
         
-        pending_subs = SubscriptionPlan.objects.filter(
-            onevas_phone_number=phone,
-            status='pending',
-            user__isnull=True
-        )
-        
-        if pending_subs.exists():
-            with transaction.atomic():
-                for sub in pending_subs:
-                    # Link subscription to user
-                    sub.user = user
-                    sub.status = 'active'
-                    sub.activate()
-                    sub.save()
-                    
-                    # Update payment record
-                    SubscriptionPayment.objects.filter(subscription=sub).update(user=user)
-                    
-                    # Update history record
-                    SubscriptionHistory.objects.filter(subscription=sub).update(user=user)
-                    
-                    # Update user trial status
-                    profile.is_trial_user = False
-                    profile.save()
+        # Link any SMS subscriptions to the new user
+        with transaction.atomic():
+            # Link active SMS subscriptions
+            sms_subs = UserSubscription.objects.filter(
+                onevas_phone_number=phone,
+                status='active',
+                subscription_source='sms',
+                user__isnull=True
+            )
+            
+            for sub in sms_subs:
+                # Link subscription to user
+                sub.user = user
+                sub.save()
+                
+                # Update payment records
+                SubscriptionPayment.objects.filter(
+                    subscription=sub,
+                    user__isnull=True
+                ).update(user=user)
+                
+                # Update history records
+                SubscriptionHistory.objects.filter(
+                    subscription=sub,
+                    user__isnull=True
+                ).update(user=user)
+                
+                # Update user trial status
+                profile.is_trial_user = False
+                profile.save()
         
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'user': UserSerializer(user).data, 'token': token.key}, status=status.HTTP_201_CREATED)

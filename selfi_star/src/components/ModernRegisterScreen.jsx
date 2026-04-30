@@ -153,7 +153,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
   const [focusedPwd, setFocusedPwd] = useState(false);
   const [focusedConfirm, setFocusedConfirm] = useState(false);
 
-  // ── Step 1: Validate form then send OTP ───────────────────────────────
+  // ── Step 1: Validate form then send OTP or skip for SMS subscribers ───────────────────────────────
   const handleSendOtp = async () => {
     setError("");
     if (!username) { setError("Please enter a username"); return; }
@@ -163,16 +163,42 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
     if (password !== confirm) { setError("Passwords do not match"); return; }
     setLoading(true);
     try {
-      const res = await api.sendPhoneOtp(phone);
-      setVerifiedPhone(res.phone);
-      setResendTimer(60);
-      // Dev mode: show OTP on page since SMS not configured yet
-      if (res.dev_code) {
-        setDevCode(res.dev_code);
+      // Check if user has active SMS subscription (OTP-less flow)
+      const res = await api.post('/auth/login-with-phone/', { phone, password: 'check' });
+      
+      // If user has SMS subscription, skip OTP and register directly
+      if (res.data.requires_registration) {
+        await handleRegisterWithPhone(true); // skip_otp = true
+      } else {
+        // No SMS subscription, send OTP normally
+        const otpRes = await api.sendPhoneOtp(phone);
+        setVerifiedPhone(otpRes.phone);
+        setResendTimer(60);
+        // Dev mode: show OTP on page since SMS not configured yet
+        if (otpRes.dev_code) {
+          setDevCode(otpRes.dev_code);
+        }
+        setStep(2);
       }
-      setStep(2);
     } catch (e) {
-      setError(e?.message || "Failed to send OTP. Check your phone number.");
+      // If no SMS subscription found, send OTP normally
+      try {
+        const otpRes = await api.sendPhoneOtp(phone);
+        setVerifiedPhone(otpRes.phone);
+        setResendTimer(60);
+        if (otpRes.dev_code) {
+          setDevCode(otpRes.dev_code);
+        }
+        setStep(2);
+      } catch (otpErr) {
+        // Check for specific error messages
+        const errorMessage = otpErr?.response?.data?.error || otpErr?.message || "Failed to send OTP. Check your phone number.";
+        if (errorMessage.includes("already registered")) {
+          setError("This phone number is already in use. Please use a different number or log in to your existing account.");
+        } else {
+          setError(errorMessage);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -186,7 +212,26 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
     try {
       await api.verifyPhoneOtp(verifiedPhone, otp);
       // OTP verified — now create account
-      const res = await api.register(username, email, password, "", "");
+      await handleRegisterWithPhone(false); // skip_otp = false
+    } catch (e) {
+      setError(e?.message || "Invalid code or registration failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Register with phone (supports both OTP and OTP-less flows) ──────────────────────────────────
+  const handleRegisterWithPhone = async (skipOtp = false) => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/register-with-phone/', {
+        phone: phone,
+        username: username,
+        password: password,
+        email: email,
+        skip_otp: skipOtp
+      });
       api.setAuthToken(res.token);
       onSuccess({
         id: res.user.id, username: res.user.username, email: res.user.email || "",
@@ -198,7 +243,7 @@ export function ModernRegisterScreen({ onSuccess, onLogin, onBack }) {
         is_staff: res.user.is_staff || false,
       });
     } catch (e) {
-      setError(e?.message || "Invalid code or registration failed.");
+      setError(e?.response?.data?.error || e?.message || "Registration failed.");
     } finally {
       setLoading(false);
     }

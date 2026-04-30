@@ -25,8 +25,50 @@ export function RegisterScreen({ onSuccess, onLogin, onBack }) {
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
   const steps = ["Details","Phone","Verify","Privacy","Plan"];
 
-  const sendOtp = () => { setLoading(true); setTimeout(()=>{ setLoading(false); setStep(2); }, 1200); };
-  const verifyOtp = () => { if(otp.join("").length<5){setErr("Enter the 5-digit code");return;} setLoading(true); setTimeout(()=>{ setLoading(false); setStep(3); },1000); };
+  const sendOtp = async () => {
+    setLoading(true);
+    try {
+      // Check if user has active SMS subscription (OTP-less flow)
+      const fullPhone = form.country + form.phone;
+      const res = await api.post('/auth/login-with-phone/', { phone: fullPhone, password: 'check' });
+      
+      // If user has SMS subscription, skip OTP verification
+      if (res.data.requires_registration) {
+        setErr("");
+        setStep(3); // Skip OTP step, go to privacy
+      } else {
+        // No SMS subscription, send OTP
+        const otpRes = await api.post('/auth/send-phone-otp/', { phone: fullPhone });
+        if (otpRes.data.message) {
+          setErr("");
+          setStep(2);
+        } else {
+          setErr("Failed to send OTP");
+        }
+      }
+    } catch (e) {
+      // If no SMS subscription found, send OTP normally
+      try {
+        const fullPhone = form.country + form.phone;
+        const otpRes = await api.post('/auth/send-phone-otp/', { phone: fullPhone });
+        if (otpRes.data.message) {
+          setErr("");
+          setStep(2);
+        } else {
+          setErr("Failed to send OTP");
+        }
+      } catch (otpErr) {
+        // Check for specific error messages
+        const errorMessage = otpErr.response?.data?.error || otpErr.message || "Failed to send OTP. Please try again.";
+        if (errorMessage.includes("already registered")) {
+          setErr("This phone number is already in use. Please use a different number or log in to your existing account.");
+        } else {
+          setErr(errorMessage);
+        }
+      }
+    }
+    setLoading(false);
+  };
   
   const finish = async () => {
     setLoading(true);
@@ -51,24 +93,36 @@ export function RegisterScreen({ onSuccess, onLogin, onBack }) {
       
       const firstName = form.name.split(" ")[0];
       const lastName = form.name.split(" ")[1] || "";
+      const fullPhone = form.country + form.phone;
       
-      console.log('Registering with:', { username, email: form.email, firstName, lastName, password: form.pw });
+      console.log('Registering with:', { username, email: form.email, firstName, lastName, password: form.pw, phone: fullPhone });
       
-      const res = await api.register(username, form.email, form.pw, firstName, lastName);
+      // Check if user skipped OTP (has SMS subscription)
+      const skippedOtp = step === 3; // If went directly from phone to privacy, OTP was skipped
+      
+      // Use register_with_phone endpoint with skip_otp parameter
+      const res = await api.post('/auth/register-with-phone/', {
+        phone: fullPhone,
+        username: username,
+        password: form.pw,
+        email: form.email,
+        skip_otp: skippedOtp
+      });
+      
       console.log('Registration successful:', res);
       api.setToken(res.token);
       onSuccess({
         name:form.name||"Creator",
         init:(form.name||"C").slice(0,2).toUpperCase(),
         email:form.email,
-        phone:form.phone,
+        phone:fullPhone,
         plan,
         marketingChoices:mc,
         id: res.user.id
       });
     } catch(e) {
       console.error('Registration error:', e);
-      setErr(e.message || "Signup failed");
+      setErr(e.response?.data?.error || e.message || "Signup failed");
       setLoading(false);
     }
   };
