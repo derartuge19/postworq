@@ -116,7 +116,15 @@ class OnevasWebhookView(APIView):
 
         # Send SMS confirmation
         if subscription.tier:
-            cancellation_message = f"Dear customer, you have successfully unsubscribed from FLIPSTAR {subscription.tier.name} service. To subscribe again please send OK1 to {subscription.tier.short_code}. Thank you."
+            # Map duration type to resubscribe keyword
+            resubscribe_keywords = {
+                'daily': 'OK1',
+                'weekly': 'OK2',
+                'monthly': 'OK3',
+                'ondemand': 'OK4'
+            }
+            resubscribe_keyword = resubscribe_keywords.get(subscription.tier.duration_type, 'OK1')
+            cancellation_message = f"Dear customer, you have successfully unsubscribed from FLIPSTAR {subscription.tier.name} service. To subscribe again please send {resubscribe_keyword} to {subscription.tier.short_code}. Thank you."
             print(f"[SUBSCRIPTION DEBUG] Sending cancellation SMS to {phone_number}")
             sms_sent = self.send_sms(phone_number, cancellation_message, subscription.tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] Cancellation SMS sent: {sms_sent}")
@@ -318,7 +326,16 @@ class OnevasWebhookView(APIView):
             # Update user trial status
             profile.is_trial_user = False
             profile.save()
-            
+
+            # Generate OTP and send SMS
+            otp_code = OTPService.generate_otp()
+            active_sub.setup_otp = otp_code
+            active_sub.save()
+            duration_text = f"{tier.duration_days} days" if tier.duration_days else tier.duration_type
+            renewal_message = f"Dear customer, your {tier.name} Flipstar subscription has been renewed successfully, effective from {active_sub.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?login=true using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
+            print(f"[SUBSCRIPTION DEBUG] Sending renewal SMS to {phone_number} with OTP: {otp_code}")
+            self.send_sms(phone_number, renewal_message, tier.duration_type)
+
             return Response({'status': 'success', 'message': 'Subscription renewed'})
         
         else:
@@ -360,11 +377,15 @@ class OnevasWebhookView(APIView):
                 # Update user trial status
                 profile.is_trial_user = False
                 profile.save()
-            
-            # Send SMS confirmation
-            duration_text = f"{tier.duration_days} days" if tier.duration_days else tier.duration_type
-            confirmation_message = f"You are successfully subscribed to {tier.name} plan for {duration_text}. To enjoy the service click on https://postworqq.vercel.app?login=true Thank you for your subscription!"
-            self.send_sms(phone_number, confirmation_message, tier.duration_type)
+
+                # Generate OTP and send SMS
+                otp_code = OTPService.generate_otp()
+                subscription.setup_otp = otp_code
+                subscription.save()
+                duration_text = f"{tier.duration_days} days" if tier.duration_days else tier.duration_type
+                confirmation_message = f"Dear customer, you have successfully subscribed to {tier.name} Flipstar, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your free trial. After your free trial ends, the price will be {tier.price_etb} ETB/day. To enjoy the service click on https://postworqq.vercel.app?login=true using OTP {otp_code} To unsubscribe, send STOP to {tier.short_code}."
+                print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
+                self.send_sms(phone_number, confirmation_message, tier.duration_type)
             
             return Response({'status': 'success', 'message': 'Subscription created'})
     
