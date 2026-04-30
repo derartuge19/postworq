@@ -212,7 +212,7 @@ export default function SettingsScreen({ navigation }) {
         {/* User Card */}
         <View style={[styles.profileSummary, { backgroundColor: T.card }]}>
           <View style={[styles.avatarLarge, { backgroundColor: T.pri }]}>
-            <Text style={styles.avatarInitial}>{user?.username?.[0]?.toUpperCase() || 'U'}</Text>
+            <Text style={styles.avatarInitial}>{user?.username?.[0]?.toUpperCase() || '👑'}</Text>
           </View>
           <Text style={[styles.profileName, { color: T.text }]}>@{user?.username}</Text>
           <Text style={[styles.profileEmail, { color: T.sub }]}>{user?.email}</Text>

@@ -55,7 +55,7 @@ export default function VideoDetailScreen({ route, navigation }) {
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Text style={styles.avatarText}>
-                {reel.user?.username?.[0]?.toUpperCase() || 'U'}
+                {reel.user?.username?.[0]?.toUpperCase() || '👑'}
               </Text>
             </View>
           )}

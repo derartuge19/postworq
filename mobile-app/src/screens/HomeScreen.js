@@ -137,7 +137,7 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
             ) : (
               <View style={[styles.avatar, styles.avatarPlaceholder]}>
                 <Text style={styles.avatarText}>
-                  {item.user?.username?.[0]?.toUpperCase() || 'U'}
+                  {item.user?.username?.[0]?.toUpperCase() || '👑'}
                 </Text>
               </View>
             )}
