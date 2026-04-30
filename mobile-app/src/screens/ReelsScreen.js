@@ -60,8 +60,15 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
 
   // Play / pause based on visibility AND screen focus
   useEffect(() => {
-    console.log('Video state changed:', { isActive, isFocused, paused, videoLoaded });
-  }, [isActive, isFocused, paused, videoLoaded]);
+    console.log('ReelsScreen video state changed:', { 
+      itemId: item.id, 
+      isActive, 
+      isFocused, 
+      paused, 
+      videoLoaded,
+      shouldPlay: isActive && isFocused && !paused
+    });
+  }, [isActive, isFocused, paused, videoLoaded, item.id]);
 
   // Cleanup video when component unmounts
   useEffect(() => {

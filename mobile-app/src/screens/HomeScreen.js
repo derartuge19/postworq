@@ -17,7 +17,7 @@ import { Image } from 'expo-image';
 import { FlashList } from '@shopify/flash-list';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useIsFocused } from '@react-navigation/native';
 import api from '../api';
 import GamificationBar from '../components/GamificationBar';
 import SuggestedUsers from '../components/SuggestedUsers';
@@ -62,7 +62,8 @@ const mediaUrl = (url) => {
 };
 
 // Memoized post item component
-const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD }) => {
+const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD, screenFocused }) => {
+  const videoRef = useRef(null);
   const isVideo = !!item.media && (
     /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
     item.media.includes('/video/upload/') ||
@@ -82,6 +83,23 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
   const avatarSrc = mediaUrl(item.user?.profile_photo);
   const isVisible = visibleItems.includes(item.id);
   const currentLiked = item.has_voted || item.is_liked || false;
+
+  // Pause video when screen loses focus or item becomes invisible
+  useEffect(() => {
+    if (videoRef.current && (!screenFocused || !isVisible)) {
+      console.log('Pausing video for item:', item.id, 'screenFocused:', screenFocused, 'isVisible:', isVisible);
+      videoRef.current.pauseAsync().catch(() => {});
+    }
+  }, [screenFocused, isVisible, item.id]);
+
+  // Cleanup video when component unmounts
+  useEffect(() => {
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.pauseAsync().catch(() => {});
+      }
+    };
+  }, []);
 
   const isFollowing = followStates[item.user?.id] ?? item.user?.is_following;
   const isOwnPost = user?.id === item.user?.id;
@@ -162,9 +180,10 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
             isVideo ? (
               <>
                 <Video
+                  ref={videoRef}
                   source={{ uri: mediaSrc }}
                   style={styles.media}
-                  shouldPlay={isVisible}
+                  shouldPlay={isVisible && screenFocused}
                   isLooping
                   resizeMode={ResizeMode.COVER}
                   useNativeControls={false}
@@ -172,7 +191,7 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
                   onLoad={() => console.log('Home video loaded:', mediaSrc)}
                   onError={(error) => console.error('Home video error:', error)}
                 />
-                {!isVisible && (
+                {(!isVisible || !screenFocused) && (
                   <View style={styles.playOverlay}>
                     <View style={styles.playCircle}>
                       <Ionicons name="play" size={24} color="#000" style={{ marginLeft: 3 }} />
@@ -298,7 +317,8 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
 });
 
 export default function HomeScreen({ navigation }) {
-  const nav = useNavigation();
+  const nav            = useNavigation();
+  const screenFocused  = useIsFocused();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('For You');
@@ -343,6 +363,17 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     loadPosts();
   }, []);
+
+  // Pause all videos when screen loses focus
+  useFocusEffect(
+    useCallback(() => {
+      // Screen gained focus - videos will auto-play based on visibility
+      return () => {
+        // Screen lost focus - pause all videos
+        console.log('HomeScreen lost focus - pausing all videos');
+      };
+    }, [])
+  );
 
   // Refresh posts when screen comes into focus (e.g., returning from Comments)
   useFocusEffect(
@@ -544,9 +575,10 @@ export default function HomeScreen({ navigation }) {
         user={user}
         T={T}
         BRAND_GOLD={BRAND_GOLD}
+        screenFocused={screenFocused}
       />
     );
-  }, [visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD, navigation]);
+  }, [visibleItems, expandedCaptions, toggleCaption, handleVote, handleSave, handleShare, handleComment, handleProfile, handleVideoPress, votingInProgress, followStates, handleFollow, suggestionTriggerUserId, setSuggestionTriggerUserId, user, T, BRAND_GOLD, navigation, screenFocused]);
 
   const feedData = React.useMemo(() => {
     if (posts.length === 0) return posts;
