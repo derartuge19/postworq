@@ -540,6 +540,7 @@ def login_with_subscription_otp(request):
         return Response({'error': 'Invalid Ethiopian phone number'}, status=status.HTTP_400_BAD_REQUEST)
     
     # Find SMS-first subscription with matching OTP
+    print(f"[SUBSCRIPTION LOGIN DEBUG] Searching for subscription with phone: {phone}, otp: {otp}")
     subscription = UserSubscription.objects.filter(
         onevas_phone_number=phone,
         setup_otp=otp,
@@ -547,9 +548,14 @@ def login_with_subscription_otp(request):
         subscription_source='sms',
         user__isnull=True
     ).first()
-    
+
     if not subscription:
+        # Debug: Try to find any subscription with this phone
+        all_subs = UserSubscription.objects.filter(onevas_phone_number=phone)
         print(f"[SUBSCRIPTION LOGIN DEBUG] No matching subscription found")
+        print(f"[SUBSCRIPTION LOGIN DEBUG] All subscriptions with phone {phone}: {all_subs.count()}")
+        for sub in all_subs:
+            print(f"[SUBSCRIPTION LOGIN DEBUG]   - ID: {sub.id}, OTP: {sub.setup_otp}, Status: {sub.status}, Source: {sub.subscription_source}, User: {sub.user}")
         return Response({'error': 'Invalid OTP or no active subscription found'}, status=status.HTTP_400_BAD_REQUEST)
     
     print(f"[SUBSCRIPTION LOGIN DEBUG] Subscription found: ID {subscription.id}")
