@@ -175,7 +175,7 @@ class SubscriptionPayment(models.Model):
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     subscription = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE, related_name='payments')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_payments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscription_payments', null=True, blank=True)
     
     # Onevas reference
     onevas_transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
