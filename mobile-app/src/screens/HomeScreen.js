@@ -133,7 +133,14 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
         <View style={styles.header}>
           <TouchableOpacity onPress={() => handleProfile(item.user?.id)} style={styles.avatarContainer}>
             {avatarSrc ? (
-              <Image source={{ uri: avatarSrc }} style={styles.avatar} />
+              <Image 
+                source={{ uri: avatarSrc }} 
+                style={styles.avatar}
+                cachePolicy="memory-disk"
+                priority="low"
+                placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+                transition={100}
+              />
             ) : (
               <View style={[styles.avatar, styles.avatarPlaceholder]}>
                 <Text style={styles.avatarText}>
@@ -200,7 +207,14 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
                 )}
               </>
             ) : (
-              <Image source={{ uri: mediaSrc }} style={styles.media} />
+              <Image 
+                source={{ uri: mediaSrc }} 
+                style={styles.media}
+                cachePolicy="memory-disk"
+                priority="high"
+                placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+                transition={200}
+              />
             )
           ) : (
             <View style={[styles.media, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -378,32 +392,37 @@ export default function HomeScreen({ navigation }) {
   // Refresh posts when screen comes into focus (e.g., returning from Comments)
   useFocusEffect(
     useCallback(() => {
-      loadPosts();
-    }, [loadPosts])
+      // Only load if we don't have posts or it's been more than 5 minutes
+      const shouldRefresh = posts.length === 0 || (Date.now() - lastLoadTime.current > 300000);
+      if (shouldRefresh) {
+        loadPosts();
+      }
+    }, [posts.length])
   );
+
+  const lastLoadTime = useRef(Date.now());
 
   // Listen for tab press event to refresh when already on Home screen
   useEffect(() => {
     const unsubscribe = nav.addListener('tabPress', (e) => {
-      // Only refresh if we're already on the Home screen
-      // Don't prevent navigation from other tabs
+      // Only refresh if we're already on the Home screen and it's been more than 30 seconds
       const currentRoute = nav.getState()?.routes[nav.getState()?.index];
-      if (currentRoute?.name === 'Home') {
+      const timeSinceLastLoad = Date.now() - lastLoadTime.current;
+      if (currentRoute?.name === 'Home' && timeSinceLastLoad > 30000) {
         loadPosts();
       }
     });
 
     return unsubscribe;
-  }, [nav, loadPosts]);
+  }, [nav]);
 
   const loadPosts = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.getReels();
       const posts = Array.isArray(data) ? data : (data.results || []);
-      console.log('HomeScreen: Loaded posts:', posts.length);
-      console.log('HomeScreen: Sample post media URLs:', posts.slice(0, 3).map(p => ({ id: p.id, media: p.media, image: p.image })));
       setPosts(posts);
+      lastLoadTime.current = Date.now();
     } catch (error) {
       console.error('Error loading posts:', error);
     } finally {
@@ -424,7 +443,7 @@ export default function HomeScreen({ navigation }) {
     setVotingInProgress(prev => ({ ...prev, [reelId]: true }));
     
     // Optimistic update
-    setPosts(posts.map(post => 
+    setPosts(prevPosts => prevPosts.map(post => 
       post.id === reelId 
         ? { ...post, votes: currentLiked ? Math.max(0, (post.votes || 0) - 1) : (post.votes || 0) + 1, has_voted: !currentLiked, is_liked: !currentLiked }
         : post
@@ -434,7 +453,7 @@ export default function HomeScreen({ navigation }) {
       const response = await api.voteReel(reelId);
       // Update with server response if available
       if (response && response.votes !== undefined) {
-        setPosts(posts.map(post => 
+        setPosts(prevPosts => prevPosts.map(post => 
           post.id === reelId 
             ? { ...post, votes: response.votes, has_voted: response.has_voted ?? !currentLiked, is_liked: response.is_liked ?? !currentLiked, comments_count: response.comments_count ?? post.comments_count }
             : post
@@ -443,7 +462,7 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       console.error('Error voting:', error);
       // Revert on error
-      setPosts(posts.map(post => 
+      setPosts(prevPosts => prevPosts.map(post => 
         post.id === reelId 
           ? { ...post, votes: currentLiked ? (post.votes || 0) + 1 : Math.max(0, (post.votes || 0) - 1), has_voted: currentLiked, is_liked: currentLiked }
           : post
@@ -451,11 +470,11 @@ export default function HomeScreen({ navigation }) {
     } finally {
       setVotingInProgress(prev => ({ ...prev, [reelId]: false }));
     }
-  }, [votingInProgress, posts]);
+  }, [votingInProgress]);
 
   const handleSave = useCallback(async (reelId, currentSaved) => {
     try {
-      setPosts(posts.map(post => 
+      setPosts(prevPosts => prevPosts.map(post => 
         post.id === reelId 
           ? { ...post, is_saved: !currentSaved }
           : post
@@ -464,7 +483,7 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       console.error('Error saving:', error);
     }
-  }, [posts]);
+  }, []);
 
   const handleShare = useCallback(async (postId) => {
     try {
@@ -487,11 +506,8 @@ export default function HomeScreen({ navigation }) {
   }, [navigation]);
 
   const handleVideoPress = useCallback((reelId) => {
-    console.log('handleVideoPress called with reelId:', reelId);
-    console.log('Navigation object:', navigation);
     try {
       navigation.navigate('ReelsDetail', { reelId });
-      console.log('Navigation.navigate called successfully to ReelsDetail');
     } catch (error) {
       console.error('Navigation error:', error);
     }
@@ -626,6 +642,11 @@ export default function HomeScreen({ navigation }) {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         estimatedItemSize={450}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={5}
+        windowSize={10}
+        initialNumToRender={3}
+        getItemType={(item) => item.type || 'post'}
         ListEmptyComponent={
           !loading && (
             <View style={styles.emptyContainer}>
