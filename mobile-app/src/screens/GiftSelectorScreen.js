@@ -244,7 +244,7 @@ export default function GiftSelectorScreen({ route, navigation }) {
             />
           ) : (
             <View style={styles.giftPlaceholder}>
-              <Text style={{ fontSize: 40 }}>{CATEGORY_ICONS[item.category] || '🎁'}</Text>
+              <Text style={{ fontSize: 32 }}>{CATEGORY_ICONS[item.category] || '🎁'}</Text>
             </View>
           )}
         </Animated.View>
@@ -664,10 +664,10 @@ const styles = StyleSheet.create({
   },
   giftItem: {
     width: (SCREEN_WIDTH - 48) / 4,
-    height: 120,
-    margin: 4,
-    padding: 12,
-    borderRadius: 16,
+    height: 100,
+    margin: 3,
+    padding: 10,
+    borderRadius: 12,
     backgroundColor: '#2A2A2E',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -678,24 +678,24 @@ const styles = StyleSheet.create({
     borderColor: BRAND_GOLD,
   },
   giftImageContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   giftImageContainerSelected: {
     backgroundColor: 'transparent',
   },
   giftImage: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
   },
   giftPlaceholder: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   giftPrice: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     color: BRAND_GOLD,
     marginLeft: 4,
