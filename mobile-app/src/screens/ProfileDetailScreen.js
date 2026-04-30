@@ -110,7 +110,7 @@ export default function ProfileDetailScreen({ route, navigation }) {
     return (
       <TouchableOpacity 
         style={styles.postThumb}
-        onPress={() => navigation.navigate('Reels', { reelId: item.id })}
+        onPress={() => navigation.navigate('ReelsDetail', { reelId: item.id })}
       >
         <Image 
           source={{ uri: mediaUrl(mediaUri) }} 

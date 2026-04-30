@@ -237,7 +237,7 @@ export default function ExploreScreen({ navigation }) {
     return (
       <TouchableOpacity
         style={styles.videoThumb}
-        onPress={() => navigation.navigate('Reels', { reelId: item.id, initialIndex: index })}
+        onPress={() => navigation.navigate('ReelsDetail', { reelId: item.id, initialIndex: index })}
       >
         {thumb ? (
           <Image source={{ uri: thumb }} style={styles.thumbImage} />

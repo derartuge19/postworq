@@ -70,7 +70,15 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
     (!item.image && item.media) // If no image but has media, assume it's video
   );
   const mediaSrc = mediaUrl(item.media || item.image);
-  console.log('PostItem render:', { id: item.id, isVideo, mediaSrc, hasMedia: !!item.media, hasImage: !!item.image });
+  console.log('PostItem render:', { 
+    id: item.id, 
+    isVideo, 
+    mediaSrc, 
+    hasMedia: !!item.media, 
+    hasImage: !!item.image,
+    mediaUrl: item.media,
+    imageUrl: item.image
+  });
   const avatarSrc = mediaUrl(item.user?.profile_photo);
   const isVisible = visibleItems.includes(item.id);
   const currentLiked = item.has_voted || item.is_liked || false;
@@ -142,7 +150,12 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
         {/* Media */}
         <TouchableOpacity 
           activeOpacity={0.9} 
-          onPress={() => isVideo && handleVideoPress(item.id)}
+          onPress={() => {
+            console.log('Media touched:', { isVideo, itemId: item.id });
+            if (isVideo) {
+              handleVideoPress(item.id);
+            }
+          }}
           style={styles.mediaContainer}
         >
           {mediaSrc ? (
@@ -443,8 +456,14 @@ export default function HomeScreen({ navigation }) {
   }, [navigation]);
 
   const handleVideoPress = useCallback((reelId) => {
-    console.log('Navigating to Reels with ID:', reelId);
-    navigation.navigate('Reels', { reelId });
+    console.log('handleVideoPress called with reelId:', reelId);
+    console.log('Navigation object:', navigation);
+    try {
+      navigation.navigate('ReelsDetail', { reelId });
+      console.log('Navigation.navigate called successfully to ReelsDetail');
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
   }, [navigation]);
 
   const handleFollow = useCallback(async (userId) => {
