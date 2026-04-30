@@ -174,7 +174,7 @@ const ReelItem = React.memo(({ item, isActive, isFocused, onComment, onProfile, 
   const mediaUri = item.media || item.image || '';
   const username = item.user?.username || 'unknown';
   const avatarUri = item.user?.profile_photo;
-  const initial = username[0]?.toUpperCase() || '👑';
+  const initial = username[0]?.toUpperCase() || '?';
   const bottomBase = 60 + insets.bottom;
 
   // Validate video URL

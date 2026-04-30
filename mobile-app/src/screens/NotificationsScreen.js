@@ -147,7 +147,7 @@ export default function NotificationsScreen({ navigation }) {
             <Image source={{ uri: mediaUrl(item.user.profile_photo) }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarFallback]}>
-              <Text style={styles.avatarInitial}>{item.user?.username?.[0]?.toUpperCase() || '👑'}</Text>
+              <Text style={styles.avatarInitial}>{item.user?.username?.[0]?.toUpperCase() || '?'}</Text>
             </View>
           )}
           <View style={[styles.typeBadge, { backgroundColor: icon.color }]}>

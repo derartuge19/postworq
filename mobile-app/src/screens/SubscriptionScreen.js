@@ -231,7 +231,7 @@ export default function SubscriptionScreen({ navigation }) {
         {currentSubscription && currentSubscription.status === 'active' && (
           <View style={styles.activeBanner}>
             <View style={styles.activeBannerLeft}>
-              <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+              <Ionicons name="crown" size={20} color="#4CAF50" />
               <Text style={styles.activeText}>
                 Active: {currentSubscription.tier?.name}
               </Text>

@@ -488,7 +488,7 @@ export default function ProfileScreen({ navigation }) {
               subscriptionStatus.status === 'trial' && styles.trialBadge
             ]}>
               <Ionicons 
-                name={subscriptionStatus.status === 'active' ? 'checkmark-circle' : 'time'} 
+                name={subscriptionStatus.status === 'active' ? 'crown' : 'time'} 
                 size={16} 
                 color={subscriptionStatus.status === 'active' ? '#4CAF50' : BRAND_GOLD} 
               />

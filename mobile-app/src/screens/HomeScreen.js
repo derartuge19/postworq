@@ -137,7 +137,7 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
             ) : (
               <View style={[styles.avatar, styles.avatarPlaceholder]}>
                 <Text style={styles.avatarText}>
-                  {item.user?.username?.[0]?.toUpperCase() || '👑'}
+                  {item.user?.username?.[0]?.toUpperCase() || 'U'}
                 </Text>
               </View>
             )}
@@ -147,7 +147,7 @@ const PostItem = React.memo(({ item, navigation, visibleItems, expandedCaptions,
               <TouchableOpacity onPress={() => handleProfile(item.user?.id)}>
                 <Text style={styles.username}>{item.user?.username || 'user'}</Text>
               </TouchableOpacity>
-              <Ionicons name="checkmark-circle" size={14} color={T.pri} style={{ marginLeft: 4 }} />
+              <Ionicons name="crown" size={14} color={T.pri} style={{ marginLeft: 4 }} />
               
               {!isOwnPost && !isFollowing && (
                 <>
