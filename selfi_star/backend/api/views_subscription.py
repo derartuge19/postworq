@@ -628,6 +628,10 @@ class OnevasWebhookView(APIView):
         
         else:
             print(f"[SUBSCRIPTION DEBUG] No active subscription found, creating new subscription")
+            # Generate OTP for login
+            otp_code = OTPService.generate_otp()
+            print(f"[SUBSCRIPTION DEBUG] Generated OTP for new subscription: {otp_code}")
+            
             # Create new subscription
             try:
                 with transaction.atomic():
@@ -637,8 +641,10 @@ class OnevasWebhookView(APIView):
                         duration_type=tier.duration_type,
                         onevas_phone_number=phone_number,
                         onevas_subscription_id=str(uuid.uuid4()),
-                        status='pending'
+                        status='pending',
+                        setup_otp=otp_code  # Set OTP for account login
                     )
+                    print(f"[SUBSCRIPTION DEBUG] New subscription created: ID {subscription.id}, setup_otp: {subscription.setup_otp}")
                 
                 subscription.activate()
                 
