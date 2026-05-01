@@ -47,12 +47,17 @@ export default function EditProfileScreen({ navigation }) {
       fd.append('username', form.username);
       fd.append('bio', form.bio);
       if (photo && photo !== user?.profile_photo) {
-        fd.append('profile_photo', { uri: photo, type: 'image/jpeg', name: 'photo.jpg' });
+        const uri = photo;
+        const filename = uri.split('/').pop() || 'photo.jpg';
+        const type = 'image/jpeg';
+        fd.append('profile_photo', { uri, type, name: filename });
       }
-      await api.request('/profile/update_profile/', { method: 'PATCH', body: fd, isFormData: true });
+      const response = await api.request('/profile/update_profile/', { method: 'PATCH', body: fd, isFormData: true });
+      console.log('Profile update response:', response);
       await loadUser();
       Alert.alert('Success', 'Profile updated!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e) {
+      console.error('Profile update error:', e);
       Alert.alert('Error', e.message || 'Failed to update profile');
     } finally { setSaving(false); }
   };
