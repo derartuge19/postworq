@@ -668,35 +668,30 @@ export default function HomeScreen({ navigation }) {
         animationType="fade"
         onRequestClose={() => setShowOptions(null)}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1} 
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
           onPress={() => setShowOptions(null)}
         >
-          <View style={styles.optionsSheet}>
-            <View style={styles.optionsHandle} />
-            <View style={styles.optionsList}>
-              <TouchableOpacity style={styles.optionItem} onPress={() => copyPostLink(showOptions)}>
-                <Ionicons name="link-outline" size={20} color="#fff" />
-                <Text style={styles.optionText}>Copy Link</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.optionItem} onPress={() => reportPost(showOptions)}>
-                <Ionicons name="flag-outline" size={20} color="#fff" />
-                <Text style={styles.optionText}>Report</Text>
-              </TouchableOpacity>
-              {user?.id === showOptions?.user?.id && (
-                <TouchableOpacity style={styles.optionItem}>
-                  <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                  <Text style={[styles.optionText, { color: '#EF4444' }]}>Delete Post</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            <TouchableOpacity 
-              style={styles.cancelOption} 
-              onPress={() => setShowOptions(null)}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
+          <View style={styles.optionsDropdown}>
+            <TouchableOpacity style={styles.dropdownItem} onPress={() => copyPostLink(showOptions)}>
+              <Ionicons name="share-outline" size={18} color={GOLD} />
+              <Text style={styles.dropdownText}>Share</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.dropdownItem} onPress={() => reportPost(showOptions)}>
+              <Ionicons name="eye-off-outline" size={18} color="#78716C" />
+              <Text style={styles.dropdownText}>Not Interested</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.dropdownItem} onPress={() => reportPost(showOptions)}>
+              <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
+              <Text style={[styles.dropdownText, { color: '#EF4444' }]}>Report</Text>
+            </TouchableOpacity>
+            {user?.id === showOptions?.user?.id && (
+              <TouchableOpacity style={styles.dropdownItem}>
+                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                <Text style={[styles.dropdownText, { color: '#EF4444' }]}>Delete Post</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -1129,50 +1124,33 @@ const styles = StyleSheet.create({
   },
   
   // Modals
-  modalOverlay: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.6)', 
-    justifyContent: 'flex-end' 
-  },
-  optionsSheet: {
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
+  optionsDropdown: {
+    position: 'absolute',
+    top: 60,
+    right: 16,
     backgroundColor: CARD,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    minWidth: 180,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  optionsHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#444',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  optionsList: {
-    paddingHorizontal: 20,
-  },
-  optionItem: {
+  dropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
     gap: 12,
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER,
   },
-  optionText: {
+  dropdownText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  cancelOption: {
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: BORDER,
-    marginTop: 10,
-  },
-  cancelText: {
-    color: LIGHT_GOLD,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
   
