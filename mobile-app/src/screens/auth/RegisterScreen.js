@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator, KeyboardAvoidingView,
-  Platform, StatusBar,
+  Platform, StatusBar, Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
@@ -167,10 +168,23 @@ export default function RegisterScreen({ navigation }) {
       <ScrollView style={s.container} contentContainerStyle={[s.scroll, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
 
         {/* Logos */}
-        <View style={s.logosRow}>
-          <View style={s.logoPlaceholder}><Text style={s.logoText}>Ethio Telecom</Text></View>
-          <Text style={s.brandLogo}>⭐ FlipStar</Text>
-        </View>
+        <LinearGradient
+          colors={['#ffffff', '#888888', '#000000']}
+          style={s.logosRow}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <Image 
+            source={require('../../assets/images/ethio-logo.png')} 
+            style={s.ethioLogo}
+            resizeMode="contain"
+          />
+          <Image 
+            source={require('../../assets/images/flipstar-logo.png')} 
+            style={s.flipstarLogo}
+            resizeMode="contain"
+          />
+        </LinearGradient>
 
         {/* Step indicator */}
         <View style={s.stepRow}>
@@ -321,10 +335,16 @@ export default function RegisterScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   scroll: { padding: 16, paddingBottom: 40 },
-  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1A1A1A', borderRadius: 12, padding: 12, marginBottom: 8 },
-  logoPlaceholder: { backgroundColor: '#333', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  logoText: { color: '#aaa', fontSize: 12, fontWeight: '600' },
-  brandLogo: { fontSize: 18, fontWeight: '900', color: GOLD },
+  logosRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 24, 
+    borderRadius: 12, 
+    padding: '10px 12px',
+  },
+  ethioLogo: { width: 100, height: 50 },
+  flipstarLogo: { width: 100, height: 50 },
   stepRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 24 },
   stepLine: { width: 48, height: 2, backgroundColor: BORDER, borderRadius: 1 },
   stepLineDone: { backgroundColor: GOLD },

@@ -530,7 +530,11 @@ export default function HomeScreen({ navigation }) {
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>FlipStar</Text>
+        <Image 
+          source={require('../assets/images/flipstar-logo.png')} 
+          style={styles.headerLogo}
+          resizeMode="contain"
+        />
         <View style={{ flexDirection: 'row', gap: 14 }}>
           <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
             <Ionicons name="notifications-outline" size={24} color={GOLD} />
@@ -832,6 +836,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: BORDER,
   },
   headerTitle: { fontSize: 20, fontWeight: '900', color: GOLD },
+  headerLogo: { width: 120, height: 30 },
   
   // Tab Navigation
   tabContainer: {
