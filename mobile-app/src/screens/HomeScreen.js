@@ -691,8 +691,8 @@ export default function HomeScreen({ navigation }) {
             </View>
           </TouchableOpacity>
             
-          {/* Follow/Unfollow button */}
-          {!isOwnPost && (
+          {/* Follow/Unfollow button - only show for other users' posts */}
+          {user && post.user?.id !== user.id && (
             <TouchableOpacity
               style={[
                 styles.followBtn,
@@ -708,30 +708,7 @@ export default function HomeScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
           )}
-          
-          <TouchableOpacity
-            style={styles.optionsBtn}
-            onPress={() => showPostOptions(post)}
-          >
-            <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
-          </TouchableOpacity>
         </View>
-
-        {/* Caption */}
-        {post.caption && (
-          <TouchableOpacity 
-            style={styles.captionContainer}
-            onPress={() => {}} // Could expand caption
-          >
-            <Text style={styles.caption} numberOfLines={2}>
-              <Text style={styles.captionUsername}>{post.user?.username} </Text>
-              {post.caption}
-            </Text>
-            {post.caption.length > 100 && (
-              <Text style={styles.captionMore}> more</Text>
-            )}
-          </TouchableOpacity>
-        )}
 
         {/* Media */}
         {(post.media || post.image) && (
@@ -801,18 +778,44 @@ export default function HomeScreen({ navigation }) {
             )}
           </View>
           
-          {/* Save */}
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => toggleSave(post)}
-          >
-            <Ionicons
-              name={post.is_saved ? 'bookmark' : 'bookmark-outline'}
-              size={22}
-              color={post.is_saved ? LIGHT_GOLD : LIGHT_GOLD}
-            />
-          </TouchableOpacity>
+          <View style={styles.rightActions}>
+            {/* Save */}
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => toggleSave(post)}
+            >
+              <Ionicons
+                name={post.is_saved ? 'bookmark' : 'bookmark-outline'}
+                size={22}
+                color={post.is_saved ? LIGHT_GOLD : LIGHT_GOLD}
+              />
+            </TouchableOpacity>
+            
+            {/* Options */}
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => showPostOptions(post)}
+            >
+              <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Caption */}
+        {post.caption && (
+          <TouchableOpacity 
+            style={styles.captionContainer}
+            onPress={() => {}} // Could expand caption
+          >
+            <Text style={styles.caption} numberOfLines={2}>
+              <Text style={styles.captionUsername}>{post.user?.username} </Text>
+              {post.caption}
+            </Text>
+            {post.caption.length > 100 && (
+              <Text style={styles.captionMore}> more</Text>
+            )}
+          </TouchableOpacity>
+        )}
 
         {/* Recent comments */}
         {post.recent_comments && post.recent_comments.length > 0 && (
@@ -1439,6 +1442,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
+  },
+  rightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   actionBtn: { 
     flexDirection: 'row', 
