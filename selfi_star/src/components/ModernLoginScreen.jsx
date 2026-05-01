@@ -271,20 +271,22 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
 
       console.log('✅ Subscription OTP login response:', res);
 
-      api.setAuthToken(res.token);
+      // API response is wrapped in { data } property
+      const data = res.data || res;
+      api.setAuthToken(data.token);
 
       const userData = {
-        id: res.user.id,
-        username: res.user.username,
-        email: res.user.email,
-        first_name: res.user.first_name || "",
-        last_name: res.user.last_name || "",
-        name: res.user.first_name || res.user.username,
-        profile_photo: res.user.profile_photo || null,
-        bio: res.user.bio || "",
-        followers_count: res.user.followers_count || 0,
-        following_count: res.user.following_count || 0,
-        is_staff: res.user.is_staff || false,
+        id: data.user.id,
+        username: data.user.username,
+        email: data.user.email,
+        first_name: data.user.first_name || "",
+        last_name: data.user.last_name || "",
+        name: data.user.first_name || data.user.username,
+        profile_photo: data.user.profile_photo || null,
+        bio: data.user.bio || "",
+        followers_count: data.user.followers_count || 0,
+        following_count: data.user.following_count || 0,
+        is_staff: data.user.is_staff || false,
       };
 
       console.log('✅ Calling onSuccess with userData:', userData);
