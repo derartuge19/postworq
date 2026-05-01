@@ -1524,7 +1524,7 @@ class BlockViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Block.objects.filter(blocker=self.request.user)
+            return Block.objects.filter(blocker=self.request.user).select_related('blocker', 'blocked')
         return Block.objects.none()
 
     @action(detail=False, methods=['post'])

@@ -255,7 +255,7 @@ export default function SettingsScreen({ navigation }) {
         <SectionLabel>Privacy</SectionLabel>
         <SectionCard>
           <SettingRow icon="eye-off-outline" label="Private Account" subtitle="Only followers can see your posts" isSwitch switchValue={privacy.privateAccount} onSwitch={() => handlePrivacyToggle('privateAccount')} />
-          <SettingRow icon="activity-outline" label="Show Activity" subtitle="Show your activity status" isSwitch switchValue={privacy.showActivity} onSwitch={() => handlePrivacyToggle('showActivity')} />
+          <SettingRow icon="pulse-outline" label="Show Activity" subtitle="Show your activity status" isSwitch switchValue={privacy.showActivity} onSwitch={() => handlePrivacyToggle('showActivity')} />
           <SettingRow icon="mail-outline" label="Allow Messages" subtitle="Receive messages from anyone" isSwitch switchValue={privacy.allowMessages} onSwitch={() => handlePrivacyToggle('allowMessages')} />
         </SectionCard>
 
