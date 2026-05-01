@@ -232,12 +232,12 @@ export default function LoginScreen({ navigation }) {
           end={{ x: 1, y: 0 }}
         >
           <Image 
-            source={require('../../assets/images/ethio-logo.png')} 
+            source={require('../../../assets/images/ethio-logo.png')} 
             style={s.ethioLogo}
             resizeMode="contain"
           />
           <Image 
-            source={require('../../assets/images/flipstar-logo.png')} 
+            source={require('../../../assets/images/flipstar-logo.png')} 
             style={s.flipstarLogo}
             resizeMode="contain"
           />
