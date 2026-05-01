@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import { Video, AVPlaybackStatus } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -129,33 +129,31 @@ function ReelItem({
   const lastTapRef = useRef(0);
   const DOUBLE_TAP_WINDOW = 280;
 
-  const player = useVideoPlayer(item.media ? { uri: item.media } : null);
+  const videoRef = useRef(null);
 
-  useEffect(() => {
-    if (player) {
-      player.loop = true;
-      player.muted = true;
+  const handleVideoStatusUpdate = (status) => {
+    if (!status.isLoaded) return;
+    
+    if (isActive && !paused && !manuallyPaused) {
+      videoRef.current?.playAsync();
+      setShowPauseIcon(false);
+    } else {
+      videoRef.current?.pauseAsync();
+      setShowPauseIcon(true);
     }
-  }, [player]);
+  };
 
   useEffect(() => {
-    if (!player || !item.media) return;
-    try {
-      if (isActive && !paused && !manuallyPaused) {
-        player.muted = !audioEnabled;
-        player.play();
-        setShowPauseIcon(false);
-      } else {
-        player.pause();
-        setShowPauseIcon(true);
-      }
-    } catch (_) {}
-  }, [isActive, paused, manuallyPaused, audioEnabled]);
+    if (videoRef.current) {
+      handleVideoStatusUpdate({ isLoaded: true });
+    }
+  }, [isActive, paused, manuallyPaused]);
 
   useEffect(() => {
-    if (!player) return;
-    try { player.muted = !audioEnabled || muted; } catch (_) {}
-  }, [muted, audioEnabled]);
+    if (videoRef.current) {
+      videoRef.current.setIsMutedAsync(!audioEnabled || muted);
+    }
+  }, [audioEnabled, muted]);
 
   const handleVideoTouch = () => {
     const now = Date.now();
@@ -484,9 +482,15 @@ function ReelItem({
         delayLongPress={500}
       >
         {isVideo ? (
-          <VideoView
-            player={player}
+          <Video
+            ref={videoRef}
+            source={{ uri: item.media }}
             style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+            shouldPlay={isActive && !paused && !manuallyPaused}
+            isMuted={!audioEnabled || muted}
+            isLooping
+            onPlaybackStatusUpdate={handleVideoStatusUpdate}
           />
         ) : item.image ? (
           <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
