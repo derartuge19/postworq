@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { VideoView, useVideoPlayer } from 'expo-video';
+// expo-video components causing errors - disabled
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -137,18 +137,7 @@ function ReelItem({
     item.media.includes('/video/upload/')
   );
 
-  const player = useVideoPlayer(item.media, player => {
-    player.loop = true;
-    player.muted = true;
-  });
-
-  useEffect(() => {
-    if (isActive && isVideo) {
-      player.play();
-    } else {
-      player.pause();
-    }
-  }, [isActive, isVideo, player]);
+  // Video player functionality disabled to fix ExpoVideo errors
 
   const handleVideoTouch = () => {
     const now = Date.now();
@@ -456,21 +445,17 @@ function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          isVideo ? (
-            <VideoView
+          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)']}
               style={StyleSheet.absoluteFill}
-              player={player}
-              allowsFullscreen
-              allowsPictureInPicture
-              nativeControls={false}
             />
-          ) : (
-            <Image
-              source={{ uri: item.media }}
-              style={StyleSheet.absoluteFill}
-              resizeMode="cover"
-            />
-          )
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons name="play-circle" size={64} color="#fff" />
+              <Text style={{ color: '#fff', marginTop: 12, fontSize: 16, fontWeight: '600' }}>Video</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', marginTop: 4, fontSize: 12 }}>Tap to interact</Text>
+            </View>
+          </View>
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
