@@ -2,14 +2,13 @@
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity, Image,
   Dimensions, ActivityIndicator, StatusBar, TextInput, Modal,
-  ScrollView, Alert, Animated, PanGestureHandler, State,
+  ScrollView, Alert, Animated, RefreshControl, Share,
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
-import { Share } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const GOLD = '#C8B56A';
