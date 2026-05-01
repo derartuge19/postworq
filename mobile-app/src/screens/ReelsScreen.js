@@ -138,8 +138,24 @@ function ReelItem({
     }
   }, [player]);
 
-  // Video playback is now controlled by VideoView props (shouldPlay, isMuted)
-  // No need for manual player control with new API
+  useEffect(() => {
+    if (!player || !item.media) return;
+    try {
+      if (isActive && !paused && !manuallyPaused) {
+        player.muted = !audioEnabled;
+        player.play();
+        setShowPauseIcon(false);
+      } else {
+        player.pause();
+        setShowPauseIcon(true);
+      }
+    } catch (_) {}
+  }, [isActive, paused, manuallyPaused, audioEnabled]);
+
+  useEffect(() => {
+    if (!player) return;
+    try { player.muted = !audioEnabled || muted; } catch (_) {}
+  }, [muted, audioEnabled]);
 
   const handleVideoTouch = () => {
     const now = Date.now();
@@ -471,9 +487,6 @@ function ReelItem({
           <VideoView
             player={player}
             style={StyleSheet.absoluteFill}
-            allowsFullscreen={false}
-            shouldPlay={isActive && !paused && !manuallyPaused}
-            isMuted={!audioEnabled || muted}
           />
         ) : item.image ? (
           <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
