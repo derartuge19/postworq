@@ -462,44 +462,56 @@ class OnevasWebhookView(APIView):
             print(f"[SUBSCRIPTION DEBUG] Generated OTP for account setup: {otp_code}")
             
             # Create active subscription linked to phone number (user can log in without OTP)
-            with transaction.atomic():
-                subscription = UserSubscription.objects.create(
-                    user=None,  # No user yet - will be linked when they register
-                    tier=tier,
-                    duration_type=tier.duration_type,
-                    onevas_phone_number=phone_number,
-                    onevas_subscription_id=str(uuid.uuid4()),
-                    status='active',  # Active immediately, not pending
-                    start_date=timezone.now(),
-                    end_date=timezone.now() + timedelta(days=tier.duration_days or 30),
-                    subscription_source='sms',  # Track that this came from SMS
-                    setup_otp=otp_code  # Store OTP for account setup
-                )
-                print(f"[SUBSCRIPTION DEBUG] Subscription created: ID {subscription.id}, status: active")
-                
-                # Record payment
-                SubscriptionPayment.objects.create(
-                    subscription=subscription,
-                    user=None,
-                    amount=tier.price_etb,
-                    payment_method='onevas',
-                    duration_type=tier.duration_type,
-                    period_start=subscription.start_date,
-                    period_end=subscription.end_date,
-                    status='completed'
-                )
-                print(f"[SUBSCRIPTION DEBUG] Payment recorded: {tier.price_etb} ETB")
-                
-                # Record history
-                SubscriptionHistory.objects.create(
-                    user=None,
-                    subscription=subscription,
-                    tier=tier,
-                    action='created',
-                    reason='Subscription created via Onevas SMS (active, user not registered yet)',
-                    metadata={'webhook_payload': payload, 'sms_subscription': True}
-                )
-                print(f"[SUBSCRIPTION DEBUG] History recorded: action=created")
+            try:
+                with transaction.atomic():
+                    print(f"[SUBSCRIPTION DEBUG] Starting transaction to create SMS-first subscription...")
+                    subscription = UserSubscription.objects.create(
+                        user=None,  # No user yet - will be linked when they register
+                        tier=tier,
+                        duration_type=tier.duration_type,
+                        onevas_phone_number=phone_number,
+                        onevas_subscription_id=str(uuid.uuid4()),
+                        status='active',  # Active immediately, not pending
+                        start_date=timezone.now(),
+                        end_date=timezone.now() + timedelta(days=tier.duration_days or 30),
+                        subscription_source='sms',  # Track that this came from SMS
+                        setup_otp=otp_code  # Store OTP for account setup
+                    )
+                    print(f"[SUBSCRIPTION DEBUG] Subscription created: ID {subscription.id}, status: {subscription.status}")
+                    
+                    # Verify the subscription was actually saved
+                    saved_subscription = UserSubscription.objects.get(id=subscription.id)
+                    print(f"[SUBSCRIPTION DEBUG] Verified subscription in database: ID {saved_subscription.id}, status: {saved_subscription.status}")
+                    
+                    # Record payment
+                    payment = SubscriptionPayment.objects.create(
+                        subscription=subscription,
+                        user=None,
+                        amount=tier.price_etb,
+                        payment_method='onevas',
+                        duration_type=tier.duration_type,
+                        period_start=subscription.start_date,
+                        period_end=subscription.end_date,
+                        status='completed'
+                    )
+                    print(f"[SUBSCRIPTION DEBUG] Payment recorded: {tier.price_etb} ETB, payment ID: {payment.id}")
+                    
+                    # Record history
+                    history = SubscriptionHistory.objects.create(
+                        user=None,
+                        subscription=subscription,
+                        tier=tier,
+                        action='created',
+                        reason='Subscription created via Onevas SMS (active, user not registered yet)',
+                        metadata={'webhook_payload': payload, 'sms_subscription': True}
+                    )
+                    print(f"[SUBSCRIPTION DEBUG] History recorded: action=created, history ID: {history.id}")
+                    print(f"[SUBSCRIPTION DEBUG] Transaction committed successfully")
+            except Exception as e:
+                print(f"[SUBSCRIPTION DEBUG] ERROR during transaction: {str(e)}")
+                import traceback
+                print(f"[SUBSCRIPTION DEBUG] Traceback: {traceback.format_exc()}")
+                return Response({'error': f'Failed to create subscription: {str(e)}'}, status=500)
             
             # Send success SMS with registration info (no OTP needed)
             stop_keywords = {
