@@ -5,6 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -1003,67 +1004,71 @@ export default function ReelsScreen({ navigation, route }) {
   // ── Feed cache helpers (stale-while-revalidate) ──────────────────────────
   const CACHE_KEY = (tab) => `feed_cache_${tab}`;
   const CACHE_TTL = 2 * 60 * 1000; // 2 min for faster post distribution
-  const readFeedCache = (tab) => {
+  const readFeedCache = async (tab) => {
     try {
-      const raw = localStorage.getItem(CACHE_KEY(tab));
+      const raw = await AsyncStorage.getItem(CACHE_KEY(tab));
       if (!raw) return null;
       const { ts, data } = JSON.parse(raw);
-      if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem(CACHE_KEY(tab)); return null; }
+      if (Date.now() - ts > CACHE_TTL) { await AsyncStorage.removeItem(CACHE_KEY(tab)); return null; }
       return data;
     } catch { return null; }
   };
-  const writeFeedCache = (tab, data) => {
-    try { localStorage.setItem(CACHE_KEY(tab), JSON.stringify({ ts: Date.now(), data })); } catch {}
+  const writeFeedCache = async (tab, data) => {
+    try { await AsyncStorage.setItem(CACHE_KEY(tab), JSON.stringify({ ts: Date.now(), data })); } catch {}
   };
 
   useEffect(() => {
-    const endpoint = activeTab === 'following'
-      ? `/reels/following/?limit=${LIMIT}&offset=0`
-      : `/reels/?limit=${LIMIT}&offset=0`;
-    
-    // Show cached data immediately so it's visible instantly
-    const cached = readFeedCache(activeTab);
-    if (cached?.length > 0) {
-      let results = cached;
-      if (initialVideoId) {
-        const idx = results.findIndex(r => r.id === initialVideoId);
-        if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
-      }
-      setReels(results);
-      setLoading(false);
-    }
-    
-    // Then fetch fresh data in background
-    const stale = api.requestStale(endpoint, (fresh) => {
-      let results = Array.isArray(fresh) ? fresh : (fresh.results || []);
-      if (initialVideoId) {
-        const idx = results.findIndex(r => r.id === initialVideoId);
-        if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
+    const loadFeed = async () => {
+      const endpoint = activeTab === 'following'
+        ? `/reels/following/?limit=${LIMIT}&offset=0`
+        : `/reels/?limit=${LIMIT}&offset=0`;
+      
+      // Show cached data immediately so it's visible instantly
+      const cached = await readFeedCache(activeTab);
+      if (cached?.length > 0) {
+        let results = cached;
+        if (initialVideoId) {
+          const idx = results.findIndex(r => r.id === initialVideoId);
+          if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
+        }
+        setReels(results);
+        setLoading(false);
       }
       
-      // Filter to show only videos for reels
-      const filteredResults = results.filter(reel => {
-        if (!reel.media) return false;
-        const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
-                            reel.media.includes('/video/upload/');
-        return isVideoFile;
+      // Then fetch fresh data in background
+      const stale = api.requestStale(endpoint, (fresh) => {
+        let results = Array.isArray(fresh) ? fresh : (fresh.results || []);
+        if (initialVideoId) {
+          const idx = results.findIndex(r => r.id === initialVideoId);
+          if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
+        }
+        
+        // Filter to show only videos for reels
+        const filteredResults = results.filter(reel => {
+          if (!reel.media) return false;
+          const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
+                              reel.media.includes('/video/upload/');
+          return isVideoFile;
+        });
+        
+        // Shuffle for randomized feed
+        const shuffledResults = shuffleArray(filteredResults);
+        
+        setReels(shuffledResults);
+        setHasMore(shuffledResults.length === LIMIT);
+        
+        // Persist fresh data so next load is instant
+        if (shuffledResults.length > 0) {
+          writeFeedCache(activeTab, shuffledResults);
+        }
       });
       
-      // Shuffle for randomized feed
-      const shuffledResults = shuffleArray(filteredResults);
-      
-      setReels(shuffledResults);
-      setHasMore(shuffledResults.length === LIMIT);
-      
-      // Persist fresh data so next load is instant
-      if (shuffledResults.length > 0) {
-        writeFeedCache(activeTab, shuffledResults);
+      if (!cached) {
+        fetchReels(0, true);
       }
-    });
+    };
     
-    if (!cached) {
-      fetchReels(0, true);
-    }
+    loadFeed();
   }, [activeTab]);
 
   const fetchReels = async (offset = 0, reset = false) => {
@@ -1125,7 +1130,7 @@ export default function ReelsScreen({ navigation, route }) {
     setPullDistance(80);
     try {
       // Clear cache and fetch fresh data
-      try { localStorage.removeItem(CACHE_KEY(activeTab)); } catch {}
+      try { await AsyncStorage.removeItem(CACHE_KEY(activeTab)); } catch {}
       await fetchReels(0, true);
     } catch (error) {
       console.error('Refresh error:', error);

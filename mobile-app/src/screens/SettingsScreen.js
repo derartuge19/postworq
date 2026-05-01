@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Mo
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api';
 
 const GOLD = '#C8B56A';
@@ -57,8 +58,7 @@ export default function SettingsScreen({ navigation }) {
   const { user, logout } = useAuth();
   
   const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage?.getItem?.('notifications');
-    return saved ? JSON.parse(saved) : {
+    return {
       likes: true,
       comments: true,
       follows: true,
@@ -67,8 +67,7 @@ export default function SettingsScreen({ navigation }) {
   });
   
   const [privacy, setPrivacy] = useState(() => {
-    const saved = localStorage?.getItem?.('privacy');
-    return saved ? JSON.parse(saved) : {
+    return {
       privateAccount: false,
       showActivity: true,
       allowMessages: true,
@@ -84,17 +83,27 @@ export default function SettingsScreen({ navigation }) {
   
   const [password, setPassword] = useState({ current: '', new: '', confirm: '' });
 
-  // Save settings to localStorage whenever they change
+  // Load settings from AsyncStorage on mount
   useEffect(() => {
-    try {
-      localStorage?.setItem?.('notifications', JSON.stringify(notifications));
-    } catch {}
+    const loadSettings = async () => {
+      try {
+        const notifData = await AsyncStorage.getItem('notifications');
+        if (notifData) setNotifications(JSON.parse(notifData));
+        
+        const privacyData = await AsyncStorage.getItem('privacy');
+        if (privacyData) setPrivacy(JSON.parse(privacyData));
+      } catch {}
+    };
+    loadSettings();
+  }, []);
+
+  // Save settings to AsyncStorage whenever they change
+  useEffect(() => {
+    AsyncStorage.setItem('notifications', JSON.stringify(notifications)).catch(() => {});
   }, [notifications]);
 
   useEffect(() => {
-    try {
-      localStorage?.setItem?.('privacy', JSON.stringify(privacy));
-    } catch {}
+    AsyncStorage.setItem('privacy', JSON.stringify(privacy)).catch(() => {});
   }, [privacy]);
 
   const handleNotificationToggle = async (key) => {
