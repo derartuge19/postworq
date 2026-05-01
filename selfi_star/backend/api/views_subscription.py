@@ -362,6 +362,91 @@ class OnevasWebhookView(APIView):
         if not user_exists:
             print(f"[SUBSCRIPTION DEBUG] Creating SMS-first subscription (user not registered)")
             
+            # Check if there's already an SMS-first subscription of the same duration type for this phone
+            existing_sms_sub = UserSubscription.objects.filter(
+                onevas_phone_number=phone_number,
+                status='active',
+                subscription_source='sms',
+                duration_type=tier.duration_type
+            ).first()
+            
+            if existing_sms_sub:
+                print(f"[SUBSCRIPTION DEBUG] Found existing SMS-first subscription of same type, renewing it...")
+                # Renew existing subscription
+                existing_sms_sub.tier = tier
+                existing_sms_sub.duration_type = tier.duration_type
+                existing_sms_sub.activate()
+                
+                # Generate OTP and send SMS
+                from .services.otp_service import OTPService
+                otp_code = OTPService.generate_otp()
+                existing_sms_sub.setup_otp = otp_code
+                existing_sms_sub.save()
+                
+                # Record payment
+                SubscriptionPayment.objects.create(
+                    subscription=existing_sms_sub,
+                    user=None,
+                    amount=tier.price_etb,
+                    payment_method='onevas',
+                    duration_type=tier.duration_type,
+                    period_start=existing_sms_sub.start_date,
+                    period_end=existing_sms_sub.end_date or timezone.now() + timedelta(days=tier.duration_days or 30),
+                    status='completed'
+                )
+                
+                # Record history
+                SubscriptionHistory.objects.create(
+                    user=None,
+                    subscription=existing_sms_sub,
+                    tier=tier,
+                    action='renewed',
+                    reason='SMS-first subscription renewed via Onevas',
+                    metadata={'webhook_payload': payload, 'sms_subscription': True}
+                )
+                
+                # Send success SMS
+                stop_keywords = {
+                    'daily': 'STOP1',
+                    'weekly': 'STOP2',
+                    'monthly': 'STOP3',
+                    'ondemand': 'STOP'
+                }
+                stop_keyword = stop_keywords.get(tier.duration_type, 'STOP')
+                price_periods = {
+                    'daily': 'day',
+                    'weekly': 'week',
+                    'monthly': 'month',
+                    'ondemand': 'use'
+                }
+                price_period = price_periods.get(tier.duration_type, 'day')
+                success_message = f"Dear valued customer, your {tier.name} Flipstar subscription has been successfully renewed, effective from {existing_sms_sub.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your complimentary free trial. After your free trial concludes, the subscription price will be {tier.price_etb} ETB per {price_period}. To login to your account, please click on https://postworqq.vercel.app?subscription_tp=true&phone={phone_number} and enter your OTP: {otp_code}. To cancel your subscription at any time, please send {stop_keyword} to {tier.short_code}."
+                print(f"[SUBSCRIPTION DEBUG] Sending renewal SMS to {phone_number} with OTP: {otp_code}")
+                self.send_sms(phone_number, success_message, tier.duration_type)
+                print(f"[SUBSCRIPTION DEBUG] SMS-first subscription renewed successfully")
+                return Response({'status': 'success', 'message': 'SMS-first subscription renewed'})
+            
+            # Check for other SMS-first subscriptions of different duration types and cancel them
+            other_sms_subs = UserSubscription.objects.filter(
+                onevas_phone_number=phone_number,
+                status='active',
+                subscription_source='sms'
+            ).exclude(duration_type=tier.duration_type)
+            
+            if other_sms_subs.exists():
+                print(f"[SUBSCRIPTION DEBUG] Found {other_sms_subs.count()} other SMS-first subscription(s) of different types, cancelling them...")
+                for sub in other_sms_subs:
+                    sub.cancel(reason='Cancelled due to new SMS-first subscription of different duration type')
+                    SubscriptionHistory.objects.create(
+                        user=None,
+                        subscription=sub,
+                        tier=sub.tier,
+                        action='cancelled',
+                        reason='Cancelled due to new SMS-first subscription of different duration type',
+                        metadata={'new_duration_type': tier.duration_type, 'sms_subscription': True}
+                    )
+                    print(f"[SUBSCRIPTION DEBUG] Cancelled SMS-first subscription ID {sub.id} (duration_type={sub.duration_type})")
+            
             # Generate OTP for user to set up their account
             from .services.otp_service import OTPService
             otp_code = OTPService.generate_otp()
@@ -431,15 +516,37 @@ class OnevasWebhookView(APIView):
         
         # User exists - proceed with subscription
         print(f"[SUBSCRIPTION DEBUG] User exists, proceeding with subscription for {user.username}")
-        # Check if user already has active subscription
-        active_sub = UserSubscription.objects.filter(
+        
+        # Cancel any other active subscriptions of different duration types to prevent conflicts
+        other_active_subs = UserSubscription.objects.filter(
             user=user,
             status='active'
+        ).exclude(duration_type=tier.duration_type)
+        
+        if other_active_subs.exists():
+            print(f"[SUBSCRIPTION DEBUG] Found {other_active_subs.count()} other active subscription(s) of different types, cancelling them...")
+            for sub in other_active_subs:
+                sub.cancel(reason='Cancelled due to new subscription of different duration type')
+                SubscriptionHistory.objects.create(
+                    user=user,
+                    subscription=sub,
+                    tier=sub.tier,
+                    action='cancelled',
+                    reason='Cancelled due to new subscription of different duration type',
+                    metadata={'new_duration_type': tier.duration_type}
+                )
+                print(f"[SUBSCRIPTION DEBUG] Cancelled subscription ID {sub.id} (duration_type={sub.duration_type})")
+        
+        # Check if user already has active subscription of the SAME duration type
+        active_sub = UserSubscription.objects.filter(
+            user=user,
+            status='active',
+            duration_type=tier.duration_type
         ).first()
 
-        print(f"[SUBSCRIPTION DEBUG] Active subscription check: {'Found' if active_sub else 'Not found'}")
+        print(f"[SUBSCRIPTION DEBUG] Active subscription check for duration_type={tier.duration_type}: {'Found' if active_sub else 'Not found'}")
         if active_sub:
-            print(f"[SUBSCRIPTION DEBUG] Found active subscription, renewing...")
+            print(f"[SUBSCRIPTION DEBUG] Found active subscription of same type, renewing...")
             # Update existing subscription
             active_sub.tier = tier
             active_sub.duration_type = tier.duration_type
