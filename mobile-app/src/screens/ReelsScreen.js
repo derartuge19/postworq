@@ -247,7 +247,21 @@ function ReelItem({
     }
     
     try {
-      await api.request(`/users/${item.user.id}/follow/`, { method: 'POST' });
+      const response = await api.request('/follows/toggle/', {
+        method: 'POST',
+        body: JSON.stringify({ following_id: item.user.id }),
+      });
+      
+      // Update the follow status if response contains it
+      if (response.following !== undefined) {
+        if (setVideos) {
+          setVideos(prev => prev.map(v => 
+            v.id === item.id 
+              ? { ...v, user: { ...v.user, is_following: response.following } }
+              : v
+          ));
+        }
+      }
     } catch (error) {
       // Revert on error
       if (setVideos) {

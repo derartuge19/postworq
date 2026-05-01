@@ -178,10 +178,17 @@ export default function HomeScreen({ navigation }) {
     
     setFollowStates(prev => ({ ...prev, [userId]: true }));
     try {
-      await api.request(`/users/${userId}/follow/`, { method: 'POST' });
+      const response = await api.request('/follows/toggle/', {
+        method: 'POST',
+        body: JSON.stringify({ following_id: userId }),
+      });
+      
+      // Update follow status based on response
+      const newFollowStatus = response.following !== undefined ? response.following : true;
       setPosts(prev => prev.map(p => 
-        p.user?.id === userId ? { ...p, user: { ...p.user, is_following: true } } : p
+        p.user?.id === userId ? { ...p, user: { ...p.user, is_following: newFollowStatus } } : p
       ));
+      setFollowStates(prev => ({ ...prev, [userId]: newFollowStatus }));
     } catch (error) {
       console.error('Follow error:', error);
       setFollowStates(prev => ({ ...prev, [userId]: false }));
