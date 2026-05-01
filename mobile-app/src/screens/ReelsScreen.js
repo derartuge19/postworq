@@ -5,6 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -131,6 +132,24 @@ function ReelItem({
   const [videoPaused, setVideoPaused] = useState(false);
   const [videoMuted, setVideoMuted] = useState(false);
 
+  const isVideo = !!(item.media) && (
+    /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
+    item.media.includes('/video/upload/')
+  );
+
+  const player = useVideoPlayer(item.media, player => {
+    player.loop = true;
+    player.muted = true;
+  });
+
+  useEffect(() => {
+    if (isActive && isVideo) {
+      player.play();
+    } else {
+      player.pause();
+    }
+  }, [isActive, isVideo, player]);
+
   const handleVideoTouch = () => {
     const now = Date.now();
     const last = lastTapRef.current || 0;
@@ -143,8 +162,13 @@ function ReelItem({
       // Single tap - toggle play/pause
       lastTapRef.current = now;
       if (isVideo) {
-        setVideoPaused(!videoPaused);
-        setShowPauseIcon(!videoPaused);
+        if (player.playing) {
+          player.pause();
+          setShowPauseIcon(true);
+        } else {
+          player.play();
+          setShowPauseIcon(false);
+        }
       }
     }
   };
@@ -161,8 +185,6 @@ function ReelItem({
       handleLike();
     }
   };
-
-  // Video playback functionality disabled to fix ExpoVideoView errors
 
   const handleLike = async () => {
     if (!user) return;
@@ -418,11 +440,6 @@ function ReelItem({
     }
   };
 
-  const isVideo = !!(item.media) && (
-    /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
-    item.media.includes('/video/upload/')
-  );
-
   const isOwnPost = user?.id === item.user?.id;
   const isFollowing = item.user?.is_following || false;
 
@@ -439,14 +456,21 @@ function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
-            <View style={{ alignItems: 'center' }}>
-              <Ionicons name="play-circle" size={64} color="#fff" />
-              <Text style={{ color: '#fff', marginTop: 12, fontSize: 16, fontWeight: '600' }}>Video</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', marginTop: 4, fontSize: 12 }}>Tap to interact</Text>
-            </View>
-          </View>
+          isVideo ? (
+            <VideoView
+              style={StyleSheet.absoluteFill}
+              player={player}
+              allowsFullscreen
+              allowsPictureInPicture
+              nativeControls={false}
+            />
+          ) : (
+            <Image
+              source={{ uri: item.media }}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
+          )
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
