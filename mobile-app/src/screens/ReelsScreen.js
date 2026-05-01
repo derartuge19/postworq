@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Video } from 'expo-av';
+// Video components causing ExpoVideoView errors - disabled temporarily
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -460,15 +460,11 @@ function ReelItem({
         {item.image ? (
           <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : item.media ? (
-          <Video
-            source={{ uri: item.media }}
-            style={StyleSheet.absoluteFill}
-            resizeMode={Video.RESIZE_MODE_COVER}
-            shouldPlay={isActive && !paused && !manuallyPaused && !videoPaused}
-            isMuted={!audioEnabled || videoMuted}
-            isLooping
-            useNativeControls={false}
-          />
+          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#111' }]}>
+            <Ionicons name="play-circle" size={48} color="#666" />
+            <Text style={{ color: '#666', marginTop: 8, fontSize: 14 }}>Video Content</Text>
+            <Text style={{ color: '#888', marginTop: 4, fontSize: 12 }}>Tap to interact</Text>
+          </View>
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
