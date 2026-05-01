@@ -386,13 +386,12 @@ class OnevasWebhookView(APIView):
                 existing_sms_sub.duration_type = tier.duration_type
                 existing_sms_sub.activate()
                 
-                # Generate OTP and send SMS
                 from .services.otp_service import OTPService
                 otp_code = OTPService.generate_otp()
                 existing_sms_sub.setup_otp = otp_code
                 existing_sms_sub.save()
                 
-                # Record payment
+    
                 SubscriptionPayment.objects.create(
                     subscription=existing_sms_sub,
                     user=None,
