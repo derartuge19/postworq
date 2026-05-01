@@ -72,3 +72,95 @@ export default function GamificationScreen({ navigation }) {
   const points = n(status?.points, 'balance');
   const nextBonus = status?.login_streak?.next_bonus?.coins ?? 0;
 
+  return (
+    <View style={styles.container}>
+      <ScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadAll(true)} tintColor={GOLD} />}
+      >
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Rewards</Text>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.balanceCard}>
+            <Text style={styles.balanceLabel}>Your Coins</Text>
+            <Text style={styles.balanceValue}>{coins}</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Daily Streak</Text>
+          <View style={styles.streakCard}>
+            <Text style={styles.streakLabel}>Current Streak</Text>
+            <Text style={styles.streakValue}>{streak} days</Text>
+            {bonusAvailable && (
+              <TouchableOpacity 
+                style={styles.claimBtn} 
+                onPress={claimBonus}
+                disabled={claimingBonus}
+              >
+                {claimingBonus ? <ActivityIndicator color="#000" size="small" /> : <Text style={styles.claimBtnText}>Claim Bonus</Text>}
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Spin Wheel</Text>
+          <View style={styles.spinCard}>
+            <Animated.View style={{ transform: [{ rotate: spinRotate }] }}>
+              <View style={styles.wheel}>
+                <Text style={styles.wheelText}>🎰</Text>
+              </View>
+            </Animated.View>
+            <TouchableOpacity 
+              style={[styles.spinBtn, !canSpin && styles.spinBtnDisabled]}
+              onPress={doSpin}
+              disabled={!canSpin || spinning}
+            >
+              {spinning ? <ActivityIndicator color="#000" size="small" /> : <Text style={styles.spinBtnText}>Spin</Text>}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quests</Text>
+          {quests.map(q => (
+            <View key={q.id} style={styles.questItem}>
+              <Text style={styles.questTitle}>{q.title}</Text>
+              <Text style={styles.questReward}>{q.coins || q.points || 0} coins</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: BG },
+  centered: { justifyContent: 'center', alignItems: 'center' },
+  header: { padding: 20, paddingTop: 20 },
+  headerTitle: { fontSize: 28, fontWeight: '800', color: '#fff' },
+  section: { paddingHorizontal: 16, marginBottom: 24 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 12 },
+  balanceCard: { backgroundColor: CARD, borderRadius: 16, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: BORDER },
+  balanceLabel: { fontSize: 14, color: '#888', marginBottom: 8 },
+  balanceValue: { fontSize: 36, fontWeight: '800', color: GOLD },
+  streakCard: { backgroundColor: CARD, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: BORDER },
+  streakLabel: { fontSize: 14, color: '#888', marginBottom: 8 },
+  streakValue: { fontSize: 32, fontWeight: '700', color: '#fff' },
+  claimBtn: { backgroundColor: GOLD, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8, marginTop: 16, alignItems: 'center' },
+  claimBtnText: { fontSize: 16, fontWeight: '700', color: '#000' },
+  spinCard: { backgroundColor: CARD, borderRadius: 16, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: BORDER },
+  wheel: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#1a1a2e', justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: GOLD },
+  wheelText: { fontSize: 48 },
+  spinBtn: { backgroundColor: GOLD, paddingVertical: 12, paddingHorizontal: 32, borderRadius: 8, marginTop: 16, alignItems: 'center' },
+  spinBtnDisabled: { backgroundColor: '#333' },
+  spinBtnText: { fontSize: 16, fontWeight: '700', color: '#000' },
+  questItem: { backgroundColor: CARD, borderRadius: 12, padding: 16, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: BORDER },
+  questTitle: { fontSize: 15, fontWeight: '600', color: '#fff', flex: 1 },
+  questReward: { fontSize: 14, fontWeight: '700', color: GOLD },
+});
