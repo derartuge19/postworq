@@ -440,99 +440,12 @@ function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          <View style={StyleSheet.absoluteFill}>
-            <WebView
-              source={{
-                html: `
-                  <!DOCTYPE html>
-                  <html>
-                  <head>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                      body { margin: 0; padding: 0; background: #000; overflow: hidden; }
-                      .video-container {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100vw;
-                        height: 100vh;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        background: #000;
-                      }
-                      video { 
-                        max-width: 100vw;
-                        max-height: 100vh;
-                        object-fit: contain;
-                        background: #000;
-                      }
-                      .landscape {
-                        width: 100vw;
-                        height: auto;
-                      }
-                      .portrait {
-                        width: auto;
-                        height: 100vh;
-                      }
-                    </style>
-                  </head>
-                  <body>
-                    <div class="video-container">
-                      <video 
-                        id="videoPlayer"
-                        src="${item.media}"
-                        autoplay 
-                        loop 
-                        muted
-                        playsinline
-                        preload="metadata"
-                        onclick="this.paused ? this.play() : this.pause()"
-                        onloadedmetadata="
-                          const w = this.videoWidth;
-                          const h = this.videoHeight;
-                          const isLandscape = w > h;
-                          this.className = isLandscape ? 'landscape' : 'portrait';
-                          window.ReactNativeWebView.postMessage(JSON.stringify({
-                            type: 'orientation', 
-                            orientation: isLandscape ? 'landscape' : 'portrait',
-                            width: w, 
-                            height: h
-                          }));
-                        "
-                        onloadeddata="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'loaded'}))"
-                        onerror="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'error'}))"
-                      >
-                      </video>
-                    </div>
-                  </body>
-                  </html>
-                `
-              }}
-              style={StyleSheet.absoluteFill}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              mediaPlaybackRequiresUserAction={false}
-              allowsInlineMediaPlayback={true}
-              allowsAirPlayForMediaPlayback={true}
-              onLoad={() => setShowPauseIcon(false)}
-              onError={(error) => console.log('WebView error:', error)}
-              onMessage={(event) => {
-                try {
-                  const data = JSON.parse(event.nativeEvent.data);
-                  if (data.type === 'loaded') {
-                    setShowPauseIcon(false);
-                  } else if (data.type === 'orientation') {
-                    setVideoOrientation(data.orientation);
-                  } else if (data.type === 'error') {
-                    console.log('Video load error');
-                  }
-                } catch (e) {
-                  console.log('Message parsing error:', e);
-                }
-              }}
-            />
+          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons name="play-circle" size={64} color="#fff" />
+              <Text style={{ color: '#fff', marginTop: 12, fontSize: 16, fontWeight: '600' }}>Video</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', marginTop: 4, fontSize: 12 }}>Tap to interact</Text>
+            </View>
           </View>
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
