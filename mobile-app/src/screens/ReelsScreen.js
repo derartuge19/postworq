@@ -509,24 +509,12 @@ function ReelItem({
               <Ionicons name="share-outline" size={18} color={LIGHT_GOLD} />
               <Text style={styles.menuText}>Share</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={handleDownload}>
-              <Ionicons name="download-outline" size={18} color={LIGHT_GOLD} />
-              <Text style={styles.menuText}>Download</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={handleSaveToFavorites}>
-              <Ionicons name="star-outline" size={18} color={LIGHT_GOLD} />
-              <Text style={styles.menuText}>Save to Favorites</Text>
-            </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={handleNotInterested}>
-              <Ionicons name="eye-off-outline" size={18} color="#EF4444" />
-              <Text style={[styles.menuText, { color: '#EF4444' }]}>Not Interested</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={handleShowVideoInfo}>
-              <Ionicons name="information-circle-outline" size={18} color={LIGHT_GOLD} />
-              <Text style={styles.menuText}>Video Info</Text>
+              <Ionicons name="eye-off-outline" size={18} color="#78716C" />
+              <Text style={styles.menuText}>Not Interested</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); setShowReportModal(true); }}>
-              <Ionicons name="flag-outline" size={18} color="#EF4444" />
+              <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
               <Text style={[styles.menuText, { color: '#EF4444' }]}>Report</Text>
             </TouchableOpacity>
             {isOwnPost && (
