@@ -328,10 +328,10 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
         <div style={{ background: T.cardBg || "#1A1A1A", borderRadius: 18, padding: "28px 24px", border: "1px solid #F9E08B30" }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
             <div style={{ fontSize: 26, fontWeight: 900, color: "#F9E08B", marginBottom: 4 }}>
-              {subscriptionOtpMode ? "Create Your Account" : "Welcome Back!"}
+              {subscriptionOtpMode ? "Login to Your Account" : "Welcome Back!"}
             </div>
             <div style={{ fontSize: 13, color: "#F9E08B" }}>
-              {subscriptionOtpMode ? "Set up your account with your subscription OTP" : "Log in to continue to FLIPSTAR"}
+              {subscriptionOtpMode ? "Log in with your subscription OTP" : "Log in to continue to FLIPSTAR"}
             </div>
           </div>
 
@@ -410,7 +410,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
             {/* Submit */}
             <button type="submit" disabled={loading}
               style={{ width: "100%", padding: "14px", background: loading ? "#3A3A3A" : GOLD, border: "none", borderRadius: 10, color: loading ? "#888" : "#000", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
-              {loading ? <><Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Creating Account…</> : "Create Account"}
+              {loading ? <><Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Logging In…</> : "Login to Your Account"}
             </button>
           </form>
         ) : (
