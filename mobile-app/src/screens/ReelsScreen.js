@@ -995,12 +995,9 @@ export default function ReelsScreen({ navigation, route }) {
           if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
         }
         
-        // Filter to show only videos for reels
+        // Show all content (images and videos) for reels - match website behavior
         const filteredResults = results.filter(reel => {
-          if (!reel.media) return false;
-          const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
-                              reel.media.includes('/video/upload/');
-          return isVideoFile;
+          return reel.media || reel.image; // Show content that has either media or image
         });
         
         // Shuffle for randomized feed
@@ -1034,12 +1031,9 @@ export default function ReelsScreen({ navigation, route }) {
       const data = await api.request(endpoint);
       let results = Array.isArray(data) ? data : (data.results || []);
       
-      // Filter to show only videos for reels
+      // Show all content (images and videos) for reels - match website behavior
       const filteredResults = results.filter(reel => {
-        if (!reel.media) return false;
-        const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
-                            reel.media.includes('/video/upload/');
-        return isVideoFile;
+        return reel.media || reel.image; // Show content that has either media or image
       });
       
       // Shuffle for randomized feed
