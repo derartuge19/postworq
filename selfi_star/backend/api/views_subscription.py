@@ -90,20 +90,29 @@ class OnevasWebhookView(APIView):
         # Find active subscription (either by user or by phone number for SMS-first)
         subscription = None
         if user:
+            print(f"[SUBSCRIPTION DEBUG] Checking subscriptions for user: {user.username}")
+            all_user_subs = UserSubscription.objects.filter(user=user)
+            print(f"[SUBSCRIPTION DEBUG] Total subscriptions for user: {all_user_subs.count()}")
+            for sub in all_user_subs:
+                print(f"[SUBSCRIPTION DEBUG]   - ID: {sub.id}, Status: {sub.status}, Duration: {sub.duration_type}, Tier: {sub.tier.name if sub.tier else 'None'}")
+            
             if target_duration_type:
                 subscription = UserSubscription.objects.filter(
                     user=user,
                     status='active',
                     tier__duration_type=target_duration_type
                 ).first()
+                print(f"[SUBSCRIPTION DEBUG] Looking for active subscription with duration_type={target_duration_type}: {'Found' if subscription else 'Not found'}")
             else:
                 # No specific duration type, find any active subscription
                 subscription = UserSubscription.objects.filter(
                     user=user,
                     status='active'
                 ).first()
+                print(f"[SUBSCRIPTION DEBUG] Looking for any active subscription: {'Found' if subscription else 'Not found'}")
         else:
             # Check for SMS-first subscription (user not registered yet)
+            print(f"[SUBSCRIPTION DEBUG] Checking SMS-first subscriptions for phone: {phone_number}")
             if target_duration_type:
                 subscription = UserSubscription.objects.filter(
                     onevas_phone_number=phone_number,
