@@ -188,19 +188,22 @@ class OnevasWebhookView(APIView):
             app_key = ONEVAS_APPLICATION_KEY
             if tier_type and tier_type in ONEVAS_PRODUCTS:
                 app_key = ONEVAS_PRODUCTS[tier_type]['application_key']
-            
+
             # Get product number from configuration
             product_number = ONEVAS_PRODUCT_NUMBER
             if tier_type and tier_type in ONEVAS_PRODUCTS:
                 product_number = ONEVAS_PRODUCTS[tier_type]['product_id']
-            
+
             payload = {
                 "phone_number": phone_number,
                 "application_key": app_key,
                 "text": text,
                 "product_number": product_number
             }
+            print(f"[SMS DEBUG] Sending SMS - phone: {phone_number}, tier_type: {tier_type}, app_key: {app_key[:10]}..., product_number: {product_number}")
+            print(f"[SMS DEBUG] SMS text length: {len(text)}")
             response = requests.post(ONEVAS_SMS_URL, json=payload, timeout=10)
+            print(f"[SMS DEBUG] Response status: {response.status_code}, response body: {response.text}")
             return response.status_code == 200
         except Exception as e:
             print(f"Failed to send SMS: {e}")
@@ -473,15 +476,16 @@ class OnevasWebhookView(APIView):
         else:
             print(f"[SUBSCRIPTION DEBUG] No active subscription found, creating new subscription")
             # Create new subscription
-            with transaction.atomic():
-                subscription = UserSubscription.objects.create(
-                    user=user,
-                    tier=tier,
-                    duration_type=tier.duration_type,
-                    onevas_phone_number=phone_number,
-                    onevas_subscription_id=str(uuid.uuid4()),
-                    status='pending'
-                )
+            try:
+                with transaction.atomic():
+                    subscription = UserSubscription.objects.create(
+                        user=user,
+                        tier=tier,
+                        duration_type=tier.duration_type,
+                        onevas_phone_number=phone_number,
+                        onevas_subscription_id=str(uuid.uuid4()),
+                        status='pending'
+                    )
                 
                 subscription.activate()
                 
@@ -535,8 +539,14 @@ class OnevasWebhookView(APIView):
                 print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
                 sms_result = self.send_sms(phone_number, confirmation_message, tier.duration_type)
                 print(f"[SUBSCRIPTION DEBUG] Success SMS sent: {sms_result}")
-            
+
             return Response({'status': 'success', 'message': 'Subscription created'})
+
+            except Exception as e:
+                print(f"[SUBSCRIPTION DEBUG] Error creating new subscription: {str(e)}")
+                import traceback
+                print(f"[SUBSCRIPTION DEBUG] Traceback: {traceback.format_exc()}")
+                return Response({'error': str(e)}, status=500)
     
     def handle_unsubscription(self, payload, log):
         """Handle unsubscription notification from Onevas"""
