@@ -61,7 +61,7 @@ from .serializers import (
     UserSerializer, UserProfileSerializer, ReelSerializer, CommentSerializer, VoteSerializer,
     QuestSerializer, UserQuestSerializer, SubscriptionSerializer,
     NotificationPreferenceSerializer, RegisterSerializer, CompetitionSerializer, WinnerSerializer, FollowSerializer,
-    ReportSerializer
+    ReportSerializer, BlockSerializer
 )
 from .serializers_extended import CommentSerializer as ExtendedCommentSerializer, CommentLikeSerializer, CommentReplySerializer, SavedPostSerializer
 
