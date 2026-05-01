@@ -399,7 +399,8 @@ class OnevasWebhookView(APIView):
             user=user,
             status='active'
         ).first()
-        
+
+        print(f"[SUBSCRIPTION DEBUG] Active subscription check: {'Found' if active_sub else 'Not found'}")
         if active_sub:
             print(f"[SUBSCRIPTION DEBUG] Found active subscription, renewing...")
             # Update existing subscription
@@ -455,11 +456,13 @@ class OnevasWebhookView(APIView):
             price_period = price_periods.get(tier.duration_type, 'day')
             renewal_message = f"Dear valued customer, your {tier.name} Flipstar subscription has been successfully renewed, effective from {active_sub.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your complimentary free trial. After your free trial concludes, the subscription price will be {tier.price_etb} ETB per {price_period}. To access your premium service, please click on https://postworqq.vercel.app?login=true and enter your OTP: {otp_code}. To cancel your subscription at any time, please send {stop_keyword} to {tier.short_code}."
             print(f"[SUBSCRIPTION DEBUG] Sending renewal SMS to {phone_number} with OTP: {otp_code}")
-            self.send_sms(phone_number, renewal_message, tier.duration_type)
+            sms_result = self.send_sms(phone_number, renewal_message, tier.duration_type)
+            print(f"[SUBSCRIPTION DEBUG] Renewal SMS sent: {sms_result}")
 
             return Response({'status': 'success', 'message': 'Subscription renewed'})
         
         else:
+            print(f"[SUBSCRIPTION DEBUG] No active subscription found, creating new subscription")
             # Create new subscription
             with transaction.atomic():
                 subscription = UserSubscription.objects.create(
@@ -521,7 +524,8 @@ class OnevasWebhookView(APIView):
                 price_period = price_periods.get(tier.duration_type, 'day')
                 confirmation_message = f"Dear valued customer, you have successfully subscribed to the {tier.name} Flipstar service, effective from {subscription.start_date.strftime('%Y-%m-%d %H:%M')}. You have 1 day remaining in your complimentary free trial. After your free trial concludes, the subscription price will be {tier.price_etb} ETB per {price_period}. To access your premium service, please click on https://postworqq.vercel.app?login=true and enter your OTP: {otp_code}. To cancel your subscription at any time, please send {stop_keyword} to {tier.short_code}."
                 print(f"[SUBSCRIPTION DEBUG] Sending success SMS to {phone_number} with OTP: {otp_code}")
-                self.send_sms(phone_number, confirmation_message, tier.duration_type)
+                sms_result = self.send_sms(phone_number, confirmation_message, tier.duration_type)
+                print(f"[SUBSCRIPTION DEBUG] Success SMS sent: {sms_result}")
             
             return Response({'status': 'success', 'message': 'Subscription created'})
     
