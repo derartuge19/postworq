@@ -585,7 +585,7 @@ export default function HomeScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <Image 
-          source={require('../assets/images/flipstar-logo.png')} 
+          source={require('../../assets/images/flipstar-logo.png')} 
           style={styles.headerLogo}
           resizeMode="contain"
         />
