@@ -98,7 +98,7 @@ export default function GamificationScreen({ navigation }) {
         <View style={styles.statsCard}>
           <View style={styles.statItem}>
             <Ionicons name="logo-bitcoin" size={28} color={GOLD} />
-            <Text style={styles.statValue}>{status?.coins ?? 0}</Text>
+            <Text style={styles.statValue}>{typeof status?.coins === "object" ? (status.coins?.balance ?? 0) : (status?.coins ?? 0)}</Text>
             <Text style={styles.statLabel}>Coins</Text>
           </View>
           <View style={styles.statDivider} />
@@ -110,7 +110,7 @@ export default function GamificationScreen({ navigation }) {
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Ionicons name="flame" size={28} color="#EF4444" />
-            <Text style={styles.statValue}>{status?.streak ?? 0}</Text>
+            <Text style={styles.statValue}>{status?.streak ?? status?.login_streak ?? 0}</Text>
             <Text style={styles.statLabel}>Streak</Text>
           </View>
         </View>
