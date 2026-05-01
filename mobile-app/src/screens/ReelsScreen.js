@@ -994,9 +994,9 @@ export default function ReelsScreen({ navigation, route }) {
           if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
         }
         
-        // Show all content with media (images and videos) for reels
+        // Show all content for reels (less restrictive to ensure content appears)
         const filteredResults = results.filter(reel => {
-          return reel.media || reel.image; // Show content that has either media or image
+          return reel && (reel.media || reel.image || reel.id); // Show any valid content
         });
         
         // Shuffle for randomized feed
@@ -1030,9 +1030,9 @@ export default function ReelsScreen({ navigation, route }) {
       const data = await api.request(endpoint);
       let results = Array.isArray(data) ? data : (data.results || []);
       
-      // Show all content with media (images and videos) for reels
+      // Show all content for reels (less restrictive to ensure content appears)
       const filteredResults = results.filter(reel => {
-        return reel.media || reel.image; // Show content that has either media or image
+        return reel && (reel.media || reel.image || reel.id); // Show any valid content
       });
       
       // Shuffle for randomized feed
