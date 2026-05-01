@@ -4,7 +4,6 @@ import {
   Dimensions, ActivityIndicator, StatusBar, TextInput, Modal,
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
@@ -324,9 +323,7 @@ function ReelItem({
       setShowMenu(null); // Close dropdown menu if open
       setShowLongPressMenu({ videoId: item.id });
       // Haptic feedback on mobile if available
-      if (Platform.OS === 'ios') {
-        Haptics?.impactAsync?.(Haptics.ImpactFeedbackStyle.Medium);
-      }
+      // Note: expo-haptics not installed, skipping haptic feedback
     }, 500); // 500ms for long press
   };
 
