@@ -115,7 +115,7 @@ export default function HomeScreen({ navigation }) {
         if (results.length >= 2) {
           finalResults = [
             ...results.slice(0, 2),
-            { type: 'suggestions', id: 'suggestions' },
+            { type: 'horizontal_suggestions', id: 'horizontal_suggestions' },
             ...results.slice(2)
           ];
         }
@@ -185,7 +185,7 @@ export default function HomeScreen({ navigation }) {
       if (reset && results.length >= 2) {
         finalResults = [
           ...results.slice(0, 2),
-          { type: 'suggestions', id: 'suggestions' },
+          { type: 'horizontal_suggestions', id: 'horizontal_suggestions' },
           ...results.slice(2)
         ];
       }
@@ -649,7 +649,7 @@ export default function HomeScreen({ navigation }) {
 
   const renderPost = useCallback(({ item: post, index }) => {
     // Render horizontal suggestions after 2nd post (index 1)
-    if (post.type === 'horizontal_suggestions') {
+    if (post.type === 'horizontal_suggestions' || post.type === 'suggestions') {
       return showHorizontalSuggestions ? (
         <HorizontalUserSuggestions 
           onUserClick={(userId) => navigation.navigate('Profile', { userId })}

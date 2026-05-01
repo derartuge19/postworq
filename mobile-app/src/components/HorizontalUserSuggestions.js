@@ -25,6 +25,13 @@ export default React.memo(function HorizontalUserSuggestions({ onUserClick, onDi
       const raw = await api.getUserSuggestions();
       const all = Array.isArray(raw) ? raw : (raw.results || []);
       const data = all.filter(u => !u.is_staff && !u.is_superuser).slice(0, 10);
+      
+      if (!data || data.length === 0) {
+        setSuggestions([]);
+        setLoading(false);
+        return;
+      }
+      
       setSuggestions(data);
       
       const states = {};
@@ -34,6 +41,7 @@ export default React.memo(function HorizontalUserSuggestions({ onUserClick, onDi
       setFollowingStates(states);
     } catch (error) {
       console.error("Failed to fetch suggestions:", error);
+      setSuggestions([]);
     } finally {
       setLoading(false);
     }
@@ -51,7 +59,8 @@ export default React.memo(function HorizontalUserSuggestions({ onUserClick, onDi
     }
   };
 
-  if (loading || suggestions.length === 0) return null;
+  if (loading) return null;
+  if (!suggestions || suggestions.length === 0) return null;
 
   return (
     <View style={styles.container}>
