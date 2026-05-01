@@ -1129,7 +1129,7 @@ const styles = StyleSheet.create({
   },
   
   // Modals
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   optionsDropdown: {
     position: 'absolute',
     top: 60,
