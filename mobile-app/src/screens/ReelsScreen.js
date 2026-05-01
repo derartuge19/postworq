@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// expo-video components causing errors - disabled
+import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -131,13 +131,12 @@ function ReelItem({
 
   const [videoPaused, setVideoPaused] = useState(false);
   const [videoMuted, setVideoMuted] = useState(false);
+  const videoRef = useRef(null);
 
   const isVideo = !!(item.media) && (
     /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
     item.media.includes('/video/upload/')
   );
-
-  // Video player functionality disabled to fix ExpoVideo errors
 
   const handleVideoTouch = () => {
     const now = Date.now();
@@ -148,12 +147,22 @@ function ReelItem({
       lastTapRef.current = 0;
       handleDoubleTap();
     } else {
-      // Single tap - toggle play/pause (placeholder functionality)
+      // Single tap - toggle play/pause
       lastTapRef.current = now;
-      if (isVideo) {
-        // Video placeholder - no actual playback
-        setShowPauseIcon(!showPauseIcon);
-        setTimeout(() => setShowPauseIcon(false), 1000);
+      if (isVideo && videoRef.current) {
+        try {
+          if (videoPaused) {
+            videoRef.current.playAsync();
+            setShowPauseIcon(false);
+          } else {
+            videoRef.current.pauseAsync();
+            setShowPauseIcon(true);
+            setTimeout(() => setShowPauseIcon(false), 1000);
+          }
+          setVideoPaused(!videoPaused);
+        } catch (error) {
+          console.log('Video control error:', error);
+        }
       }
     }
   };
@@ -441,13 +450,24 @@ function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
-            <View style={{ alignItems: 'center' }}>
-              <Ionicons name="play-circle" size={64} color="#fff" />
-              <Text style={{ color: '#fff', marginTop: 12, fontSize: 16, fontWeight: '600' }}>Video</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', marginTop: 4, fontSize: 12 }}>Tap to interact</Text>
-            </View>
-          </View>
+          <Video
+            ref={videoRef}
+            source={{ uri: item.media }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+            shouldPlay={isActive && !videoPaused}
+            isMuted={!videoMuted}
+            isLooping
+            useNativeControls={false}
+            onPlaybackStatusUpdate={(status) => {
+              if (status.isLoaded) {
+                setShowPauseIcon(false);
+              }
+            }}
+            onError={(error) => {
+              console.log('Video error:', error);
+            }}
+          />
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
