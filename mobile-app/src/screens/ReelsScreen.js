@@ -130,7 +130,8 @@ function ReelItem({
   const DOUBLE_TAP_WINDOW = 280;
 
   const [videoPaused, setVideoPaused] = useState(false);
-  const [videoMuted, setVideoMuted] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(true);
+  const [videoOrientation, setVideoOrientation] = useState('portrait');
   const videoRef = useRef(null);
 
   const isVideo = !!(item.media) && (
@@ -439,65 +440,100 @@ function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          <WebView
-            source={{
-              html: `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                  <meta charset="utf-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <style>
-                    body { margin: 0; padding: 0; background: #000; overflow: hidden; }
-                    video { 
-                      width: 100vw; 
-                      height: 100vh; 
-                      object-fit: cover;
-                      background: #000;
-                      position: absolute;
-                      top: 0;
-                      left: 0;
-                    }
-                  </style>
-                </head>
-                <body>
-                  <video 
-                    id="videoPlayer"
-                    src="${item.media}"
-                    autoplay 
-                    loop 
-                    ${videoMuted ? 'muted' : ''}
-                    playsinline
-                    preload="metadata"
-                    onclick="this.paused ? this.play() : this.pause()"
-                    onloadeddata="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'loaded'}))"
-                    onerror="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'error'}))"
-                  >
-                  </video>
-                </body>
-                </html>
-              `
-            }}
-            style={StyleSheet.absoluteFill}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            mediaPlaybackRequiresUserAction={false}
-            allowsInlineMediaPlayback={true}
-            onLoad={() => setShowPauseIcon(false)}
-            onError={(error) => console.log('WebView error:', error)}
-            onMessage={(event) => {
-              try {
-                const data = JSON.parse(event.nativeEvent.data);
-                if (data.type === 'loaded') {
-                  setShowPauseIcon(false);
-                } else if (data.type === 'error') {
-                  console.log('Video load error');
+          <View style={StyleSheet.absoluteFill}>
+            <WebView
+              source={{
+                html: `
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                      body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+                      .video-container {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100vw;
+                        height: 100vh;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        background: #000;
+                      }
+                      video { 
+                        max-width: 100vw;
+                        max-height: 100vh;
+                        object-fit: contain;
+                        background: #000;
+                      }
+                      .landscape {
+                        width: 100vw;
+                        height: auto;
+                      }
+                      .portrait {
+                        width: auto;
+                        height: 100vh;
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <div class="video-container">
+                      <video 
+                        id="videoPlayer"
+                        src="${item.media}"
+                        autoplay 
+                        loop 
+                        muted
+                        playsinline
+                        preload="metadata"
+                        onclick="this.paused ? this.play() : this.pause()"
+                        onloadedmetadata="
+                          const w = this.videoWidth;
+                          const h = this.videoHeight;
+                          const isLandscape = w > h;
+                          this.className = isLandscape ? 'landscape' : 'portrait';
+                          window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'orientation', 
+                            orientation: isLandscape ? 'landscape' : 'portrait',
+                            width: w, 
+                            height: h
+                          }));
+                        "
+                        onloadeddata="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'loaded'}))"
+                        onerror="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'error'}))"
+                      >
+                      </video>
+                    </div>
+                  </body>
+                  </html>
+                `
+              }}
+              style={StyleSheet.absoluteFill}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              mediaPlaybackRequiresUserAction={false}
+              allowsInlineMediaPlayback={true}
+              allowsAirPlayForMediaPlayback={true}
+              onLoad={() => setShowPauseIcon(false)}
+              onError={(error) => console.log('WebView error:', error)}
+              onMessage={(event) => {
+                try {
+                  const data = JSON.parse(event.nativeEvent.data);
+                  if (data.type === 'loaded') {
+                    setShowPauseIcon(false);
+                  } else if (data.type === 'orientation') {
+                    setVideoOrientation(data.orientation);
+                  } else if (data.type === 'error') {
+                    console.log('Video load error');
+                  }
+                } catch (e) {
+                  console.log('Message parsing error:', e);
                 }
-              } catch (e) {
-                console.log('Message parsing error:', e);
-              }
-            }}
-          />
+              }}
+            />
+          </View>
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
@@ -596,7 +632,7 @@ function ReelItem({
           <View style={styles.actionIcon}>
             <Ionicons 
               name={videoMuted ? 'volume-mute' : 'volume-high'}
-              size={28}
+              size={32}
               color="#fff"
             />
           </View>
@@ -611,7 +647,7 @@ function ReelItem({
           ]}>
             <Ionicons 
               name={item.is_liked ? 'heart' : 'heart-outline'}
-              size={28}
+              size={32}
               color={item.is_liked ? '#EF4444' : '#fff'}
               fill={item.is_liked ? '#EF4444' : 'none'}
             />
@@ -621,13 +657,13 @@ function ReelItem({
 
         {/* Comment Button */}
         <TouchableOpacity style={styles.actionItem} onPress={() => setShowComments(true)}>
-          <Ionicons name="chatbubble-outline" size={26} color="#fff" />
+          <Ionicons name="chatbubble-outline" size={30} color="#fff" />
           <Text style={styles.actionLabel}>{item.comment_count || 0}</Text>
         </TouchableOpacity>
 
         {/* Share Button */}
         <TouchableOpacity style={styles.actionItem} onPress={handleShareVideo}>
-          <Ionicons name="share-outline" size={24} color="#fff" />
+          <Ionicons name="share-outline" size={28} color="#fff" />
           <Text style={styles.actionLabel}>{item.shares || 0}</Text>
         </TouchableOpacity>
 
@@ -635,25 +671,12 @@ function ReelItem({
         <TouchableOpacity style={styles.actionItem} onPress={handleSave}>
           <Ionicons 
             name={item.is_saved ? 'bookmark' : 'bookmark-outline'}
-            size={24}
+            size={28}
             color={item.is_saved ? LIGHT_GOLD : '#fff'}
           />
         </TouchableOpacity>
 
-        {/* Audio Toggle for Videos */}
-        {isVideo && (
-          <TouchableOpacity 
-            style={styles.actionItem} 
-            onPress={() => setAudioEnabled(!audioEnabled)}
-          >
-            <Ionicons 
-              name={audioEnabled ? 'volume-high' : 'volume-mute'}
-              size={22} 
-              color="#fff" 
-            />
-          </TouchableOpacity>
-        )}
-      </View>
+        </View>
 
       {/* Bottom Info */}
       <View style={styles.bottomInfo}>
@@ -1375,12 +1398,19 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   actionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   likeAnimation: {
     transform: [{ scale: 1.2 }],
