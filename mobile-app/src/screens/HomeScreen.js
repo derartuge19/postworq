@@ -375,13 +375,21 @@ export default function HomeScreen({ navigation }) {
             </View>
           </TouchableOpacity>
           
-          {/* Follow button for non-following users */}
-          {!isOwnPost && !isFollowing && (
+          {/* Follow/Unfollow button */}
+          {!isOwnPost && (
             <TouchableOpacity
-              style={styles.followBtn}
+              style={[
+                styles.followBtn,
+                isFollowing && styles.followingBtn
+              ]}
               onPress={() => toggleFollow(post.user?.id)}
             >
-              <Text style={styles.followBtnText}>Follow</Text>
+              <Text style={[
+                styles.followBtnText,
+                isFollowing && styles.followingBtnText
+              ]}>
+                {isFollowing ? 'Following' : 'Follow'}
+              </Text>
             </TouchableOpacity>
           )}
           
@@ -889,15 +897,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: GOLD,
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: 6,
     paddingVertical: 4,
+    paddingHorizontal: 8,
     marginRight: 8,
+  },
+  followingBtn: {
+    backgroundColor: 'rgba(249,224,139,0.15)',
+    borderColor: GOLD,
   },
   followBtnText: {
     color: GOLD,
     fontSize: 12,
     fontWeight: '700',
+  },
+  followingBtnText: {
+    color: GOLD,
   },
   optionsBtn: {
     padding: 4,

@@ -542,17 +542,26 @@ function ReelItem({
       {/* Right Side Actions */}
       <View style={styles.rightActions}>
         {/* Avatar with Follow Button */}
-        <TouchableOpacity 
-          style={styles.avatarContainer}
-          onPress={() => onShowProfile?.(item.user?.id)}
-        >
-          <Avatar uri={item.user?.profile_photo} size={48} name={item.user?.username} showBorder={true} />
-          {!isOwnPost && !isFollowing && (
-            <TouchableOpacity style={styles.followBadge} onPress={handleFollowUser}>
-              <Ionicons name="add" size={14} color="#000" />
+        <View style={styles.avatarContainer}>
+          <TouchableOpacity onPress={() => onShowProfile?.(item.user?.id)}>
+            <Avatar uri={item.user?.profile_photo} size={48} name={item.user?.username} showBorder={true} />
+          </TouchableOpacity>
+          {!isOwnPost && (
+            <TouchableOpacity 
+              style={[
+                styles.followBadge, 
+                isFollowing && styles.followingBadge
+              ]} 
+              onPress={handleFollowUser}
+            >
+              {isFollowing ? (
+                <Ionicons name="checkmark" size={14} color="#fff" />
+              ) : (
+                <Ionicons name="add" size={14} color="#000" />
+              )}
             </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        </View>
 
         {/* Sound Toggle Button */}
         <TouchableOpacity style={styles.actionItem} onPress={() => setVideoMuted(!videoMuted)}>
@@ -1313,6 +1322,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#000',
+  },
+  followingBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: '#fff',
   },
   actionItem: { 
     alignItems: 'center',
