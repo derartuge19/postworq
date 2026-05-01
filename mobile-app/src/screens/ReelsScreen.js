@@ -163,25 +163,7 @@ function ReelItem({
     }
   };
 
-  const toggleVideoPlayback = () => {
-    if (!player || !item.media) return;
-    
-    if (paused || manuallyPaused) {
-      // Resume playback
-      setManuallyPaused(false);
-      setPaused(false);
-      player.muted = !audioEnabled;
-      player.play();
-      setShowPauseIcon(false);
-    } else {
-      // Pause playback
-      setManuallyPaused(true);
-      setPaused(true);
-      player.pause();
-      setShowPauseIcon(true);
-      setTimeout(() => setShowPauseIcon(false), 1000);
-    }
-  };
+  // Video playback functionality disabled to fix ExpoVideoView errors
 
   const handleLike = async () => {
     if (!user) return;
