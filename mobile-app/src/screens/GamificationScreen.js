@@ -12,6 +12,13 @@ const BG = "#0D0D0D";
 const CARD = "#1A1A1A";
 const BORDER = "#262626";
 
+function safeNum(val, key) {
+  if (val == null) return 0;
+  if (typeof val === 'object') return val[key] ?? val.current ?? val.balance ?? val.value ?? 0;
+  return val;
+}
+
+
 export default function GamificationScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const [status, setStatus] = useState(null);
@@ -98,19 +105,19 @@ export default function GamificationScreen({ navigation }) {
         <View style={styles.statsCard}>
           <View style={styles.statItem}>
             <Ionicons name="logo-bitcoin" size={28} color={GOLD} />
-            <Text style={styles.statValue}>{status?.coins ?? 0}</Text>
+            <Text style={styles.statValue}>{safeNum(status?.coins, "balance")}</Text>
             <Text style={styles.statLabel}>Coins</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Ionicons name="star" size={28} color={GOLD} />
-            <Text style={styles.statValue}>{status?.level ?? 1}</Text>
+            <Text style={styles.statValue}>{safeNum(status?.level, "value") || 1}</Text>
             <Text style={styles.statLabel}>Level</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Ionicons name="flame" size={28} color="#EF4444" />
-            <Text style={styles.statValue}>{status?.streak ?? 0}</Text>
+            <Text style={styles.statValue}>{safeNum(status?.streak, "current")}</Text>
             <Text style={styles.statLabel}>Streak</Text>
           </View>
         </View>
