@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Modal, ActivityIndicator, KeyboardAvoidingView,
-  Platform, StatusBar,
+  Platform, StatusBar, Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
@@ -224,12 +225,23 @@ export default function LoginScreen({ navigation }) {
 
       <ScrollView style={s.container} contentContainerStyle={[s.scroll, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
         {/* Logos */}
-        <View style={s.logosRow}>
-          <View style={s.logoPlaceholder}>
-            <Text style={s.logoText}>Ethio Telecom</Text>
-          </View>
-          <Text style={s.brandLogo}>⭐ FlipStar</Text>
-        </View>
+        <LinearGradient
+          colors={['#ffffff', '#888888', '#000000']}
+          style={s.logosRow}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <Image 
+            source={require('../../../assets/images/ethio-logo.png')} 
+            style={s.ethioLogo}
+            resizeMode="contain"
+          />
+          <Image 
+            source={require('../../../assets/images/flipstar-logo.png')} 
+            style={s.flipstarLogo}
+            resizeMode="contain"
+          />
+        </LinearGradient>
 
         {/* Card */}
         <View style={s.card}>
@@ -310,10 +322,16 @@ export default function LoginScreen({ navigation }) {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   scroll: { padding: 16, paddingBottom: 40 },
-  logosRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1A1A1A', borderRadius: 12, padding: 12, marginBottom: 24 },
-  logoPlaceholder: { backgroundColor: '#333', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  logoText: { color: '#aaa', fontSize: 12, fontWeight: '600' },
-  brandLogo: { fontSize: 18, fontWeight: '900', color: GOLD },
+  logosRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 24, 
+    borderRadius: 12, 
+    padding: '10px 12px',
+  },
+  ethioLogo: { width: 100, height: 50 },
+  flipstarLogo: { width: 100, height: 50 },
   card: { backgroundColor: CARD, borderRadius: 18, padding: 24, borderWidth: 1, borderColor: GOLD + '30', marginBottom: 20 },
   cardHeader: { alignItems: 'center', marginBottom: 24 },
   cardTitle: { fontSize: 24, fontWeight: '900', color: GOLD, marginBottom: 4 },
