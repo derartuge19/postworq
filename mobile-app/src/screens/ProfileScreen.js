@@ -75,7 +75,7 @@ export default function ProfileScreen({ navigation, route }) {
       console.log('Loading profile for user:', targetUserId);
       
       const [profileData, postsData] = await Promise.all([
-        api.request(`/profile/${targetUserId}/`),
+        api.request(`/users/${targetUserId}/`),
         api.request(`/reels/?user=${targetUserId}`),
       ]);
       
@@ -86,7 +86,7 @@ export default function ProfileScreen({ navigation, route }) {
       const postsList = Array.isArray(postsData) ? postsData : (postsData.results || []);
       console.log('Processed posts list:', postsList);
       setPosts(postsList);
-      setReels(postsList.filter(p => p.media));
+      setReels(postsList.filter(p => p.media || p.image));
       
       setFollowersCount(profileData.followers_count || 0);
       setFollowingCount(profileData.following_count || 0);
@@ -109,7 +109,7 @@ export default function ProfileScreen({ navigation, route }) {
   const loadReels = async () => {
     try {
       const reelsData = await api.request(`/reels/?user=${targetUserId}`);
-      const reelsList = Array.isArray(reelsData) ? reelsData.filter(p => p.media) : (reelsData.results || []).filter(p => p.media);
+      const reelsList = Array.isArray(reelsData) ? reelsData.filter(p => p.media || p.image) : (reelsData.results || []).filter(p => p.media || p.image);
       setReels(reelsList);
     } catch (e) { console.error('Reels error:', e); }
   };
