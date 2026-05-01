@@ -30,6 +30,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import FollowListScreen from '../screens/FollowListScreen';
 import CampaignsScreen from '../screens/CampaignsScreen';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
+import LeaderboardScreen from '../screens/LeaderboardScreen';
 import WalletScreen from '../screens/WalletScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import GamificationScreen from '../screens/GamificationScreen';
@@ -127,6 +128,7 @@ function MainStack() {
       <Stack.Screen name="FollowList"      component={FollowListScreen} />
       <Stack.Screen name="Campaigns"       component={CampaignsScreen} />
       <Stack.Screen name="CampaignDetail"  component={CampaignDetailScreen} />
+      <Stack.Screen name="Leaderboard"    component={LeaderboardScreen} />
       <Stack.Screen name="Wallet"          component={WalletScreen} />
       <Stack.Screen name="Subscription"    component={SubscriptionScreen} />
       <Stack.Screen name="Gamification"    component={GamificationScreen} />
@@ -157,6 +159,8 @@ function RootNavigator() {
 }
 
 export default function AppNavigator() {
+  // Wake up the backend immediately on app open (Render free tier cold starts)
+  React.useEffect(() => { api.warmUp(); }, []);
   return (
     <ThemeProvider>
       <LanguageProvider>

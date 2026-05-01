@@ -1,17 +1,55 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity, Image,
   Dimensions, ActivityIndicator, StatusBar, TextInput, Modal,
-  ScrollView, Alert,
+  ScrollView, Alert, Animated, PanGestureHandler, State,
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
+import { Share } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const GOLD = '#C8B56A';
+const LIGHT_GOLD = '#F9E08B';
+const BG = '#0D0D0D';
+const CARD = '#1A1A1A';
+const BORDER = '#262626';
+
+// Helper to shuffle array for randomized feed
+const shuffleArray = (array) => {
+  const newArr = [...array];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+};
+
+// CaptionWithLessMore component for truncating long captions
+const CaptionWithLessMore = ({ caption, maxLength = 100 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  if (!caption || caption.length <= maxLength) {
+    return <Text style={styles.caption}>{caption}</Text>;
+  }
+  
+  return (
+    <View>
+      <Text style={styles.caption}>
+        {isExpanded ? caption : caption.slice(0, maxLength) + '...'}
+        <Text
+          style={styles.moreLessBtn}
+          onPress={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? ' less' : ' more'}
+        </Text>
+      </Text>
+    </View>
+  );
+};
 
 function timeAgo(d) {
   if (!d) return '';
@@ -22,193 +60,867 @@ function timeAgo(d) {
   return `${Math.floor(s / 86400)}d`;
 }
 
-function Avatar({ uri, size = 36, name = '' }) {
+function Avatar({ uri, size = 36, name = '', showBorder = false }) {
   const [err, setErr] = useState(false);
-  if (uri && !err) return <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 2, borderColor: GOLD }} onError={() => setErr(true)} />;
+  const safeName = name || '?';
+  if (uri && !err) {
+    return (
+      <Image
+        source={{ uri }}
+        style={{ 
+          width: size, 
+          height: size, 
+          borderRadius: size / 2,
+          borderWidth: showBorder ? 2 : 0,
+          borderColor: GOLD
+        }}
+        onError={() => setErr(true)}
+      />
+    );
+  }
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: GOLD, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' }}>
-      <Text style={{ color: '#000', fontWeight: '700', fontSize: size * 0.4 }}>{(name || '?')[0].toUpperCase()}</Text>
+    <View style={{ 
+      width: size, 
+      height: size, 
+      borderRadius: size / 2, 
+      backgroundColor: GOLD, 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      borderWidth: showBorder ? 2 : 0,
+      borderColor: '#fff'
+    }}>
+      <Text style={{ color: '#000', fontWeight: '700', fontSize: size * 0.4 }}>
+        {safeName[0].toUpperCase()}
+      </Text>
     </View>
   );
 }
 
-function ReelItem({ item, isActive, onLike, onComment, onSave, onFollow, navigation }) {
-  const videoRef = useRef(null);
+// Enhanced ReelItem component matching website's TikTok-style layout
+function ReelItem({ 
+  item, 
+  isActive, 
+  onLike, 
+  onComment, 
+  onSave, 
+  onFollow,
+  onShare,
+  onReport,
+  onShowProfile,
+  user,
+  index,
+  videos,
+  setVideos 
+}) {
+  const [muted, setMuted] = useState(true);
   const [paused, setPaused] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [showPauseIcon, setShowPauseIcon] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [likeAnimation, setLikeAnimation] = useState(false);
+  const [doubleTapLike, setDoubleTapLike] = useState(false);
+  const [followStates, setFollowStates] = useState({});
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [manuallyPaused, setManuallyPaused] = useState(false);
+  
+  const lastTapRef = useRef(0);
+  const DOUBLE_TAP_WINDOW = 280;
+
+  const player = useVideoPlayer(
+    item.media ? { uri: item.media } : null,
+    (p) => {
+      p.loop = true;
+      p.muted = true;
+    }
+  );
 
   useEffect(() => {
-    if (!videoRef.current) return;
-    if (isActive && !paused) {
-      videoRef.current.playAsync().catch(() => {});
-    } else {
-      videoRef.current.pauseAsync().catch(() => {});
-    }
-  }, [isActive, paused]);
+    if (!player || !item.media) return;
+    try {
+      if (isActive && !paused && !manuallyPaused) {
+        player.muted = !audioEnabled;
+        player.play();
+        setPlayingVideos(true);
+        setShowPauseIcon(false);
+      } else {
+        player.pause();
+        setPlayingVideos(false);
+      }
+    } catch (_) {}
+  }, [isActive, paused, manuallyPaused, audioEnabled]);
 
-  const togglePlay = () => setPaused(p => !p);
+  useEffect(() => {
+    if (!player) return;
+    try { player.muted = !audioEnabled || muted; } catch (_) {}
+  }, [muted, audioEnabled]);
+
+  const handleVideoTouch = () => {
+    const now = Date.now();
+    const last = lastTapRef.current || 0;
+    
+    if (now - last < DOUBLE_TAP_WINDOW) {
+      // Double tap - like the video
+      lastTapRef.current = 0;
+      handleDoubleTap();
+    } else {
+      // Single tap - toggle play/pause
+      lastTapRef.current = now;
+      setTimeout(() => {
+        if (Date.now() - lastTapRef.current >= DOUBLE_TAP_WINDOW) {
+          toggleVideoPlayback();
+        }
+      }, DOUBLE_TAP_WINDOW);
+    }
+  };
+
+  const handleDoubleTap = () => {
+    if (!user) return;
+    
+    // Trigger like animation
+    setDoubleTapLike(true);
+    setTimeout(() => setDoubleTapLike(false), 1000);
+    
+    // Like the video if not already liked
+    if (!item.is_liked) {
+      handleLike();
+    }
+  };
+
+  const toggleVideoPlayback = () => {
+    if (!player || !item.media) return;
+    
+    if (paused || manuallyPaused) {
+      // Resume playback
+      setManuallyPaused(false);
+      setPaused(false);
+      player.muted = !audioEnabled;
+      player.play();
+      setShowPauseIcon(false);
+    } else {
+      // Pause playback
+      setManuallyPaused(true);
+      setPaused(true);
+      player.pause();
+      setShowPauseIcon(true);
+      setTimeout(() => setShowPauseIcon(false), 1000);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!user) return;
+    
+    setLikeAnimation(true);
+    setTimeout(() => setLikeAnimation(false), 400);
+    
+    // Optimistic UI update
+    const newLiked = !item.is_liked;
+    const newLikes = newLiked ? item.votes + 1 : Math.max(0, item.votes - 1);
+    
+    // Update local state immediately
+    if (setVideos) {
+      setVideos(prev => prev.map(v => 
+        v.id === item.id 
+          ? { ...v, is_liked: newLiked, votes: newLikes }
+          : v
+      ));
+    }
+    
+    try {
+      await api.request(`/reels/${item.id}/vote/`, { method: 'POST' });
+    } catch (error) {
+      // Revert on error
+      if (setVideos) {
+        setVideos(prev => prev.map(v => 
+          v.id === item.id 
+            ? { ...v, is_liked: item.is_liked, votes: item.votes }
+            : v
+        ));
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    
+    const newSaved = !item.is_saved;
+    
+    // Update local state immediately
+    if (setVideos) {
+      setVideos(prev => prev.map(v => 
+        v.id === item.id 
+          ? { ...v, is_saved: newSaved }
+          : v
+      ));
+    }
+    
+    try {
+      await api.request(`/reels/${item.id}/save/`, { method: 'POST' });
+    } catch (error) {
+      // Revert on error
+      if (setVideos) {
+        setVideos(prev => prev.map(v => 
+          v.id === item.id 
+            ? { ...v, is_saved: item.is_saved }
+            : v
+        ));
+      }
+    }
+  };
+
+  const handleFollowUser = async () => {
+    if (!user || !item.user?.id) return;
+    
+    const currentFollowing = item.user?.is_following || false;
+    const newFollowing = !currentFollowing;
+    
+    // Update local state immediately
+    if (setVideos) {
+      setVideos(prev => prev.map(v => 
+        v.id === item.id 
+          ? { ...v, user: { ...v.user, is_following: newFollowing } }
+          : v
+      ));
+    }
+    
+    try {
+      await api.request(`/users/${item.user.id}/follow/`, { method: 'POST' });
+    } catch (error) {
+      // Revert on error
+      if (setVideos) {
+        setVideos(prev => prev.map(v => 
+          v.id === item.id 
+            ? { ...v, user: { ...v.user, is_following: currentFollowing } }
+            : v
+        ));
+      }
+    }
+  };
+
+  const handleShareVideo = async () => {
+    const url = `https://flipstar.app/post/${item.id}`;
+    const title = item.caption ? item.caption.slice(0, 80) : 'Check out this reel on FlipStar';
+    
+    try {
+      await Share.share({
+        message: `${title} ${url}`,
+        title: 'FlipStar Reel',
+      });
+      
+      // Increment share count
+      try { await api.request(`/reels/${item.id}/share/`, { method: 'POST' }); } catch {}
+    } catch (error) {
+      console.log('Share error:', error);
+    }
+    setShowMenu(false);
+  };
+
+  const isVideo = !!(item.media) && (
+    /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
+    item.media.includes('/video/upload/')
+  );
+
+  const isOwnPost = user?.id === item.user?.id;
+  const isFollowing = item.user?.is_following || false;
 
   return (
     <View style={styles.reelContainer}>
-      <TouchableOpacity style={StyleSheet.absoluteFill} onPress={togglePlay} activeOpacity={1}>
-        {item.video_url ? (
-          <Video
-            ref={videoRef}
-            source={{ uri: item.video_url }}
+      {/* Video/Image Background */}
+      <TouchableOpacity
+        style={StyleSheet.absoluteFill}
+        onPress={handleVideoTouch}
+        activeOpacity={1}
+      >
+        {isVideo ? (
+          <VideoView
+            player={player}
             style={StyleSheet.absoluteFill}
-            resizeMode={ResizeMode.COVER}
-            isLooping
-            isMuted={muted}
-            onLoad={() => setLoaded(true)}
+            contentFit="cover"
+            nativeControls={false}
           />
-        ) : item.image_url ? (
-          <Image source={{ uri: item.image_url }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        ) : item.image ? (
+          <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
-        {!loaded && item.video_url && (
-          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
-            <ActivityIndicator color={GOLD} size="large" />
+
+        {/* Pause Icon Overlay */}
+        {showPauseIcon && isVideo && (
+          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center' }]}>
+            <View style={styles.pauseIconContainer}>
+              <Ionicons name="pause" size={48} color="rgba(255,255,255,0.9)" />
+            </View>
           </View>
         )}
-        {paused && (
+
+        {/* Double Tap Heart Animation */}
+        {doubleTapLike && (
           <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center' }]}>
-            <Ionicons name="play" size={64} color="rgba(255,255,255,0.7)" />
+            <Animated.View style={styles.doubleTapHeart}>
+              <Ionicons name="heart" size={80} color="#fff" />
+            </Animated.View>
           </View>
         )}
       </TouchableOpacity>
 
-      {/* Gradient overlay */}
+      {/* Dark gradient overlay */}
       <View style={styles.gradient} pointerEvents="none" />
 
-      {/* Right actions */}
-      <View style={styles.rightActions}>
-        <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Profile', { userId: item.user?.id })}>
-          <Avatar uri={item.user?.profile_photo} size={44} name={item.user?.username} />
-          <View style={styles.followBadge}>
-            <Ionicons name="add" size={12} color="#000" />
+      {/* Top Right Actions */}
+      <View style={styles.topRightActions}>
+        {/* Notifications */}
+        <TouchableOpacity style={styles.topActionBtn}>
+          <Ionicons name="notifications-outline" size={24} color={LIGHT_GOLD} />
+        </TouchableOpacity>
+        
+        {/* More Options Menu */}
+        <TouchableOpacity 
+          style={styles.topActionBtn} 
+          onPress={() => setShowMenu(!showMenu)}
+        >
+          <Ionicons name="ellipsis-horizontal" size={20} color={LIGHT_GOLD} />
+        </TouchableOpacity>
+
+        {/* Dropdown Menu */}
+        {showMenu && (
+          <View style={styles.dropdownMenu}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleShareVideo}>
+              <Ionicons name="share-outline" size={18} color={LIGHT_GOLD} />
+              <Text style={styles.menuText}>Share</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); setShowReportModal(true); }}>
+              <Ionicons name="flag-outline" size={18} color="#EF4444" />
+              <Text style={[styles.menuText, { color: '#EF4444' }]}>Report</Text>
+            </TouchableOpacity>
+            {isOwnPost && (
+              <TouchableOpacity style={styles.menuItem}>
+                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                <Text style={[styles.menuText, { color: '#EF4444' }]}>Delete</Text>
+              </TouchableOpacity>
+            )}
           </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionItem} onPress={() => onLike(item)}>
-          <Ionicons name={item.is_liked ? 'heart' : 'heart-outline'} size={30} color={item.is_liked ? '#EF4444' : '#fff'} />
-          <Text style={styles.actionLabel}>{item.likes_count || 0}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionItem} onPress={() => onComment(item)}>
-          <Ionicons name="chatbubble-outline" size={28} color="#fff" />
-          <Text style={styles.actionLabel}>{item.comments_count || 0}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionItem} onPress={() => onSave(item)}>
-          <Ionicons name={item.is_saved ? 'bookmark' : 'bookmark-outline'} size={28} color={item.is_saved ? GOLD : '#fff'} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionItem} onPress={() => setMuted(m => !m)}>
-          <Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={26} color="#fff" />
-        </TouchableOpacity>
+        )}
       </View>
 
-      {/* Bottom info */}
+      {/* Right Side Actions */}
+      <View style={styles.rightActions}>
+        {/* Avatar with Follow Button */}
+        <TouchableOpacity 
+          style={styles.avatarContainer}
+          onPress={() => onShowProfile?.(item.user?.id)}
+        >
+          <Avatar uri={item.user?.profile_photo} size={48} name={item.user?.username} showBorder={true} />
+          {!isOwnPost && !isFollowing && (
+            <TouchableOpacity style={styles.followBadge} onPress={handleFollowUser}>
+              <Ionicons name="add" size={14} color="#000" />
+            </TouchableOpacity>
+          )}
+        </TouchableOpacity>
+
+        {/* Like Button */}
+        <TouchableOpacity style={styles.actionItem} onPress={handleLike}>
+          <View style={[
+            styles.actionIcon,
+            likeAnimation && styles.likeAnimation
+          ]}>
+            <Ionicons 
+              name={item.is_liked ? 'heart' : 'heart-outline'}
+              size={28}
+              color={item.is_liked ? '#EF4444' : '#fff'}
+              fill={item.is_liked ? '#EF4444' : 'none'}
+            />
+          </View>
+          <Text style={styles.actionLabel}>{item.votes || 0}</Text>
+        </TouchableOpacity>
+
+        {/* Comment Button */}
+        <TouchableOpacity style={styles.actionItem} onPress={() => setShowComments(true)}>
+          <Ionicons name="chatbubble-outline" size={26} color="#fff" />
+          <Text style={styles.actionLabel}>{item.comment_count || 0}</Text>
+        </TouchableOpacity>
+
+        {/* Share Button */}
+        <TouchableOpacity style={styles.actionItem} onPress={handleShareVideo}>
+          <Ionicons name="share-outline" size={24} color="#fff" />
+          <Text style={styles.actionLabel}>{item.shares || 0}</Text>
+        </TouchableOpacity>
+
+        {/* Save Button */}
+        <TouchableOpacity style={styles.actionItem} onPress={handleSave}>
+          <Ionicons 
+            name={item.is_saved ? 'bookmark' : 'bookmark-outline'}
+            size={24}
+            color={item.is_saved ? LIGHT_GOLD : '#fff'}
+          />
+        </TouchableOpacity>
+
+        {/* Audio Toggle for Videos */}
+        {isVideo && (
+          <TouchableOpacity 
+            style={styles.actionItem} 
+            onPress={() => setAudioEnabled(!audioEnabled)}
+          >
+            <Ionicons 
+              name={audioEnabled ? 'volume-high' : 'volume-mute'}
+              size={22} 
+              color="#fff" 
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Bottom Info */}
       <View style={styles.bottomInfo}>
-        <Text style={styles.reelUsername}>@{item.user?.username}</Text>
-        {!!item.caption && <Text style={styles.reelCaption} numberOfLines={2}>{item.caption}</Text>}
+        <TouchableOpacity 
+          style={styles.userInfo}
+          onPress={() => onShowProfile?.(item.user?.id)}
+        >
+          <Text style={styles.username}>@{item.user?.username}</Text>
+          {item.user?.verified && (
+            <Ionicons name="checkmark-circle" size={14} color={LIGHT_GOLD} />
+          )}
+        </TouchableOpacity>
+        
+        {/* Caption with expand/collapse */}
+        {item.caption && (
+          <CaptionWithLessMore caption={item.caption} maxLength={100} />
+        )}
+        
+        {/* Hashtags */}
+        {item.hashtags && (
+          <View style={styles.hashtagsContainer}>
+            {String(item.hashtags).split(/[\s,]+/).filter(Boolean)
+              .slice(0, 3)
+              .map((tag, idx) => (
+                <Text key={idx} style={styles.hashtag}>
+                  {tag.startsWith('#') ? tag : `#${tag}`}
+                </Text>
+              ))}
+          </View>
+        )}
+        
+        {/* Music/Track Info */}
+        {item.music && (
+          <View style={styles.musicInfo}>
+            <Ionicons name="musical-note" size={12} color={LIGHT_GOLD} />
+            <Text style={styles.musicText}>{item.music}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Comments Modal */}
+      <Modal
+        visible={showComments}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowComments(false)}
+      >
+        <CommentsModal 
+          reel={item}
+          user={user}
+          onClose={() => setShowComments(false)}
+        />
+      </Modal>
+
+      {/* Report Modal */}
+      <Modal
+        visible={showReportModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowReportModal(false)}
+      >
+        <ReportModal 
+          reel={item}
+          onClose={() => setShowReportModal(false)}
+        />
+      </Modal>
+    </View>
+  );
+}
+
+// Comments Modal Component
+function CommentsModal({ reel, user, onClose }) {
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [postingComment, setPostingComment] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadComments();
+  }, []);
+
+  const loadComments = async () => {
+    try {
+      setLoading(true);
+      const data = await api.request(`/reels/${reel.id}/comments/?include_replies=true`);
+      setComments(Array.isArray(data) ? data : (data.results || []));
+    } catch (error) {
+      console.error('Failed to load comments:', error);
+      setComments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const postComment = async () => {
+    if (!commentText.trim() || !user) return;
+    
+    setPostingComment(true);
+    try {
+      const c = await api.request(`/reels/${reel.id}/comments/`, {
+        method: 'POST', 
+        body: JSON.stringify({ text: commentText.trim() }),
+      });
+      setComments(prev => [c, ...prev]);
+      setCommentText('');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to post comment');
+    } finally {
+      setPostingComment(false);
+    }
+  };
+
+  return (
+    <View style={styles.modalOverlay}>
+      <View style={styles.commentsSheet}>
+        <View style={styles.sheetHandle} />
+        <View style={styles.sheetHeader}>
+          <Text style={styles.sheetTitle}>Comments</Text>
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          {loading ? (
+            <View style={{ padding: 32, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color={GOLD} />
+            </View>
+          ) : comments.length === 0 ? (
+            <Text style={{ color: '#666', textAlign: 'center', padding: 32 }}>
+              No comments yet
+            </Text>
+          ) : (
+            comments.map(c => (
+              <View key={c.id} style={styles.commentItem}>
+                <Avatar uri={c.user?.profile_photo} size={32} name={c.user?.username} />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.commentUser}>{c.user?.username}</Text>
+                  <Text style={styles.commentText}>{c.text}</Text>
+                </View>
+              </View>
+            ))
+          )}
+        </ScrollView>
+        
+        <View style={styles.commentInput}>
+          <Avatar uri={user?.profile_photo} size={32} name={user?.username} />
+          <TextInput
+            style={styles.commentTextInput}
+            placeholder="Add a comment..."
+            placeholderTextColor="#666"
+            value={commentText}
+            onChangeText={setCommentText}
+            multiline
+          />
+          <TouchableOpacity 
+            onPress={postComment} 
+            disabled={!commentText.trim() || postingComment}
+          >
+            {postingComment ? (
+              <ActivityIndicator size="small" color={GOLD} />
+            ) : (
+              <Ionicons 
+                name="send" 
+                size={22} 
+                color={commentText.trim() ? GOLD : '#444'} 
+              />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
 }
 
+// Report Modal Component
+function ReportModal({ reel, onClose }) {
+  const [selectedReason, setSelectedReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const reportReasons = [
+    { id: 'spam', label: 'Spam', icon: 'alert-circle-outline' },
+    { id: 'inappropriate', label: 'Inappropriate Content', icon: 'warning-outline' },
+    { id: 'harassment', label: 'Harassment', icon: 'person-outline' },
+    { id: 'copyright', label: 'Copyright Violation', icon: 'lock-closed-outline' },
+    { id: 'violence', label: 'Violence', icon: 'flash-outline' },
+    { id: 'other', label: 'Other', icon: 'ellipsis-horizontal-outline' },
+  ];
+
+  const submitReport = async () => {
+    if (!selectedReason) {
+      Alert.alert('Error', 'Please select a reason for reporting');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await api.request('/reports/create/', {
+        method: 'POST',
+        body: JSON.stringify({
+          reported_reel_id: reel.id,
+          report_type: selectedReason,
+          description: `Reported as ${selectedReason}`,
+        }),
+      });
+      Alert.alert('Success', 'Report submitted successfully');
+      onClose();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit report');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <View style={styles.modalOverlay}>
+      <View style={styles.reportSheet}>
+        <View style={styles.sheetHandle} />
+        <View style={styles.sheetHeader}>
+          <Text style={styles.sheetTitle}>Report Content</Text>
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          <Text style={styles.reportDescription}>
+            Why are you reporting this content?
+          </Text>
+          
+          {reportReasons.map(reason => (
+            <TouchableOpacity
+              key={reason.id}
+              style={[
+                styles.reportReasonItem,
+                selectedReason === reason.id && styles.reportReasonItemSelected
+              ]}
+              onPress={() => setSelectedReason(reason.id)}
+            >
+              <Ionicons 
+                name={reason.icon} 
+                size={20} 
+                color={selectedReason === reason.id ? GOLD : '#666'} 
+              />
+              <Text style={[
+                styles.reportReasonText,
+                selectedReason === reason.id && styles.reportReasonTextSelected
+              ]}>
+                {reason.label}
+              </Text>
+              {selectedReason === reason.id && (
+                <Ionicons name="checkmark-circle" size={20} color={GOLD} />
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        
+        <View style={styles.reportActions}>
+          <TouchableOpacity 
+            style={[styles.reportCancelBtn]} 
+            onPress={onClose}
+          >
+            <Text style={styles.reportCancelText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[
+              styles.reportSubmitBtn,
+              !selectedReason && styles.reportSubmitBtnDisabled
+            ]}
+            onPress={submitReport}
+            disabled={!selectedReason || submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator size="small" color="#000" />
+            ) : (
+              <Text style={styles.reportSubmitText}>Submit Report</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+}
 export default function ReelsScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user ?? null;
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [commentReel, setCommentReel] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [commentText, setCommentText] = useState('');
-  const [postingComment, setPostingComment] = useState(false);
   const [activeTab, setActiveTab] = useState('for_you');
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const LIMIT = 10;
   const initialVideoId = route?.params?.initialVideoId;
+  const flatListRef = useRef(null);
 
-  useEffect(() => { fetchReels(0, true); }, [activeTab]);
+  useEffect(() => {
+    const endpoint = activeTab === 'following'
+      ? `/reels/following/?limit=${LIMIT}&offset=0`
+      : `/reels/?limit=${LIMIT}&offset=0`;
+    const stale = api.requestStale(endpoint, (fresh) => {
+      let results = Array.isArray(fresh) ? fresh : (fresh.results || []);
+      if (initialVideoId) {
+        const idx = results.findIndex(r => r.id === initialVideoId);
+        if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
+      }
+      setReels(results);
+      setHasMore(results.length === LIMIT);
+    });
+    if (stale) {
+      let results = Array.isArray(stale) ? stale : (stale.results || []);
+      if (initialVideoId) {
+        const idx = results.findIndex(r => r.id === initialVideoId);
+        if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
+      }
+      setReels(results);
+      setHasMore(results.length === LIMIT);
+      setLoading(false);
+    } else {
+      fetchReels(0, true);
+    }
+  }, [activeTab]);
 
   const fetchReels = async (offset = 0, reset = false) => {
     try {
       if (reset) setLoading(true); else setLoadingMore(true);
-      const endpoint = activeTab === 'following'
+      
+      let endpoint = activeTab === 'following'
         ? `/reels/following/?limit=${LIMIT}&offset=${offset}`
         : `/reels/?limit=${LIMIT}&offset=${offset}`;
+      
       const data = await api.request(endpoint);
-      const results = Array.isArray(data) ? data : (data.results || []);
+      let results = Array.isArray(data) ? data : (data.results || []);
+      
+      // Filter to show only videos for reels
+      const filteredResults = results.filter(reel => {
+        if (!reel.media) return false;
+        const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
+                            reel.media.includes('/video/upload/');
+        return isVideoFile;
+      });
+      
+      // Shuffle for randomized feed
+      const shuffledResults = shuffleArray(filteredResults);
+      
+      // Reorder if initialVideoId is specified
       if (reset && initialVideoId) {
-        const idx = results.findIndex(r => r.id === initialVideoId);
-        if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
+        const idx = shuffledResults.findIndex(r => r.id === initialVideoId);
+        if (idx > 0) { 
+          const [item] = shuffledResults.splice(idx, 1); 
+          shuffledResults.unshift(item); 
+        }
       }
-      setReels(prev => reset ? results : [...prev, ...results]);
-      setHasMore(results.length === LIMIT);
-    } catch (e) { console.error('Reels error:', e); }
-    finally { setLoading(false); setLoadingMore(false); }
+      
+      setReels(prev => reset ? shuffledResults : [...prev, ...shuffledResults]);
+      setHasMore(shuffledResults.length === LIMIT);
+    } catch (e) { 
+      console.error('Reels error:', e); 
+    } finally { 
+      setLoading(false); 
+      setLoadingMore(false); 
+    }
   };
 
   const onViewableChanged = useCallback(({ viewableItems }) => {
-    if (viewableItems.length > 0) setActiveIndex(viewableItems[0].index ?? 0);
+    if (viewableItems.length > 0) {
+      const newIndex = viewableItems[0].index ?? 0;
+      setActiveIndex(newIndex);
+    }
   }, []);
 
-  const toggleLike = async (reel) => {
-    setReels(prev => prev.map(r => r.id === reel.id
-      ? { ...r, is_liked: !r.is_liked, likes_count: r.is_liked ? r.likes_count - 1 : r.likes_count + 1 }
-      : r));
-    try { await api.request(`/reels/${reel.id}/vote/`, { method: 'POST' }); }
-    catch { setReels(prev => prev.map(r => r.id === reel.id ? { ...r, is_liked: reel.is_liked, likes_count: reel.likes_count } : r)); }
+  const onEndReached = () => {
+    if (!loadingMore && hasMore) {
+      fetchReels(reels.length, false);
+    }
   };
 
-  const toggleSave = async (reel) => {
-    setReels(prev => prev.map(r => r.id === reel.id ? { ...r, is_saved: !r.is_saved } : r));
-    try { await api.request('/saved/toggle/', { method: 'POST', body: JSON.stringify({ reel_id: reel.id }) }); }
-    catch { setReels(prev => prev.map(r => r.id === reel.id ? { ...r, is_saved: reel.is_saved } : r)); }
-  };
-
-  const openComments = async (reel) => {
-    setCommentReel(reel);
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    setPullDistance(80);
     try {
-      const data = await api.request(`/reels/${reel.id}/comments/?include_replies=true`);
-      setComments(Array.isArray(data) ? data : (data.results || []));
-    } catch { setComments([]); }
+      await fetchReels(0, true);
+    } catch (error) {
+      console.error('Refresh error:', error);
+    } finally {
+      setTimeout(() => {
+        setIsRefreshing(false);
+        setPullDistance(0);
+      }, 500);
+    }
   };
 
-  const postComment = async () => {
-    if (!commentText.trim() || !commentReel) return;
-    setPostingComment(true);
-    try {
-      const c = await api.request(`/reels/${commentReel.id}/comments/`, {
-        method: 'POST', body: JSON.stringify({ text: commentText.trim() }),
-      });
-      setComments(prev => [c, ...prev]);
-      setCommentText('');
-    } catch { Alert.alert('Error', 'Failed to post comment'); }
-    finally { setPostingComment(false); }
+  const handleShowProfile = (userId) => {
+    navigation.navigate('Profile', { userId });
   };
 
-  if (loading) return (
-    <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-      <ActivityIndicator size="large" color={GOLD} />
-    </View>
+  const handleTabPress = (tab) => {
+    if (tab === 'explore') {
+      navigation.navigate('Explore');
+      return;
+    }
+    setActiveTab(tab);
+  };
+
+  const renderReel = ({ item, index }) => (
+    <ReelItem
+      item={item}
+      index={index}
+      isActive={index === activeIndex}
+      user={user}
+      videos={reels}
+      setVideos={setReels}
+      onShowProfile={handleShowProfile}
+    />
   );
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={GOLD} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      
+      {/* Pull to Refresh Indicator */}
+      {pullDistance > 0 && (
+        <View style={[
+          styles.refreshIndicator,
+          { height: Math.min(pullDistance, 120) }
+        ]}>
+          <ActivityIndicator size="small" color={GOLD} />
+        </View>
+      )}
 
-      {/* Tabs */}
-      <View style={[styles.tabs, { top: insets.top + 8 }]}>
+      {/* Tab Navigation */}
+      <View style={[styles.tabContainer, { top: insets.top + 8 }]}>
         {['for_you', 'following'].map(tab => (
-          <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)} style={styles.tabBtn}>
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+          <TouchableOpacity 
+            key={tab} 
+            onPress={() => handleTabPress(tab)} 
+            style={styles.tabBtn}
+          >
+            <Text style={[
+              styles.tabText, 
+              activeTab === tab && styles.tabTextActive
+            ]}>
               {tab === 'for_you' ? 'For You' : 'Following'}
             </Text>
             {activeTab === tab && <View style={styles.tabIndicator} />}
@@ -216,97 +928,408 @@ export default function ReelsScreen({ navigation, route }) {
         ))}
       </View>
 
+      {/* Video Feed */}
       <FlatList
+        ref={flatListRef}
         data={reels}
         keyExtractor={r => String(r.id)}
-        renderItem={({ item, index }) => (
-          <ReelItem
-            item={item}
-            isActive={index === activeIndex}
-            onLike={toggleLike}
-            onComment={openComments}
-            onSave={toggleSave}
-            onFollow={() => {}}
-            navigation={navigation}
-          />
-        )}
+        renderItem={renderReel}
         pagingEnabled
         showsVerticalScrollIndicator={false}
         onViewableItemsChanged={onViewableChanged}
         viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-        onEndReached={() => { if (!loadingMore && hasMore) fetchReels(reels.length); }}
+        onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={loadingMore ? <ActivityIndicator color={GOLD} style={{ padding: 16 }} /> : null}
-      />
-
-      {/* Comments Modal */}
-      <Modal visible={!!commentReel} animationType="slide" transparent onRequestClose={() => setCommentReel(null)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.commentsSheet}>
-            <View style={styles.sheetHandle} />
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Comments</Text>
-              <TouchableOpacity onPress={() => setCommentReel(null)}>
-                <Ionicons name="close" size={24} color="#fff" />
-              </TouchableOpacity>
+        refreshControl={
+          <RefreshControl 
+            refreshing={isRefreshing} 
+            onRefresh={onRefresh} 
+            tintColor={GOLD} 
+          />
+        }
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={{ padding: 20 }}>
+              <ActivityIndicator size="small" color={GOLD} />
             </View>
-            <ScrollView style={{ flex: 1 }}>
-              {comments.length === 0
-                ? <Text style={{ color: '#666', textAlign: 'center', padding: 32 }}>No comments yet</Text>
-                : comments.map(c => (
-                  <View key={c.id} style={styles.commentItem}>
-                    <Avatar uri={c.user?.profile_photo} size={32} name={c.user?.username} />
-                    <View style={{ flex: 1, marginLeft: 10 }}>
-                      <Text style={styles.commentUser}>{c.user?.username}</Text>
-                      <Text style={styles.commentText}>{c.text}</Text>
-                    </View>
-                  </View>
-                ))}
-            </ScrollView>
-            <View style={styles.commentInput}>
-              <Avatar uri={user?.profile_photo} size={32} name={user?.username} />
-              <TextInput
-                style={styles.commentTextInput}
-                placeholder="Add a comment..."
-                placeholderTextColor="#666"
-                value={commentText}
-                onChangeText={setCommentText}
-              />
-              <TouchableOpacity onPress={postComment} disabled={!commentText.trim() || postingComment}>
-                {postingComment ? <ActivityIndicator size="small" color={GOLD} /> : <Ionicons name="send" size={22} color={commentText.trim() ? GOLD : '#444'} />}
-              </TouchableOpacity>
-            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+            <Text style={{ color: '#666', fontSize: 16 }}>No reels yet</Text>
+            <Text style={{ color: '#666', marginTop: 8 }}>Be the first to share a reel!</Text>
           </View>
-        </View>
-      </Modal>
+        }
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  reelContainer: { width, height, backgroundColor: '#000' },
-  gradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, backgroundColor: 'transparent', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))' },
-  rightActions: { position: 'absolute', right: 12, bottom: 100, alignItems: 'center', gap: 20 },
-  actionItem: { alignItems: 'center' },
-  actionLabel: { color: '#fff', fontSize: 12, fontWeight: '600', marginTop: 3 },
-  followBadge: { position: 'absolute', bottom: -6, left: '50%', marginLeft: -10, width: 20, height: 20, borderRadius: 10, backgroundColor: GOLD, justifyContent: 'center', alignItems: 'center' },
-  bottomInfo: { position: 'absolute', bottom: 80, left: 12, right: 80 },
-  reelUsername: { color: '#fff', fontWeight: '700', fontSize: 15, marginBottom: 4 },
-  reelCaption: { color: 'rgba(255,255,255,0.85)', fontSize: 13, lineHeight: 18 },
-  tabs: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 24, zIndex: 10 },
-  tabBtn: { alignItems: 'center', paddingVertical: 4 },
-  tabText: { color: 'rgba(255,255,255,0.6)', fontSize: 15, fontWeight: '600' },
-  tabTextActive: { color: '#fff', fontWeight: '800' },
-  tabIndicator: { width: 20, height: 2, backgroundColor: '#fff', borderRadius: 1, marginTop: 2 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  commentsSheet: { backgroundColor: '#111', borderTopLeftRadius: 20, borderTopRightRadius: 20, height: '70%', paddingBottom: 20 },
-  sheetHandle: { width: 40, height: 4, backgroundColor: '#444', borderRadius: 2, alignSelf: 'center', marginTop: 10 },
-  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#262626' },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  commentItem: { flexDirection: 'row', padding: 12, borderBottomWidth: 1, borderBottomColor: '#1a1a1a' },
-  commentUser: { fontSize: 13, fontWeight: '700', color: GOLD, marginBottom: 2 },
-  commentText: { fontSize: 14, color: '#ddd', lineHeight: 18 },
-  commentInput: { flexDirection: 'row', alignItems: 'center', padding: 12, borderTopWidth: 1, borderTopColor: '#262626', gap: 10 },
-  commentTextInput: { flex: 1, backgroundColor: '#1a1a1a', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, color: '#fff', fontSize: 14 },
+  
+  // Reel Container
+  reelContainer: { 
+    width, 
+    height, 
+    backgroundColor: '#000',
+    position: 'relative',
+  },
+  
+  // Gradient Overlay
+  gradient: {
+    position: 'absolute', 
+    bottom: 0, 
+    left: 0, 
+    right: 0, 
+    height: 280,
+    backgroundColor: 'transparent',
+    backgroundImage: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)',
+  },
+  
+  // Top Right Actions
+  topRightActions: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    zIndex: 10,
+  },
+  topActionBtn: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 40,
+    right: 0,
+    backgroundColor: CARD,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    minWidth: 160,
+    zIndex: 100,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  menuText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  
+  // Right Side Actions
+  rightActions: { 
+    position: 'absolute', 
+    right: 12, 
+    bottom: 120, 
+    alignItems: 'center', 
+    gap: 20,
+  },
+  avatarContainer: {
+    marginBottom: 8,
+  },
+  followBadge: {
+    position: 'absolute', 
+    bottom: -6, 
+    left: '50%', 
+    marginLeft: -10,
+    width: 20, 
+    height: 20, 
+    borderRadius: 10, 
+    backgroundColor: GOLD,
+    justifyContent: 'center', 
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+  actionItem: { 
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  likeAnimation: {
+    transform: [{ scale: 1.2 }],
+  },
+  actionLabel: { 
+    color: '#fff', 
+    fontSize: 12, 
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  
+  // Bottom Info
+  bottomInfo: { 
+    position: 'absolute', 
+    bottom: 90, 
+    left: 12, 
+    right: 90,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  username: {
+    color: '#fff', 
+    fontWeight: '700', 
+    fontSize: 16,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  caption: {
+    color: 'rgba(255,255,255,0.9)', 
+    fontSize: 14, 
+    lineHeight: 18, 
+    marginBottom: 8,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  moreLessBtn: {
+    color: LIGHT_GOLD,
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  hashtagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  hashtag: {
+    color: LIGHT_GOLD, 
+    fontSize: 13, 
+    fontWeight: '600',
+  },
+  musicInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  musicText: {
+    color: LIGHT_GOLD,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  
+  // Video Controls
+  pauseIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  doubleTapHeart: {
+    transform: [{ scale: 1.5 }],
+    opacity: 0.8,
+  },
+  
+  // Tab Navigation
+  tabContainer: {
+    position: 'absolute', 
+    left: 0, 
+    right: 0,
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    gap: 24, 
+    zIndex: 10,
+  },
+  tabBtn: { 
+    alignItems: 'center', 
+    paddingVertical: 8,
+  },
+  tabText: { 
+    color: 'rgba(255,255,255,0.6)', 
+    fontSize: 15, 
+    fontWeight: '600' 
+  },
+  tabTextActive: { 
+    color: '#fff', 
+    fontWeight: '800' 
+  },
+  tabIndicator: { 
+    width: 20, 
+    height: 2, 
+    backgroundColor: '#fff', 
+    borderRadius: 1, 
+    marginTop: 4 
+  },
+  
+  // Refresh Indicator
+  refreshIndicator: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5,
+  },
+  
+  // Modals
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    justifyContent: 'flex-end' 
+  },
+  
+  // Comments Modal
+  commentsSheet: {
+    backgroundColor: CARD,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '75%',
+    paddingBottom: 20,
+  },
+  sheetHandle: { 
+    width: 40, 
+    height: 4, 
+    backgroundColor: '#444', 
+    borderRadius: 2, 
+    alignSelf: 'center', 
+    marginTop: 10 
+  },
+  sheetHeader: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    padding: 16, 
+    borderBottomWidth: 1, 
+    borderBottomColor: BORDER,
+  },
+  sheetTitle: { 
+    fontSize: 16, 
+    fontWeight: '700', 
+    color: '#fff' 
+  },
+  commentItem: { 
+    flexDirection: 'row', 
+    padding: 12, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#1a1a1a' 
+  },
+  commentUser: { 
+    fontSize: 13, 
+    fontWeight: '700', 
+    color: LIGHT_GOLD, 
+    marginBottom: 2 
+  },
+  commentText: { 
+    fontSize: 14, 
+    color: '#ddd', 
+    lineHeight: 18 
+  },
+  commentInput: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 12,
+    borderTopWidth: 1, 
+    borderTopColor: BORDER, 
+    gap: 10,
+  },
+  commentTextInput: {
+    flex: 1, 
+    backgroundColor: '#1a1a1a', 
+    borderRadius: 20,
+    paddingHorizontal: 14, 
+    paddingVertical: 8, 
+    color: '#fff', 
+    fontSize: 14, 
+    maxHeight: 80,
+  },
+  
+  // Report Modal
+  reportSheet: {
+    backgroundColor: CARD,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '70%',
+    paddingBottom: 20,
+  },
+  reportDescription: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    padding: 16,
+    textAlign: 'center',
+  },
+  reportReasonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER,
+    gap: 12,
+  },
+  reportReasonItemSelected: {
+    backgroundColor: 'rgba(200,181,106,0.1)',
+  },
+  reportReasonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '500',
+    flex: 1,
+  },
+  reportReasonTextSelected: {
+    color: LIGHT_GOLD,
+    fontWeight: '600',
+  },
+  reportActions: {
+    flexDirection: 'row',
+    padding: 16,
+    gap: 12,
+  },
+  reportCancelBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: BORDER,
+    alignItems: 'center',
+  },
+  reportCancelText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  reportSubmitBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: GOLD,
+    alignItems: 'center',
+  },
+  reportSubmitBtnDisabled: {
+    backgroundColor: '#444',
+  },
+  reportSubmitText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '700',
+  },
 });

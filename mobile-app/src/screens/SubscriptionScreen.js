@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   ActivityIndicator, Alert, Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
 
@@ -14,10 +13,10 @@ const CARD = '#1A1A1A';
 const BORDER = '#262626';
 
 const FALLBACK_TIERS = [
-  { id: 1, name: 'Daily', duration_type: 'daily', price_etb: 3, description: 'Access for 24 hours', features: ['Full access for 24 hours', 'Ad-free experience', 'HD quality videos'], emoji: '⚡' },
-  { id: 2, name: 'Weekly', duration_type: 'weekly', price_etb: 20, description: 'Access for 7 days', features: ['Full access for 7 days', 'Ad-free experience', 'HD quality videos'], emoji: '🌟' },
-  { id: 3, name: 'Monthly', duration_type: 'monthly', price_etb: 70, description: 'Access for 30 days', features: ['Full access for 30 days', 'Ad-free experience', 'HD quality videos'], emoji: '👑' },
-  { id: 4, name: 'OnDemand', duration_type: 'ondemand', price_etb: 10, price_coins: 100, description: 'Pay per use with coins', features: ['Flexible payment', 'No recurring charges', 'Use coins as needed'], emoji: '💎' },
+  { id: 1, name: 'Daily', duration_type: 'daily', price_etb: 3, description: 'Access for 24 hours', features: ['Full access for 24 hours', 'Ad-free experience', 'HD quality videos'], emoji: 'âš¡' },
+  { id: 2, name: 'Weekly', duration_type: 'weekly', price_etb: 20, description: 'Access for 7 days', features: ['Full access for 7 days', 'Ad-free experience', 'HD quality videos'], emoji: 'ðŸŒŸ' },
+  { id: 3, name: 'Monthly', duration_type: 'monthly', price_etb: 70, description: 'Access for 30 days', features: ['Full access for 30 days', 'Ad-free experience', 'HD quality videos'], emoji: 'ðŸ‘‘' },
+  { id: 4, name: 'OnDemand', duration_type: 'ondemand', price_etb: 10, price_coins: 100, description: 'Pay per use with coins', features: ['Flexible payment', 'No recurring charges', 'Use coins as needed'], emoji: 'ðŸ’Ž' },
 ];
 
 export default function SubscriptionScreen({ navigation }) {
@@ -61,8 +60,8 @@ export default function SubscriptionScreen({ navigation }) {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         {/* Hero */}
-        <LinearGradient colors={['#1A1200', '#2A1E00', '#0D0D0D']} style={styles.hero}>
-          <Text style={styles.heroIcon}>👑</Text>
+        <View style={[styles.hero, { backgroundColor: '#1A1200' }]}>
+          <Text style={styles.heroIcon}>ðŸ‘‘</Text>
           <Text style={styles.heroTitle}>FlipStar Premium</Text>
           <Text style={styles.heroSub}>Unlock the full experience</Text>
           {isActive && (
@@ -71,7 +70,7 @@ export default function SubscriptionScreen({ navigation }) {
               <Text style={styles.activeBadgeText}>Active until {new Date(currentSub.end_date).toLocaleDateString()}</Text>
             </View>
           )}
-        </LinearGradient>
+        </View>
 
         {/* Benefits */}
         <View style={styles.benefits}>
@@ -108,7 +107,7 @@ export default function SubscriptionScreen({ navigation }) {
                 </View>
               )}
               <View style={styles.tierHeader}>
-                <Text style={styles.tierEmoji}>{tier.emoji || ['⚡', '🌟', '👑', '💎'][i] || '⭐'}</Text>
+                <Text style={styles.tierEmoji}>{tier.emoji || ['âš¡', 'ðŸŒŸ', 'ðŸ‘‘', 'ðŸ’Ž'][i] || 'â­'}</Text>
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.tierName}>{tier.name}</Text>
                   <Text style={styles.tierDesc}>{tier.description}</Text>
@@ -185,3 +184,4 @@ const styles = StyleSheet.create({
   smsInfo: { flexDirection: 'row', backgroundColor: CARD, borderRadius: 12, padding: 14, marginHorizontal: 16, gap: 10, borderWidth: 1, borderColor: BORDER, marginTop: 4 },
   smsInfoText: { flex: 1, fontSize: 12, color: '#888', lineHeight: 18 },
 });
+

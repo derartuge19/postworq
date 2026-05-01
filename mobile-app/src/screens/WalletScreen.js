@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   ActivityIndicator, Alert, Modal, TextInput, RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../api';
 
@@ -138,45 +137,45 @@ export default function WalletScreen({ navigation }) {
         contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
       >
         {/* Balance Card */}
-        <LinearGradient colors={['#C8B56A', '#E6C96A', '#F4D03F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.balanceCard}>
+        <View style={[styles.balanceCard, { backgroundColor: '#C8A84B' }]}>
           <View style={styles.balanceHeader}>
             <Ionicons name="wallet" size={22} color="#000" />
             <Text style={styles.balanceLabel}>My Wallet</Text>
           </View>
           <Text style={styles.balanceAmount}>{total}</Text>
-          <Text style={styles.coinLabel}>💰 Total Coins</Text>
+          <Text style={styles.coinLabel}>ðŸ’° Total Coins</Text>
           <View style={styles.balanceRow}>
             <View style={styles.balanceBucket}>
               <Text style={styles.bucketVal}>{earned}</Text>
-              <Text style={styles.bucketLabel}>⭐ Earned</Text>
+              <Text style={styles.bucketLabel}>â­ Earned</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.balanceBucket}>
               <Text style={styles.bucketVal}>{purchased}</Text>
-              <Text style={styles.bucketLabel}>💎 Purchased</Text>
+              <Text style={styles.bucketLabel}>ðŸ’Ž Purchased</Text>
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
         {/* Action buttons */}
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.actionBtn} onPress={() => setShowTopUpModal(true)}>
-            <LinearGradient colors={['#4ECDC4', '#44A08D']} style={styles.actionGrad}>
+            <View style={styles.actionGrad}>
               <Ionicons name="add-circle" size={24} color="#fff" />
               <Text style={styles.actionText}>Buy Coins</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => setShowWithdrawModal(true)}>
-            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.actionGrad}>
+            <View style={styles.actionGrad}>
               <Ionicons name="arrow-up-circle" size={24} color="#fff" />
               <Text style={styles.actionText}>Withdraw</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => handleTabChange('transactions')}>
-            <LinearGradient colors={['#f093fb', '#f5576c']} style={styles.actionGrad}>
+            <View style={styles.actionGrad}>
               <Ionicons name="receipt" size={24} color="#fff" />
               <Text style={styles.actionText}>History</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -208,11 +207,11 @@ export default function WalletScreen({ navigation }) {
                     <View>
                       <Text style={styles.pkgName}>{pkg.name}</Text>
                       <Text style={styles.pkgCoins}>{pkg.coin_amount} coins</Text>
-                      {pkg.bonus_coins > 0 && <Text style={styles.pkgBonus}>+{pkg.bonus_coins} bonus ✨</Text>}
+                      {pkg.bonus_coins > 0 && <Text style={styles.pkgBonus}>+{pkg.bonus_coins} bonus âœ¨</Text>}
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
                       <Text style={styles.pkgPrice}>{pkg.price_etb} ETB</Text>
-                      {pkg.is_featured && <View style={styles.featuredBadge}><Text style={styles.featuredText}>🔥 Popular</Text></View>}
+                      {pkg.is_featured && <View style={styles.featuredBadge}><Text style={styles.featuredText}>ðŸ”¥ Popular</Text></View>}
                     </View>
                   </TouchableOpacity>
                 ))}
@@ -258,7 +257,7 @@ export default function WalletScreen({ navigation }) {
                       <Ionicons name="cash-outline" size={16} color="#667eea" />
                     </View>
                     <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={styles.txType}>{w.coin_amount} coins → {w.net_birr} ETB</Text>
+                      <Text style={styles.txType}>{w.coin_amount} coins â†’ {w.net_birr} ETB</Text>
                       <Text style={styles.txDate}>{w.status}</Text>
                     </View>
                     <View style={[styles.statusBadge, { backgroundColor: w.status === 'completed' ? '#0D2D1A' : '#2D2010' }]}>
@@ -350,7 +349,7 @@ const styles = StyleSheet.create({
   divider: { width: 1, backgroundColor: 'rgba(0,0,0,0.15)' },
   actionRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 10, marginBottom: 8 },
   actionBtn: { flex: 1, borderRadius: 14, overflow: 'hidden' },
-  actionGrad: { padding: 14, alignItems: 'center', gap: 6 },
+  actionGrad: { padding: 14, alignItems: 'center', gap: 6, backgroundColor: '#2A2A2A', borderRadius: 14 },
   actionText: { color: '#fff', fontSize: 11, fontWeight: '700' },
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: BORDER, paddingHorizontal: 16 },
   tabBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', position: 'relative' },
@@ -391,3 +390,4 @@ const styles = StyleSheet.create({
   submitBtnText: { color: '#000', fontSize: 15, fontWeight: '800' },
   selectedPkg: { flexDirection: 'row', alignItems: 'center', backgroundColor: CARD, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: BORDER },
 });
+

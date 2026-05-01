@@ -25,8 +25,8 @@ const initAuthToken = async () => {
 const _cache = new Map();
 const _inflight = new Map();
 const CACHE_TTL = 300_000; // 5 minutes default TTL for better performance
-const MAX_RETRIES = 2;
-const RETRY_DELAY = 1000;
+const MAX_RETRIES = 1;
+const RETRY_DELAY = 500;
 
 function getCached(key) {
   const entry = _cache.get(key);
@@ -222,6 +222,25 @@ const api = {
   },
 
   invalidateCache,
+
+  // Returns cached data immediately (if any) and refreshes in background.
+  // onUpdate(freshData) is called when the network response arrives.
+  requestStale(endpoint, onUpdate) {
+    const cached = getCached(endpoint);
+    // Fire network request in background regardless
+    this.request(endpoint, { skipCache: true })
+      .then(fresh => {
+        setCache(endpoint, fresh);
+        if (onUpdate) onUpdate(fresh);
+      })
+      .catch(() => {});
+    return cached; // may be null on first load
+  },
+
+  // Wake up the Render backend so it's ready before the user hits a real endpoint
+  warmUp() {
+    fetch(`${API_BASE_URL}/health/`, { method: 'GET' }).catch(() => {});
+  },
 
   // Auth
   register: (username, email, password, firstName = '', lastName = '') =>
