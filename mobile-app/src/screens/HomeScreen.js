@@ -79,6 +79,14 @@ export default function HomeScreen({ navigation }) {
   const [viewCounts, setViewCounts] = useState({});
   const [shareToast, setShareToast] = useState('');
   const scrollY = useRef(new Animated.Value(0)).current;
+  const [showGiftModal, setShowGiftModal] = useState(false);
+  const [giftRecipient, setGiftRecipient] = useState('');
+  const [giftAmount, setGiftAmount] = useState(10);
+  const [giftMessage, setGiftMessage] = useState('');
+  const [sendingGift, setSendingGift] = useState(false);
+  const [giftSent, setGiftSent] = useState(null);
+  const [giftError, setGiftError] = useState('');
+  const [userCoins, setUserCoins] = useState(0);
   const LIMIT = 5;
 
   useEffect(() => {
@@ -101,6 +109,18 @@ export default function HomeScreen({ navigation }) {
       }
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    const loadUserCoins = async () => {
+      try {
+        const status = await api.request('/gamification/status/');
+        setUserCoins(status.coins?.balance || 0);
+      } catch (error) {
+        console.error('Failed to load user coins:', error);
+      }
+    };
+    loadUserCoins();
+  }, [showGiftModal]);
 
   const fetchPosts = async (offset = 0, reset = false) => {
     try {
@@ -244,10 +264,41 @@ export default function HomeScreen({ navigation }) {
   const toggleSave = async (post) => {
     const newSaved = !post.is_saved;
     setPosts(prev => prev.map(p => p.id === post.id ? { ...p, is_saved: newSaved } : p));
-    try { 
+    try {
       await api.request(`/reels/${post.id}/save/`, { method: 'POST' });
-    } catch { 
+    } catch {
       setPosts(prev => prev.map(p => p.id === post.id ? { ...p, is_saved: post.is_saved } : p));
+    }
+  };
+
+  const openGiftModal = (postUser) => {
+    setGiftRecipient(postUser?.username || '');
+    setGiftAmount(10);
+    setGiftMessage('');
+    setGiftError('');
+    setGiftSent(null);
+    setShowGiftModal(true);
+  };
+
+  const sendGift = async () => {
+    if (!giftRecipient.trim()) {
+      setGiftError('Enter a recipient username');
+      return;
+    }
+    if (giftAmount < 1 || giftAmount > userCoins) {
+      setGiftError('Invalid amount');
+      return;
+    }
+    setSendingGift(true);
+    setGiftError('');
+    try {
+      const res = await api.sendGift(giftRecipient, giftAmount, giftMessage);
+      setGiftSent(res);
+      setUserCoins(prev => prev - giftAmount);
+    } catch (error) {
+      setGiftError(error.message || 'Failed to send gift');
+    } finally {
+      setSendingGift(false);
     }
   };
 
@@ -413,7 +464,7 @@ export default function HomeScreen({ navigation }) {
             
             {/* Gift - only for other people's posts */}
             {post.user?.username !== user?.username && (
-              <TouchableOpacity style={styles.actionBtn}>
+              <TouchableOpacity style={styles.actionBtn} onPress={() => openGiftModal(post.user)}>
                 <Ionicons name="gift-outline" size={22} color={LIGHT_GOLD} />
               </TouchableOpacity>
             )}
@@ -640,6 +691,118 @@ export default function HomeScreen({ navigation }) {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Gift Modal */}
+      <Modal
+        visible={showGiftModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowGiftModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowGiftModal(false)}
+        >
+          <TouchableOpacity style={styles.giftSheet} activeOpacity={1}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>🎁 Send Coin Gift</Text>
+              <TouchableOpacity onPress={() => setShowGiftModal(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            {giftSent ? (
+              <View style={{ alignItems: 'center', padding: 24 }}>
+                <Text style={{ fontSize: 64, marginBottom: 12 }}>🎉</Text>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: GOLD, marginBottom: 4 }}>Gift Sent!</Text>
+                <Text style={{ fontSize: 14, color: '#78716C', marginBottom: 24, textAlign: 'center' }}>
+                  You sent <Text style={{ color: GOLD, fontWeight: '700' }}>{giftSent.amount} coins</Text> to <Text style={{ color: GOLD, fontWeight: '700' }}>@{giftSent.recipient?.username}</Text>
+                </Text>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={() => setShowGiftModal(false)}
+                >
+                  <Text style={styles.sendButtonText}>Done 🎊</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                {/* Balance chip */}
+                <View style={styles.balanceChip}>
+                  <Text style={styles.balanceLabel}>Your balance</Text>
+                  <Text style={styles.balanceAmount}>🪙 {userCoins}</Text>
+                </View>
+
+                <Text style={styles.fieldLabel}>Recipient Username</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. johndoe"
+                  placeholderTextColor="#666"
+                  value={giftRecipient}
+                  onChangeText={setGiftRecipient}
+                />
+
+                <Text style={styles.fieldLabel}>Amount</Text>
+                <View style={styles.amountSelector}>
+                  <TouchableOpacity
+                    style={styles.amountButton}
+                    onPress={() => setGiftAmount(Math.max(1, giftAmount - 5))}
+                  >
+                    <Text style={styles.amountButtonText}>−</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.amountDisplay}>🪙 {giftAmount}</Text>
+                  <TouchableOpacity
+                    style={styles.amountButton}
+                    onPress={() => setGiftAmount(Math.min(userCoins, giftAmount + 5))}
+                  >
+                    <Text style={styles.amountButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Quick amounts */}
+                <View style={styles.quickAmounts}>
+                  {[10, 25, 50, 100].map(v => (
+                    <TouchableOpacity
+                      key={v}
+                      style={[styles.quickAmountButton, giftAmount === v && styles.quickAmountButtonActive]}
+                      onPress={() => setGiftAmount(Math.min(v, userCoins))}
+                    >
+                      <Text style={[styles.quickAmountButtonText, giftAmount === v && styles.quickAmountButtonTextActive]}>
+                        {v}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.fieldLabel}>Message (optional)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Say something nice ✨"
+                  placeholderTextColor="#666"
+                  value={giftMessage}
+                  onChangeText={setGiftMessage}
+                />
+
+                {giftError ? <Text style={styles.errorText}>{giftError}</Text> : null}
+
+                <TouchableOpacity
+                  style={[styles.sendButton, sendingGift && { opacity: 0.6 }]}
+                  onPress={sendGift}
+                  disabled={sendingGift}
+                >
+                  {sendingGift ? (
+                    <ActivityIndicator size="small" color="#000" />
+                  ) : (
+                    <Text style={styles.sendButtonText}>🎁 Send {giftAmount} Coins</Text>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -949,17 +1112,136 @@ const styles = StyleSheet.create({
     color: LIGHT_GOLD, 
     marginBottom: 2 
   },
-  commentText: { 
-    fontSize: 14, 
-    color: '#ddd', 
-    lineHeight: 18 
+  commentText: {
+    fontSize: 14,
+    color: '#ddd',
+    lineHeight: 18
+  },
+
+  // Gift Modal
+  giftSheet: {
+    backgroundColor: CARD,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: '85%',
+    paddingBottom: 40,
+  },
+  balanceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(249,224,139,0.1)',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(249,224,139,0.2)',
+  },
+  balanceLabel: {
+    fontSize: 13,
+    color: '#78716C',
+  },
+  balanceAmount: {
+    fontWeight: '800',
+    color: GOLD,
+    fontSize: 16,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#aaa',
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  input: {
+    backgroundColor: CARD,
+    borderRadius: 12,
+    padding: 14,
+    color: '#fff',
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: BORDER,
+  },
+  amountSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 14,
+  },
+  amountButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(249,224,139,0.3)',
+    backgroundColor: 'rgba(249,224,139,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  amountButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: GOLD,
+  },
+  amountDisplay: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 28,
+    fontWeight: '800',
+    color: GOLD,
+  },
+  quickAmounts: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+  },
+  quickAmountButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(249,224,139,0.3)',
+    alignItems: 'center',
+  },
+  quickAmountButtonActive: {
+    borderColor: GOLD,
+    backgroundColor: 'rgba(249,224,139,0.15)',
+  },
+  quickAmountButtonText: {
+    color: '#78716C',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  quickAmountButtonTextActive: {
+    color: GOLD,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 13,
+    marginBottom: 12,
+    padding: 10,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 10,
+  },
+  sendButton: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 14,
+    backgroundColor: GOLD,
+    marginTop: 16,
+  },
+  sendButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   commentInput: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 12,
-    borderTopWidth: 1, 
-    borderTopColor: BORDER, 
+    borderTopWidth: 1,
+    borderTopColor: BORDER,
     gap: 10,
   },
   commentTextInput: {
