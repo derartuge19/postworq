@@ -98,8 +98,8 @@ class OnevasWebhookView(APIView):
             else:
                 print(f"[SUBSCRIPTION DEBUG] User not registered, checking for SMS-first subscription")
 
-        # Find active subscription (either by user or by phone number for SMS-first)
-        subscription = None
+        # Find active subscriptions (either by user or by phone number for SMS-first)
+        subscriptions = []
         if user:
             print(f"[SUBSCRIPTION DEBUG] Checking subscriptions for user: {user.username}")
             all_user_subs = UserSubscription.objects.filter(user=user)
@@ -108,62 +108,71 @@ class OnevasWebhookView(APIView):
                 print(f"[SUBSCRIPTION DEBUG]   - ID: {sub.id}, Status: {sub.status}, Duration: {sub.duration_type}, Tier: {sub.tier.name if sub.tier else 'None'}")
             
             if target_duration_type:
-                subscription = UserSubscription.objects.filter(
+                # Find ALL active subscriptions with this duration type
+                subscriptions = list(UserSubscription.objects.filter(
                     user=user,
                     status='active',
                     tier__duration_type=target_duration_type
-                ).first()
-                print(f"[SUBSCRIPTION DEBUG] Looking for active subscription with duration_type={target_duration_type}: {'Found' if subscription else 'Not found'}")
+                ))
+                print(f"[SUBSCRIPTION DEBUG] Looking for ALL active subscriptions with duration_type={target_duration_type}: Found {len(subscriptions)}")
             else:
-                # No specific duration type, find any active subscription
-                subscription = UserSubscription.objects.filter(
+                # No specific duration type, find ALL active subscriptions
+                subscriptions = list(UserSubscription.objects.filter(
                     user=user,
                     status='active'
-                ).first()
-                print(f"[SUBSCRIPTION DEBUG] Looking for any active subscription: {'Found' if subscription else 'Not found'}")
+                ))
+                print(f"[SUBSCRIPTION DEBUG] Looking for ALL active subscriptions: Found {len(subscriptions)}")
         else:
             # Check for SMS-first subscription (user not registered yet)
             print(f"[SUBSCRIPTION DEBUG] Checking SMS-first subscriptions for phone: {phone_number}")
             if target_duration_type:
-                subscription = UserSubscription.objects.filter(
+                subscriptions = list(UserSubscription.objects.filter(
                     onevas_phone_number=phone_number,
                     status='active',
                     subscription_source='sms',
                     tier__duration_type=target_duration_type
-                ).first()
+                ))
+                print(f"[SUBSCRIPTION DEBUG] SMS-first subscriptions with duration_type={target_duration_type}: Found {len(subscriptions)}")
             else:
-                subscription = UserSubscription.objects.filter(
+                subscriptions = list(UserSubscription.objects.filter(
                     onevas_phone_number=phone_number,
                     status='active',
                     subscription_source='sms'
-                ).first()
+                ))
+                print(f"[SUBSCRIPTION DEBUG] All SMS-first active subscriptions: Found {len(subscriptions)}")
 
-        if not subscription:
-            # No active subscription
-            print(f"[SUBSCRIPTION DEBUG] No active subscription found for phone: {phone_number}")
+        if not subscriptions:
+            # No active subscriptions
+            print(f"[SUBSCRIPTION DEBUG] No active subscriptions found for phone: {phone_number}")
             no_sub_message = "You don't have an active subscription to cancel."
             print(f"[SUBSCRIPTION DEBUG] Sending no-subscription SMS to {phone_number}")
             sms_sent = self.send_sms(phone_number, no_sub_message)
             print(f"[SUBSCRIPTION DEBUG] No-subscription SMS sent: {sms_sent}")
             return Response({'status': 'no_active_subscription', 'message': 'No active subscription found'})
 
-        print(f"[SUBSCRIPTION DEBUG] Cancelling subscription: ID {subscription.id}, Tier: {subscription.tier.name}, Status: {subscription.status}")
-        # Cancel subscription
-        subscription.cancel(reason='User cancelled via STOP SMS')
-        
-        # Record history
-        SubscriptionHistory.objects.create(
-            user=user,
-            subscription=subscription,
-            tier=subscription.tier,
-            action='cancelled',
-            reason='User cancelled via STOP SMS',
-            metadata={'method': 'stop_command', 'sms_subscription': user is None}
-        )
-        print(f"[SUBSCRIPTION DEBUG] Subscription cancelled successfully")
+        # Cancel ALL matching subscriptions
+        cancelled_count = 0
+        for subscription in subscriptions:
+            print(f"[SUBSCRIPTION DEBUG] Cancelling subscription: ID {subscription.id}, Tier: {subscription.tier.name}, Status: {subscription.status}")
+            subscription.cancel(reason='User cancelled via STOP SMS')
+            
+            # Record history
+            SubscriptionHistory.objects.create(
+                user=user,
+                subscription=subscription,
+                tier=subscription.tier,
+                action='cancelled',
+                reason='User cancelled via STOP SMS',
+                metadata={'method': 'stop_command', 'sms_subscription': user is None}
+            )
+            cancelled_count += 1
+
+        print(f"[SUBSCRIPTION DEBUG] Cancelled {cancelled_count} subscription(s) successfully")
 
         # Send SMS confirmation
-        if subscription.tier:
+        # Use the tier from the first cancelled subscription for the SMS
+        if subscriptions and subscriptions[0].tier:
+            tier = subscriptions[0].tier
             # Map duration type to resubscribe keyword and stop keyword
             resubscribe_keywords = {
                 'daily': 'A',
@@ -177,11 +186,11 @@ class OnevasWebhookView(APIView):
                 'monthly': 'STOP3',
                 'ondemand': 'STOP'
             }
-            resubscribe_keyword = resubscribe_keywords.get(subscription.tier.duration_type, 'A')
-            stop_keyword = stop_keywords.get(subscription.tier.duration_type, 'STOP')
-            cancellation_message = f"Dear valued customer, you have successfully unsubscribed from the FLIPSTAR {subscription.tier.name} service. To resubscribe at any time, please send {resubscribe_keyword} to {subscription.tier.short_code}. To cancel your subscription, please send {stop_keyword} to {subscription.tier.short_code}. We appreciate your business and thank you for choosing FLIPSTAR."
+            resubscribe_keyword = resubscribe_keywords.get(tier.duration_type, 'A')
+            stop_keyword = stop_keywords.get(tier.duration_type, 'STOP')
+            cancellation_message = f"Dear valued customer, you have successfully unsubscribed from the FLIPSTAR {tier.name} service. To resubscribe at any time, please send {resubscribe_keyword} to {tier.short_code}. To cancel your subscription, please send {stop_keyword} to {tier.short_code}. We appreciate your business and thank you for choosing FLIPSTAR."
             print(f"[SUBSCRIPTION DEBUG] Sending cancellation SMS to {phone_number}")
-            sms_sent = self.send_sms(phone_number, cancellation_message, subscription.tier.duration_type)
+            sms_sent = self.send_sms(phone_number, cancellation_message, tier.duration_type)
             print(f"[SUBSCRIPTION DEBUG] Cancellation SMS sent: {sms_sent}")
         else:
             print(f"[SUBSCRIPTION DEBUG] WARNING: subscription.tier is None, cannot send SMS with tier info")
@@ -190,7 +199,7 @@ class OnevasWebhookView(APIView):
             sms_sent = self.send_sms(phone_number, cancellation_message, None)
             print(f"[SUBSCRIPTION DEBUG] Cancellation SMS sent: {sms_sent}")
 
-        return Response({'status': 'success', 'message': 'Subscription cancelled via STOP command'})
+        return Response({'status': 'success', 'message': f'{cancelled_count} subscription(s) cancelled via STOP command'})
     
     def send_sms(self, phone_number, text, tier_type=None):
         """Send SMS using Onevas API with tier-specific application key"""
