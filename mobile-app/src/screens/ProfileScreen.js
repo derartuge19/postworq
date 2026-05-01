@@ -294,7 +294,7 @@ export default function ProfileScreen({ navigation, route }) {
               <Ionicons name="wallet-outline" size={24} color={GOLD} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Subscription')} style={styles.headerButton}>
-              <Ionicons name="crown-outline" size={24} color={GOLD} />
+              <Ionicons name="ribbon" size={24} color={GOLD} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Gamification')} style={styles.headerButton}>
               <Ionicons name="diamond-outline" size={24} color={GOLD} />

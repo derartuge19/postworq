@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
+import UserSuggestions from '../components/UserSuggestions';
 
 const { width, height } = Dimensions.get('window');
 const GOLD = '#C8B56A';
@@ -634,6 +635,7 @@ export default function HomeScreen({ navigation }) {
           }
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}
+          ListHeaderComponent={<UserSuggestions onUserClick={(user) => navigation.navigate('Profile', { userId: user.id })} />}
           ListFooterComponent={
             loadingMore ? <ActivityIndicator color={GOLD} style={{ padding: 16 }} /> : null
           }
