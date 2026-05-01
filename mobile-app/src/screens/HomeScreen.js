@@ -81,13 +81,32 @@ export default function HomeScreen({ navigation }) {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [giftRecipient, setGiftRecipient] = useState('');
-  const [giftAmount, setGiftAmount] = useState(10);
   const [giftMessage, setGiftMessage] = useState('');
   const [sendingGift, setSendingGift] = useState(false);
   const [giftSent, setGiftSent] = useState(null);
   const [giftError, setGiftError] = useState('');
   const [userCoins, setUserCoins] = useState(0);
+  const [gifts, setGifts] = useState([]);
+  const [selectedGift, setSelectedGift] = useState(null);
+  const [giftQuantity, setGiftQuantity] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const LIMIT = 5;
+
+  const CATEGORY_ICONS = {
+    flowers: '🌹',
+    hearts: '❤️',
+    gems: '💎',
+    special: '⭐',
+    animals: '🐻',
+  };
+
+  const DEFAULT_GIFTS = [
+    { id: 1, name: 'Rose', description: 'A beautiful red rose', coin_value: 10, rarity: 'common', category: 'flowers' },
+    { id: 2, name: 'Heart', description: 'A heart symbol', coin_value: 20, rarity: 'common', category: 'hearts' },
+    { id: 3, name: 'Medal', description: 'A gold medal', coin_value: 50, rarity: 'rare', category: 'special' },
+    { id: 4, name: 'Diamond', description: 'A sparkling diamond', coin_value: 100, rarity: 'epic', category: 'gems' },
+    { id: 5, name: 'Teddy Bear', description: 'A cute teddy bear', coin_value: 30, rarity: 'common', category: 'animals' },
+  ];
 
   useEffect(() => {
     if (activeTab === 'For You') {
@@ -121,6 +140,24 @@ export default function HomeScreen({ navigation }) {
     };
     loadUserCoins();
   }, [showGiftModal]);
+
+  useEffect(() => {
+    const loadGifts = async () => {
+      try {
+        const response = await api.request('/gifts/');
+        const giftsData = response.results || response;
+        if (Array.isArray(giftsData) && giftsData.length > 0) {
+          setGifts(giftsData);
+        } else {
+          setGifts(DEFAULT_GIFTS);
+        }
+      } catch (error) {
+        console.error('Failed to load gifts:', error);
+        setGifts(DEFAULT_GIFTS);
+      }
+    };
+    loadGifts();
+  }, []);
 
   const fetchPosts = async (offset = 0, reset = false) => {
     try {
@@ -280,10 +317,12 @@ export default function HomeScreen({ navigation }) {
 
   const openGiftModal = (postUser) => {
     setGiftRecipient(postUser?.username || '');
-    setGiftAmount(10);
+    setSelectedGift(null);
+    setGiftQuantity(1);
     setGiftMessage('');
     setGiftError('');
     setGiftSent(null);
+    setSelectedCategory('all');
     setShowGiftModal(true);
   };
 
@@ -292,16 +331,30 @@ export default function HomeScreen({ navigation }) {
       setGiftError('Enter a recipient username');
       return;
     }
-    if (giftAmount < 1 || giftAmount > userCoins) {
-      setGiftError('Invalid amount');
+    if (!selectedGift) {
+      setGiftError('Select a gift to send');
+      return;
+    }
+    const totalCost = selectedGift.coin_value * giftQuantity;
+    if (totalCost > userCoins) {
+      setGiftError('Insufficient coins');
       return;
     }
     setSendingGift(true);
     setGiftError('');
     try {
-      const res = await api.sendGift(giftRecipient, giftAmount, giftMessage);
+      const res = await api.request('/gifts/send/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gift_id: selectedGift.id,
+          recipient_username: giftRecipient,
+          quantity: giftQuantity,
+          message: giftMessage,
+        }),
+      });
       setGiftSent(res);
-      setUserCoins(prev => prev - giftAmount);
+      setUserCoins(prev => prev - totalCost);
     } catch (error) {
       setGiftError(error.message || 'Failed to send gift');
     } finally {
@@ -723,18 +776,21 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity style={styles.giftSheet} activeOpacity={1}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>🎁 Send Coin Gift</Text>
-              <TouchableOpacity onPress={() => setShowGiftModal(false)}>
-                <Ionicons name="close" size={24} color="#fff" />
-              </TouchableOpacity>
+              <Text style={styles.sheetTitle}>🎁 Gift to @{giftRecipient}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <Text style={styles.coinBalance}>🪙 {userCoins}</Text>
+                <TouchableOpacity onPress={() => setShowGiftModal(false)}>
+                  <Ionicons name="close" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {giftSent ? (
-              <View style={{ alignItems: 'center', padding: 24 }}>
+              <View style={{ alignItems: 'center', padding: 32 }}>
                 <Text style={{ fontSize: 64, marginBottom: 12 }}>🎉</Text>
                 <Text style={{ fontSize: 20, fontWeight: '800', color: GOLD, marginBottom: 4 }}>Gift Sent!</Text>
                 <Text style={{ fontSize: 14, color: '#78716C', marginBottom: 24, textAlign: 'center' }}>
-                  You sent <Text style={{ color: GOLD, fontWeight: '700' }}>{giftSent.amount} coins</Text> to <Text style={{ color: GOLD, fontWeight: '700' }}>@{giftSent.recipient?.username}</Text>
+                  Your gift has been sent successfully
                 </Text>
                 <TouchableOpacity
                   style={styles.sendButton}
@@ -745,57 +801,67 @@ export default function HomeScreen({ navigation }) {
               </View>
             ) : (
               <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-                {/* Balance chip */}
-                <View style={styles.balanceChip}>
-                  <Text style={styles.balanceLabel}>Your balance</Text>
-                  <Text style={styles.balanceAmount}>🪙 {userCoins}</Text>
-                </View>
-
-                <Text style={styles.fieldLabel}>Recipient Username</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="e.g. johndoe"
-                  placeholderTextColor="#666"
-                  value={giftRecipient}
-                  onChangeText={setGiftRecipient}
-                />
-
-                <Text style={styles.fieldLabel}>Amount</Text>
-                <View style={styles.amountSelector}>
-                  <TouchableOpacity
-                    style={styles.amountButton}
-                    onPress={() => setGiftAmount(Math.max(1, giftAmount - 5))}
-                  >
-                    <Text style={styles.amountButtonText}>−</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.amountDisplay}>🪙 {giftAmount}</Text>
-                  <TouchableOpacity
-                    style={styles.amountButton}
-                    onPress={() => setGiftAmount(Math.min(userCoins, giftAmount + 5))}
-                  >
-                    <Text style={styles.amountButtonText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Quick amounts */}
-                <View style={styles.quickAmounts}>
-                  {[10, 25, 50, 100].map(v => (
+                {/* Category Filter */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.categoryFilter}
+                  contentContainerStyle={{ paddingHorizontal: 12 }}
+                >
+                  {['all', ...new Set(gifts.map(g => g.category))].map(cat => (
                     <TouchableOpacity
-                      key={v}
-                      style={[styles.quickAmountButton, giftAmount === v && styles.quickAmountButtonActive]}
-                      onPress={() => setGiftAmount(Math.min(v, userCoins))}
+                      key={cat}
+                      style={[styles.categoryButton, selectedCategory === cat && styles.categoryButtonActive]}
+                      onPress={() => setSelectedCategory(cat)}
                     >
-                      <Text style={[styles.quickAmountButtonText, giftAmount === v && styles.quickAmountButtonTextActive]}>
-                        {v}
+                      <Text style={[styles.categoryButtonText, selectedCategory === cat && styles.categoryButtonTextActive]}>
+                        {cat !== 'all' && CATEGORY_ICONS[cat]} {cat.charAt(0).toUpperCase() + cat.slice(1)}
                       </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                {/* Gift Selection Grid */}
+                <View style={styles.giftGrid}>
+                  {(selectedCategory === 'all' ? gifts : gifts.filter(g => g.category === selectedCategory)).map(gift => (
+                    <TouchableOpacity
+                      key={gift.id}
+                      style={[styles.giftItem, selectedGift?.id === gift.id && styles.giftItemActive]}
+                      onPress={() => { setSelectedGift(gift); setGiftQuantity(1); }}
+                    >
+                      <Text style={styles.giftEmoji}>{gift.image_url ? '🎁' : (CATEGORY_ICONS[gift.category] || '🎁')}</Text>
+                      <Text style={styles.giftCoinValue}>{gift.coin_value}🪙</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
 
+                {/* Selected Gift Info & Quantity */}
+                {selectedGift && (
+                  <View style={styles.selectedGiftContainer}>
+                    <Text style={styles.selectedGiftName}>{selectedGift.name}</Text>
+                    <View style={styles.quantitySelector}>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => setGiftQuantity(Math.max(1, giftQuantity - 1))}
+                      >
+                        <Text style={styles.quantityButtonText}>−</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.quantityValue}>{giftQuantity}</Text>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => setGiftQuantity(giftQuantity + 1)}
+                      >
+                        <Text style={styles.quantityButtonText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                {/* Message Input */}
                 <Text style={styles.fieldLabel}>Message (optional)</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Say something nice ✨"
+                  placeholder="Add a message..."
                   placeholderTextColor="#666"
                   value={giftMessage}
                   onChangeText={setGiftMessage}
@@ -803,15 +869,18 @@ export default function HomeScreen({ navigation }) {
 
                 {giftError ? <Text style={styles.errorText}>{giftError}</Text> : null}
 
+                {/* Send Button */}
                 <TouchableOpacity
                   style={[styles.sendButton, sendingGift && { opacity: 0.6 }]}
                   onPress={sendGift}
-                  disabled={sendingGift}
+                  disabled={sendingGift || !selectedGift}
                 >
                   {sendingGift ? (
                     <ActivityIndicator size="small" color="#000" />
                   ) : (
-                    <Text style={styles.sendButtonText}>🎁 Send {giftAmount} Coins</Text>
+                    <Text style={styles.sendButtonText}>
+                      Send Gift · 🪙 {selectedGift ? selectedGift.coin_value * giftQuantity : 0}
+                    </Text>
                   )}
                 </TouchableOpacity>
               </ScrollView>
@@ -1148,25 +1217,109 @@ const styles = StyleSheet.create({
     height: '85%',
     paddingBottom: 40,
   },
-  balanceChip: {
+  coinBalance: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: GOLD,
+  },
+  categoryFilter: {
+    marginBottom: 12,
+  },
+  categoryButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: '#1a1a1a',
+    marginRight: 6,
+  },
+  categoryButtonActive: {
+    borderColor: GOLD,
+    backgroundColor: 'rgba(249,224,139,0.15)',
+  },
+  categoryButtonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#888',
+  },
+  categoryButtonTextActive: {
+    color: GOLD,
+  },
+  giftGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  giftItem: {
+    width: '23%',
+    aspectRatio: 1,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: BORDER,
+    backgroundColor: '#1a1a1a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '1%',
+  },
+  giftItemActive: {
+    borderColor: GOLD,
+    backgroundColor: 'rgba(249,224,139,0.15)',
+  },
+  giftEmoji: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  giftCoinValue: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: GOLD,
+  },
+  selectedGiftContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(249,224,139,0.1)',
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(249,224,139,0.2)',
+    borderColor: BORDER,
+    marginHorizontal: 12,
+    marginBottom: 12,
   },
-  balanceLabel: {
+  selectedGiftName: {
     fontSize: 13,
-    color: '#78716C',
+    fontWeight: '600',
+    color: '#fff',
   },
-  balanceAmount: {
-    fontWeight: '800',
-    color: GOLD,
+  quantitySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  quantityButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: CARD,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quantityButtonText: {
     fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  quantityValue: {
+    minWidth: 20,
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
   },
   fieldLabel: {
     fontSize: 13,
@@ -1174,68 +1327,17 @@ const styles = StyleSheet.create({
     color: '#aaa',
     marginBottom: 8,
     marginTop: 12,
+    paddingHorizontal: 12,
   },
   input: {
-    backgroundColor: CARD,
+    backgroundColor: '#1a1a1a',
     borderRadius: 12,
     padding: 14,
     color: '#fff',
     fontSize: 15,
     borderWidth: 1,
     borderColor: BORDER,
-  },
-  amountSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 14,
-  },
-  amountButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: 'rgba(249,224,139,0.3)',
-    backgroundColor: 'rgba(249,224,139,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  amountButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: GOLD,
-  },
-  amountDisplay: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 28,
-    fontWeight: '800',
-    color: GOLD,
-  },
-  quickAmounts: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
-  },
-  quickAmountButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: 'rgba(249,224,139,0.3)',
-    alignItems: 'center',
-  },
-  quickAmountButtonActive: {
-    borderColor: GOLD,
-    backgroundColor: 'rgba(249,224,139,0.15)',
-  },
-  quickAmountButtonText: {
-    color: '#78716C',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  quickAmountButtonTextActive: {
-    color: GOLD,
+    marginHorizontal: 12,
   },
   errorText: {
     color: '#EF4444',
@@ -1244,17 +1346,19 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#FEF2F2',
     borderRadius: 10,
+    marginHorizontal: 12,
   },
   sendButton: {
-    width: '100%',
-    padding: 16,
-    borderRadius: 14,
+    width: '92%',
+    padding: 14,
+    borderRadius: 12,
     backgroundColor: GOLD,
     marginTop: 16,
+    alignSelf: 'center',
   },
   sendButtonText: {
     color: '#000',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     textAlign: 'center',
   },
