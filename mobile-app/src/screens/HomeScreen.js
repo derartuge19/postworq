@@ -1211,8 +1211,8 @@ const styles = StyleSheet.create({
     backgroundColor: CARD,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    height: '85%',
-    paddingBottom: 40,
+    height: '80%',
+    paddingBottom: 20,
   },
   coinBalance: {
     fontSize: 13,
