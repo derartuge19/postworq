@@ -607,6 +607,27 @@ def login_with_subscription_otp(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def check_phone_account(request):
+    """Check if a phone number has an existing account"""
+    from .models import UserProfile
+    
+    phone = request.data.get('phone', '').strip()
+    if not phone:
+        return Response({'has_account': False}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Normalize phone number
+    phone = _normalize_ethiopian_phone(phone)
+    if not phone:
+        return Response({'has_account': False}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if phone number has a profile
+    has_account = UserProfile.objects.filter(phone_number=phone).exists()
+    
+    return Response({'has_account': has_account})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def forgot_password_request(request):
     """Send 6-digit reset code to the user's email."""
     from .models_auth import PasswordResetToken

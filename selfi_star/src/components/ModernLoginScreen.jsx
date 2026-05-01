@@ -187,7 +187,7 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
   const [subPassword, setSubPassword] = useState("");
   const [showSubPassword, setShowSubPassword] = useState(false);
 
-  // Check URL params for subscription OTP mode
+  // Check URL params for subscription OTP mode and auto-detect login mode
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const hasSubscriptionParams = params.get('subscription_tp') === 'true' || params.get('subscriptiontp') === 'true';
@@ -198,14 +198,41 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
       if (storedUser) {
         // User already logged in, don't show subscription OTP mode
         setSubscriptionOtpMode(false);
+        return;
+      }
+      
+      // User not logged in, check if they have an account by checking phone number
+      // Extract phone from URL if present
+      const phoneFromUrl = params.get('phone');
+      if (phoneFromUrl) {
+        // Check if phone has an account
+        checkPhoneHasAccount(phoneFromUrl);
       } else {
-        // User not logged in, check if they have an account by checking if they have a subscription
-        // For now, show subscription OTP mode - they can use regular login if they have account
-        // The subscription OTP login will handle both cases
+        // No phone in URL, show subscription OTP mode by default
         setSubscriptionOtpMode(true);
       }
     }
   }, []);
+
+  const checkPhoneHasAccount = async (phone) => {
+    try {
+      const response = await api.post('/auth/check-phone-account/', { phone });
+      if (response.data.has_account) {
+        // Phone has account, show regular login
+        setSubscriptionOtpMode(false);
+        // Pre-fill phone number
+        setEmail(phone);
+      } else {
+        // Phone doesn't have account, show subscription OTP mode
+        setSubscriptionOtpMode(true);
+        setSubPhone(phone);
+      }
+    } catch (e) {
+      // On error, default to subscription OTP mode
+      setSubscriptionOtpMode(true);
+      setSubPhone(phone);
+    }
+  };
 
   const handleLogin = async (e) => {
     e?.preventDefault();
@@ -346,19 +373,6 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
               {subscriptionOtpMode ? "Log in with your subscription OTP" : "Log in to continue to FLIPSTAR"}
             </div>
           </div>
-
-          {/* Toggle for subscription users */}
-          {window.location.search.includes('subscription') && (
-            <div style={{ textAlign: "center", marginBottom: 16 }}>
-              <button
-                type="button"
-                onClick={() => setSubscriptionOtpMode(!subscriptionOtpMode)}
-                style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
-              >
-                {subscriptionOtpMode ? "Use regular login instead" : "Use subscription OTP login"}
-              </button>
-            </div>
-          )}
 
         {/* Form */}
         {subscriptionOtpMode ? (
