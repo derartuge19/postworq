@@ -745,6 +745,18 @@ export default function HomeScreen({ navigation }) {
                 multiline
               />
               <TouchableOpacity
+                onPress={() => setCommentText(prev => prev + '@')}
+                style={styles.commentIconButton}
+              >
+                <Ionicons name="at" size={20} color={GOLD} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => openGiftModal(commentPost)}
+                style={styles.commentIconButton}
+              >
+                <Ionicons name="gift" size={20} color={GOLD} />
+              </TouchableOpacity>
+              <TouchableOpacity
                 onPress={postComment}
                 disabled={!commentText.trim() || postingComment}
               >
@@ -1373,16 +1385,23 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   commentTextInput: {
-    flex: 1, 
-    backgroundColor: '#1a1a1a', 
+    flex: 1,
+    backgroundColor: '#1a1a1a',
     borderRadius: 20,
-    paddingHorizontal: 14, 
-    paddingVertical: 8, 
-    color: '#fff', 
-    fontSize: 14, 
-    maxHeight: 80,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    color: '#fff',
+    fontSize: 14,
   },
-  
+  commentIconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(249,224,139,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   // Toast
   toast: {
     position: 'absolute',
