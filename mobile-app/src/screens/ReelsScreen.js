@@ -2,8 +2,9 @@
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity, Image,
   Dimensions, ActivityIndicator, StatusBar, TextInput, Modal,
-  ScrollView, Alert, Animated, RefreshControl, Share,
+  ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -117,11 +118,13 @@ function ReelItem({
   const [showMenu, setShowMenu] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showLongPressMenu, setShowLongPressMenu] = useState(null); // { videoId, x, y }
   const [likeAnimation, setLikeAnimation] = useState(false);
   const [doubleTapLike, setDoubleTapLike] = useState(false);
   const [followStates, setFollowStates] = useState({});
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [manuallyPaused, setManuallyPaused] = useState(false);
+  const longPressTimer = useRef(null);
   
   const lastTapRef = useRef(0);
   const DOUBLE_TAP_WINDOW = 280;
@@ -314,6 +317,154 @@ function ReelItem({
     setShowMenu(false);
   };
 
+  // Long-press handlers for TikTok-style context menu
+  const handleLongPressStart = () => {
+    longPressTimer.current = setTimeout(() => {
+      setShowMenu(null); // Close dropdown menu if open
+      setShowLongPressMenu({ videoId: item.id });
+      // Haptic feedback on mobile if available
+      if (Platform.OS === 'ios') {
+        Haptics?.impactAsync?.(Haptics.ImpactFeedbackStyle.Medium);
+      }
+    }, 500); // 500ms for long press
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleLongPressMove = () => {
+    // Cancel long press if user moves finger
+    handleLongPressEnd();
+  };
+
+  // Download video functionality
+  const handleDownload = async () => {
+    setShowLongPressMenu(null);
+    setShowMenu(null);
+    
+    if (!user) {
+      Alert.alert('Login Required', 'Please login to download videos');
+      return;
+    }
+    
+    let mediaUrl = item.media;
+    
+    // Apply Cloudinary transformations for smaller file size
+    if (mediaUrl?.includes('cloudinary.com')) {
+      if (mediaUrl.includes('/video/upload/')) {
+        mediaUrl = mediaUrl.replace(
+          '/video/upload/',
+          '/video/upload/h_720,q_70,vc_h264/'
+        );
+      } else if (mediaUrl.includes('/image/upload/')) {
+        mediaUrl = mediaUrl.replace(
+          '/image/upload/',
+          '/image/upload/h_1080,q_80,f_jpg/'
+        );
+      }
+    }
+    
+    try {
+      Alert.alert('Downloading', 'Preparing download...');
+      
+      const response = await fetch(mediaUrl);
+      const blob = await response.blob();
+      
+      // For React Native, we need to use a different approach
+      // This is a simplified version - in production you'd use expo-file-system
+      Alert.alert('Download', 'Download feature requires expo-file-system');
+    } catch (err) {
+      console.error('Download failed:', err);
+      Alert.alert('Download Failed', 'Could not download the video. Please try again.');
+    }
+  };
+
+  // Save to favorites
+  const handleSaveToFavorites = async () => {
+    setShowLongPressMenu(null);
+    setShowMenu(null);
+    
+    if (!user) {
+      Alert.alert('Login Required', 'Please login to save to favorites');
+      return;
+    }
+    
+    try {
+      await api.request(`/saved/`, {
+        method: 'POST',
+        body: JSON.stringify({ reel: item.id }),
+      });
+      Alert.alert('Success', 'Saved to favorites!');
+    } catch (err) {
+      console.error('Save failed:', err);
+    }
+  };
+
+  // Not interested
+  const handleNotInterested = async () => {
+    setShowLongPressMenu(null);
+    setShowMenu(null);
+    
+    try {
+      await api.request('/reels/not-interested/', {
+        method: 'POST',
+        body: JSON.stringify({ reel_id: item.id }),
+      });
+      // Remove video from feed locally
+      if (setVideos) {
+        setVideos(prev => prev.filter(v => v.id !== item.id));
+      }
+      Alert.alert('Video Removed', "This video won't appear in your feed anymore.");
+    } catch (error) {
+      console.error('Failed to mark not interested:', error);
+      // Still remove from local feed even if API fails
+      if (setVideos) {
+        setVideos(prev => prev.filter(v => v.id !== item.id));
+      }
+    }
+  };
+
+  // Show video info
+  const handleShowVideoInfo = () => {
+    setShowLongPressMenu(null);
+    setShowMenu(null);
+    
+    Alert.alert(
+      'Video Information',
+      `Creator: ${item.user?.username}\nLikes: ${item.votes}\nComments: ${item.comment_count}\nPosted: ${timeAgo(item.created_at)}`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  // Handle hashtag click to search
+  const handleHashtagClick = async (hashtag) => {
+    if (!hashtag) return;
+    const cleanTag = hashtag.startsWith('#') ? hashtag.slice(1) : hashtag;
+    try {
+      const response = await api.request(`/reels/hashtag/${cleanTag}/`);
+      const results = response.results || response || [];
+      
+      // Navigate to explore with hashtag filter
+      // For now, just update the current feed with hashtag results
+      if (setVideos) {
+        const filteredResults = results.filter(reel => {
+          if (!reel.media) return false;
+          const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
+                              reel.media.includes('/video/upload/');
+          return isVideoFile;
+        });
+        setVideos(shuffleArray(filteredResults));
+      }
+    } catch (error) {
+      console.error('Failed to search hashtag:', error);
+      Alert.alert('Error', 'Failed to load hashtag posts');
+    }
+  };
+
   const isVideo = !!(item.media) && (
     /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
     item.media.includes('/video/upload/')
@@ -328,7 +479,11 @@ function ReelItem({
       <TouchableOpacity
         style={StyleSheet.absoluteFill}
         onPress={handleVideoTouch}
+        onLongPress={handleLongPressStart}
+        onPressOut={handleLongPressEnd}
+        onMoveShouldSetResponder={handleLongPressMove}
         activeOpacity={1}
+        delayLongPress={500}
       >
         {isVideo ? (
           <VideoView
@@ -386,6 +541,22 @@ function ReelItem({
             <TouchableOpacity style={styles.menuItem} onPress={handleShareVideo}>
               <Ionicons name="share-outline" size={18} color={LIGHT_GOLD} />
               <Text style={styles.menuText}>Share</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={handleDownload}>
+              <Ionicons name="download-outline" size={18} color={LIGHT_GOLD} />
+              <Text style={styles.menuText}>Download</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={handleSaveToFavorites}>
+              <Ionicons name="star-outline" size={18} color={LIGHT_GOLD} />
+              <Text style={styles.menuText}>Save to Favorites</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={handleNotInterested}>
+              <Ionicons name="eye-off-outline" size={18} color="#EF4444" />
+              <Text style={[styles.menuText, { color: '#EF4444' }]}>Not Interested</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={handleShowVideoInfo}>
+              <Ionicons name="information-circle-outline" size={18} color={LIGHT_GOLD} />
+              <Text style={styles.menuText}>Video Info</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); setShowReportModal(true); }}>
               <Ionicons name="flag-outline" size={18} color="#EF4444" />
@@ -491,9 +662,11 @@ function ReelItem({
             {String(item.hashtags).split(/[\s,]+/).filter(Boolean)
               .slice(0, 3)
               .map((tag, idx) => (
-                <Text key={idx} style={styles.hashtag}>
-                  {tag.startsWith('#') ? tag : `#${tag}`}
-                </Text>
+                <TouchableOpacity key={idx} onPress={() => handleHashtagClick(tag)}>
+                  <Text style={styles.hashtag}>
+                    {tag.startsWith('#') ? tag : `#${tag}`}
+                  </Text>
+                </TouchableOpacity>
               ))}
           </View>
         )}
@@ -533,6 +706,67 @@ function ReelItem({
           onClose={() => setShowReportModal(false)}
         />
       </Modal>
+
+      {/* Long-Press Context Menu */}
+      {showLongPressMenu && (
+        <Modal
+          visible={!!showLongPressMenu}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowLongPressMenu(null)}
+        >
+          <TouchableOpacity 
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowLongPressMenu(null)}
+          >
+            <View style={styles.longPressSheet}>
+              <View style={styles.sheetHandle} />
+              <View style={styles.sheetHeader}>
+                <Text style={styles.sheetTitle}>Options</Text>
+                <TouchableOpacity onPress={() => setShowLongPressMenu(null)}>
+                  <Ionicons name="close" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+              
+              <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+                <TouchableOpacity style={styles.longPressMenuItem} onPress={handleDownload}>
+                  <Ionicons name="download-outline" size={20} color={LIGHT_GOLD} />
+                  <Text style={styles.longPressMenuText}>Download</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.longPressMenuItem} onPress={handleSaveToFavorites}>
+                  <Ionicons name="star-outline" size={20} color={LIGHT_GOLD} />
+                  <Text style={styles.longPressMenuText}>Save to Favorites</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.longPressMenuItem} onPress={handleShareVideo}>
+                  <Ionicons name="share-outline" size={20} color={LIGHT_GOLD} />
+                  <Text style={styles.longPressMenuText}>Share</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.longPressMenuItem} onPress={handleNotInterested}>
+                  <Ionicons name="eye-off-outline" size={20} color="#EF4444" />
+                  <Text style={[styles.longPressMenuText, { color: '#EF4444' }]}>Not Interested</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.longPressMenuItem} onPress={handleShowVideoInfo}>
+                  <Ionicons name="information-circle-outline" size={20} color={LIGHT_GOLD} />
+                  <Text style={styles.longPressMenuText}>Video Info</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.longPressMenuItem} 
+                  onPress={() => { setShowLongPressMenu(null); setShowReportModal(true); }}
+                >
+                  <Ionicons name="flag-outline" size={20} color="#EF4444" />
+                  <Text style={[styles.longPressMenuText, { color: '#EF4444' }]}>Report</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -766,29 +1000,68 @@ export default function ReelsScreen({ navigation, route }) {
   const initialVideoId = route?.params?.initialVideoId;
   const flatListRef = useRef(null);
 
+  // ── Feed cache helpers (stale-while-revalidate) ──────────────────────────
+  const CACHE_KEY = (tab) => `feed_cache_${tab}`;
+  const CACHE_TTL = 2 * 60 * 1000; // 2 min for faster post distribution
+  const readFeedCache = (tab) => {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY(tab));
+      if (!raw) return null;
+      const { ts, data } = JSON.parse(raw);
+      if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem(CACHE_KEY(tab)); return null; }
+      return data;
+    } catch { return null; }
+  };
+  const writeFeedCache = (tab, data) => {
+    try { localStorage.setItem(CACHE_KEY(tab), JSON.stringify({ ts: Date.now(), data })); } catch {}
+  };
+
   useEffect(() => {
     const endpoint = activeTab === 'following'
       ? `/reels/following/?limit=${LIMIT}&offset=0`
       : `/reels/?limit=${LIMIT}&offset=0`;
+    
+    // Show cached data immediately so it's visible instantly
+    const cached = readFeedCache(activeTab);
+    if (cached?.length > 0) {
+      let results = cached;
+      if (initialVideoId) {
+        const idx = results.findIndex(r => r.id === initialVideoId);
+        if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
+      }
+      setReels(results);
+      setLoading(false);
+    }
+    
+    // Then fetch fresh data in background
     const stale = api.requestStale(endpoint, (fresh) => {
       let results = Array.isArray(fresh) ? fresh : (fresh.results || []);
       if (initialVideoId) {
         const idx = results.findIndex(r => r.id === initialVideoId);
         if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
       }
-      setReels(results);
-      setHasMore(results.length === LIMIT);
-    });
-    if (stale) {
-      let results = Array.isArray(stale) ? stale : (stale.results || []);
-      if (initialVideoId) {
-        const idx = results.findIndex(r => r.id === initialVideoId);
-        if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
+      
+      // Filter to show only videos for reels
+      const filteredResults = results.filter(reel => {
+        if (!reel.media) return false;
+        const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
+                            reel.media.includes('/video/upload/');
+        return isVideoFile;
+      });
+      
+      // Shuffle for randomized feed
+      const shuffledResults = shuffleArray(filteredResults);
+      
+      setReels(shuffledResults);
+      setHasMore(shuffledResults.length === LIMIT);
+      
+      // Persist fresh data so next load is instant
+      if (shuffledResults.length > 0) {
+        writeFeedCache(activeTab, shuffledResults);
       }
-      setReels(results);
-      setHasMore(results.length === LIMIT);
-      setLoading(false);
-    } else {
+    });
+    
+    if (!cached) {
       fetchReels(0, true);
     }
   }, [activeTab]);
@@ -851,6 +1124,8 @@ export default function ReelsScreen({ navigation, route }) {
     setIsRefreshing(true);
     setPullDistance(80);
     try {
+      // Clear cache and fetch fresh data
+      try { localStorage.removeItem(CACHE_KEY(activeTab)); } catch {}
       await fetchReels(0, true);
     } catch (error) {
       console.error('Refresh error:', error);
@@ -859,6 +1134,16 @@ export default function ReelsScreen({ navigation, route }) {
         setIsRefreshing(false);
         setPullDistance(0);
       }, 500);
+    }
+  };
+
+  // Handle tab reselect to scroll to top and refresh
+  const handleTabReselect = (tab) => {
+    if (tab === activeTab) {
+      // Scroll to top
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+      // Refresh feed
+      onRefresh();
     }
   };
 
@@ -904,7 +1189,13 @@ export default function ReelsScreen({ navigation, route }) {
           styles.refreshIndicator,
           { height: Math.min(pullDistance, 120) }
         ]}>
-          <ActivityIndicator size="small" color={GOLD} />
+          <View style={[
+            styles.spinner,
+            isRefreshing && styles.spinnerSpinning,
+            { transform: [{ rotate: `${(pullDistance / 80) * 360}deg` }] }
+          ]}>
+            <Ionicons name="refresh" size={20} color={GOLD} />
+          </View>
         </View>
       )}
 
@@ -1184,10 +1475,21 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(226,179,85,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 5,
+  },
+  spinner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: GOLD,
+    borderTopColor: 'transparent',
+  },
+  spinnerSpinning: {
+    // Animation would be added here with Animated API
   },
   
   // Modals
@@ -1330,5 +1632,27 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
     fontWeight: '700',
+  },
+  
+  // Long-Press Menu
+  longPressSheet: {
+    backgroundColor: CARD,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '50%',
+    paddingBottom: 20,
+  },
+  longPressMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER,
+    gap: 12,
+  },
+  longPressMenuText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '500',
   },
 });
