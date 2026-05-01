@@ -148,16 +148,12 @@ function ReelItem({
       lastTapRef.current = 0;
       handleDoubleTap();
     } else {
-      // Single tap - toggle play/pause
+      // Single tap - toggle play/pause (placeholder functionality)
       lastTapRef.current = now;
       if (isVideo) {
-        if (player.playing) {
-          player.pause();
-          setShowPauseIcon(true);
-        } else {
-          player.play();
-          setShowPauseIcon(false);
-        }
+        // Video placeholder - no actual playback
+        setShowPauseIcon(!showPauseIcon);
+        setTimeout(() => setShowPauseIcon(false), 1000);
       }
     }
   };
