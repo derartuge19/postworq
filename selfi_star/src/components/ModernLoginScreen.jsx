@@ -190,8 +190,20 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
   // Check URL params for subscription OTP mode
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('subscription_tp') === 'true' || params.get('subscriptiontp') === 'true') {
-      setSubscriptionOtpMode(true);
+    const hasSubscriptionParams = params.get('subscription_tp') === 'true' || params.get('subscriptiontp') === 'true';
+    
+    if (hasSubscriptionParams) {
+      // Check if user is already logged in
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        // User already logged in, don't show subscription OTP mode
+        setSubscriptionOtpMode(false);
+      } else {
+        // User not logged in, check if they have an account by checking if they have a subscription
+        // For now, show subscription OTP mode - they can use regular login if they have account
+        // The subscription OTP login will handle both cases
+        setSubscriptionOtpMode(true);
+      }
     }
   }, []);
 
@@ -334,6 +346,19 @@ export function ModernLoginScreen({ onSuccess, onRegister, onBack }) {
               {subscriptionOtpMode ? "Log in with your subscription OTP" : "Log in to continue to FLIPSTAR"}
             </div>
           </div>
+
+          {/* Toggle for subscription users */}
+          {window.location.search.includes('subscription') && (
+            <div style={{ textAlign: "center", marginBottom: 16 }}>
+              <button
+                type="button"
+                onClick={() => setSubscriptionOtpMode(!subscriptionOtpMode)}
+                style={{ background: "none", border: "none", color: "#F9E08B", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+              >
+                {subscriptionOtpMode ? "Use regular login instead" : "Use subscription OTP login"}
+              </button>
+            </div>
+          )}
 
         {/* Form */}
         {subscriptionOtpMode ? (
