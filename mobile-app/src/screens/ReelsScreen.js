@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Video, AVPlaybackStatus } from 'expo-av';
+// import { Video, AVPlaybackStatus } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -129,31 +129,8 @@ function ReelItem({
   const lastTapRef = useRef(0);
   const DOUBLE_TAP_WINDOW = 280;
 
-  const videoRef = useRef(null);
-
-  const handleVideoStatusUpdate = (status) => {
-    if (!status.isLoaded) return;
-    
-    if (isActive && !paused && !manuallyPaused) {
-      videoRef.current?.playAsync();
-      setShowPauseIcon(false);
-    } else {
-      videoRef.current?.pauseAsync();
-      setShowPauseIcon(true);
-    }
-  };
-
-  useEffect(() => {
-    if (videoRef.current) {
-      handleVideoStatusUpdate({ isLoaded: true });
-    }
-  }, [isActive, paused, manuallyPaused]);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.setIsMutedAsync(!audioEnabled || muted);
-    }
-  }, [audioEnabled, muted]);
+  // Video functionality temporarily disabled to fix expo-video errors
+  // Will be re-implemented with a different approach
 
   const handleVideoTouch = () => {
     const now = Date.now();
@@ -481,19 +458,13 @@ function ReelItem({
         activeOpacity={1}
         delayLongPress={500}
       >
-        {isVideo ? (
-          <Video
-            ref={videoRef}
-            source={{ uri: item.media }}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
-            shouldPlay={isActive && !paused && !manuallyPaused}
-            isMuted={!audioEnabled || muted}
-            isLooping
-            onPlaybackStatusUpdate={handleVideoStatusUpdate}
-          />
-        ) : item.image ? (
+        {item.image ? (
           <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        ) : item.media ? (
+          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#111' }]}>
+            <Ionicons name="play-circle" size={48} color="#666" />
+            <Text style={{ color: '#666', marginTop: 8, fontSize: 14 }}>Video (temporarily disabled)</Text>
+          </View>
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
