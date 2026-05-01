@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { Video, AVPlaybackStatus } from 'expo-av';
+import { Video } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -129,8 +129,8 @@ function ReelItem({
   const lastTapRef = useRef(0);
   const DOUBLE_TAP_WINDOW = 280;
 
-  // Video functionality temporarily disabled to fix expo-video errors
-  // Will be re-implemented with a different approach
+  const [videoPaused, setVideoPaused] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(true);
 
   const handleVideoTouch = () => {
     const now = Date.now();
@@ -143,11 +143,10 @@ function ReelItem({
     } else {
       // Single tap - toggle play/pause
       lastTapRef.current = now;
-      setTimeout(() => {
-        if (Date.now() - lastTapRef.current >= DOUBLE_TAP_WINDOW) {
-          toggleVideoPlayback();
-        }
-      }, DOUBLE_TAP_WINDOW);
+      if (isVideo) {
+        setVideoPaused(!videoPaused);
+        setShowPauseIcon(!videoPaused);
+      }
     }
   };
 
@@ -461,10 +460,15 @@ function ReelItem({
         {item.image ? (
           <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : item.media ? (
-          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#111' }]}>
-            <Ionicons name="play-circle" size={48} color="#666" />
-            <Text style={{ color: '#666', marginTop: 8, fontSize: 14 }}>Video (temporarily disabled)</Text>
-          </View>
+          <Video
+            source={{ uri: item.media }}
+            style={StyleSheet.absoluteFill}
+            resizeMode={Video.RESIZE_MODE_COVER}
+            shouldPlay={isActive && !paused && !manuallyPaused && !videoPaused}
+            isMuted={!audioEnabled || videoMuted}
+            isLooping
+            useNativeControls={false}
+          />
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
