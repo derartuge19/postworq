@@ -5,8 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { WebView } from 'react-native-webview';
-import { ScrollView } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -441,86 +440,16 @@ function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          <View style={StyleSheet.absoluteFill}>
-            <WebView
-              source={{
-                html: `
-                  <!DOCTYPE html>
-                  <html>
-                  <head>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                      body { margin: 0; padding: 0; background: #000; overflow: hidden; }
-                      video { 
-                        width: 100vw; 
-                        height: 100vh; 
-                        object-fit: cover;
-                        background: #000;
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                      }
-                      .gradient-overlay {
-                        position: absolute;
-                        bottom: 0;
-                        left: 0;
-                        right: 0;
-                        height: 200px;
-                        background: linear-gradient(transparent, rgba(0,0,0,0.7));
-                        pointer-events: none;
-                        z-index: 10;
-                      }
-                    </style>
-                  </head>
-                  <body>
-                    <video 
-                      id="videoPlayer"
-                      autoplay 
-                      loop 
-                      ${!muted ? '' : 'muted'}
-                      playsinline
-                      controls="false"
-                      onclick="this.paused ? this.play() : this.pause()"
-                      preload="auto"
-                    >
-                      <source src="${item.media}" type="video/mp4">
-                    </video>
-                    <div class="gradient-overlay"></div>
-                  </body>
-                  </html>
-                `
-              }}
+          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)']}
               style={StyleSheet.absoluteFill}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              mediaPlaybackRequiresUserAction={false}
-              allowsInlineMediaPlayback={true}
-              allowsAirPlayForMediaPlayback={true}
-              allowsPictureInPictureMediaPlayback={true}
-              onLoad={() => setShowPauseIcon(false)}
-              onMessage={(event) => {
-                // Handle video events from WebView
-                const data = JSON.parse(event.nativeEvent.data);
-                if (data.type === 'videoReady') {
-                  setShowPauseIcon(false);
-                }
-              }}
-              injectedJavaScript={`
-                const video = document.getElementById('videoPlayer');
-                if (video) {
-                  video.addEventListener('loadeddata', () => {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({type: 'videoReady'}));
-                  });
-                  video.addEventListener('play', () => {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({type: 'play'}));
-                  });
-                  video.addEventListener('pause', () => {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({type: 'pause'}));
-                  });
-                }
-              `}
             />
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons name="play-circle" size={64} color="#fff" />
+              <Text style={{ color: '#fff', marginTop: 12, fontSize: 16, fontWeight: '600' }}>Video</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', marginTop: 4, fontSize: 12 }}>Tap to interact</Text>
+            </View>
           </View>
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
