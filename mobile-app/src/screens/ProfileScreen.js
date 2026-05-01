@@ -36,6 +36,8 @@ export default function ProfileScreen({ navigation, route }) {
   const [activeTab, setActiveTab] = useState('posts');
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [showOptions, setShowOptions] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportingUser, setReportingUser] = useState(false);
   const [reportMessage, setReportMessage] = useState('');
@@ -143,6 +145,41 @@ export default function ProfileScreen({ navigation, route }) {
     } catch {
       setIsFollowing(prev);
       setFollowersCount(c => prev ? c + 1 : c - 1);
+    }
+  };
+
+  const handleBlockUser = async () => {
+    if (!user || user.id === targetUserId) return;
+    
+    Alert.alert(
+      'Block User',
+      `Block ${profileUser?.username}? They won't be able to find your profile, posts, or interact with you.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Block', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.blockUser(targetUserId);
+              setIsBlocked(true);
+              Alert.alert('Blocked', `Blocked ${profileUser?.username}`);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to block user');
+            }
+          }
+        },
+      ]
+    );
+  };
+
+  const handleUnblockUser = async () => {
+    try {
+      await api.unblockUser(targetUserId);
+      setIsBlocked(false);
+      Alert.alert('Unblocked', `Unblocked ${profileUser?.username}`);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to unblock user');
     }
   };
 
@@ -437,6 +474,22 @@ export default function ProfileScreen({ navigation, route }) {
               <TouchableOpacity onPress={handleShareProfile} style={styles.actionButton}>
                 <Ionicons name="share-outline" size={18} color={GOLD} />
               </TouchableOpacity>
+              
+              {!isBlocked ? (
+                <TouchableOpacity 
+                  onPress={handleBlockUser} 
+                  style={styles.actionButton}
+                >
+                  <Ionicons name="person-remove-outline" size={18} color="#EF4444" />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  onPress={handleUnblockUser} 
+                  style={styles.actionButton}
+                >
+                  <Ionicons name="person-add-outline" size={18} color={GOLD} />
+                </TouchableOpacity>
+              )}
               
               <TouchableOpacity 
                 onPress={() => setShowReportModal(true)} 

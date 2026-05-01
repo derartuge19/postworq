@@ -29,7 +29,7 @@ const shuffleArray = (array) => {
 };
 
 // CaptionWithLessMore component for truncating long captions
-const CaptionWithLessMore = ({ caption, maxLength = 100 }) => {
+const CaptionWithLessMore = React.memo(({ caption, maxLength = 100 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   if (!caption || caption.length <= maxLength) {
@@ -49,7 +49,7 @@ const CaptionWithLessMore = ({ caption, maxLength = 100 }) => {
       </Text>
     </View>
   );
-};
+});
 
 function timeAgo(d) {
   if (!d) return '';
@@ -60,7 +60,7 @@ function timeAgo(d) {
   return `${Math.floor(s / 86400)}d`;
 }
 
-function Avatar({ uri, size = 36, name = '', showBorder = false }) {
+const Avatar = React.memo(({ uri, size = 36, name = '', showBorder = false }) => {
   const [err, setErr] = useState(false);
   const safeName = name || '?';
   if (uri && !err) {
@@ -94,7 +94,7 @@ function Avatar({ uri, size = 36, name = '', showBorder = false }) {
       </Text>
     </View>
   );
-}
+});
 
 // Enhanced ReelItem component matching website's TikTok-style layout
 function ReelItem({ 
@@ -735,7 +735,7 @@ function ReelItem({
 }
 
 // Comments Modal Component
-function CommentsModal({ reel, user, onClose }) {
+const CommentsModal = React.memo(function CommentsModal({ reel, user, onClose }) {
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
   const [postingComment, setPostingComment] = useState(false);
@@ -837,7 +837,7 @@ function CommentsModal({ reel, user, onClose }) {
       </View>
     </View>
   );
-}
+});
 
 // Report Modal Component
 function ReportModal({ reel, onClose }) {
@@ -853,7 +853,7 @@ function ReportModal({ reel, onClose }) {
     { id: 'other', label: 'Other', icon: 'ellipsis-horizontal-outline' },
   ];
 
-  const submitReport = async () => {
+  const submitReport = useCallback(async () => {
     if (!selectedReason) {
       Alert.alert('Error', 'Please select a reason for reporting');
       return;
@@ -876,7 +876,7 @@ function ReportModal({ reel, onClose }) {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [selectedReason, reel.id, onClose]);
 
   return (
     <View style={styles.modalOverlay}>

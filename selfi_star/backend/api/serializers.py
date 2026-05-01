@@ -319,6 +319,14 @@ class FollowSerializer(serializers.ModelSerializer):
         model = Follow
         fields = ['id', 'follower', 'following', 'created_at']
 
+class BlockSerializer(serializers.ModelSerializer):
+    blocker = UserSerializer(read_only=True)
+    blocked = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = Block
+        fields = ['id', 'blocker', 'blocked', 'created_at']
+
 class ReportSerializer(serializers.ModelSerializer):
     reported_by = UserSerializer(read_only=True)
     reported_user = UserSerializer(read_only=True)

@@ -201,6 +201,7 @@ router.register(r'notifications', NotificationPreferenceViewSet, basename='notif
 router.register(r'competitions', CompetitionViewSet, basename='competition')
 router.register(r'winners', WinnerViewSet, basename='winner')
 router.register(r'follows', FollowViewSet, basename='follow')
+router.register(r'blocks', BlockViewSet, basename='block')
 router.register(r'comments', CommentViewSet, basename='comment')
 router.register(r'comment-replies', CommentReplyViewSet, basename='comment-reply')
 router.register(r'saved', SavedPostViewSet, basename='saved')

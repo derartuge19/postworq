@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Modal, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert, Modal, TextInput, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -76,6 +76,8 @@ export default function SettingsScreen({ navigation }) {
   
   const [darkMode, setDarkMode] = useState(true);
   const [language, setLanguage] = useState('en');
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [loadingBlocked, setLoadingBlocked] = useState(false);
   
   const [showPassModal, setShowPassModal] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
@@ -95,6 +97,21 @@ export default function SettingsScreen({ navigation }) {
       } catch {}
     };
     loadSettings();
+
+    // Load blocked users
+    const loadBlockedUsers = async () => {
+      try {
+        setLoadingBlocked(true);
+        const data = await api.getBlockedUsers();
+        const users = Array.isArray(data) ? data : (data.results || []);
+        setBlockedUsers(users.map(b => b.blocked));
+      } catch (error) {
+        console.error('Failed to load blocked users:', error);
+      } finally {
+        setLoadingBlocked(false);
+      }
+    };
+    loadBlockedUsers();
   }, []);
 
   // Save settings to AsyncStorage whenever they change
@@ -110,26 +127,14 @@ export default function SettingsScreen({ navigation }) {
     const newVal = !notifications[key];
     const next = { ...notifications, [key]: newVal };
     setNotifications(next);
-    try { 
-      await api.request('/notifications/settings/', { 
-        method: 'POST', 
-        body: JSON.stringify({ [key]: newVal }) 
-      }); 
-    } catch {}
+    // Settings are saved to AsyncStorage in useEffect
   };
 
   const handlePrivacyToggle = async (key) => {
     const newVal = !privacy[key];
     const next = { ...privacy, [key]: newVal };
     setPrivacy(next);
-    try { 
-      await api.request('/privacy/settings/', { 
-        method: 'POST', 
-        body: JSON.stringify({ [key]: newVal }) 
-      }); 
-    } catch {
-      setPrivacy({ ...privacy, [key]: !newVal });
-    }
+    // Settings are saved to AsyncStorage in useEffect
   };
 
   const handlePasswordChange = async () => {
@@ -181,6 +186,16 @@ export default function SettingsScreen({ navigation }) {
       Alert.alert('Download Initiated', 'Your data will be sent to your email shortly');
     } catch (error) {
       Alert.alert('Error', 'Failed to request data download');
+    }
+  };
+
+  const handleUnblockUser = async (userId, username) => {
+    try {
+      await api.unblockUser(userId);
+      setBlockedUsers(prev => prev.filter(u => u.id !== userId));
+      Alert.alert('Success', `Unblocked ${username}`);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to unblock user');
     }
   };
 
@@ -259,6 +274,34 @@ export default function SettingsScreen({ navigation }) {
           <SettingRow icon="document-text-outline" label="Terms of Service" onPress={() => Alert.alert('Terms of Service', 'Opening terms of service...')} />
         </SectionCard>
 
+        {/* Blocked Users */}
+        <SectionLabel>Blocked Users</SectionLabel>
+        <SectionCard>
+          {loadingBlocked ? (
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <ActivityIndicator color={GOLD} />
+            </View>
+          ) : blockedUsers.length === 0 ? (
+            <Text style={{ color: SUB, fontSize: 14, padding: 20 }}>No blocked users</Text>
+          ) : (
+            blockedUsers.map(blockedUser => (
+              <View key={blockedUser.id} style={{ flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: BORDER + '80' }}>
+                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: BORDER, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+                  {blockedUser.profile_photo ? (
+                    <Image source={{ uri: blockedUser.profile_photo }} style={{ width: '100%', height: '100%' }} />
+                  ) : (
+                    <Ionicons name="person" size={16} color={SUB} />
+                  )}
+                </View>
+                <Text style={{ flex: 1, marginLeft: 12, color: TEXT, fontSize: 15 }}>{blockedUser.username}</Text>
+                <TouchableOpacity onPress={() => handleUnblockUser(blockedUser.id, blockedUser.username)}>
+                  <Text style={{ color: GOLD, fontSize: 14, fontWeight: '600' }}>Unblock</Text>
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
+        </SectionCard>
+
         {/* Danger Zone */}
         <SectionLabel>Danger Zone</SectionLabel>
         <SectionCard>
@@ -313,51 +356,45 @@ export default function SettingsScreen({ navigation }) {
                 <Ionicons name="close" size={22} color={TEXT} />
               </TouchableOpacity>
             </View>
-            <View style={styles.bottomSheetContent}>
-              {[
-                { key: 'current', label: 'Current Password' },
-                { key: 'new', label: 'New Password' },
-                { key: 'confirm', label: 'Confirm Password' },
-              ].map(f => (
-                <View key={f.key} style={styles.passwordField}>
-                  <Text style={styles.passwordLabel}>{f.label}</Text>
-                  <TextInput
-                    style={styles.passwordInput}
-                    placeholder={f.label}
-                    value={password[f.key]}
-                    onChangeText={(text) => setPassword({ ...password, [f.key]: text })}
-                    secureTextEntry
-                  />
-                </View>
-              ))}
-              <TouchableOpacity style={styles.updateButton} onPress={async () => { await handlePasswordChange(); }}>
+            <View style={{ padding: 20 }}>
+              <View style={styles.passwordField}>
+                <Text style={styles.passwordLabel}>Current Password</Text>
+                <TextInput
+                  style={styles.passwordInput}
+                  secureTextEntry
+                  placeholder="Enter current password"
+                  placeholderTextColor="#666"
+                  value={password.current}
+                  onChangeText={text => setPassword(prev => ({ ...prev, current: text }))}
+                />
+              </View>
+              <View style={styles.passwordField}>
+                <Text style={styles.passwordLabel}>New Password</Text>
+                <TextInput
+                  style={styles.passwordInput}
+                  secureTextEntry
+                  placeholder="Enter new password"
+                  placeholderTextColor="#666"
+                  value={password.new}
+                  onChangeText={text => setPassword(prev => ({ ...prev, new: text }))}
+                />
+              </View>
+              <View style={styles.passwordField}>
+                <Text style={styles.passwordLabel}>Confirm New Password</Text>
+                <TextInput
+                  style={styles.passwordInput}
+                  secureTextEntry
+                  placeholder="Confirm new password"
+                  placeholderTextColor="#666"
+                  value={password.confirm}
+                  onChangeText={text => setPassword(prev => ({ ...prev, confirm: text }))}
+                />
+              </View>
+              <TouchableOpacity style={styles.updateButton} onPress={handlePasswordChange}>
                 <Text style={styles.updateButtonText}>Update Password</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Alert Modal */}
-      <Modal visible={modal.isOpen} transparent animationType="fade">
-        <TouchableOpacity style={styles.alertOverlay} activeOpacity={1} onPress={() => setModal({ ...modal, isOpen: false })}>
-          <View style={styles.alertBox}>
-            <Text style={[styles.alertTitle, { color: modal.type === 'error' ? '#EF4444' : modal.type === 'warning' ? '#F59E0B' : modal.type === 'success' ? '#10B981' : TEXT }]}>{modal.title}</Text>
-            <Text style={styles.alertMessage}>{modal.message}</Text>
-            <View style={styles.alertButtons}>
-              {modal.onConfirm && (
-                <TouchableOpacity style={styles.alertButton} onPress={() => setModal({ ...modal, isOpen: false })}>
-                  <Text style={styles.alertButtonText}>Cancel</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={[styles.alertButton, styles.alertButtonPrimary]}
-                onPress={() => { if (modal.onConfirm) modal.onConfirm(); setModal({ ...modal, isOpen: false }); }}
-              >
-                <Text style={[styles.alertButtonText, { color: '#fff' }]}>{modal.onConfirm ? 'Confirm' : 'OK'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
         </TouchableOpacity>
       </Modal>
     </View>

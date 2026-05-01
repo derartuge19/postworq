@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { enableScreens } from 'react-native-screens';
-enableScreens();
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -13,29 +11,25 @@ import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 
-// Auth
-import LoginScreen from '../screens/auth/LoginScreen';
-import RegisterScreen from '../screens/auth/RegisterScreen';
-
-// Main tabs
-import HomeScreen from '../screens/HomeScreen';
-import ReelsScreen from '../screens/ReelsScreen';
-import CreateScreen from '../screens/CreateScreen';
-import MessagesScreen from '../screens/MessagesScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-
-// Stack screens
-import ExploreScreen from '../screens/ExploreScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import FollowListScreen from '../screens/FollowListScreen';
-import CampaignsScreen from '../screens/CampaignsScreen';
-import CampaignDetailScreen from '../screens/CampaignDetailScreen';
-import LeaderboardScreen from '../screens/LeaderboardScreen';
-import WalletScreen from '../screens/WalletScreen';
-import SubscriptionScreen from '../screens/SubscriptionScreen';
-import GamificationScreen from '../screens/GamificationScreen';
-import NotificationsScreen from '../screens/NotificationsScreen';
+// Lazy load screens for better performance
+const LoginScreen = React.lazy(() => import('../screens/auth/LoginScreen'));
+const RegisterScreen = React.lazy(() => import('../screens/auth/RegisterScreen'));
+const HomeScreen = React.lazy(() => import('../screens/HomeScreen'));
+const ReelsScreen = React.lazy(() => import('../screens/ReelsScreen'));
+const CreateScreen = React.lazy(() => import('../screens/CreateScreen'));
+const MessagesScreen = React.lazy(() => import('../screens/MessagesScreen'));
+const ProfileScreen = React.lazy(() => import('../screens/ProfileScreen'));
+const ExploreScreen = React.lazy(() => import('../screens/ExploreScreen'));
+const EditProfileScreen = React.lazy(() => import('../screens/EditProfileScreen'));
+const SettingsScreen = React.lazy(() => import('../screens/SettingsScreen'));
+const FollowListScreen = React.lazy(() => import('../screens/FollowListScreen'));
+const CampaignsScreen = React.lazy(() => import('../screens/CampaignsScreen'));
+const CampaignDetailScreen = React.lazy(() => import('../screens/CampaignDetailScreen'));
+const LeaderboardScreen = React.lazy(() => import('../screens/LeaderboardScreen'));
+const WalletScreen = React.lazy(() => import('../screens/WalletScreen'));
+const SubscriptionScreen = React.lazy(() => import('../screens/SubscriptionScreen'));
+const GamificationScreen = React.lazy(() => import('../screens/GamificationScreen'));
+const NotificationsScreen = React.lazy(() => import('../screens/NotificationsScreen'));
 
 // ReelsDetail wrapper to avoid navigation conflicts
 function ReelsDetailWrapper({ route }) {
@@ -51,18 +45,18 @@ const Stack = createStackNavigator();
 function MainTabs() {
   const [unreadMessages, setUnreadMessages] = useState(0);
 
+  const fetchUnread = useCallback(async () => {
+    try {
+      const data = await api.request('/messages/unread-count/').catch(() => null);
+      if (data?.count !== undefined) setUnreadMessages(data.count);
+    } catch {}
+  }, []);
+
   useEffect(() => {
-    // Poll unread DM count every 30s
-    const fetchUnread = async () => {
-      try {
-        const data = await api.request('/messages/unread-count/').catch(() => null);
-        if (data?.count !== undefined) setUnreadMessages(data.count);
-      } catch {}
-    };
     fetchUnread();
     const interval = setInterval(fetchUnread, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchUnread]);
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({

@@ -1,6 +1,5 @@
 {
   "plugins": [
-    "expo-secure-store",
-    "expo-video"
+    "expo-secure-store"
   ]
 }

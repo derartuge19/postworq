@@ -4,7 +4,6 @@ import {
   ScrollView, ActivityIndicator, KeyboardAvoidingView,
   Platform, StatusBar, Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
@@ -342,6 +341,7 @@ const s = StyleSheet.create({
     marginBottom: 24, 
     borderRadius: 12, 
     padding: '10px 12px',
+    backgroundColor: '#1A1A1A',
   },
   ethioLogo: { width: 100, height: 50 },
   flipstarLogo: { width: 100, height: 50 },

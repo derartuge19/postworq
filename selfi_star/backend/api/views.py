@@ -55,7 +55,7 @@ def _send_sms(phone, message):
         print(f"[OTP-SMS] Error: {exc}")
         return False
 
-from .models import UserProfile, Reel, Comment, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, CommentLike, CommentReply, SavedPost, Notification, Report, ModerationAction
+from .models import UserProfile, Reel, Comment, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, Block, CommentLike, CommentReply, SavedPost, Notification, Report, ModerationAction
 from .models_campaign import CampaignNotification
 from .serializers import (
     UserSerializer, UserProfileSerializer, ReelSerializer, CommentSerializer, VoteSerializer,
@@ -1494,50 +1494,77 @@ class FollowViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def toggle(self, request):
+        following_id = request.data.get('following_id')
+        if not following_id:
+            return Response({'error': 'following_id required'}, status=400)
+        
         try:
-            following_id = request.data.get('following_id')
-            if not following_id:
-                return Response({'error': 'following_id required'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            try:
-                following_user = User.objects.get(id=following_id)
-            except User.DoesNotExist:
-                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-            
-            if following_user == request.user:
-                return Response({'error': 'Cannot follow yourself'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            follow, created = Follow.objects.get_or_create(
-                follower=request.user,
-                following=following_user
-            )
-            
-            if not created:
-                follow.delete()
-                
-                # Delete follow notification when unfollowed
-                from .models import Notification
-                Notification.objects.filter(
-                    recipient=following_user,
-                    sender=request.user,
-                    notification_type='follow'
-                ).delete()
-                
-                return Response({'following': False, 'message': 'Unfollowed'})
-            
-            # Create notification for followed user
-            from .models import Notification
-            Notification.objects.create(
-                recipient=following_user,
-                sender=request.user,
-                notification_type='follow',
-                message=f"{request.user.username} started following you"
-            )
-            
-            return Response({'following': True, 'message': 'Followed'})
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+            following = User.objects.get(id=following_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+        
+        if following == request.user:
+            return Response({'error': 'Cannot follow yourself'}, status=400)
+        
+        follow, created = Follow.objects.get_or_create(
+            follower=request.user,
+            following=following
+        )
+        
+        if not created:
+            follow.delete()
+            return Response({'following': False})
+        
+        return Response({'following': True})
+
+class BlockViewSet(viewsets.ModelViewSet):
+    serializer_class = BlockSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Block.objects.filter(blocker=self.request.user)
+        return Block.objects.none()
+
+    @action(detail=False, methods=['post'])
+    def block(self, request):
+        blocked_id = request.data.get('blocked_id')
+        if not blocked_id:
+            return Response({'error': 'blocked_id required'}, status=400)
+        
+        try:
+            blocked = User.objects.get(id=blocked_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+        
+        if blocked == request.user:
+            return Response({'error': 'Cannot block yourself'}, status=400)
+        
+        # Create block
+        block, created = Block.objects.get_or_create(
+            blocker=request.user,
+            blocked=blocked
+        )
+        
+        if not created:
+            return Response({'blocked': True})
+        
+        # Remove follow relationships (both directions)
+        Follow.objects.filter(follower=request.user, following=blocked).delete()
+        Follow.objects.filter(follower=blocked, following=request.user).delete()
+        
+        # Remove likes from blocked user on blocker's posts
+        from .models import Reel, Like
+        blocker_posts = Reel.objects.filter(user=request.user)
+        Like.objects.filter(user=blocked, reel__in=blocker_posts).delete()
+        
+        # Remove comments from blocked user on blocker's posts
+        from .models import Comment
+        Comment.objects.filter(user=blocked, reel__in=blocker_posts).delete()
+        
+        return Response({'blocked': False})
+
     @action(detail=False, methods=['get'])
     def suggestions(self, request):
         # Never suggest admins, staff, or superusers
