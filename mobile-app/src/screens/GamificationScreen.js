@@ -18,8 +18,6 @@ export default function GamificationScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [claimingBonus, setClaimingBonus] = useState(false);
-  const [spinning, setSpinning] = useState(false);
-  const spinAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -50,25 +48,12 @@ export default function GamificationScreen({ navigation }) {
     finally { setClaimingBonus(false); }
   };
 
-  const doSpin = async () => {
-    if (spinning) return; setSpinning(true);
-    Animated.timing(spinAnim, { toValue: 3, duration: 1200, useNativeDriver: true }).start();
-    try {
-      const res = await api.request('/gamification/perform-spin/', { method: 'POST' });
-      setTimeout(() => { Alert.alert('You won!', (res.coins_won || res.coins || 0) + ' coins!'); loadAll(true); }, 1300);
-    } catch (e) { Alert.alert('Error', e?.message || 'Could not spin.'); }
-    finally { setTimeout(() => { setSpinning(false); spinAnim.setValue(0); }, 1300); }
-  };
-
-  const spinRotate = spinAnim.interpolate({ inputRange: [0, 3], outputRange: ['0deg', '1080deg'] });
-
   if (loading) return <View style={[styles.container, styles.centered]}><ActivityIndicator size='large' color={GOLD} /></View>;
 
   const coins = n(status?.coins, 'balance');
   const streak = n(status?.login_streak, 'current');
   const longest = n(status?.login_streak, 'longest');
   const bonusAvailable = status?.login_streak?.bonus_available ?? false;
-  const canSpin = status?.spin?.can_spin ?? false;
   const points = n(status?.points, 'balance');
   const nextBonus = status?.login_streak?.next_bonus?.coins ?? 0;
   return (
@@ -143,40 +128,6 @@ export default function GamificationScreen({ navigation }) {
               )}
             </TouchableOpacity>
           </Animated.View>
-        </View>
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons name="dice" size={18} color="#3B82F6" />
-            <Text style={styles.sectionTitle}>Daily Spin</Text>
-            {canSpin && <View style={styles.readyDot} />}
-          </View>
-          <View style={styles.spinCard}>
-            <View style={styles.spinWheelOuter}>
-              <View style={styles.spinWheelInner}>
-                <Animated.View style={[styles.spinCenter, { transform: [{ rotate: spinRotate }] }]}>
-                  <Ionicons name="navigate" size={28} color={GOLD} />
-                </Animated.View>
-                {['10','25','50','5','100','15','30','20'].map((v, i) => (
-                  <View key={i} style={[styles.spinLabel, { transform: [{ rotate: (i * 45) + 'deg' }, { translateY: -52 }] }]}>
-                    <Text style={styles.spinLabelText}>{v}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-            <Animated.View style={{ transform: [{ scale: canSpin && !spinning ? pulseAnim : 1 }], width: '100%' }}>
-              <TouchableOpacity style={[styles.spinBtn, (!canSpin || spinning) && styles.spinBtnDisabled]}
-                onPress={doSpin} disabled={!canSpin || spinning}>
-                {spinning ? <ActivityIndicator size="small" color="#000" /> : (
-                  <>
-                    <Ionicons name="refresh-circle" size={20} color={canSpin ? '#000' : '#555'} />
-                    <Text style={[styles.spinBtnText, !canSpin && { color: '#555' }]}>
-                      {canSpin ? 'Spin Now' : 'Come Back Tomorrow'}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
         </View>
         {quests.length > 0 && (
           <View style={styles.section}>
@@ -261,15 +212,6 @@ const styles = StyleSheet.create({
   actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: GOLD, borderRadius: 14, padding: 14 },
   actionBtnDisabled: { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: BORDER },
   actionBtnText: { color: '#000', fontWeight: '800', fontSize: 15 },
-  spinCard: { backgroundColor: CARD, borderRadius: 20, borderWidth: 1, borderColor: BORDER, padding: 24, alignItems: 'center', gap: 20 },
-  spinWheelOuter: { width: 160, height: 160, borderRadius: 80, backgroundColor: '#1a1a1a', borderWidth: 2, borderColor: GOLD + '40', justifyContent: 'center', alignItems: 'center' },
-  spinWheelInner: { width: 140, height: 140, borderRadius: 70, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center', position: 'relative' },
-  spinCenter: { width: 50, height: 50, borderRadius: 25, backgroundColor: BG, borderWidth: 2, borderColor: GOLD, justifyContent: 'center', alignItems: 'center' },
-  spinLabel: { position: 'absolute', alignItems: 'center' },
-  spinLabelText: { fontSize: 10, color: GOLD, fontWeight: '700' },
-  spinBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: GOLD, borderRadius: 14, padding: 14, width: '100%' },
-  spinBtnDisabled: { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: BORDER },
-  spinBtnText: { color: '#000', fontWeight: '800', fontSize: 15 },
   questCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: CARD, borderRadius: 14, borderWidth: 1, borderColor: BORDER, padding: 14, marginBottom: 8 },
   questIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#10B98118', justifyContent: 'center', alignItems: 'center' },
   questTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
