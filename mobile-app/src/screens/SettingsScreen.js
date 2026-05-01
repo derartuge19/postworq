@@ -222,7 +222,7 @@ export default function SettingsScreen({ navigation }) {
         <SectionCard>
           <SettingRow icon="person-outline" label="Edit Profile" subtitle="Change bio and photo" onPress={() => navigation.navigate('EditProfile')} />
           <SettingRow icon="wallet-outline" label="Wallet" subtitle="Coins & transactions" onPress={() => navigation.navigate('Wallet')} />
-          <SettingRow icon="crown-outline" label="Subscription" subtitle="Plans & billing" onPress={() => navigation.navigate('Subscription')} />
+          <SettingRow icon="ribbon" label="Subscription" subtitle="Plans & billing" onPress={() => navigation.navigate('Subscription')} />
           <SettingRow icon="lock-closed-outline" label="Change Password" onPress={() => setShowPassModal(true)} />
           <SettingRow icon="download-outline" label="Download Data" subtitle="Get a copy of your data" onPress={handleDownloadData} />
         </SectionCard>
