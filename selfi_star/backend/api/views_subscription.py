@@ -77,15 +77,26 @@ class OnevasWebhookView(APIView):
         target_duration_type = stop_keyword_mapping.get(stop_keyword, None)
         print(f"[SUBSCRIPTION DEBUG] Target duration type for {stop_keyword}: {target_duration_type}")
 
-        # First try to find registered user
+
+        # First try to find registered user - improved mapping logic
         user = None
         try:
             profile = UserProfile.objects.get(phone_number=phone_number)
             user = profile.user
             print(f"[SUBSCRIPTION DEBUG] Found registered user: {user.username}")
         except UserProfile.DoesNotExist:
-            print(f"[SUBSCRIPTION DEBUG] User not registered, checking for SMS-first subscription")
-            user = None
+            # Try to find user via existing subscriptions with this phone number
+            existing_subscription = UserSubscription.objects.filter(onevas_phone_number=phone_number).first()
+            if existing_subscription and existing_subscription.user:
+                user = existing_subscription.user
+                print(f"[SUBSCRIPTION DEBUG] Found user via existing subscription: {user.username}")
+                # Update UserProfile phone_number if not set
+                if not user.profile.phone_number:
+                    user.profile.phone_number = phone_number
+                    user.profile.save()
+                    print(f"[SUBSCRIPTION DEBUG] Updated UserProfile phone_number for {user.username}")
+            else:
+                print(f"[SUBSCRIPTION DEBUG] User not registered, checking for SMS-first subscription")
 
         # Find active subscription (either by user or by phone number for SMS-first)
         subscription = None
@@ -293,15 +304,29 @@ class OnevasWebhookView(APIView):
         if keyword_from_params:
             print(f"[SUBSCRIPTION DEBUG] Keyword from params: {keyword_from_params}")
 
-        # Find user by phone number
+        # Find user by phone number - improved mapping logic
+        user = None
+        user_exists = False
         try:
+            # First try exact match on phone_number
             profile = UserProfile.objects.get(phone_number=phone_number)
             user = profile.user
             user_exists = True
-            print(f"[SUBSCRIPTION DEBUG] User found: {user.username}")
+            print(f"[SUBSCRIPTION DEBUG] User found by phone_number: {user.username}")
         except UserProfile.DoesNotExist:
-            user_exists = False
-            print(f"[SUBSCRIPTION DEBUG] User not found for phone: {phone_number}")
+            # Try to find user by checking if they have any existing subscriptions with this phone
+            existing_subscription = UserSubscription.objects.filter(onevas_phone_number=phone_number).first()
+            if existing_subscription and existing_subscription.user:
+                user = existing_subscription.user
+                user_exists = True
+                print(f"[SUBSCRIPTION DEBUG] User found via existing subscription: {user.username}")
+                # Update UserProfile phone_number if not set
+                if not user.profile.phone_number:
+                    user.profile.phone_number = phone_number
+                    user.profile.save()
+                    print(f"[SUBSCRIPTION DEBUG] Updated UserProfile phone_number for {user.username}")
+            else:
+                print(f"[SUBSCRIPTION DEBUG] User not found for phone: {phone_number}")
 
         # Find tier by product number or SMS code
         tier = None
