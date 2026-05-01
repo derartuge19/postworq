@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// Video components causing ExpoVideoView errors - disabled temporarily
+import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -439,14 +439,47 @@ function ReelItem({
         activeOpacity={1}
         delayLongPress={500}
       >
-        {item.image ? (
-          <Image source={{ uri: item.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-        ) : item.media ? (
-          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#111' }]}>
-            <Ionicons name="play-circle" size={48} color="#666" />
-            <Text style={{ color: '#666', marginTop: 8, fontSize: 14 }}>Video Content</Text>
-            <Text style={{ color: '#888', marginTop: 4, fontSize: 12 }}>Tap to interact</Text>
-          </View>
+        {item.media ? (
+          <WebView
+            source={{
+              html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <style>
+                    body { margin: 0; padding: 0; background: #000; }
+                    video { 
+                      width: 100%; 
+                      height: 100vh; 
+                      object-fit: cover;
+                      background: #000;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <video 
+                    autoplay 
+                    loop 
+                    muted 
+                    playsinline
+                    controls="false"
+                    onclick="this.paused ? this.play() : this.pause()"
+                  >
+                    <source src="${item.media}" type="video/mp4">
+                  </video>
+                </body>
+                </html>
+              `
+            }}
+            style={StyleSheet.absoluteFill}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            mediaPlaybackRequiresUserAction={false}
+            allowsInlineMediaPlayback={true}
+            onLoad={() => setShowPauseIcon(false)}
+          />
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
@@ -995,9 +1028,12 @@ export default function ReelsScreen({ navigation, route }) {
           if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
         }
         
-        // Show all content (images and videos) for reels - match website behavior
+        // Show only videos for reels (not images)
         const filteredResults = results.filter(reel => {
-          return reel.media || reel.image; // Show content that has either media or image
+          if (!reel.media) return false;
+          const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
+                              reel.media.includes('/video/upload/');
+          return isVideoFile;
         });
         
         // Shuffle for randomized feed
@@ -1031,9 +1067,12 @@ export default function ReelsScreen({ navigation, route }) {
       const data = await api.request(endpoint);
       let results = Array.isArray(data) ? data : (data.results || []);
       
-      // Show all content (images and videos) for reels - match website behavior
+      // Show only videos for reels (not images)
       const filteredResults = results.filter(reel => {
-        return reel.media || reel.image; // Show content that has either media or image
+        if (!reel.media) return false;
+        const isVideoFile = /\.(mp4|webm|ogg|mov|avi|mkv)(\?|$)/i.test(reel.media) || 
+                            reel.media.includes('/video/upload/');
+        return isVideoFile;
       });
       
       // Shuffle for randomized feed
