@@ -129,13 +129,14 @@ function ReelItem({
   const lastTapRef = useRef(0);
   const DOUBLE_TAP_WINDOW = 280;
 
-  const player = useVideoPlayer(
-    item.media ? { uri: item.media } : null,
-    (p) => {
-      p.loop = true;
-      p.muted = true;
+  const player = useVideoPlayer(item.media ? { uri: item.media } : null);
+
+  useEffect(() => {
+    if (player) {
+      player.loop = true;
+      player.muted = true;
     }
-  );
+  }, [player]);
 
   // Video playback is now controlled by VideoView props (shouldPlay, isMuted)
   // No need for manual player control with new API
