@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
+import { ScrollView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -130,7 +131,7 @@ function ReelItem({
   const DOUBLE_TAP_WINDOW = 280;
 
   const [videoPaused, setVideoPaused] = useState(false);
-  const [videoMuted, setVideoMuted] = useState(true);
+  const [videoMuted, setVideoMuted] = useState(false);
 
   const handleVideoTouch = () => {
     const now = Date.now();
@@ -440,46 +441,87 @@ function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          <WebView
-            source={{
-              html: `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                  <meta charset="utf-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <style>
-                    body { margin: 0; padding: 0; background: #000; }
-                    video { 
-                      width: 100%; 
-                      height: 100vh; 
-                      object-fit: cover;
-                      background: #000;
-                    }
-                  </style>
-                </head>
-                <body>
-                  <video 
-                    autoplay 
-                    loop 
-                    muted 
-                    playsinline
-                    controls="false"
-                    onclick="this.paused ? this.play() : this.pause()"
-                  >
-                    <source src="${item.media}" type="video/mp4">
-                  </video>
-                </body>
-                </html>
-              `
-            }}
-            style={StyleSheet.absoluteFill}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            mediaPlaybackRequiresUserAction={false}
-            allowsInlineMediaPlayback={true}
-            onLoad={() => setShowPauseIcon(false)}
-          />
+          <View style={StyleSheet.absoluteFill}>
+            <WebView
+              source={{
+                html: `
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                      body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+                      video { 
+                        width: 100vw; 
+                        height: 100vh; 
+                        object-fit: cover;
+                        background: #000;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                      }
+                      .gradient-overlay {
+                        position: absolute;
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
+                        height: 200px;
+                        background: linear-gradient(transparent, rgba(0,0,0,0.7));
+                        pointer-events: none;
+                        z-index: 10;
+                      }
+                    </style>
+                  </head>
+                  <body>
+                    <video 
+                      id="videoPlayer"
+                      autoplay 
+                      loop 
+                      ${!muted ? '' : 'muted'}
+                      playsinline
+                      controls="false"
+                      onclick="this.paused ? this.play() : this.pause()"
+                      preload="auto"
+                    >
+                      <source src="${item.media}" type="video/mp4">
+                    </video>
+                    <div class="gradient-overlay"></div>
+                  </body>
+                  </html>
+                `
+              }}
+              style={StyleSheet.absoluteFill}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              mediaPlaybackRequiresUserAction={false}
+              allowsInlineMediaPlayback={true}
+              allowsAirPlayForMediaPlayback={true}
+              allowsPictureInPictureMediaPlayback={true}
+              onLoad={() => setShowPauseIcon(false)}
+              onMessage={(event) => {
+                // Handle video events from WebView
+                const data = JSON.parse(event.nativeEvent.data);
+                if (data.type === 'videoReady') {
+                  setShowPauseIcon(false);
+                }
+              }}
+              injectedJavaScript={`
+                const video = document.getElementById('videoPlayer');
+                if (video) {
+                  video.addEventListener('loadeddata', () => {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({type: 'videoReady'}));
+                  });
+                  video.addEventListener('play', () => {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({type: 'play'}));
+                  });
+                  video.addEventListener('pause', () => {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({type: 'pause'}));
+                  });
+                }
+              `}
+            />
+          </View>
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
@@ -571,6 +613,18 @@ function ReelItem({
               <Ionicons name="add" size={14} color="#000" />
             </TouchableOpacity>
           )}
+        </TouchableOpacity>
+
+        {/* Sound Toggle Button */}
+        <TouchableOpacity style={styles.actionItem} onPress={() => setVideoMuted(!videoMuted)}>
+          <View style={styles.actionIcon}>
+            <Ionicons 
+              name={videoMuted ? 'volume-mute' : 'volume-high'}
+              size={28}
+              color="#fff"
+            />
+          </View>
+          <Text style={styles.actionLabel}>{videoMuted ? 'Off' : 'On'}</Text>
         </TouchableOpacity>
 
         {/* Like Button */}
@@ -1208,7 +1262,7 @@ export default function ReelsScreen({ navigation, route }) {
         ))}
       </View>
 
-      {/* Video Feed */}
+      {/* Video Feed - TikTok Style */}
       <FlatList
         ref={flatListRef}
         data={reels}
@@ -1216,21 +1270,26 @@ export default function ReelsScreen({ navigation, route }) {
         renderItem={renderReel}
         pagingEnabled
         showsVerticalScrollIndicator={false}
+        snapToInterval={height}
+        snapToAlignment="center"
+        decelerationRate="fast"
         onViewableItemsChanged={onViewableChanged}
-        viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
+        viewabilityConfig={{ itemVisiblePercentThreshold: 70 }}
         onEndReached={onEndReached}
-        onEndReachedThreshold={0.5}
+        onEndReachedThreshold={0.1}
         refreshControl={
           <RefreshControl 
             refreshing={isRefreshing} 
             onRefresh={onRefresh} 
             tintColor={GOLD} 
+            colors={[GOLD]}
           />
         }
         ListFooterComponent={
           loadingMore ? (
-            <View style={{ padding: 20 }}>
+            <View style={{ padding: 20, alignItems: 'center' }}>
               <ActivityIndicator size="small" color={GOLD} />
+              <Text style={{ color: GOLD, marginTop: 8, fontSize: 12 }}>Loading more videos...</Text>
             </View>
           ) : null
         }
