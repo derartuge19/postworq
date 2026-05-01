@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// expo-av Video component causing ExpoVideo errors - disabled
+import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -147,22 +147,11 @@ function ReelItem({
       lastTapRef.current = 0;
       handleDoubleTap();
     } else {
-      // Single tap - toggle play/pause
+      // Single tap - toggle play/pause (placeholder)
       lastTapRef.current = now;
-      if (isVideo && videoRef.current) {
-        try {
-          if (videoPaused) {
-            videoRef.current.playAsync();
-            setShowPauseIcon(false);
-          } else {
-            videoRef.current.pauseAsync();
-            setShowPauseIcon(true);
-            setTimeout(() => setShowPauseIcon(false), 1000);
-          }
-          setVideoPaused(!videoPaused);
-        } catch (error) {
-          console.log('Video control error:', error);
-        }
+      if (isVideo) {
+        setShowPauseIcon(!showPauseIcon);
+        setTimeout(() => setShowPauseIcon(false), 1000);
       }
     }
   };
@@ -450,13 +439,65 @@ function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
-            <View style={{ alignItems: 'center' }}>
-              <Ionicons name="play-circle" size={64} color="#fff" />
-              <Text style={{ color: '#fff', marginTop: 12, fontSize: 16, fontWeight: '600' }}>Video</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', marginTop: 4, fontSize: 12 }}>Tap to interact</Text>
-            </View>
-          </View>
+          <WebView
+            source={{
+              html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <style>
+                    body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+                    video { 
+                      width: 100vw; 
+                      height: 100vh; 
+                      object-fit: cover;
+                      background: #000;
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <video 
+                    id="videoPlayer"
+                    src="${item.media}"
+                    autoplay 
+                    loop 
+                    ${videoMuted ? 'muted' : ''}
+                    playsinline
+                    preload="metadata"
+                    onclick="this.paused ? this.play() : this.pause()"
+                    onloadeddata="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'loaded'}))"
+                    onerror="window.ReactNativeWebView.postMessage(JSON.stringify({type: 'error'}))"
+                  >
+                  </video>
+                </body>
+                </html>
+              `
+            }}
+            style={StyleSheet.absoluteFill}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            mediaPlaybackRequiresUserAction={false}
+            allowsInlineMediaPlayback={true}
+            onLoad={() => setShowPauseIcon(false)}
+            onError={(error) => console.log('WebView error:', error)}
+            onMessage={(event) => {
+              try {
+                const data = JSON.parse(event.nativeEvent.data);
+                if (data.type === 'loaded') {
+                  setShowPauseIcon(false);
+                } else if (data.type === 'error') {
+                  console.log('Video load error');
+                }
+              } catch (e) {
+                console.log('Message parsing error:', e);
+              }
+            }}
+          />
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
