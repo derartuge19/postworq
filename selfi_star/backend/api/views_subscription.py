@@ -540,7 +540,7 @@ class OnevasWebhookView(APIView):
                 sms_result = self.send_sms(phone_number, confirmation_message, tier.duration_type)
                 print(f"[SUBSCRIPTION DEBUG] Success SMS sent: {sms_result}")
 
-            return Response({'status': 'success', 'message': 'Subscription created'})
+                return Response({'status': 'success', 'message': 'Subscription created'})
 
             except Exception as e:
                 print(f"[SUBSCRIPTION DEBUG] Error creating new subscription: {str(e)}")
