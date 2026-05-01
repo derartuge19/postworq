@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity, Image,
   ActivityIndicator, RefreshControl, TextInput, Modal, ScrollView,
@@ -69,6 +69,7 @@ export default function HomeScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('For You');
   const [showOptions, setShowOptions] = useState(null);
   const [optionsPosition, setOptionsPosition] = useState({ x: 0, y: 0 });
+  const optionsButtonRef = useRef(null);
   const [followStates, setFollowStates] = useState({});
   const [viewCounts, setViewCounts] = useState({});
   const [shareToast, setShareToast] = useState('');
@@ -320,7 +321,21 @@ export default function HomeScreen({ navigation }) {
   };
 
   const showPostOptions = (post) => {
-    setShowOptions(post);
+    // Measure the button position to position dropdown correctly
+    if (optionsButtonRef.current) {
+      optionsButtonRef.current.measure((x, y, width, height, pageX, pageY) => {
+        // Position dropdown above the button, aligned to the right
+        setOptionsPosition({ 
+          x: pageX, 
+          y: pageY - 150 // Position above the button
+        });
+        setShowOptions(post);
+      });
+    } else {
+      // Fallback position
+      setOptionsPosition({ x: 0, y: 200 });
+      setShowOptions(post);
+    }
   };
 
   const copyPostLink = (post) => {
@@ -793,6 +808,7 @@ export default function HomeScreen({ navigation }) {
             
             {/* Options */}
             <TouchableOpacity
+              ref={optionsButtonRef}
               style={styles.actionBtn}
               onPress={() => showPostOptions(post)}
             >
@@ -1013,7 +1029,7 @@ export default function HomeScreen({ navigation }) {
           activeOpacity={1}
           onPress={() => setShowOptions(null)}
         >
-          <View style={[styles.optionsDropdown, { top: optionsPosition.y, right: 16 }]}>
+          <View style={[styles.optionsDropdown, { top: optionsPosition.y, left: optionsPosition.x }]}>
             <TouchableOpacity style={styles.dropdownItem} onPress={() => showPostInfo(showOptions)}>
               <Ionicons name="information-circle-outline" size={18} color={GOLD} />
               <Text style={styles.dropdownText}>Post Info</Text>
