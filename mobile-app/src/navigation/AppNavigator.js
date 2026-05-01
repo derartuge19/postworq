@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api';
 
@@ -35,6 +36,11 @@ import WalletScreen from '../screens/WalletScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import GamificationScreen from '../screens/GamificationScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+
+// ReelsDetail wrapper to avoid navigation conflicts
+function ReelsDetailWrapper({ route }) {
+  return <ReelsScreen route={route} />;
+}
 
 const GOLD = '#C8B56A';
 const BG = '#0B0B0C';
@@ -120,11 +126,11 @@ function MainStack() {
     <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: BG } }}>
       <Stack.Screen name="MainTabs"        component={MainTabs} />
       <Stack.Screen name="Explore"         component={ExploreScreen} />
-      <Stack.Screen name="ReelsDetail"     component={ReelsScreen} />
-      <Stack.Screen name="Profile"         component={ProfileScreen} />
+      <Stack.Screen name="ReelsDetail"     component={ReelsDetailWrapper} />
+      <Stack.Screen name="ProfileStack"    component={ProfileScreen} options={{ headerShown: false }} />
       <Stack.Screen name="EditProfile"     component={EditProfileScreen} />
       <Stack.Screen name="Settings"        component={SettingsScreen} />
-      <Stack.Screen name="Messages"        component={MessagesScreen} />
+      <Stack.Screen name="MessagesStack"   component={MessagesScreen} options={{ headerShown: false }} />
       <Stack.Screen name="FollowList"      component={FollowListScreen} />
       <Stack.Screen name="Campaigns"       component={CampaignsScreen} />
       <Stack.Screen name="CampaignDetail"  component={CampaignDetailScreen} />
@@ -162,14 +168,16 @@ export default function AppNavigator() {
   // Wake up the backend immediately on app open (Render free tier cold starts)
   React.useEffect(() => { api.warmUp(); }, []);
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
-        </AuthProvider>
-      </LanguageProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
