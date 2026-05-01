@@ -75,7 +75,7 @@ export default function ProfileScreen({ navigation, route }) {
       console.log('Loading profile for user:', targetUserId);
       
       const [profileData, postsData] = await Promise.all([
-        api.request(`/users/${targetUserId}/`),
+        api.request(`/profile/${targetUserId}/`),
         api.request(`/reels/?user=${targetUserId}`),
       ]);
       
