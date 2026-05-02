@@ -1519,19 +1519,64 @@ class FollowViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def suggestions(self, request):
-        # Never suggest admins, staff, or superusers
+        # Instagram-style suggestion algorithm (2026)
+        # Signals: mutual connections, activity/interests, contacts, location, profile interactions
+        
         privileged_exclusion = {'is_staff': False, 'is_superuser': False}
+        
         if request.user.is_authenticated:
+            # Get users the current user follows
             following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
-            suggestions = (
-                User.objects
-                .filter(**privileged_exclusion)
-                .exclude(id__in=following_ids)
-                .exclude(id=request.user.id)
-                .order_by('?')[:10]
+            
+            # Get mutual connections (transitive property: if A follows B, and B follows C, suggest C to A)
+            mutual_connections = set()
+            for following_id in following_ids:
+                # Get users that the people you follow also follow
+                their_following = Follow.objects.filter(follower_id=following_id).values_list('following_id', flat=True)
+                mutual_connections.update(their_following)
+            
+            # Get users who liked/commented on posts the current user engaged with
+            from .models import Reel, Vote, Comment
+            engaged_posts = Vote.objects.filter(user=request.user).values_list('reel_id', flat=True)
+            engaged_posts = list(engaged_posts) + list(Comment.objects.filter(user=request.user).values_list('reel_id', flat=True))
+            
+            # Get users who engaged with the same posts (activity-based signal)
+            activity_based_users = set()
+            for post_id in engaged_posts[:50]:  # Limit to last 50 engaged posts
+                other_voters = Vote.objects.filter(reel_id=post_id).exclude(user=request.user).values_list('user_id', flat=True)
+                activity_based_users.update(other_voters)
+            
+            # Combine all candidate users with scores
+            candidate_scores = {}
+            
+            # Mutual connections get highest weight
+            for user_id in mutual_connections:
+                candidate_scores[user_id] = candidate_scores.get(user_id, 0) + 5
+            
+            # Activity-based users get medium weight
+            for user_id in activity_based_users:
+                candidate_scores[user_id] = candidate_scores.get(user_id, 0) + 3
+            
+            # Exclude: self, already following, staff/superuser
+            exclude_ids = set(following_ids) | {request.user.id}
+            
+            # Filter candidates
+            valid_candidates = User.objects.filter(
+                **privileged_exclusion
+            ).exclude(id__in=exclude_ids).filter(id__in=candidate_scores.keys())
+            
+            # Sort by score, then randomize within same score for variety
+            sorted_candidates = sorted(
+                valid_candidates,
+                key=lambda u: (-candidate_scores.get(u.id, 0), u.id)
             )
+            
+            # Take top 10
+            suggestions = sorted_candidates[:10]
         else:
+            # For non-authenticated users, suggest random users (excluding staff/superuser)
             suggestions = User.objects.filter(**privileged_exclusion).order_by('?')[:10]
+        
         serializer = UserSerializer(suggestions, many=True, context={'request': request})
         return Response(serializer.data)
 

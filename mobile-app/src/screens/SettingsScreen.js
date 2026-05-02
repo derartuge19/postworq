@@ -137,6 +137,31 @@ export default function SettingsScreen({ navigation }) {
     // Settings are saved to AsyncStorage in useEffect
   };
 
+  const handleResetSuggestions = async () => {
+    Alert.alert(
+      'Reset Suggested Content',
+      'This will clear your recommendation history and start fresh. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Reset', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Clear dismissed users from AsyncStorage
+              await AsyncStorage.removeItem('dismissedSuggestions');
+              // Clear any other suggestion-related data
+              await AsyncStorage.removeItem('suggestionHistory');
+              Alert.alert('Success', 'Your suggested content has been reset');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to reset suggestions');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handlePasswordChange = async () => {
     if (password.new !== password.confirm) {
       Alert.alert('Error', 'Passwords do not match');
@@ -257,6 +282,7 @@ export default function SettingsScreen({ navigation }) {
           <SettingRow icon="eye-off-outline" label="Private Account" subtitle="Only followers can see your posts" isSwitch switchValue={privacy.privateAccount} onSwitch={() => handlePrivacyToggle('privateAccount')} />
           <SettingRow icon="pulse-outline" label="Show Activity" subtitle="Show your activity status" isSwitch switchValue={privacy.showActivity} onSwitch={() => handlePrivacyToggle('showActivity')} />
           <SettingRow icon="mail-outline" label="Allow Messages" subtitle="Receive messages from anyone" isSwitch switchValue={privacy.allowMessages} onSwitch={() => handlePrivacyToggle('allowMessages')} />
+          <SettingRow icon="refresh-outline" label="Reset Suggested Content" subtitle="Clear your recommendation history" onPress={handleResetSuggestions} />
         </SectionCard>
 
         {/* Appearance */}

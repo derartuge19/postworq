@@ -78,6 +78,7 @@ export default function HomeScreen({ navigation }) {
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showHorizontalSuggestions, setShowHorizontalSuggestions] = useState(true);
+  const [suggestionPositions, setSuggestionPositions] = useState(new Set());
   const [giftRecipient, setGiftRecipient] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [sendingGift, setSendingGift] = useState(false);
@@ -111,14 +112,21 @@ export default function HomeScreen({ navigation }) {
       // Show stale cache immediately, refresh in background
       const stale = api.requestStale(`/reels/?limit=${LIMIT}&offset=0`, (fresh) => {
         const results = Array.isArray(fresh) ? fresh : (fresh.results || []);
-        // Insert suggestions after 2nd post for cache updates too
+        // Insert suggestions at dynamic positions
         let finalResults = results;
-        if (results.length >= 2) {
-          finalResults = [
-            ...results.slice(0, 2),
-            { type: 'horizontal_suggestions', id: 'horizontal_suggestions' },
-            ...results.slice(2)
-          ];
+        if (results.length >= 3) {
+          const positions = calculateSuggestionPositions(results.length);
+          setSuggestionPositions(positions);
+          
+          // Insert suggestions at calculated positions
+          const withSuggestions = [];
+          results.forEach((post, index) => {
+            withSuggestions.push(post);
+            if (positions.has(index)) {
+              withSuggestions.push({ type: 'horizontal_suggestions', id: `suggestions-${index}` });
+            }
+          });
+          finalResults = withSuggestions;
         }
         setPosts(finalResults);
         setHasMore(results.length === LIMIT);
@@ -126,14 +134,20 @@ export default function HomeScreen({ navigation }) {
       });
       if (stale) {
         const results = Array.isArray(stale) ? stale : (stale.results || []);
-        // Insert suggestions after 2nd post for stale cache too
+        // Insert suggestions at dynamic positions for stale cache
         let finalResults = results;
-        if (results.length >= 2) {
-          finalResults = [
-            ...results.slice(0, 2),
-            { type: 'horizontal_suggestions', id: 'horizontal_suggestions' },
-            ...results.slice(2)
-          ];
+        if (results.length >= 3) {
+          const positions = calculateSuggestionPositions(results.length);
+          setSuggestionPositions(positions);
+          
+          const withSuggestions = [];
+          results.forEach((post, index) => {
+            withSuggestions.push(post);
+            if (positions.has(index)) {
+              withSuggestions.push({ type: 'horizontal_suggestions', id: `suggestions-${index}` });
+            }
+          });
+          finalResults = withSuggestions;
         }
         setPosts(finalResults);
         setHasMore(results.length === LIMIT);
@@ -181,14 +195,20 @@ export default function HomeScreen({ navigation }) {
       const data = await api.request(`/reels/?limit=${LIMIT}&offset=${offset}`);
       const results = Array.isArray(data) ? data : (data.results || []);
       
-      // Insert suggestions after 2nd post (index 1) for faster initial load
+      // Insert suggestions at dynamic positions
       let finalResults = results;
-      if (reset && results.length >= 2) {
-        finalResults = [
-          ...results.slice(0, 2),
-          { type: 'horizontal_suggestions', id: 'horizontal_suggestions' },
-          ...results.slice(2)
-        ];
+      if (reset && results.length >= 3) {
+        const positions = calculateSuggestionPositions(results.length);
+        setSuggestionPositions(positions);
+        
+        const withSuggestions = [];
+        results.forEach((post, index) => {
+          withSuggestions.push(post);
+          if (positions.has(index)) {
+            withSuggestions.push({ type: 'horizontal_suggestions', id: `suggestions-${index}` });
+          }
+        });
+        finalResults = withSuggestions;
       }
       
       setPosts(prev => reset ? finalResults : [...prev, ...results]);
@@ -242,17 +262,28 @@ export default function HomeScreen({ navigation }) {
         body: JSON.stringify({ following_id: userId }),
       });
       
-      // Update follow status based on response
-      const newFollowStatus = response.following !== undefined ? response.following : true;
-      setPosts(prev => prev.map(p => 
-        p.user?.id === userId ? { ...p, user: { ...p.user, is_following: newFollowStatus } } : p
-      ));
-      setFollowStates(prev => ({ ...prev, [userId]: newFollowStatus }));
+      setFollowStates(prev => ({ ...prev, [userId]: response.following }));
+      
+      // Activity-based trigger: after following, show suggestions
+      if (response.following) {
+        // Insert suggestions near the current position after a short delay
+        setTimeout(() => {
+          setPosts(prev => {
+            const currentIndex = prev.findIndex(p => p.user?.id === userId);
+            if (currentIndex !== -1 && currentIndex + 1 < prev.length) {
+              const newPosts = [...prev];
+              newPosts.splice(currentIndex + 1, 0, { type: 'horizontal_suggestions', id: `suggestions-follow-${Date.now()}` });
+              return newPosts;
+            }
+            return prev;
+          });
+        }, 500);
+      }
     } catch (error) {
       console.error('Follow error:', error);
       setFollowStates(prev => ({ ...prev, [userId]: false }));
     }
-  };
+  }, []);
 
   const trackView = async (postId) => {
     if (viewCounts[postId]) return;
@@ -340,6 +371,22 @@ export default function HomeScreen({ navigation }) {
 
   const handleTabPress = (tab) => {
     setActiveTab(tab);
+  };
+
+  // Calculate dynamic suggestion positions based on Instagram-style algorithm
+  const calculateSuggestionPositions = (postCount) => {
+    const positions = new Set();
+    if (postCount < 3) return positions;
+    
+    // Insert suggestions at random intervals (every 3-5 posts)
+    // Instagram uses dynamic positioning based on user activity
+    let position = 2 + Math.floor(Math.random() * 3); // Start between 2-4
+    while (position < postCount) {
+      positions.add(position);
+      position += 3 + Math.floor(Math.random() * 3); // Add 3-5 posts between suggestions
+    }
+    
+    return positions;
   };
 
   const copyPostLink = (post) => {

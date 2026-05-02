@@ -14,6 +14,7 @@ export default React.memo(function HorizontalUserSuggestions({ onUserClick, onDi
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [followingStates, setFollowingStates] = useState({});
+  const [dismissedUsers, setDismissedUsers] = useState(new Set());
 
   useEffect(() => {
     fetchSuggestions();
@@ -57,6 +58,13 @@ export default React.memo(function HorizontalUserSuggestions({ onUserClick, onDi
     } catch (error) {
       console.error("Failed to toggle follow:", error);
     }
+  };
+
+  const handleNotInterested = (userId, event) => {
+    event.stopPropagation();
+    setDismissedUsers(prev => new Set([...prev, userId]));
+    // Remove from suggestions list
+    setSuggestions(prev => prev.filter(user => user.id !== userId));
   };
 
   if (loading) return null;
@@ -123,6 +131,13 @@ export default React.memo(function HorizontalUserSuggestions({ onUserClick, onDi
                 ]}>
                   {isFollowing ? 'Following' : 'Follow'}
                 </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={(e) => handleNotInterested(user.id, e)}
+                style={styles.notInterestedBtn}
+              >
+                <Ionicons name="close" size={14} color={SUB} />
               </TouchableOpacity>
             </TouchableOpacity>
           );
@@ -220,5 +235,13 @@ const styles = StyleSheet.create({
   },
   followingBtnText: {
     color: GOLD,
+  },
+  notInterestedBtn: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    padding: 4,
+    borderRadius: 12,
+    backgroundColor: 'rgba(102, 102, 102, 0.3)',
   },
 });
