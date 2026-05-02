@@ -249,7 +249,7 @@ export default function HomeScreen({ navigation }) {
     }
   }, []);
 
-  const toggleFollow = async (userId) => {
+  const toggleFollow = useCallback(async (userId) => {
     if (!user) {
       Alert.alert('Login Required', 'Please login to follow users');
       return;
@@ -283,7 +283,7 @@ export default function HomeScreen({ navigation }) {
       console.error('Follow error:', error);
       setFollowStates(prev => ({ ...prev, [userId]: false }));
     }
-  }, []);
+  }, [user]);
 
   const trackView = async (postId) => {
     if (viewCounts[postId]) return;
@@ -352,21 +352,13 @@ export default function HomeScreen({ navigation }) {
   };
 
   const showPostOptions = (post) => {
-    // Measure the button position to position dropdown correctly
-    if (optionsButtonRef.current) {
-      optionsButtonRef.current.measure((x, y, width, height, pageX, pageY) => {
-        // Position dropdown above the button, aligned to the right
-        setOptionsPosition({ 
-          x: pageX, 
-          y: pageY - 150 // Position above the button
-        });
-        setShowOptions(post);
-      });
-    } else {
-      // Fallback position
-      setOptionsPosition({ x: 0, y: 200 });
-      setShowOptions(post);
-    }
+    // Position dropdown in upper right corner of the card (Instagram-style)
+    // Fixed position from top-right of screen
+    setOptionsPosition({ 
+      x: Dimensions.get('window').width - 200, // 200px from left (right-aligned)
+      y: 60 // 60px from top (below header)
+    });
+    setShowOptions(post);
   };
 
   const handleTabPress = (tab) => {
