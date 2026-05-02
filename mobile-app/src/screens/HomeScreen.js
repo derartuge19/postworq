@@ -86,6 +86,9 @@ export default function HomeScreen({ navigation }) {
   const [giftError, setGiftError] = useState('');
   const [userCoins, setUserCoins] = useState(0);
   const [gifts, setGifts] = useState([]);
+  const [giftsSentToday, setGiftsSentToday] = useState(0);
+  const [dailyGiftLimit, setDailyGiftLimit] = useState(10);
+  const [giftHistory, setGiftHistory] = useState([]);
   const [selectedGift, setSelectedGift] = useState(null);
   const [giftQuantity, setGiftQuantity] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -162,10 +165,20 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     const loadUserCoins = async () => {
       try {
+        // Use wallet API to get purchased balance for gifting (web app logic)
+        const wallet = await api.request('/wallet/');
+        setUserCoins(wallet.balance?.purchased || 0);
+        
+        // Load gamification status for daily gift limit
         const status = await api.request('/gamification/status/');
-        setUserCoins(status.coins?.balance || 0);
+        setGiftsSentToday(status.gifts?.sent_today || 0);
+        
+        // Load gift history
+        const history = await api.request('/gamification/gift-history/');
+        setGiftHistory(history.received || []);
       } catch (error) {
         console.error('Failed to load user coins:', error);
+        setUserCoins(0);
       }
     };
     loadUserCoins();
@@ -510,14 +523,24 @@ export default function HomeScreen({ navigation }) {
       return;
     }
     const totalCost = selectedGift.coin_value * giftQuantity;
-    if (totalCost > userCoins) {
-      setGiftError('Insufficient coins');
+    
+    // Check daily gift limit (web app logic: 10 gifts per day)
+    if (giftsSentToday >= dailyGiftLimit) {
+      setGiftError(`Daily gift limit reached (${dailyGiftLimit} per day)`);
       return;
     }
+    
+    // Check purchased coins balance (web app logic: only purchased coins can be gifted)
+    if (totalCost > userCoins) {
+      setGiftError(`Insufficient purchased coins. Need ${totalCost}, have ${userCoins}`);
+      return;
+    }
+    
     setSendingGift(true);
     setGiftError('');
     try {
-      const res = await api.request('/gifts/send/', {
+      // Use gifts/send endpoint (web app logic)
+      await api.request('/gifts/send/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -527,10 +550,21 @@ export default function HomeScreen({ navigation }) {
           message: giftMessage,
         }),
       });
-      setGiftSent(res);
+      setGiftSent(true);
       setUserCoins(prev => prev - totalCost);
+      setGiftsSentToday(prev => prev + 1);
+      setTimeout(() => {
+        setShowGiftModal(false);
+        setGiftSent(null);
+      }, 2000);
     } catch (error) {
-      setGiftError(error.message || 'Failed to send gift');
+      console.error('Gift error:', error);
+      const errorData = error.response?.data || error;
+      if (errorData.needs_recharge) {
+        setGiftError(`Insufficient purchased coins. Need ${totalCost}, have ${userCoins}`);
+      } else {
+        setGiftError(errorData.error || error.message || 'Failed to send gift');
+      }
     } finally {
       setSendingGift(false);
     }
@@ -1210,7 +1244,11 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>🎁 Gift to @{giftRecipient}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Text style={styles.coinBalance}>🪙 {userCoins}</Text>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.coinBalance}>🪙 {userCoins}</Text>
+                  <Text style={styles.coinLabel}>Purchased Coins</Text>
+                  <Text style={styles.giftLimitLabel}>{giftsSentToday}/{dailyGiftLimit} gifts today</Text>
+                </View>
                 <TouchableOpacity onPress={() => setShowGiftModal(false)}>
                   <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
@@ -1333,6 +1371,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: BORDER,
   },
   headerTitle: { fontSize: 20, fontWeight: '900', color: GOLD },
+  coinBalance: { fontSize: 16, fontWeight: '700', color: GOLD },
+  coinLabel: { fontSize: 10, color: '#666', fontWeight: '600' },
+  giftLimitLabel: { fontSize: 9, color: '#888', fontWeight: '500' },
   headerLogo: { width: 120, height: 30 },
   
   // Tab Navigation
