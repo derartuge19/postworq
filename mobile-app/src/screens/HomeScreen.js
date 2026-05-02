@@ -174,7 +174,7 @@ export default function HomeScreen({ navigation }) {
         setGiftsSentToday(status.gifts?.sent_today || 0);
         
         // Load gift history
-        const history = await api.request('/gamification/gift-history/');
+        const history = await api.request('/gamification/gifts/history/');
         setGiftHistory(history.received || []);
       } catch (error) {
         console.error('Failed to load user coins:', error);
