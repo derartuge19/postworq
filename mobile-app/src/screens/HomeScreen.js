@@ -338,6 +338,10 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  const handleTabPress = (tab) => {
+    setActiveTab(tab);
+  };
+
   const copyPostLink = (post) => {
     const url = `https://flipstar.app/post/${post.id}`;
     Share.share({
