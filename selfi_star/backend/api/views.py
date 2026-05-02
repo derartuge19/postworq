@@ -1517,6 +1517,24 @@ class FollowViewSet(viewsets.ModelViewSet):
         
         return Response({'following': True})
 
+    @action(detail=False, methods=['get'])
+    def suggestions(self, request):
+        # Never suggest admins, staff, or superusers
+        privileged_exclusion = {'is_staff': False, 'is_superuser': False}
+        if request.user.is_authenticated:
+            following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
+            suggestions = (
+                User.objects
+                .filter(**privileged_exclusion)
+                .exclude(id__in=following_ids)
+                .exclude(id=request.user.id)
+                .order_by('?')[:10]
+            )
+        else:
+            suggestions = User.objects.filter(**privileged_exclusion).order_by('?')[:10]
+        serializer = UserSerializer(suggestions, many=True, context={'request': request})
+        return Response(serializer.data)
+
 class BlockViewSet(viewsets.ModelViewSet):
     serializer_class = BlockSerializer
     permission_classes = [IsAuthenticated]
@@ -1564,24 +1582,6 @@ class BlockViewSet(viewsets.ModelViewSet):
         Comment.objects.filter(user=blocked, reel__in=blocker_posts).delete()
         
         return Response({'blocked': False})
-
-    @action(detail=False, methods=['get'])
-    def suggestions(self, request):
-        # Never suggest admins, staff, or superusers
-        privileged_exclusion = {'is_staff': False, 'is_superuser': False}
-        if request.user.is_authenticated:
-            following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
-            suggestions = (
-                User.objects
-                .filter(**privileged_exclusion)
-                .exclude(id__in=following_ids)
-                .exclude(id=request.user.id)
-                .order_by('?')[:10]
-            )
-        else:
-            suggestions = User.objects.filter(**privileged_exclusion).order_by('?')[:10]
-        serializer = UserSerializer(suggestions, many=True, context={'request': request})
-        return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
