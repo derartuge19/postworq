@@ -677,11 +677,19 @@ export default function ProfileScreen({ navigation, route }) {
       <Modal
         visible={showEditProfile}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowEditProfile(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.editProfileModal}>
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1}
+          onPress={() => setShowEditProfile(false)}
+        >
+          <TouchableOpacity 
+            style={styles.editProfileModal} 
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.editProfileHeader}>
               <Text style={styles.editProfileTitle}>Edit Profile</Text>
               <TouchableOpacity onPress={() => setShowEditProfile(false)}>
@@ -689,7 +697,7 @@ export default function ProfileScreen({ navigation, route }) {
               </TouchableOpacity>
             </View>
             
-            <ScrollView style={styles.editProfileContent}>
+            <ScrollView style={styles.editProfileContent} showsVerticalScrollIndicator={false}>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>First Name</Text>
                 <TextInput
@@ -768,8 +776,8 @@ export default function ProfileScreen({ navigation, route }) {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
       <Modal
         visible={showReportModal}
@@ -1085,7 +1093,8 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.8)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   zoomedImage: {
     width: width * 0.8,
@@ -1131,20 +1140,19 @@ const styles = StyleSheet.create({
     color: LIGHT_GOLD,
     flex: 1,
   },
-  // Edit Profile Modal Styles (Bottom Sheet)
+  // Edit Profile Modal Styles
   editProfileModal: {
     backgroundColor: CARD,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    width: width * 0.9,
     maxHeight: height * 0.85,
-    width: '100%',
+    borderRadius: 20,
   },
   editProfileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 20,
-    paddingBottom: 12,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: BORDER,
   },
