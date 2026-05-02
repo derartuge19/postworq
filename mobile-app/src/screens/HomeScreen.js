@@ -766,6 +766,14 @@ export default function HomeScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
           )}
+          
+          {/* Options - moved to header upper right */}
+          <TouchableOpacity
+            style={styles.headerOptionsBtn}
+            onPress={() => showPostOptions(post)}
+          >
+            <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
+          </TouchableOpacity>
         </View>
 
         {/* Media */}
@@ -847,15 +855,6 @@ export default function HomeScreen({ navigation }) {
                 size={22}
                 color={post.is_saved ? LIGHT_GOLD : LIGHT_GOLD}
               />
-            </TouchableOpacity>
-            
-            {/* Options */}
-            <TouchableOpacity
-              ref={optionsButtonRef}
-              style={styles.actionBtn}
-              onPress={() => showPostOptions(post)}
-            >
-              <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
             </TouchableOpacity>
           </View>
         </View>
@@ -1402,8 +1401,11 @@ const styles = StyleSheet.create({
     borderColor: GOLD,
     borderRadius: 6,
     paddingVertical: 4,
-    paddingHorizontal: 8,
-    marginRight: 8,
+    paddingHorizontal: 12,
+  },
+  headerOptionsBtn: {
+    padding: 8,
+    marginLeft: 8,
   },
   followingBtn: {
     backgroundColor: 'rgba(249,224,139,0.15)',
