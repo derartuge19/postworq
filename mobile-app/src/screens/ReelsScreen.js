@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Video, ResizeMode } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -132,12 +132,34 @@ const ReelItem = React.memo(function ReelItem({
   const [videoPaused, setVideoPaused] = useState(false);
   const [videoMuted, setVideoMuted] = useState(true);
   const [videoOrientation, setVideoOrientation] = useState('portrait');
-  const videoRef = useRef(null);
 
   const isVideo = !!(item.media) && (
     /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
     item.media.includes('/video/upload/')
   );
+
+  const videoUri = isVideo
+    ? (item.media.startsWith('http') ? item.media : `http://localhost:8000${item.media}`)
+    : null;
+
+  const player = useVideoPlayer(videoUri, (p) => {
+    p.loop = true;
+    p.muted = true;
+  });
+
+  useEffect(() => {
+    if (!player || !isVideo) return;
+    if (isActive && !videoPaused) {
+      player.play();
+    } else {
+      player.pause();
+    }
+  }, [isActive, videoPaused, isVideo]);
+
+  useEffect(() => {
+    if (!player) return;
+    player.muted = videoMuted;
+  }, [videoMuted]);
 
   const handleVideoTouch = () => {
     const now = Date.now();
@@ -459,15 +481,11 @@ const ReelItem = React.memo(function ReelItem({
       >
         {item.media ? (
           isVideo ? (
-            <Video
-              ref={videoRef}
-              source={{ uri: item.media.startsWith('http') ? item.media : `http://localhost:8000${item.media}` }}
+            <VideoView
+              player={player}
               style={StyleSheet.absoluteFill}
-              resizeMode={ResizeMode.COVER}
-              shouldPlay={isActive && !videoPaused}
-              isLooping
-              isMuted={videoMuted}
-              onError={() => {}}
+              contentFit="cover"
+              nativeControls={false}
             />
           ) : (
             <Image
