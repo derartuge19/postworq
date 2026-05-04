@@ -488,19 +488,7 @@ const ReelItem = React.memo(function ReelItem({
               startInLoadingState={false}
               onError={() => {}}
             />
-          ) : (
-            <Image
-              source={{ uri: item.media.startsWith('http') ? item.media : `http://localhost:8000${item.media}` }}
-              style={StyleSheet.absoluteFill}
-              resizeMode="cover"
-            />
-          )
-        ) : item.image ? (
-          <Image
-            source={{ uri: item.image.startsWith('http') ? item.image : `http://localhost:8000${item.image}` }}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
-          />
+          ) : null
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
@@ -1045,10 +1033,8 @@ export default function ReelsScreen({ navigation, route }) {
           if (idx > 0) { const [item] = results.splice(idx, 1); results.unshift(item); }
         }
         
-        // Show all content for reels (less restrictive to ensure content appears)
-        const filteredResults = results.filter(reel => {
-          return reel && (reel.media || reel.image || reel.id); // Show any valid content
-        });
+        // Only show video content in reels
+        const filteredResults = results.filter(reel => reel && reel.media);
         
         // Shuffle for randomized feed
         const shuffledResults = shuffleArray(filteredResults);
@@ -1081,10 +1067,8 @@ export default function ReelsScreen({ navigation, route }) {
       const data = await api.request(endpoint);
       let results = Array.isArray(data) ? data : (data.results || []);
       
-      // Show all content for reels (less restrictive to ensure content appears)
-      const filteredResults = results.filter(reel => {
-        return reel && (reel.media || reel.image || reel.id); // Show any valid content
-      });
+      // Only show video content in reels
+      const filteredResults = results.filter(reel => reel && reel.media);
       
       // Shuffle for randomized feed
       const shuffledResults = shuffleArray(filteredResults);
