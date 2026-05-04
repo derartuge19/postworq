@@ -169,10 +169,10 @@ export default function RegisterScreen({ navigation }) {
         {/* Logos */}
         <View style={s.logosRow}>
           <View style={StyleSheet.absoluteFill}>
-            <View style={{ flex: 1, flexDirection: 'row', borderRadius: 12, overflow: 'hidden' }}>
-              <View style={{ flex: 1, backgroundColor: '#ffffff' }} />
-              <View style={{ flex: 1, backgroundColor: '#888888' }} />
-              <View style={{ flex: 1, backgroundColor: '#000000' }} />
+            <View style={{ flex: 1, flexDirection: 'row' }}>
+              {['#ffffff','#d9d9d9','#b3b3b3','#8d8d8d','#686868','#444444','#282828','#141414','#000000'].map((c, i) => (
+                <View key={i} style={{ flex: 1, backgroundColor: c }} />
+              ))}
             </View>
           </View>
           <Image 
