@@ -80,18 +80,24 @@ export default function ProfileScreen({ navigation, route }) {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      const [profileData, postsData] = await Promise.all([
+      const [profileData, postsData, followersData, followingData] = await Promise.all([
         api.request(`/profile/${targetUserId}/`),
         api.request(`/reels/?user=${targetUserId}`),
+        api.request(`/follows/?following=${targetUserId}`),
+        api.request(`/follows/?follower=${targetUserId}`),
       ]);
-      
+
       setProfile(profileData);
       const postsList = Array.isArray(postsData) ? postsData : (postsData.results || []);
       setPosts(postsList);
-      setReels(postsList.filter(p => p.media || p.image));
-      
-      setFollowersCount(profileData.followers_count || 0);
-      setFollowingCount(profileData.following_count || 0);
+      // Reels = posts that have a media file (video)
+      setReels(postsList.filter(p => p.media));
+
+      const followersList = Array.isArray(followersData) ? followersData : (followersData.results || []);
+      const followingList = Array.isArray(followingData) ? followingData : (followingData.results || []);
+      setFollowersCount(followersList.length);
+      setFollowingCount(followingList.length);
+
       setIsFollowing(profileData.is_following || false);
       setBioText(profileData.bio || '');
       setEditForm({
@@ -108,15 +114,15 @@ export default function ProfileScreen({ navigation, route }) {
   const loadReels = async () => {
     try {
       const reelsData = await api.request(`/reels/?user=${targetUserId}`);
-      const reelsList = Array.isArray(reelsData) ? reelsData.filter(p => p.media || p.image) : (reelsData.results || []).filter(p => p.media || p.image);
-      setReels(reelsList);
+      const reelsList = Array.isArray(reelsData) ? reelsData : (reelsData.results || []);
+      setReels(reelsList.filter(p => p.media));
     } catch (e) { /* silent */ }
   };
 
   const loadSavedPosts = async () => {
     if (!isOwnProfile) return;
     try {
-      const savedData = await api.request(`/reels/saved/`);
+      const savedData = await api.request(`/reels/?saved=true`);
       setSavedPosts(Array.isArray(savedData) ? savedData : (savedData.results || []));
     } catch (e) { /* silent */ }
   };
