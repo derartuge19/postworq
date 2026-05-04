@@ -1446,7 +1446,7 @@ const styles = StyleSheet.create({
   // Bottom Info
   bottomInfo: { 
     position: 'absolute', 
-    bottom: 90, 
+    bottom: 30, 
     left: 12, 
     right: 90,
   },
