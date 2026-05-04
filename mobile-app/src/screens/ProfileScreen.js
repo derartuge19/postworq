@@ -164,6 +164,9 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const toggleFollow = async () => {
+    // Hard guard: never let a user follow themselves regardless of UI state
+    const tId = String(targetUserId);
+    if (tId === String(authUserId) || tId === String(authProfileId)) return;
     const prev = isFollowing;
     setIsFollowing(!prev);
     setFollowersCount(c => prev ? c - 1 : c + 1);
@@ -481,7 +484,10 @@ export default function ProfileScreen({ navigation, route }) {
           )}
           
           {/* Action Buttons for Other Profiles */}
-          {!isOwnProfile && (
+          {!isOwnProfile
+            && String(targetUserId) !== String(authUserId)
+            && String(targetUserId) !== String(authProfileId)
+            && (
             <View style={styles.actionButtons}>
               <TouchableOpacity 
                 onPress={toggleFollow}
