@@ -28,23 +28,23 @@ const ITEM_SIZE = Math.floor((width - (GAP * (COLS - 1)) - 32) / COLS);
 export default function ProfileScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
   const { user: authUser, logout } = useAuth();
-  // authUser is from /profile/me/ (UserProfileSerializer):
-  //   authUser.id        = UserProfile.pk  (used by /profile/{pk}/ endpoint)
-  //   authUser.user.id   = User.pk         (used by /follows/ and /reels/ endpoints)
-  const authProfileId = authUser?.id;                           // UserProfile pk
-  const authUserId    = authUser?.user?.id || authUser?.id;     // User pk
+  // authUser from /profile/me/ (UserProfileSerializer):
+  //   authUser.id      = UserProfile.pk
+  //   authUser.user.id = User.pk (or authUser.id if flat login response)
+  const authProfileId = authUser?.id;
+  const authUserId    = authUser?.user?.id || authUser?.id;
   const routeUserId   = route?.params?.userId;
-  // Compare against both User.pk AND UserProfile.pk — different screens may pass either one
-  const isOwnProfile  = !routeUserId
-    || String(routeUserId) === String(authUserId)
-    || String(routeUserId) === String(authProfileId);
-  // For profile endpoint (/profile/{pk}/) use UserProfile pk for own, routeParam for others
-  const targetProfileId = isOwnProfile ? authProfileId : routeUserId;
-  // For follows/reels (FK to User) always use User pk
-  const targetUserId    = isOwnProfile ? authUserId : routeUserId;
+
+  // isOwnProfile is STATE — set definitively after profile data loads so there
+  // is zero chance of a stale/wrong value from timing or ID format differences.
+  const [isOwnProfile, setIsOwnProfile] = useState(!routeUserId); // best initial guess
+
+  // targetProfileId / targetUserId — best-effort before data loads
+  const targetProfileId = !routeUserId ? authProfileId : routeUserId;
+  const targetUserId    = !routeUserId ? authUserId    : routeUserId;
 
   // Seed own profile immediately from cached authUser so name/username appear at once
-  const [profile, setProfile] = useState(isOwnProfile ? authUser : null);
+  const [profile, setProfile] = useState(!routeUserId ? authUser : null);
   const [posts, setPosts] = useState([]);
   const [reels, setReels] = useState([]);
   const [savedPosts, setSavedPosts] = useState([]);
@@ -122,7 +122,19 @@ export default function ProfileScreen({ navigation, route }) {
       setFollowersCount(followersFromProfile !== null ? followersFromProfile : followersList.length);
       setFollowingCount(followingFromProfile !== null ? followingFromProfile : followingList.length);
 
-      setIsFollowing(nestedUser.is_following || profileData.is_following || false);
+      // ── Determine ownership from the ACTUAL returned profile data ──────────
+      // Compare the profile's real User.id against every known auth ID.
+      // This is the only 100 % reliable check — it works regardless of which
+      // ID format was passed in route.params or stored in authUser.
+      const profileUserId = nestedUser.id ?? profileData.id;
+      const amOwner = !routeUserId
+        || String(profileUserId) === String(authUserId)
+        || String(profileUserId) === String(authProfileId)
+        || String(profileData.id) === String(authProfileId);
+      setIsOwnProfile(Boolean(amOwner));
+      // ────────────────────────────────────────────────────────────────────────
+
+      setIsFollowing(amOwner ? false : (nestedUser.is_following || profileData.is_following || false));
       setBioText(profileData.bio || nestedUser.bio || '');
       setEditForm({
         first_name: nestedUser.first_name || profileData.first_name || '',
@@ -484,10 +496,7 @@ export default function ProfileScreen({ navigation, route }) {
           )}
           
           {/* Action Buttons for Other Profiles */}
-          {!isOwnProfile
-            && String(targetUserId) !== String(authUserId)
-            && String(targetUserId) !== String(authProfileId)
-            && (
+          {!isOwnProfile && (
             <View style={styles.actionButtons}>
               <TouchableOpacity 
                 onPress={toggleFollow}
