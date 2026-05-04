@@ -107,6 +107,7 @@ const ReelItem = React.memo(function ReelItem({
   onShare,
   onReport,
   onShowProfile,
+  onNavigate,
   user,
   index,
   videos,
@@ -397,6 +398,26 @@ const ReelItem = React.memo(function ReelItem({
     }
   };
 
+  // Delete own reel
+  const handleDelete = () => {
+    setShowMenu(false);
+    Alert.alert('Delete Reel', 'Are you sure you want to delete this reel?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await api.request(`/reels/${item.id}/`, { method: 'DELETE' });
+            if (setVideos) setVideos(prev => prev.filter(v => v.id !== item.id));
+          } catch {
+            Alert.alert('Error', 'Failed to delete reel');
+          }
+        },
+      },
+    ]);
+  };
+
   // Not interested
   const handleNotInterested = async () => {
     setShowLongPressMenu(null);
@@ -518,7 +539,7 @@ const ReelItem = React.memo(function ReelItem({
       {/* Top Right Actions */}
       <View style={styles.topRightActions}>
         {/* Notifications */}
-        <TouchableOpacity style={styles.topActionBtn}>
+        <TouchableOpacity style={styles.topActionBtn} onPress={() => onNavigate?.('Notifications')}>
           <Ionicons name="notifications-outline" size={24} color={LIGHT_GOLD} />
         </TouchableOpacity>
         
@@ -546,7 +567,7 @@ const ReelItem = React.memo(function ReelItem({
               <Text style={[styles.menuText, { color: '#EF4444' }]}>Report</Text>
             </TouchableOpacity>
             {isOwnPost && (
-              <TouchableOpacity style={styles.menuItem}>
+              <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
                 <Ionicons name="trash-outline" size={18} color="#EF4444" />
                 <Text style={[styles.menuText, { color: '#EF4444' }]}>Delete</Text>
               </TouchableOpacity>
@@ -1144,6 +1165,10 @@ export default function ReelsScreen({ navigation, route }) {
     setActiveTab(tab);
   };
 
+  const handleNavigate = useCallback((screen, params) => {
+    navigation.navigate(screen, params);
+  }, [navigation]);
+
   const renderReel = useCallback(({ item, index }) => (
     <ReelItem
       item={item}
@@ -1153,8 +1178,9 @@ export default function ReelsScreen({ navigation, route }) {
       videos={reels}
       setVideos={setReels}
       onShowProfile={handleShowProfile}
+      onNavigate={handleNavigate}
     />
-  ), [activeIndex, user, reels, handleShowProfile]);
+  ), [activeIndex, user, reels, handleShowProfile, handleNavigate]);
 
   if (loading) {
     return (
@@ -1346,21 +1372,17 @@ const styles = StyleSheet.create({
   actionItem: { 
     alignItems: 'center',
     gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 6,
   },
   actionIcon: {
     width: 56,
     height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.2)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   likeAnimation: {
     transform: [{ scale: 1.2 }],
@@ -1370,6 +1392,9 @@ const styles = StyleSheet.create({
     fontSize: 12, 
     fontWeight: '600',
     marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   
   // Bottom Info
