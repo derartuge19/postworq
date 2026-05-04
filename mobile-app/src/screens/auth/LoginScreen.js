@@ -4,6 +4,7 @@ import {
   ScrollView, Modal, ActivityIndicator, KeyboardAvoidingView,
   Platform, StatusBar, Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
@@ -224,14 +225,12 @@ export default function LoginScreen({ navigation }) {
 
       <ScrollView style={s.container} contentContainerStyle={[s.scroll, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
         {/* Logos */}
-        <View style={s.logosRow}>
-          <View style={StyleSheet.absoluteFill}>
-            <View style={{ flex: 1, flexDirection: 'row' }}>
-              {['#ffffff','#d9d9d9','#b3b3b3','#8d8d8d','#686868','#444444','#282828','#141414','#000000'].map((c, i) => (
-                <View key={i} style={{ flex: 1, backgroundColor: c }} />
-              ))}
-            </View>
-          </View>
+        <LinearGradient
+          colors={['#ffffff', '#888888', '#000000']}
+          start={[0, 0]}
+          end={[1, 0]}
+          style={s.logosRow}
+        >
           <Image 
             source={require('../../../assets/images/ethio-logo.png')} 
             style={s.ethioLogo}
@@ -242,7 +241,7 @@ export default function LoginScreen({ navigation }) {
             style={s.flipstarLogo}
             resizeMode="contain"
           />
-        </View>
+        </LinearGradient>
 
         {/* Card */}
         <View style={s.card}>
