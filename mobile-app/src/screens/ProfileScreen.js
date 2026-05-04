@@ -34,7 +34,10 @@ export default function ProfileScreen({ navigation, route }) {
   const authProfileId = authUser?.id;                           // UserProfile pk
   const authUserId    = authUser?.user?.id || authUser?.id;     // User pk
   const routeUserId   = route?.params?.userId;
-  const isOwnProfile  = !routeUserId || String(routeUserId) === String(authUserId);
+  // Compare against both User.pk AND UserProfile.pk — different screens may pass either one
+  const isOwnProfile  = !routeUserId
+    || String(routeUserId) === String(authUserId)
+    || String(routeUserId) === String(authProfileId);
   // For profile endpoint (/profile/{pk}/) use UserProfile pk for own, routeParam for others
   const targetProfileId = isOwnProfile ? authProfileId : routeUserId;
   // For follows/reels (FK to User) always use User pk
