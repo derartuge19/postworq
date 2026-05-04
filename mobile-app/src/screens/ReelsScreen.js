@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -133,32 +133,26 @@ const ReelItem = React.memo(function ReelItem({
   const [videoMuted, setVideoMuted] = useState(true);
   const [videoOrientation, setVideoOrientation] = useState('portrait');
 
-  const isVideo = !!(item.media) && (
-    /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) ||
-    item.media.includes('/video/upload/')
-  );
+  // Treat all reel media as video (reels endpoint only returns video content)
+  const isVideo = !!(item.media);
 
-  const videoUri = isVideo
+  const videoUri = item.media
     ? (item.media.startsWith('http') ? item.media : `http://localhost:8000${item.media}`)
     : null;
 
-  const player = useVideoPlayer(videoUri, (p) => {
-    p.loop = true;
-    p.muted = true;
-  });
+  const webViewRef = useRef(null);
 
   useEffect(() => {
-    if (!player || !isVideo) return;
-    if (isActive && !videoPaused) {
-      player.play();
-    } else {
-      player.pause();
-    }
+    if (!webViewRef.current || !isVideo) return;
+    const js = isActive && !videoPaused
+      ? `var v=document.getElementById('v'); if(v){v.play();} true;`
+      : `var v=document.getElementById('v'); if(v){v.pause();} true;`;
+    webViewRef.current.injectJavaScript(js);
   }, [isActive, videoPaused, isVideo]);
 
   useEffect(() => {
-    if (!player) return;
-    player.muted = videoMuted;
+    if (!webViewRef.current) return;
+    webViewRef.current.injectJavaScript(`var v=document.getElementById('v'); if(v){v.muted=${videoMuted};} true;`);
   }, [videoMuted]);
 
   const handleVideoTouch = () => {
@@ -480,12 +474,19 @@ const ReelItem = React.memo(function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          isVideo ? (
-            <VideoView
-              player={player}
+          isVideo && videoUri ? (
+            <WebView
+              ref={webViewRef}
+              source={{ html: `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;background:#000;overflow:hidden}video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}</style></head><body><video id="v" ${isActive?'autoplay':''} loop muted playsinline webkit-playsinline preload="auto" src="${videoUri}"></video></body></html>` }}
               style={StyleSheet.absoluteFill}
-              contentFit="cover"
-              nativeControls={false}
+              allowsInlineMediaPlayback
+              mediaPlaybackRequiresUserAction={false}
+              scrollEnabled={false}
+              bounces={false}
+              javaScriptEnabled
+              androidLayerType="hardware"
+              startInLoadingState={false}
+              onError={() => {}}
             />
           ) : (
             <Image
