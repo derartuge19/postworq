@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { WebView } from 'react-native-webview';
+import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -148,11 +148,15 @@ const ReelItem = React.memo(function ReelItem({
       lastTapRef.current = 0;
       handleDoubleTap();
     } else {
-      // Single tap - toggle play/pause (placeholder)
+      // Single tap - toggle play/pause
       lastTapRef.current = now;
       if (isVideo) {
-        setShowPauseIcon(!showPauseIcon);
-        setTimeout(() => setShowPauseIcon(false), 1000);
+        const nowPaused = !videoPaused;
+        setVideoPaused(nowPaused);
+        if (nowPaused) {
+          setShowPauseIcon(true);
+          setTimeout(() => setShowPauseIcon(false), 800);
+        }
       }
     }
   };
@@ -454,13 +458,30 @@ const ReelItem = React.memo(function ReelItem({
         delayLongPress={500}
       >
         {item.media ? (
-          <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }]}>
-            <View style={{ alignItems: 'center' }}>
-              <Ionicons name="play-circle" size={64} color="#fff" />
-              <Text style={{ color: '#fff', marginTop: 12, fontSize: 16, fontWeight: '600' }}>Video</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', marginTop: 4, fontSize: 12 }}>Tap to interact</Text>
-            </View>
-          </View>
+          isVideo ? (
+            <Video
+              ref={videoRef}
+              source={{ uri: item.media.startsWith('http') ? item.media : `http://localhost:8000${item.media}` }}
+              style={StyleSheet.absoluteFill}
+              resizeMode={ResizeMode.COVER}
+              shouldPlay={isActive && !videoPaused}
+              isLooping
+              isMuted={videoMuted}
+              onError={() => {}}
+            />
+          ) : (
+            <Image
+              source={{ uri: item.media.startsWith('http') ? item.media : `http://localhost:8000${item.media}` }}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
+          )
+        ) : item.image ? (
+          <Image
+            source={{ uri: item.image.startsWith('http') ? item.image : `http://localhost:8000${item.image}` }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+          />
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]} />
         )}
