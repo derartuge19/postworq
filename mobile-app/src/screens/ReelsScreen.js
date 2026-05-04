@@ -97,7 +97,7 @@ const Avatar = React.memo(({ uri, size = 36, name = '', showBorder = false }) =>
 });
 
 // Enhanced ReelItem component matching website's TikTok-style layout
-function ReelItem({ 
+const ReelItem = React.memo(function ReelItem({ 
   item, 
   isActive, 
   onLike, 
@@ -732,7 +732,7 @@ function ReelItem({
       )}
     </View>
   );
-}
+});
 
 // Comments Modal Component
 const CommentsModal = React.memo(function CommentsModal({ reel, user, onClose }) {
@@ -1120,7 +1120,7 @@ export default function ReelsScreen({ navigation, route }) {
     setActiveTab(tab);
   };
 
-  const renderReel = ({ item, index }) => (
+  const renderReel = useCallback(({ item, index }) => (
     <ReelItem
       item={item}
       index={index}
@@ -1130,7 +1130,7 @@ export default function ReelsScreen({ navigation, route }) {
       setVideos={setReels}
       onShowProfile={handleShowProfile}
     />
-  );
+  ), [activeIndex, user, reels, handleShowProfile]);
 
   if (loading) {
     return (
@@ -1194,6 +1194,10 @@ export default function ReelsScreen({ navigation, route }) {
         viewabilityConfig={{ itemVisiblePercentThreshold: 70 }}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.1}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={3}
+        windowSize={5}
+        initialNumToRender={2}
         refreshControl={
           <RefreshControl 
             refreshing={isRefreshing} 

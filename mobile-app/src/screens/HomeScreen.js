@@ -780,6 +780,9 @@ export default function HomeScreen({ navigation }) {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Text style={styles.username}>{post.user?.username}</Text>
               </View>
+              {post.created_at ? (
+                <Text style={styles.timeAgo}>{timeAgo(post.created_at)}</Text>
+              ) : null}
             </View>
           </TouchableOpacity>
             

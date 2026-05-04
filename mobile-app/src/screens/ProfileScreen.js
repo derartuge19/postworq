@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, FlatList,
   ActivityIndicator, ScrollView, Dimensions, Alert, RefreshControl,
@@ -16,6 +16,12 @@ const BG = '#0D0D0D';
 const CARD = '#1A1A1A';
 const BORDER = '#262626';
 const COLS = 3;
+
+const mediaUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `http://localhost:8000${url}`;
+};
 const GAP = 1;
 const ITEM_SIZE = Math.floor((width - (GAP * (COLS - 1)) - 32) / COLS);
 
@@ -74,19 +80,13 @@ export default function ProfileScreen({ navigation, route }) {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      console.log('Loading profile for user:', targetUserId);
-      
       const [profileData, postsData] = await Promise.all([
         api.request(`/profile/${targetUserId}/`),
         api.request(`/reels/?user=${targetUserId}`),
       ]);
       
-      console.log('Profile data:', profileData);
-      console.log('Posts data:', postsData);
-      
       setProfile(profileData);
       const postsList = Array.isArray(postsData) ? postsData : (postsData.results || []);
-      console.log('Processed posts list:', postsList);
       setPosts(postsList);
       setReels(postsList.filter(p => p.media || p.image));
       
@@ -101,10 +101,7 @@ export default function ProfileScreen({ navigation, route }) {
         bio: profileData.bio || '',
         email: profileData.email || '',
       });
-    } catch (e) { 
-      console.error('Profile error:', e); 
-      console.error('Error details:', e.message);
-    }
+    } catch (e) { /* silent */ }
     finally { setLoading(false); setRefreshing(false); }
   };
 
@@ -113,7 +110,7 @@ export default function ProfileScreen({ navigation, route }) {
       const reelsData = await api.request(`/reels/?user=${targetUserId}`);
       const reelsList = Array.isArray(reelsData) ? reelsData.filter(p => p.media || p.image) : (reelsData.results || []).filter(p => p.media || p.image);
       setReels(reelsList);
-    } catch (e) { console.error('Reels error:', e); }
+    } catch (e) { /* silent */ }
   };
 
   const loadSavedPosts = async () => {
@@ -121,14 +118,14 @@ export default function ProfileScreen({ navigation, route }) {
     try {
       const savedData = await api.request(`/reels/saved/`);
       setSavedPosts(Array.isArray(savedData) ? savedData : (savedData.results || []));
-    } catch (e) { console.error('Saved posts error:', e); }
+    } catch (e) { /* silent */ }
   };
 
   const loadCampaignStats = async () => {
     try {
       const campaignData = await api.request(`/campaigns/profile/${targetUserId || ''}`);
       setCampaignStats(campaignData);
-    } catch (e) { console.error('Campaign stats error:', e); }
+    } catch (e) { /* silent */ }
   };
 
   const onRefresh = () => {
@@ -245,35 +242,17 @@ export default function ProfileScreen({ navigation, route }) {
     }
   };
 
-  const getCurrentTabContent = () => {
+  const currentTabContent = useMemo(() => {
     switch (activeTab) {
-      case 'posts':
-        return posts;
-      case 'reels':
-        return reels;
-      case 'saved':
-        return savedPosts;
-      case 'campaigns':
-        return [];
-      default:
-        return posts;
+      case 'posts': return posts;
+      case 'reels': return reels;
+      case 'saved': return savedPosts;
+      case 'campaigns': return [];
+      default: return posts;
     }
-  };
+  }, [activeTab, posts, reels, savedPosts]);
 
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', style: 'destructive', onPress: logout },
-    ]);
-  };
-
-  const mediaUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    return `http://localhost:8000${url}`;
-  };
-
-  const renderPost = ({ item, index }) => {
+  const renderPost = useCallback(({ item, index }) => {
     const isVideo = !!(item.media || '').match(/\.(mp4|webm|ogg|mov)/i) || (item.media && item.media.includes('/video/'));
     const thumbnail = item.thumbnail_url || item.image || item.media;
     
@@ -300,7 +279,7 @@ export default function ProfileScreen({ navigation, route }) {
         )}
       </TouchableOpacity>
     );
-  };
+  }, [navigation]);
 
   if (loading) {
     return (
@@ -640,12 +619,16 @@ export default function ProfileScreen({ navigation, route }) {
               </View>
             ) : (
               <FlatList
-                data={getCurrentTabContent()}
+                data={currentTabContent}
                 renderItem={renderPost}
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={COLS}
                 scrollEnabled={false}
                 contentContainerStyle={styles.gridContainer}
+                removeClippedSubviews={true}
+                maxToRenderPerBatch={9}
+                windowSize={5}
+                initialNumToRender={9}
               />
             )}
           </View>

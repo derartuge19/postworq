@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +19,7 @@ function timeAgo(d) {
   return `${Math.floor(s / 86400)}d`;
 }
 
-function Avatar({ uri, size = 44, name = '' }) {
+const Avatar = React.memo(function Avatar({ uri, size = 44, name = '' }) {
   const [err, setErr] = useState(false);
   if (uri && !err) return <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} onError={() => setErr(true)} />;
   return (
@@ -27,7 +27,7 @@ function Avatar({ uri, size = 44, name = '' }) {
       <Text style={{ color: '#000', fontWeight: '700', fontSize: size * 0.38 }}>{(name || '?')[0].toUpperCase()}</Text>
     </View>
   );
-}
+});
 
 // Conversation list view
 function ConversationList({ onOpen, user }) {
@@ -106,6 +106,18 @@ function ChatView({ conversation, otherUser, user, onBack }) {
     } finally { setSending(false); }
   };
 
+  const renderMessage = useCallback(({ item }) => {
+    const isMine = item.sender?.id === user?.id;
+    return (
+      <View style={[styles.msgRow, isMine && styles.msgRowMine]}>
+        {!isMine && <Avatar uri={item.sender?.profile_photo} size={28} name={item.sender?.username} />}
+        <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleOther]}>
+          <Text style={[styles.bubbleText, isMine && styles.bubbleTextMine]}>{item.content}</Text>
+        </View>
+      </View>
+    );
+  }, [user?.id]);
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       {/* Chat header */}
@@ -123,17 +135,10 @@ function ChatView({ conversation, otherUser, user, onBack }) {
             ref={flatRef}
             data={messages}
             keyExtractor={m => String(m.id)}
-            renderItem={({ item }) => {
-              const isMine = item.sender?.id === user?.id;
-              return (
-                <View style={[styles.msgRow, isMine && styles.msgRowMine]}>
-                  {!isMine && <Avatar uri={item.sender?.profile_photo} size={28} name={item.sender?.username} />}
-                  <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleOther]}>
-                    <Text style={[styles.bubbleText, isMine && styles.bubbleTextMine]}>{item.content}</Text>
-                  </View>
-                </View>
-              );
-            }}
+            renderItem={renderMessage}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={15}
+            windowSize={10}
             onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
             contentContainerStyle={{ padding: 12, gap: 8 }}
           />}
