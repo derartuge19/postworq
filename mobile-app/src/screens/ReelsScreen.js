@@ -477,7 +477,7 @@ const ReelItem = React.memo(function ReelItem({
           isVideo && videoUri ? (
             <WebView
               ref={webViewRef}
-              source={{ html: `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;background:#000;overflow:hidden}video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}</style></head><body><video id="v" ${isActive?'autoplay':''} loop muted playsinline webkit-playsinline preload="auto" src="${videoUri}"></video></body></html>` }}
+              source={{ html: `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;background:#000;overflow:hidden}video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}video.horizontal{object-fit:contain}</style></head><body><video id="v" ${isActive?'autoplay':''} loop muted playsinline webkit-playsinline preload="auto" src="${videoUri}"></video><script>var v=document.getElementById('v');v.addEventListener('loadedmetadata',function(){if(v.videoWidth>v.videoHeight){v.classList.add('horizontal');}});</script></body></html>` }}
               style={StyleSheet.absoluteFill}
               allowsInlineMediaPlayback
               mediaPlaybackRequiresUserAction={false}
