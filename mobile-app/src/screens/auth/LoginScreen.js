@@ -224,7 +224,12 @@ export default function LoginScreen({ navigation }) {
 
       <ScrollView style={s.container} contentContainerStyle={[s.scroll, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
         {/* Logos */}
-        <View style={s.logosRow}>
+        <LinearGradient
+          colors={['#ffffff', '#888888', '#000000']}
+          style={s.logosRow}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
           <Image 
             source={require('../../../assets/images/ethio-logo.png')} 
             style={s.ethioLogo}
@@ -235,7 +240,7 @@ export default function LoginScreen({ navigation }) {
             style={s.flipstarLogo}
             resizeMode="contain"
           />
-        </View>
+        </LinearGradient>
 
         {/* Card */}
         <View style={s.card}>
