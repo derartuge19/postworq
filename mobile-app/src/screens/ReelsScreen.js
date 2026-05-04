@@ -1234,47 +1234,6 @@ export default function ReelsScreen({ navigation, route }) {
         ))}
       </View>
 
-      {/* Fixed top-right overlay — rendered outside FlatList so nothing blocks touches */}
-      <View style={[styles.topRightActions, { top: insets.top + 10 }]} pointerEvents="box-none">
-        <TouchableOpacity style={styles.topActionBtn} onPress={() => navigation.navigate('Notifications')}>
-          <Ionicons name="notifications-outline" size={24} color={LIGHT_GOLD} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.topActionBtn} onPress={() => setScreenMenuVisible(v => !v)}>
-          <Ionicons name="ellipsis-horizontal" size={20} color={LIGHT_GOLD} />
-        </TouchableOpacity>
-        {screenMenuVisible && (
-          <View style={styles.dropdownMenu}>
-            <TouchableOpacity style={styles.menuItem} onPress={screenHandleShare}>
-              <Ionicons name="share-outline" size={18} color={LIGHT_GOLD} />
-              <Text style={styles.menuText}>Share</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={screenHandleNotInterested}>
-              <Ionicons name="eye-off-outline" size={18} color="#78716C" />
-              <Text style={styles.menuText}>Not Interested</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { setScreenMenuVisible(false); setScreenShowReport(true); }}>
-              <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
-              <Text style={[styles.menuText, { color: '#EF4444' }]}>Report</Text>
-            </TouchableOpacity>
-            {isOwnCurrentReel && (
-              <TouchableOpacity style={styles.menuItem} onPress={screenHandleDelete}>
-                <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                <Text style={[styles.menuText, { color: '#EF4444' }]}>Delete</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </View>
-
-      {/* Screen-level Report Modal */}
-      {screenShowReport && currentReel && (
-        <Modal visible transparent animationType="slide" onRequestClose={() => setScreenShowReport(false)}>
-          <View style={styles.modalOverlay}>
-            <ReportModal reel={currentReel} onClose={() => setScreenShowReport(false)} />
-          </View>
-        </Modal>
-      )}
-
       {/* Video Feed - TikTok Style */}
       <FlatList
         ref={flatListRef}
@@ -1317,6 +1276,49 @@ export default function ReelsScreen({ navigation, route }) {
           </View>
         }
       />
+
+      {/* Fixed top-right overlay — AFTER FlatList so it renders on top */}
+      <View style={[styles.topRightActions, { top: insets.top + 10, zIndex: 999, elevation: 20 }]}>
+        <TouchableOpacity style={styles.topActionBtn} onPress={() => navigation.navigate('Notifications')}>
+          <Ionicons name="notifications-outline" size={24} color={LIGHT_GOLD} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.topActionBtn} onPress={() => setScreenMenuVisible(v => !v)}>
+          <Ionicons name="ellipsis-horizontal" size={20} color={LIGHT_GOLD} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Dropdown rendered separately so it's never clipped */}
+      {screenMenuVisible && (
+        <View style={[styles.dropdownMenu, { top: insets.top + 70, right: 16, zIndex: 1000, elevation: 25 }]}>
+          <TouchableOpacity style={styles.menuItem} onPress={screenHandleShare}>
+            <Ionicons name="share-outline" size={18} color={LIGHT_GOLD} />
+            <Text style={styles.menuText}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={screenHandleNotInterested}>
+            <Ionicons name="eye-off-outline" size={18} color="#78716C" />
+            <Text style={styles.menuText}>Not Interested</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={() => { setScreenMenuVisible(false); setScreenShowReport(true); }}>
+            <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
+            <Text style={[styles.menuText, { color: '#EF4444' }]}>Report</Text>
+          </TouchableOpacity>
+          {isOwnCurrentReel && (
+            <TouchableOpacity style={styles.menuItem} onPress={screenHandleDelete}>
+              <Ionicons name="trash-outline" size={18} color="#EF4444" />
+              <Text style={[styles.menuText, { color: '#EF4444' }]}>Delete</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* Screen-level Report Modal */}
+      {screenShowReport && currentReel && (
+        <Modal visible transparent animationType="slide" onRequestClose={() => setScreenShowReport(false)}>
+          <View style={styles.modalOverlay}>
+            <ReportModal reel={currentReel} onClose={() => setScreenShowReport(false)} />
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
