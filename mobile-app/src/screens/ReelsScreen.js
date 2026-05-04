@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { WebView } from 'react-native-webview';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -142,20 +142,23 @@ const ReelItem = React.memo(function ReelItem({
     ? (item.media.startsWith('http') ? item.media : `http://localhost:8000${item.media}`)
     : null;
 
-  const webViewRef = useRef(null);
+  const player = useVideoPlayer(videoUri, (p) => {
+    p.loop = true;
+    p.muted = true;
+  });
 
   useEffect(() => {
-    if (!webViewRef.current || !isVideo) return;
+    if (!player || !isVideo) return;
     if (isActive && !videoPaused) {
-      webViewRef.current.injectJavaScript(`document.getElementById('v').play(); true;`);
+      player.play();
     } else {
-      webViewRef.current.injectJavaScript(`document.getElementById('v').pause(); true;`);
+      player.pause();
     }
   }, [isActive, videoPaused, isVideo]);
 
   useEffect(() => {
-    if (!webViewRef.current) return;
-    webViewRef.current.injectJavaScript(`document.getElementById('v').muted = ${videoMuted}; true;`);
+    if (!player) return;
+    player.muted = videoMuted;
   }, [videoMuted]);
 
   const handleVideoTouch = () => {
@@ -478,17 +481,11 @@ const ReelItem = React.memo(function ReelItem({
       >
         {item.media ? (
           isVideo ? (
-            <WebView
-              ref={webViewRef}
-              source={{ html: `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><style>*{margin:0;padding:0}body{background:#000;width:100vw;height:100vh;overflow:hidden}video{width:100%;height:100%;object-fit:cover;display:block}</style></head><body><video id="v" ${isActive ? 'autoplay' : ''} loop muted playsinline webkit-playsinline src="${videoUri}"></video></body></html>` }}
+            <VideoView
+              player={player}
               style={StyleSheet.absoluteFill}
-              allowsInlineMediaPlayback={true}
-              mediaPlaybackRequiresUserAction={false}
-              scrollEnabled={false}
-              bounces={false}
-              javaScriptEnabled={true}
-              androidLayerType="hardware"
-              startInLoadingState={false}
+              contentFit="cover"
+              nativeControls={false}
             />
           ) : (
             <Image
