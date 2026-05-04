@@ -304,11 +304,9 @@ export default function ProfileScreen({ navigation, route }) {
       
       {/* Header */}
       <View style={styles.header}>
-        {!isOwnProfile && (
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color={GOLD} />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color={GOLD} />
+        </TouchableOpacity>
         <View style={styles.headerSpacer} />
         {isOwnProfile && (
           <View style={styles.headerActions}>
