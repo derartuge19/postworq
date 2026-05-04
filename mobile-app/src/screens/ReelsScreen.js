@@ -5,7 +5,7 @@ import {
   ScrollView, Alert, Animated, RefreshControl, Share, Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -142,23 +142,20 @@ const ReelItem = React.memo(function ReelItem({
     ? (item.media.startsWith('http') ? item.media : `http://localhost:8000${item.media}`)
     : null;
 
-  const player = useVideoPlayer(videoUri, (p) => {
-    p.loop = true;
-    p.muted = true;
-  });
+  const webViewRef = useRef(null);
 
   useEffect(() => {
-    if (!player || !isVideo) return;
+    if (!webViewRef.current || !isVideo) return;
     if (isActive && !videoPaused) {
-      player.play();
+      webViewRef.current.injectJavaScript(`document.getElementById('v').play(); true;`);
     } else {
-      player.pause();
+      webViewRef.current.injectJavaScript(`document.getElementById('v').pause(); true;`);
     }
   }, [isActive, videoPaused, isVideo]);
 
   useEffect(() => {
-    if (!player) return;
-    player.muted = videoMuted;
+    if (!webViewRef.current) return;
+    webViewRef.current.injectJavaScript(`document.getElementById('v').muted = ${videoMuted}; true;`);
   }, [videoMuted]);
 
   const handleVideoTouch = () => {
@@ -481,11 +478,17 @@ const ReelItem = React.memo(function ReelItem({
       >
         {item.media ? (
           isVideo ? (
-            <VideoView
-              player={player}
+            <WebView
+              ref={webViewRef}
+              source={{ html: `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><style>*{margin:0;padding:0}body{background:#000;width:100vw;height:100vh;overflow:hidden}video{width:100%;height:100%;object-fit:cover;display:block}</style></head><body><video id="v" ${isActive ? 'autoplay' : ''} loop muted playsinline webkit-playsinline src="${videoUri}"></video></body></html>` }}
               style={StyleSheet.absoluteFill}
-              contentFit="cover"
-              nativeControls={false}
+              allowsInlineMediaPlayback={true}
+              mediaPlaybackRequiresUserAction={false}
+              scrollEnabled={false}
+              bounces={false}
+              javaScriptEnabled={true}
+              androidLayerType="hardware"
+              startInLoadingState={false}
             />
           ) : (
             <Image
