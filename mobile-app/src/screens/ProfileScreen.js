@@ -600,7 +600,7 @@ export default function ProfileScreen({ navigation, route }) {
         {/* Posts Grid */}
         {activeTab !== 'campaigns' && (
           <View style={styles.postsGrid}>
-            {getCurrentTabContent().length === 0 ? (
+            {currentTabContent.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons 
                   name={
