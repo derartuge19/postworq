@@ -952,19 +952,12 @@ export default function HomeScreen({ navigation }) {
       
       {/* Header */}
       <View style={styles.header}>
-        <Image 
-          source={require('../../assets/images/flipstar-logo.png')} 
-          style={styles.headerLogo}
-          resizeMode="contain"
-        />
-        <View style={{ flexDirection: 'row', gap: 14 }}>
-          <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
-            <Ionicons name="notifications-outline" size={24} color={GOLD} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Explore')}>
-            <Ionicons name="search" size={24} color={GOLD} />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Explore')}>
+          <Ionicons name="search" size={24} color={GOLD} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
+          <Ionicons name="notifications-outline" size={24} color={GOLD} />
+        </TouchableOpacity>
       </View>
 
       {/* Tab Navigation */}
