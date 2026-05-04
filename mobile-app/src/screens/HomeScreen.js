@@ -375,6 +375,14 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleTabPress = (tab) => {
+    if (tab === 'Explore') {
+      navigation.navigate('Explore');
+      return;
+    }
+    if (tab === 'Campaigns') {
+      navigation.navigate('Campaigns');
+      return;
+    }
     setActiveTab(tab);
   };
 
@@ -1015,11 +1023,7 @@ export default function HomeScreen({ navigation }) {
           initialNumToRender={3}
           updateCellsBatchingPeriod={50}
         />
-      ) : (
-        <View style={styles.centered}>
-          <Text style={{ color: '#666' }}>Navigate to {activeTab}</Text>
-        </View>
-      )}
+      ) : null}
 
       {/* Share Toast */}
       {shareToast !== '' && (
