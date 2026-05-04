@@ -28,8 +28,10 @@ const ITEM_SIZE = Math.floor((width - (GAP * (COLS - 1)) - 32) / COLS);
 export default function ProfileScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
   const { user: authUser, logout } = useAuth();
-  const targetUserId = route?.params?.userId || authUser?.id;
-  const isOwnProfile = !route?.params?.userId || route?.params?.userId === authUser?.id;
+  // authUser comes from /profile/me/ (UserProfileSerializer) so User ID is in authUser.user.id
+  const authUserId = authUser?.user?.id || authUser?.id;
+  const targetUserId = route?.params?.userId || authUserId;
+  const isOwnProfile = !route?.params?.userId || String(route?.params?.userId) === String(authUserId);
 
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -40,6 +42,7 @@ export default function ProfileScreen({ navigation, route }) {
   const [refreshing, setRefreshing] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState('posts');
+  const [postsCount, setPostsCount] = useState(0);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [showOptions, setShowOptions] = useState(false);
@@ -90,24 +93,31 @@ export default function ProfileScreen({ navigation, route }) {
       setProfile(profileData);
       const postsList = Array.isArray(postsData) ? postsData : (postsData.results || []);
       setPosts(postsList);
-      // Reels = posts that have a media file (video)
+      setPostsCount(postsData.count ?? postsList.length);
       setReels(postsList.filter(p => p.media));
 
+      // followers_count and following_count come from the nested user object in UserProfileSerializer
+      const nestedUser = profileData.user || profileData;
+      const followersFromProfile = nestedUser.followers_count ?? null;
+      const followingFromProfile = nestedUser.following_count ?? null;
+
+      // Use API list counts as secondary source
       const followersList = Array.isArray(followersData) ? followersData : (followersData.results || []);
       const followingList = Array.isArray(followingData) ? followingData : (followingData.results || []);
-      setFollowersCount(followersList.length);
-      setFollowingCount(followingList.length);
 
-      setIsFollowing(profileData.is_following || false);
-      setBioText(profileData.bio || '');
+      setFollowersCount(followersFromProfile !== null ? followersFromProfile : followersList.length);
+      setFollowingCount(followingFromProfile !== null ? followingFromProfile : followingList.length);
+
+      setIsFollowing(nestedUser.is_following || profileData.is_following || false);
+      setBioText(profileData.bio || nestedUser.bio || '');
       setEditForm({
-        first_name: profileData.first_name || '',
-        last_name: profileData.last_name || '',
-        username: profileData.username || '',
-        bio: profileData.bio || '',
-        email: profileData.email || '',
+        first_name: nestedUser.first_name || profileData.first_name || '',
+        last_name: nestedUser.last_name || profileData.last_name || '',
+        username: nestedUser.username || profileData.username || '',
+        bio: profileData.bio || nestedUser.bio || '',
+        email: nestedUser.email || profileData.email || '',
       });
-    } catch (e) { /* silent */ }
+    } catch (e) { console.warn('loadProfile error:', e?.message); }
     finally { setLoading(false); setRefreshing(false); }
   };
 
@@ -353,7 +363,7 @@ export default function ProfileScreen({ navigation, route }) {
             
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{posts.length}</Text>
+                <Text style={styles.statNumber}>{postsCount}</Text>
                 <Text style={styles.statLabel}>Posts</Text>
               </View>
               <TouchableOpacity 
@@ -375,9 +385,9 @@ export default function ProfileScreen({ navigation, route }) {
           
           <View style={styles.profileDetails}>
             <Text style={styles.profileName}>
-              {profile?.first_name} {profile?.last_name}
+              {(profile?.user?.first_name || profile?.first_name)} {(profile?.user?.last_name || profile?.last_name)}
             </Text>
-            <Text style={styles.profileUsername}>@{profile?.username}</Text>
+            <Text style={styles.profileUsername}>@{profile?.username || profile?.user?.username}</Text>
             {isOwnProfile && editingBio ? (
               <View style={styles.bioEditContainer}>
                 <TextInput
