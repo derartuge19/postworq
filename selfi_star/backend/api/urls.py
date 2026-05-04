@@ -9,7 +9,7 @@ from .views import (
     forgot_password_request, forgot_password_confirm, login_with_subscription_otp,
     check_phone_account,
     create_post, search, UserProfileViewSet, ReelViewSet, QuestViewSet,
-    SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet,
+    SubscriptionViewSet, NotificationPreferenceViewSet, CompetitionViewSet, WinnerViewSet, FollowViewSet, BlockViewSet,
     get_user_notifications, mark_notifications_read, get_unread_notification_count,
     mark_single_notification_read, create_report, admin_reports_list, admin_report_detail,
     admin_reports_stats, admin_moderate_report, get_trending_reels, mark_not_interested, undo_not_interested,
@@ -201,6 +201,7 @@ router.register(r'notifications', NotificationPreferenceViewSet, basename='notif
 router.register(r'competitions', CompetitionViewSet, basename='competition')
 router.register(r'winners', WinnerViewSet, basename='winner')
 router.register(r'follows', FollowViewSet, basename='follow')
+router.register(r'blocks', BlockViewSet, basename='block')
 router.register(r'comments', CommentViewSet, basename='comment')
 router.register(r'comment-replies', CommentReplyViewSet, basename='comment-reply')
 router.register(r'saved', SavedPostViewSet, basename='saved')

@@ -379,11 +379,30 @@ const api = {
 
   getComments: (reelId) => api.request(`/reels/${reelId}/comments/`),
 
-  toggleFollow: (userId) =>
-    api.request('/follows/toggle/', {
+  async toggleFollow(userId) {
+    return this.request('/follows/toggle/', {
       method: 'POST',
       body: JSON.stringify({ following_id: userId }),
-    }).then(r => { invalidateCache('/follows'); return r; }),
+    });
+  },
+
+  // Block
+  async blockUser(userId) {
+    return this.request('/blocks/block/', {
+      method: 'POST',
+      body: JSON.stringify({ blocked_id: userId }),
+    });
+  },
+
+  async unblockUser(userId) {
+    return this.request('/blocks/unblock/', {
+      method: 'POST',
+      body: JSON.stringify({ blocked_id: userId }),
+    });
+  },
+
+  getBlockedUsers: () => 
+    api.request('/blocks/').then(r => { invalidateCache('/follows'); return r; }),
 
   getFollowers: (userId) => api.request(`/follows/?following=${userId}`),
 

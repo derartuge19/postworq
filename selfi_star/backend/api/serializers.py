@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, Reel, Comment, CommentLike, CommentReply, SavedPost, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, Report, Notification
+from .models import UserProfile, Reel, Comment, CommentLike, CommentReply, SavedPost, Vote, Quest, UserQuest, Subscription, NotificationPreference, Competition, Winner, Follow, Report, Notification, Block
 
 
 def build_feed_context(request):
@@ -318,6 +318,14 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ['id', 'follower', 'following', 'created_at']
+
+class BlockSerializer(serializers.ModelSerializer):
+    blocker = UserSerializer(read_only=True)
+    blocked = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = Block
+        fields = ['id', 'blocker', 'blocked', 'created_at']
 
 class ReportSerializer(serializers.ModelSerializer):
     reported_by = UserSerializer(read_only=True)

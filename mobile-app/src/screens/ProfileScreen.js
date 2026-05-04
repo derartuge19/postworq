@@ -36,6 +36,8 @@ export default function ProfileScreen({ navigation, route }) {
   const [activeTab, setActiveTab] = useState('posts');
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [showOptions, setShowOptions] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportingUser, setReportingUser] = useState(false);
   const [reportMessage, setReportMessage] = useState('');
@@ -143,6 +145,41 @@ export default function ProfileScreen({ navigation, route }) {
     } catch {
       setIsFollowing(prev);
       setFollowersCount(c => prev ? c + 1 : c - 1);
+    }
+  };
+
+  const handleBlockUser = async () => {
+    if (!user || user.id === targetUserId) return;
+    
+    Alert.alert(
+      'Block User',
+      `Block ${profileUser?.username}? They won't be able to find your profile, posts, or interact with you.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Block', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.blockUser(targetUserId);
+              setIsBlocked(true);
+              Alert.alert('Blocked', `Blocked ${profileUser?.username}`);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to block user');
+            }
+          }
+        },
+      ]
+    );
+  };
+
+  const handleUnblockUser = async () => {
+    try {
+      await api.unblockUser(targetUserId);
+      setIsBlocked(false);
+      Alert.alert('Unblocked', `Unblocked ${profileUser?.username}`);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to unblock user');
     }
   };
 
@@ -438,6 +475,22 @@ export default function ProfileScreen({ navigation, route }) {
                 <Ionicons name="share-outline" size={18} color={GOLD} />
               </TouchableOpacity>
               
+              {!isBlocked ? (
+                <TouchableOpacity 
+                  onPress={handleBlockUser} 
+                  style={styles.actionButton}
+                >
+                  <Ionicons name="person-remove-outline" size={18} color="#EF4444" />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  onPress={handleUnblockUser} 
+                  style={styles.actionButton}
+                >
+                  <Ionicons name="person-add-outline" size={18} color={GOLD} />
+                </TouchableOpacity>
+              )}
+              
               <TouchableOpacity 
                 onPress={() => setShowReportModal(true)} 
                 disabled={reportingUser}
@@ -624,11 +677,19 @@ export default function ProfileScreen({ navigation, route }) {
       <Modal
         visible={showEditProfile}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowEditProfile(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.editProfileModal}>
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1}
+          onPress={() => setShowEditProfile(false)}
+        >
+          <TouchableOpacity 
+            style={styles.editProfileModal} 
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.editProfileHeader}>
               <Text style={styles.editProfileTitle}>Edit Profile</Text>
               <TouchableOpacity onPress={() => setShowEditProfile(false)}>
@@ -636,7 +697,7 @@ export default function ProfileScreen({ navigation, route }) {
               </TouchableOpacity>
             </View>
             
-            <ScrollView style={styles.editProfileContent}>
+            <ScrollView style={styles.editProfileContent} showsVerticalScrollIndicator={false}>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>First Name</Text>
                 <TextInput
@@ -715,8 +776,8 @@ export default function ProfileScreen({ navigation, route }) {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
       <Modal
         visible={showReportModal}
@@ -1082,8 +1143,8 @@ const styles = StyleSheet.create({
   // Edit Profile Modal Styles
   editProfileModal: {
     backgroundColor: CARD,
-    width: width * 0.95,
-    maxHeight: height * 0.8,
+    width: width * 0.9,
+    maxHeight: height * 0.85,
     borderRadius: 20,
   },
   editProfileHeader: {
@@ -1091,6 +1152,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 20,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: BORDER,
   },
@@ -1102,9 +1164,10 @@ const styles = StyleSheet.create({
   editProfileContent: {
     flex: 1,
     padding: 20,
+    paddingBottom: 0,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
@@ -1116,8 +1179,8 @@ const styles = StyleSheet.create({
     backgroundColor: BG,
     borderWidth: 1,
     borderColor: BORDER,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 10,
+    padding: 14,
     color: '#fff',
     fontSize: 16,
   },
@@ -1125,27 +1188,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     padding: 20,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: BORDER,
   },
   cancelButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
     backgroundColor: 'transparent',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: BORDER,
     alignItems: 'center',
   },
   cancelButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   saveButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
     backgroundColor: GOLD,
     alignItems: 'center',
   },

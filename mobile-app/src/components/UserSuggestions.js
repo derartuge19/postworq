@@ -1,22 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api';
 
 const GOLD = '#C8B56A', BG = '#0D0D0D', CARD = '#1A1A1A', BORDER = '#262626';
 
-export default function UserSuggestions({ onUserClick }) {
+export default React.memo(function UserSuggestions({ onUserClick }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [followingStates, setFollowingStates] = useState({});
 
   useEffect(() => {
     if (api.hasToken()) {
-      fetchSuggestions();
+      fetchSuggestionsWithCache();
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [fetchSuggestionsWithCache]);
+
+  // Cache suggestions for 5 minutes to avoid repeated fetches
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  const [lastFetchTime, setLastFetchTime] = useState(null);
+
+  const fetchSuggestionsWithCache = useCallback(async () => {
+    const now = Date.now();
+    if (lastFetchTime && (now - lastFetchTime < CACHE_DURATION) && suggestions.length > 0) {
+      return; // Use cached data
+    }
+    await fetchSuggestions();
+    setLastFetchTime(now);
+  }, [lastFetchTime, suggestions.length, fetchSuggestions]);
 
   const fetchSuggestions = async () => {
     try {
@@ -38,7 +51,7 @@ export default function UserSuggestions({ onUserClick }) {
     }
   };
 
-  const handleFollowToggle = async (userId) => {
+  const handleFollowToggle = useCallback(async (userId) => {
     try {
       const response = await api.toggleFollow(userId);
       setFollowingStates(prev => ({
@@ -54,7 +67,47 @@ export default function UserSuggestions({ onUserClick }) {
     } catch (error) {
       console.error("Failed to toggle follow:", error);
     }
-  };
+  }, []);
+
+  const renderSuggestion = useCallback((user) => {
+    const isFollowing = followingStates[user.id];
+    return (
+      <TouchableOpacity
+        key={user.id}
+        style={styles.suggestionCard}
+        onPress={() => onUserClick?.(user)}
+        activeOpacity={0.8}
+      >
+        <View style={styles.avatarContainer}>
+          {user.profile_photo ? (
+            <Image source={{ uri: user.profile_photo }} style={styles.avatar} />
+          ) : (
+            <Text style={styles.avatarText}>👤</Text>
+          )}
+        </View>
+        <Text style={styles.username} numberOfLines={1}>{user.username}</Text>
+        <Text style={styles.fullname} numberOfLines={1}>
+          {user.first_name ? `${user.first_name} ${user.last_name || ''}` : 'Suggested for you'}
+        </Text>
+        <TouchableOpacity
+          style={[styles.followButton, isFollowing && styles.followingButton]}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleFollowToggle(user.id);
+          }}
+        >
+          <Ionicons 
+            name={isFollowing ? "checkmark" : "add"} 
+            size={14} 
+            color={isFollowing ? GOLD : '#000'} 
+          />
+          <Text style={[styles.followButtonText, isFollowing && styles.followingButtonText]}>
+            {isFollowing ? 'Following' : 'Follow'}
+          </Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  }, [followingStates, onUserClick, handleFollowToggle]);
 
   if (loading) {
     return (
@@ -83,49 +136,11 @@ export default function UserSuggestions({ onUserClick }) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {suggestions.map(user => {
-          const isFollowing = followingStates[user.id];
-          return (
-            <TouchableOpacity
-              key={user.id}
-              style={styles.suggestionCard}
-              onPress={() => onUserClick?.(user)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.avatarContainer}>
-                {user.profile_photo ? (
-                  <Image source={{ uri: user.profile_photo }} style={styles.avatar} />
-                ) : (
-                  <Text style={styles.avatarText}>👤</Text>
-                )}
-              </View>
-              <Text style={styles.username} numberOfLines={1}>{user.username}</Text>
-              <Text style={styles.fullname} numberOfLines={1}>
-                {user.first_name ? `${user.first_name} ${user.last_name || ''}` : 'Suggested for you'}
-              </Text>
-              <TouchableOpacity
-                style={[styles.followButton, isFollowing && styles.followingButton]}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  handleFollowToggle(user.id);
-                }}
-              >
-                <Ionicons 
-                  name={isFollowing ? "checkmark" : "add"} 
-                  size={14} 
-                  color={isFollowing ? GOLD : '#000'} 
-                />
-                <Text style={[styles.followButtonText, isFollowing && styles.followingButtonText]}>
-                  {isFollowing ? 'Following' : 'Follow'}
-                </Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          );
-        })}
+        {suggestions.map(renderSuggestion)}
       </ScrollView>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

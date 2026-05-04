@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity, Image,
   ActivityIndicator, RefreshControl, TextInput, Modal, ScrollView,
@@ -8,7 +8,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
+import Avatar from '../components/Avatar';
 import UserSuggestions from '../components/UserSuggestions';
+import HorizontalUserSuggestions from '../components/HorizontalUserSuggestions';
 
 const { width, height } = Dimensions.get('window');
 const GOLD = '#C8B56A';
@@ -27,20 +29,7 @@ function timeAgo(dateStr) {
   return `${Math.floor(diff / 86400)}d`;
 }
 
-function Avatar({ uri, size = 36, name = '' }) {
-  const [err, setErr] = useState(false);
-  const safeName = name || '?';
-  if (uri && !err) {
-    return <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} onError={() => setErr(true)} />;
-  }
-  return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: GOLD, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ color: '#000', fontWeight: '700', fontSize: size * 0.4 }}>{safeName[0].toUpperCase()}</Text>
-    </View>
-  );
-}
-
-function SkeletonPost() {
+const SkeletonPost = React.memo(() => {
   return (
     <View style={{ backgroundColor: CARD, marginBottom: 8, padding: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
@@ -57,7 +46,7 @@ function SkeletonPost() {
       </View>
     </View>
   );
-}
+});
 
 
 export default function HomeScreen({ navigation }) {
@@ -74,13 +63,22 @@ export default function HomeScreen({ navigation }) {
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
   const [postingComment, setPostingComment] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [expandedReplies, setExpandedReplies] = useState(new Set());
+  const [loadingComments, setLoadingComments] = useState(false);
   const [activeTab, setActiveTab] = useState('For You');
   const [showOptions, setShowOptions] = useState(null);
+  const [optionsPosition, setOptionsPosition] = useState({ x: 0, y: 0 });
+  const optionsButtonRef = useRef(null);
   const [followStates, setFollowStates] = useState({});
   const [viewCounts, setViewCounts] = useState({});
   const [shareToast, setShareToast] = useState('');
+  const [showPostInfoModal, setShowPostInfoModal] = useState(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const [showGiftModal, setShowGiftModal] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showHorizontalSuggestions, setShowHorizontalSuggestions] = useState(true);
+  const [suggestionPositions, setSuggestionPositions] = useState(new Set());
   const [giftRecipient, setGiftRecipient] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [sendingGift, setSendingGift] = useState(false);
@@ -88,6 +86,9 @@ export default function HomeScreen({ navigation }) {
   const [giftError, setGiftError] = useState('');
   const [userCoins, setUserCoins] = useState(0);
   const [gifts, setGifts] = useState([]);
+  const [giftsSentToday, setGiftsSentToday] = useState(0);
+  const [dailyGiftLimit, setDailyGiftLimit] = useState(10);
+  const [giftHistory, setGiftHistory] = useState([]);
   const [selectedGift, setSelectedGift] = useState(null);
   const [giftQuantity, setGiftQuantity] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -114,13 +115,44 @@ export default function HomeScreen({ navigation }) {
       // Show stale cache immediately, refresh in background
       const stale = api.requestStale(`/reels/?limit=${LIMIT}&offset=0`, (fresh) => {
         const results = Array.isArray(fresh) ? fresh : (fresh.results || []);
-        setPosts(results);
+        // Insert suggestions at dynamic positions
+        let finalResults = results;
+        if (results.length >= 3) {
+          const positions = calculateSuggestionPositions(results.length);
+          setSuggestionPositions(positions);
+          
+          // Insert suggestions at calculated positions
+          const withSuggestions = [];
+          results.forEach((post, index) => {
+            withSuggestions.push(post);
+            if (positions.has(index)) {
+              withSuggestions.push({ type: 'horizontal_suggestions', id: `suggestions-${index}` });
+            }
+          });
+          finalResults = withSuggestions;
+        }
+        setPosts(finalResults);
         setHasMore(results.length === LIMIT);
         setPage(0);
       });
       if (stale) {
         const results = Array.isArray(stale) ? stale : (stale.results || []);
-        setPosts(results);
+        // Insert suggestions at dynamic positions for stale cache
+        let finalResults = results;
+        if (results.length >= 3) {
+          const positions = calculateSuggestionPositions(results.length);
+          setSuggestionPositions(positions);
+          
+          const withSuggestions = [];
+          results.forEach((post, index) => {
+            withSuggestions.push(post);
+            if (positions.has(index)) {
+              withSuggestions.push({ type: 'horizontal_suggestions', id: `suggestions-${index}` });
+            }
+          });
+          finalResults = withSuggestions;
+        }
+        setPosts(finalResults);
         setHasMore(results.length === LIMIT);
         setPage(0);
         setLoading(false);
@@ -133,10 +165,20 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     const loadUserCoins = async () => {
       try {
+        // Use wallet API to get purchased balance for gifting (web app logic)
+        const wallet = await api.request('/wallet/');
+        setUserCoins(wallet.balance?.purchased || 0);
+        
+        // Load gamification status for daily gift limit
         const status = await api.request('/gamification/status/');
-        setUserCoins(status.coins?.balance || 0);
+        setGiftsSentToday(status.gifts?.sent_today || 0);
+        
+        // Load gift history
+        const history = await api.request('/gamification/gifts/history/');
+        setGiftHistory(history.received || []);
       } catch (error) {
         console.error('Failed to load user coins:', error);
+        setUserCoins(0);
       }
     };
     loadUserCoins();
@@ -165,7 +207,24 @@ export default function HomeScreen({ navigation }) {
       if (reset) setLoading(true); else setLoadingMore(true);
       const data = await api.request(`/reels/?limit=${LIMIT}&offset=${offset}`);
       const results = Array.isArray(data) ? data : (data.results || []);
-      setPosts(prev => reset ? results : [...prev, ...results]);
+      
+      // Insert suggestions at dynamic positions
+      let finalResults = results;
+      if (reset && results.length >= 3) {
+        const positions = calculateSuggestionPositions(results.length);
+        setSuggestionPositions(positions);
+        
+        const withSuggestions = [];
+        results.forEach((post, index) => {
+          withSuggestions.push(post);
+          if (positions.has(index)) {
+            withSuggestions.push({ type: 'horizontal_suggestions', id: `suggestions-${index}` });
+          }
+        });
+        finalResults = withSuggestions;
+      }
+      
+      setPosts(prev => reset ? finalResults : [...prev, ...results]);
       setHasMore(results.length === LIMIT);
       setPage(offset);
     } catch (e) {
@@ -177,38 +236,33 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const handleTabPress = (tab) => {
-    if (tab === 'Explore') {
-      navigation.navigate('Explore');
-      return;
-    }
-    if (tab === 'Campaigns') {
-      navigation.navigate('Campaigns');
-      return;
-    }
-    setActiveTab(tab);
-  };
+  const onRefresh = useCallback(() => { setRefreshing(true); fetchPosts(0, true); }, []);
+  const onEndReached = useCallback(() => { if (!loadingMore && hasMore && activeTab === 'For You') fetchPosts(page + LIMIT); }, [loadingMore, hasMore, activeTab, page]);
 
-  const onRefresh = () => { setRefreshing(true); fetchPosts(0, true); };
-  const onEndReached = () => { if (!loadingMore && hasMore && activeTab === 'For You') fetchPosts(page + LIMIT); };
-
-  const sharePost = async (post) => {
+  const sharePost = useCallback(async (post) => {
     const url = `https://flipstar.app/post/${post.id}`;
     const title = post.caption ? post.caption.slice(0, 80) : 'Check out this post on FlipStar';
     
     try {
       await Share.share({
         message: `${title} ${url}`,
+        url: url,
         title: 'FlipStar Post',
       });
-      // Increment share count
-      try { await api.request(`/reels/${post.id}/share/`, { method: 'POST' }); } catch {}
+      // Increment share count on backend
+      try { await api.request(`/reels/${post.id}/share/`, { method: 'POST' }); } catch (err) {
+        console.log('Share API error:', err);
+      }
     } catch (error) {
+      if (error.message === 'User did not share') {
+        // User cancelled - this is expected behavior
+        return;
+      }
       console.log('Share error:', error);
     }
-  };
+  }, []);
 
-  const toggleFollow = async (userId) => {
+  const toggleFollow = useCallback(async (userId) => {
     if (!user) {
       Alert.alert('Login Required', 'Please login to follow users');
       return;
@@ -221,17 +275,28 @@ export default function HomeScreen({ navigation }) {
         body: JSON.stringify({ following_id: userId }),
       });
       
-      // Update follow status based on response
-      const newFollowStatus = response.following !== undefined ? response.following : true;
-      setPosts(prev => prev.map(p => 
-        p.user?.id === userId ? { ...p, user: { ...p.user, is_following: newFollowStatus } } : p
-      ));
-      setFollowStates(prev => ({ ...prev, [userId]: newFollowStatus }));
+      setFollowStates(prev => ({ ...prev, [userId]: response.following }));
+      
+      // Activity-based trigger: after following, show suggestions
+      if (response.following) {
+        // Insert suggestions near the current position after a short delay
+        setTimeout(() => {
+          setPosts(prev => {
+            const currentIndex = prev.findIndex(p => p.user?.id === userId);
+            if (currentIndex !== -1 && currentIndex + 1 < prev.length) {
+              const newPosts = [...prev];
+              newPosts.splice(currentIndex + 1, 0, { type: 'horizontal_suggestions', id: `suggestions-follow-${Date.now()}` });
+              return newPosts;
+            }
+            return prev;
+          });
+        }, 500);
+      }
     } catch (error) {
       console.error('Follow error:', error);
       setFollowStates(prev => ({ ...prev, [userId]: false }));
     }
-  };
+  }, [user]);
 
   const trackView = async (postId) => {
     if (viewCounts[postId]) return;
@@ -247,16 +312,137 @@ export default function HomeScreen({ navigation }) {
     } catch {}
   };
 
+  // Build comment tree from flat list (like web app)
+  const buildCommentTree = (flatList) => {
+    if (!Array.isArray(flatList)) return [];
+    const map = {};
+    const roots = [];
+    
+    flatList.forEach(c => {
+      map[c.id] = { ...c };
+      if (!map[c.id].replies) map[c.id].replies = [];
+    });
+    
+    flatList.forEach(c => {
+      const node = map[c.id];
+      const parentVal = c.parent_id || c.parent;
+      const parentId = (parentVal && typeof parentVal === 'object') ? parentVal.id : parentVal;
+      
+      if (parentId && String(parentId) !== '0') {
+        const parent = map[parentId];
+        if (parent) {
+          if (!parent.replies.some(r => String(r.id) === String(node.id))) {
+            parent.replies.push(node);
+          }
+        } else {
+          roots.push(node);
+        }
+      } else {
+        roots.push(node);
+      }
+    });
+    return roots;
+  };
+
+  const toggleReplies = (commentId) => {
+    setExpandedReplies(prev => {
+      const next = new Set(prev);
+      if (next.has(commentId)) next.delete(commentId);
+      else next.add(commentId);
+      return next;
+    });
+  };
+
+  const findRootId = (list, targetId) => {
+    for (const c of list) {
+      if (String(c.id) === String(targetId)) return c.id;
+      if (c.replies?.length) {
+        const found = findRootId(c.replies, targetId);
+        if (found !== null) return found;
+      }
+    }
+    return null;
+  };
+
   const showPostOptions = (post) => {
+    // Position dropdown in upper right corner of the card (Instagram-style)
+    // Fixed position from top-right of screen
+    setOptionsPosition({ 
+      x: Dimensions.get('window').width - 200, // 200px from left (right-aligned)
+      y: 60 // 60px from top (below header)
+    });
     setShowOptions(post);
   };
 
-  const copyPostLink = async (post) => {
+  const handleTabPress = (tab) => {
+    setActiveTab(tab);
+  };
+
+  // Calculate dynamic suggestion positions based on Instagram-style algorithm
+  const calculateSuggestionPositions = (postCount) => {
+    const positions = new Set();
+    if (postCount < 3) return positions;
+    
+    // Insert suggestions at random intervals (every 3-5 posts)
+    // Instagram uses dynamic positioning based on user activity
+    let position = 2 + Math.floor(Math.random() * 3); // Start between 2-4
+    while (position < postCount) {
+      positions.add(position);
+      position += 3 + Math.floor(Math.random() * 3); // Add 3-5 posts between suggestions
+    }
+    
+    return positions;
+  };
+
+  const copyPostLink = (post) => {
     const url = `https://flipstar.app/post/${post.id}`;
-    // In React Native, we'll just show a toast since clipboard access varies
-    setShareToast('Link copied!');
-    setTimeout(() => setShareToast(''), 2000);
+    Share.share({
+      message: url,
+      title: 'FlipStar Post',
+    }).catch(() => {});
     setShowOptions(null);
+  };
+
+  const showPostInfo = (post) => {
+    setShowPostInfoModal(post);
+    setShowOptions(null);
+  };
+
+  const downloadPost = async (post) => {
+    const url = post.media || post.image;
+    if (!url) return;
+    
+    try {
+      // For Cloudinary URLs, add fl_attachment to force download
+      let downloadUrl = url;
+      if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+        downloadUrl = url.replace('/upload/', '/upload/fl_attachment/');
+      }
+      
+      // In React Native, we can't directly download files to device storage
+      // We'll show a toast with the download URL
+      setShareToast('Download link copied to clipboard');
+      setTimeout(() => setShareToast(''), 2000);
+      setShowOptions(null);
+    } catch (error) {
+      console.error('Download error:', error);
+    }
+  };
+
+  const deletePost = async (post) => {
+    if (!user || user.id !== post.user?.id) return;
+    
+    try {
+      await api.request(`/reels/${post.id}/`, { method: 'DELETE' });
+      setPosts(prev => prev.filter(p => p.id !== post.id));
+      setShowOptions(null);
+      setShareToast('Post deleted successfully');
+      setTimeout(() => setShareToast(''), 2000);
+    } catch (error) {
+      console.error('Delete error:', error);
+      setShareToast('Failed to delete post');
+      setTimeout(() => setShareToast(''), 2000);
+    }
   };
 
   const reportPost = (post) => {
@@ -289,12 +475,12 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const goToReel = (postId) => {
+  const goToReel = useCallback((postId) => {
     trackView(postId);
     navigation.navigate('ReelsDetail', { initialVideoId: postId });
-  };
+  }, [navigation]);
 
-  const toggleLike = async (post) => {
+  const toggleLike = useCallback(async (post) => {
     const newLiked = !post.is_liked;
     setPosts(prev => prev.map(p => p.id === post.id
       ? { ...p, is_liked: newLiked, votes: newLiked ? (p.votes + 1) : Math.max(0, p.votes - 1) }
@@ -304,9 +490,9 @@ export default function HomeScreen({ navigation }) {
     } catch { 
       setPosts(prev => prev.map(p => p.id === post.id ? { ...p, is_liked: post.is_liked, votes: post.votes } : p));
     }
-  };
+  }, []);
 
-  const toggleSave = async (post) => {
+  const toggleSave = useCallback(async (post) => {
     const newSaved = !post.is_saved;
     setPosts(prev => prev.map(p => p.id === post.id ? { ...p, is_saved: newSaved } : p));
     try {
@@ -314,7 +500,7 @@ export default function HomeScreen({ navigation }) {
     } catch {
       setPosts(prev => prev.map(p => p.id === post.id ? { ...p, is_saved: post.is_saved } : p));
     }
-  };
+  }, []);
 
   const openGiftModal = (postUser) => {
     setGiftRecipient(postUser?.username || '');
@@ -337,14 +523,24 @@ export default function HomeScreen({ navigation }) {
       return;
     }
     const totalCost = selectedGift.coin_value * giftQuantity;
-    if (totalCost > userCoins) {
-      setGiftError('Insufficient coins');
+    
+    // Check daily gift limit (web app logic: 10 gifts per day)
+    if (giftsSentToday >= dailyGiftLimit) {
+      setGiftError(`Daily gift limit reached (${dailyGiftLimit} per day)`);
       return;
     }
+    
+    // Check purchased coins balance (web app logic: only purchased coins can be gifted)
+    if (totalCost > userCoins) {
+      setGiftError(`Insufficient purchased coins. Need ${totalCost}, have ${userCoins}`);
+      return;
+    }
+    
     setSendingGift(true);
     setGiftError('');
     try {
-      const res = await api.request('/gifts/send/', {
+      // Use gifts/send endpoint (web app logic)
+      await api.request('/gifts/send/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -354,10 +550,21 @@ export default function HomeScreen({ navigation }) {
           message: giftMessage,
         }),
       });
-      setGiftSent(res);
+      setGiftSent(true);
       setUserCoins(prev => prev - totalCost);
+      setGiftsSentToday(prev => prev + 1);
+      setTimeout(() => {
+        setShowGiftModal(false);
+        setGiftSent(null);
+      }, 2000);
     } catch (error) {
-      setGiftError(error.message || 'Failed to send gift');
+      console.error('Gift error:', error);
+      const errorData = error.response?.data || error;
+      if (errorData.needs_recharge) {
+        setGiftError(`Insufficient purchased coins. Need ${totalCost}, have ${userCoins}`);
+      } else {
+        setGiftError(errorData.error || error.message || 'Failed to send gift');
+      }
     } finally {
       setSendingGift(false);
     }
@@ -365,25 +572,102 @@ export default function HomeScreen({ navigation }) {
 
   const openComments = async (post) => {
     setCommentPost(post);
+    setLoadingComments(true);
     try {
-      const data = await api.request(`/reels/${post.id}/comments/?include_replies=true`);
-      setComments(Array.isArray(data) ? data : (data.results || []));
-    } catch { setComments([]); }
+      // Fetch comments with replies for tree structure
+      const data = await api.request(`/reels/${post.id}/comments/?include_replies=true&depth=2`);
+      const full = Array.isArray(data) ? data : (data?.results || []);
+      setComments(buildCommentTree(full));
+    } catch (e) {
+      console.error('Failed to fetch comments:', e);
+      setComments(buildCommentTree(post.recent_comments || []));
+    } finally {
+      setLoadingComments(false);
+    }
   };
 
   const postComment = async () => {
     if (!commentText.trim() || !commentPost) return;
     setPostingComment(true);
+    
+    const temp = {
+      id: `temp-${Date.now()}`,
+      text: commentText.trim(),
+      user: user || { username: 'you', profile_photo: null },
+      created_at: new Date().toISOString(),
+      likes: 0,
+      replies: [],
+      pending: true,
+    };
+
     try {
-      const c = await api.request(`/reels/${commentPost.id}/comments/`, {
-        method: 'POST', body: JSON.stringify({ text: commentText.trim() }),
-      });
-      setComments(prev => [c, ...prev]);
+      if (replyingTo) {
+        // Add as reply
+        const updateDeep = (list) => list.map(c => {
+          if (String(c.id) === String(replyingTo.id)) {
+            return { ...c, replies: [...(c.replies || []), temp] };
+          }
+          if (c.replies && c.replies.length) {
+            return { ...c, replies: updateDeep(c.replies) };
+          }
+          return c;
+        });
+        setComments(updateDeep(comments));
+        
+        // Auto-expand the root ancestor
+        const rootId = findRootId(comments, replyingTo.id);
+        if (rootId != null) {
+          setExpandedReplies(prev => {
+            const next = new Set(prev);
+            next.add(rootId);
+            return next;
+          });
+        }
+        
+        const res = await api.request(`/reels/${commentPost.id}/comments/`, {
+          method: 'POST',
+          body: JSON.stringify({ text: commentText.trim(), parent_id: replyingTo.id }),
+        });
+        if (!res.replies) res.replies = [];
+        
+        const swapDeep = (list) => list.map(c => {
+          if (String(c.id) === String(replyingTo.id)) {
+            return { ...c, replies: c.replies.map(r => r.id === temp.id ? res : r) };
+          }
+          if (c.replies && c.replies.length) {
+            return { ...c, replies: swapDeep(c.replies) };
+          }
+          return c;
+        });
+        setComments(swapDeep(comments));
+      } else {
+        // Add as top-level comment
+        setComments([temp, ...comments]);
+        const c = await api.request(`/reels/${commentPost.id}/comments/`, {
+          method: 'POST', body: JSON.stringify({ text: commentText.trim() }),
+        });
+        if (!c.replies) c.replies = [];
+        setComments(prev => prev.map(cm => cm.id === temp.id ? c : cm));
+      }
+      
       setCommentText('');
+      setReplyingTo(null);
       setPosts(prev => prev.map(p => p.id === commentPost.id
         ? { ...p, comment_count: (p.comment_count || 0) + 1 } : p));
-    } catch { Alert.alert('Error', 'Failed to post comment'); }
-    finally { setPostingComment(false); }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to post comment');
+      // Roll back
+      setComments(prev => {
+        const removeDeep = (list) => list.filter(c => {
+          if (c.id === temp.id) return false;
+          if (c.replies?.length) c.replies = removeDeep(c.replies);
+          return true;
+        });
+        return removeDeep(prev);
+      });
+    } finally {
+      setPostingComment(false);
+    }
   };
 
   const renderHashtags = (hashtags) => {
@@ -393,7 +677,79 @@ export default function HomeScreen({ navigation }) {
     return <Text style={styles.hashtags}>{tags}</Text>;
   };
 
-  const renderPost = ({ item: post, index }) => {
+  // Recursive comment item component for tree structure
+  const CommentItem = ({ comment, depth = 0 }) => {
+    const isReply = depth > 0;
+    const avatarSize = isReply ? 28 : 34;
+    const hasReplies = comment.replies && comment.replies.length > 0;
+    const isExpanded = expandedReplies.has(comment.id);
+    const showRepliesToggle = !isReply && hasReplies;
+
+    return (
+      <View style={{ marginBottom: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+          <Avatar uri={comment.user?.profile_photo} size={avatarSize} name={comment.user?.username} />
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.commentUser}>{comment.user?.username}</Text>
+              <Text style={{ color: '#666', fontSize: 11 }}>{timeAgo(comment.created_at)}</Text>
+            </View>
+            <Text style={styles.commentText}>{comment.text}</Text>
+            <View style={{ flexDirection: 'row', gap: 16, marginTop: 6 }}>
+              <TouchableOpacity onPress={() => {}}>
+                <Ionicons name="heart-outline" size={16} color="#666" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setReplyingTo(comment)}>
+                <Text style={{ color: GOLD, fontSize: 13, fontWeight: '600' }}>Reply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        
+        {/* View/Hide replies button */}
+        {showRepliesToggle && (
+          <TouchableOpacity 
+            onPress={() => toggleReplies(comment.id)}
+            style={{ marginLeft: avatarSize + 10, marginTop: 8 }}
+          >
+            <Text style={{ color: GOLD, fontSize: 13, fontWeight: '600' }}>
+              {isExpanded 
+                ? `Hide ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`
+                : `View ${comment.replies.length} ${comment.replies.length === 1 ? 'reply' : 'replies'}`
+              }
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Recursive replies with tree line */}
+        {hasReplies && (isReply || isExpanded) && (
+          <View style={{ 
+            marginLeft: depth === 0 ? 18 : 12, 
+            paddingLeft: depth === 0 ? 26 : 18, 
+            borderLeftWidth: 2, 
+            borderLeftColor: 'rgba(200, 181, 106, 0.2)',
+            marginTop: 12,
+          }}>
+            {comment.replies.map(r => (
+              <CommentItem key={r.id} comment={r} depth={depth + 1} />
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderPost = useCallback(({ item: post, index }) => {
+    // Render horizontal suggestions after 2nd post (index 1)
+    if (post.type === 'horizontal_suggestions' || post.type === 'suggestions') {
+      return showHorizontalSuggestions ? (
+        <HorizontalUserSuggestions 
+          onUserClick={(userId) => navigation.navigate('Profile', { userId })}
+          onDismiss={() => setShowHorizontalSuggestions(false)}
+        />
+      ) : null;
+    }
+
     const isVideo = !!(post.media) && (
       /\.(mp4|webm|ogg|mov)(\?|$)/i.test(post.media) ||
       post.media.includes('/video/upload/')
@@ -422,15 +778,13 @@ export default function HomeScreen({ navigation }) {
             <Avatar uri={post.user?.profile_photo} size={36} name={post.user?.username} />
             <View style={{ marginLeft: 10, flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={styles.username}>{post.user?.username || 'Unknown'}</Text>
-                <Ionicons name="checkmark-circle" size={14} color={GOLD} />
+                <Text style={styles.username}>{post.user?.username}</Text>
               </View>
-              <Text style={styles.timeAgo}>{timeAgo(post.created_at)}</Text>
             </View>
           </TouchableOpacity>
-          
-          {/* Follow/Unfollow button */}
-          {!isOwnPost && (
+            
+          {/* Follow/Unfollow button - only show for other users' posts */}
+          {user && post.user?.id !== user.id && (
             <TouchableOpacity
               style={[
                 styles.followBtn,
@@ -447,29 +801,14 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           )}
           
+          {/* Options - moved to header upper right */}
           <TouchableOpacity
-            style={styles.optionsBtn}
+            style={styles.headerOptionsBtn}
             onPress={() => showPostOptions(post)}
           >
             <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
           </TouchableOpacity>
         </View>
-
-        {/* Caption */}
-        {post.caption && (
-          <TouchableOpacity 
-            style={styles.captionContainer}
-            onPress={() => {}} // Could expand caption
-          >
-            <Text style={styles.caption} numberOfLines={2}>
-              <Text style={styles.captionUsername}>{post.user?.username} </Text>
-              {post.caption}
-            </Text>
-            {post.caption.length > 100 && (
-              <Text style={styles.captionMore}> more</Text>
-            )}
-          </TouchableOpacity>
-        )}
 
         {/* Media */}
         {(post.media || post.image) && (
@@ -539,18 +878,36 @@ export default function HomeScreen({ navigation }) {
             )}
           </View>
           
-          {/* Save */}
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => toggleSave(post)}
-          >
-            <Ionicons
-              name={post.is_saved ? 'bookmark' : 'bookmark-outline'}
-              size={22}
-              color={post.is_saved ? LIGHT_GOLD : LIGHT_GOLD}
-            />
-          </TouchableOpacity>
+          <View style={styles.rightActions}>
+            {/* Save */}
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => toggleSave(post)}
+            >
+              <Ionicons
+                name={post.is_saved ? 'bookmark' : 'bookmark-outline'}
+                size={22}
+                color={post.is_saved ? LIGHT_GOLD : LIGHT_GOLD}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Caption */}
+        {post.caption && (
+          <TouchableOpacity 
+            style={styles.captionContainer}
+            onPress={() => {}} // Could expand caption
+          >
+            <Text style={styles.caption} numberOfLines={2}>
+              <Text style={styles.captionUsername}>{post.user?.username} </Text>
+              {post.caption}
+            </Text>
+            {post.caption.length > 100 && (
+              <Text style={styles.captionMore}> more</Text>
+            )}
+          </TouchableOpacity>
+        )}
 
         {/* Recent comments */}
         {post.recent_comments && post.recent_comments.length > 0 && (
@@ -576,7 +933,7 @@ export default function HomeScreen({ navigation }) {
         {renderHashtags(post.hashtags_list || post.hashtags)}
       </Animated.View>
     );
-  };
+  }, [user, followStates, navigation, toggleLike, toggleSave, sharePost, goToReel, openComments, openGiftModal, showPostOptions, scrollY]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -631,7 +988,7 @@ export default function HomeScreen({ navigation }) {
           renderItem={renderPost}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: false }
+            { useNativeDriver: true }
           )}
           scrollEventThrottle={16}
           refreshControl={
@@ -639,10 +996,8 @@ export default function HomeScreen({ navigation }) {
           }
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}
-          ListHeaderComponent={<UserSuggestions onUserClick={(user) => navigation.navigate('Profile', { userId: user.id })} />}
-          ListFooterComponent={
-            loadingMore ? <ActivityIndicator color={GOLD} style={{ padding: 16 }} /> : null
-          }
+          ListHeaderComponent={null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator color={GOLD} style={{ padding: 16 }} /> : null}
           ListEmptyComponent={
             <View style={styles.centered}>
               <Text style={{ color: '#666', fontSize: 16 }}>No posts yet</Text>
@@ -651,6 +1006,11 @@ export default function HomeScreen({ navigation }) {
           }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 20 }}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={5}
+          windowSize={3}
+          initialNumToRender={3}
+          updateCellsBatchingPeriod={50}
         />
       ) : (
         <View style={styles.centered}>
@@ -665,6 +1025,74 @@ export default function HomeScreen({ navigation }) {
         </View>
       )}
 
+      {/* Post Info Modal */}
+      {showPostInfoModal && (
+        <Modal
+          visible={!!showPostInfoModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowPostInfoModal(null)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowPostInfoModal(null)}
+          >
+            <View style={styles.infoSheet}>
+              <View style={styles.sheetHandle} />
+              <View style={styles.sheetHeader}>
+                <Text style={styles.sheetTitle}>Post Info</Text>
+                <TouchableOpacity onPress={() => setShowPostInfoModal(null)}>
+                  <Ionicons name="close" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+              <View style={{ padding: 20 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                  <Avatar uri={showPostInfoModal.user?.profile_photo} size={44} name={showPostInfoModal.user?.username} />
+                  <View style={{ marginLeft: 12 }}>
+                    <Text style={{ color: GOLD, fontWeight: '700', fontSize: 16 }}>
+                      @{showPostInfoModal.user?.username}
+                    </Text>
+                    <Text style={{ color: '#666', fontSize: 12 }}>
+                      {showPostInfoModal.user?.first_name} {showPostInfoModal.user?.last_name || ''}
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 16 }}>
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ color: '#666', fontSize: 12 }}>Likes</Text>
+                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 18 }}>{showPostInfoModal.votes || 0}</Text>
+                  </View>
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ color: '#666', fontSize: 12 }}>Comments</Text>
+                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 18 }}>{showPostInfoModal.comment_count || 0}</Text>
+                  </View>
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ color: '#666', fontSize: 12 }}>Views</Text>
+                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 18 }}>{showPostInfoModal.view_count || 0}</Text>
+                  </View>
+                </View>
+                <Text style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                  {showPostInfoModal.media ? '🎬 Video' : '🖼️ Image'} · {timeAgo(showPostInfoModal.created_at)}
+                </Text>
+                {showPostInfoModal.caption && (
+                  <Text style={{ color: '#fff', fontSize: 14, lineHeight: 1.5 }}>
+                    <Text style={{ color: GOLD, fontWeight: '700' }}>@{showPostInfoModal.user?.username} </Text>
+                    {showPostInfoModal.caption}
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity
+                style={{ padding: 16, borderTopWidth: 1, borderTopColor: BORDER, alignItems: 'center' }}
+                onPress={() => setShowPostInfoModal(null)}
+              >
+                <Text style={{ color: GOLD, fontWeight: '600' }}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
+
       {/* Post Options Modal */}
       <Modal
         visible={!!showOptions}
@@ -677,10 +1105,22 @@ export default function HomeScreen({ navigation }) {
           activeOpacity={1}
           onPress={() => setShowOptions(null)}
         >
-          <View style={styles.optionsDropdown}>
+          <View style={[styles.optionsDropdown, { top: optionsPosition.y, left: optionsPosition.x }]}>
+            <TouchableOpacity style={styles.dropdownItem} onPress={() => showPostInfo(showOptions)}>
+              <Ionicons name="information-circle-outline" size={18} color={GOLD} />
+              <Text style={styles.dropdownText}>Post Info</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.dropdownItem} onPress={() => copyPostLink(showOptions)}>
-              <Ionicons name="share-outline" size={18} color={GOLD} />
-              <Text style={styles.dropdownText}>Share</Text>
+              <Ionicons name="link-outline" size={18} color={GOLD} />
+              <Text style={styles.dropdownText}>Copy Link</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.dropdownItem} onPress={() => toggleSave(showOptions)}>
+              <Ionicons name="bookmark-outline" size={18} color={GOLD} />
+              <Text style={styles.dropdownText}>{showOptions?.is_saved ? 'Saved' : 'Save to Favorites'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.dropdownItem} onPress={() => downloadPost(showOptions)}>
+              <Ionicons name="download-outline" size={18} color={GOLD} />
+              <Text style={styles.dropdownText}>Download</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.dropdownItem} onPress={() => reportPost(showOptions)}>
               <Ionicons name="eye-off-outline" size={18} color="#78716C" />
@@ -691,7 +1131,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={[styles.dropdownText, { color: '#EF4444' }]}>Report</Text>
             </TouchableOpacity>
             {user?.id === showOptions?.user?.id && (
-              <TouchableOpacity style={styles.dropdownItem}>
+              <TouchableOpacity style={styles.dropdownItem} onPress={() => deletePost(showOptions)}>
                 <Ionicons name="trash-outline" size={18} color="#EF4444" />
                 <Text style={[styles.dropdownText, { color: '#EF4444' }]}>Delete Post</Text>
               </TouchableOpacity>
@@ -717,27 +1157,40 @@ export default function HomeScreen({ navigation }) {
               </TouchableOpacity>
             </View>
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-              {comments.length === 0 ? (
+              {loadingComments ? (
+                <View style={{ padding: 32, alignItems: 'center' }}>
+                  <ActivityIndicator color={GOLD} />
+                  <Text style={{ color: '#666', marginTop: 12 }}>Loading comments...</Text>
+                </View>
+              ) : comments.length === 0 ? (
                 <Text style={{ color: '#666', textAlign: 'center', padding: 32 }}>
-                  No comments yet
+                  No comments yet. Be the first!
                 </Text>
               ) : (
-                comments.map(c => (
-                  <View key={c.id} style={styles.commentItem}>
-                    <Avatar uri={c.user?.profile_photo} size={32} name={c.user?.username} />
-                    <View style={{ flex: 1, marginLeft: 10 }}>
-                      <Text style={styles.commentUser}>{c.user?.username}</Text>
-                      <Text style={styles.commentText}>{c.text}</Text>
-                    </View>
-                  </View>
-                ))
+                <View style={{ padding: 12 }}>
+                  {comments.map(c => (
+                    <CommentItem key={c.id} comment={c} depth={0} />
+                  ))}
+                </View>
               )}
             </ScrollView>
+            
+            {/* Reply indicator */}
+            {replyingTo && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, backgroundColor: CARD, borderBottomWidth: 1, borderBottomColor: BORDER }}>
+                <Text style={{ color: GOLD, fontSize: 12 }}>Replying to </Text>
+                <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>{replyingTo.user?.username}</Text>
+                <TouchableOpacity onPress={() => setReplyingTo(null)} style={{ marginLeft: 'auto' }}>
+                  <Ionicons name="close-circle" size={16} color="#666" />
+                </TouchableOpacity>
+              </View>
+            )}
+            
             <View style={styles.commentInput}>
               <Avatar uri={user?.profile_photo} size={32} name={user?.username} />
               <TextInput
                 style={styles.commentTextInput}
-                placeholder="Add a comment..."
+                placeholder={replyingTo ? `Reply to ${replyingTo.user?.username}...` : "Add a comment..."}
                 placeholderTextColor="#666"
                 value={commentText}
                 onChangeText={setCommentText}
@@ -791,7 +1244,11 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>🎁 Gift to @{giftRecipient}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Text style={styles.coinBalance}>🪙 {userCoins}</Text>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.coinBalance}>🪙 {userCoins}</Text>
+                  <Text style={styles.coinLabel}>Purchased Coins</Text>
+                  <Text style={styles.giftLimitLabel}>{giftsSentToday}/{dailyGiftLimit} gifts today</Text>
+                </View>
                 <TouchableOpacity onPress={() => setShowGiftModal(false)}>
                   <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
@@ -914,6 +1371,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: BORDER,
   },
   headerTitle: { fontSize: 20, fontWeight: '900', color: GOLD },
+  coinBalance: { fontSize: 16, fontWeight: '700', color: GOLD },
+  coinLabel: { fontSize: 10, color: '#666', fontWeight: '600' },
+  giftLimitLabel: { fontSize: 9, color: '#888', fontWeight: '500' },
   headerLogo: { width: 120, height: 30 },
   
   // Tab Navigation
@@ -982,8 +1442,11 @@ const styles = StyleSheet.create({
     borderColor: GOLD,
     borderRadius: 6,
     paddingVertical: 4,
-    paddingHorizontal: 8,
-    marginRight: 8,
+    paddingHorizontal: 12,
+  },
+  headerOptionsBtn: {
+    padding: 8,
+    marginLeft: 8,
   },
   followingBtn: {
     backgroundColor: 'rgba(249,224,139,0.15)',
@@ -1082,6 +1545,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
   },
+  rightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   actionBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -1132,8 +1600,6 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   optionsDropdown: {
     position: 'absolute',
-    top: 60,
-    right: 16,
     backgroundColor: CARD,
     borderRadius: 12,
     borderWidth: 1,
@@ -1144,6 +1610,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
+    zIndex: 1000,
   },
   dropdownItem: {
     flexDirection: 'row',
@@ -1166,6 +1633,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     height: '75%',
     paddingBottom: 20,
+  },
+  infoSheet: {
+    backgroundColor: CARD,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '60%',
+    marginTop: 'auto',
   },
   sheetHandle: { 
     width: 40, 
