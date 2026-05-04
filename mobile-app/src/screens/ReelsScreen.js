@@ -585,7 +585,7 @@ const ReelItem = React.memo(function ReelItem({
             <Ionicons 
               name={videoMuted ? 'volume-mute' : 'volume-high'}
               size={32}
-              color="#fff"
+              color={GOLD}
             />
           </View>
           <Text style={styles.actionLabel}>{videoMuted ? 'Off' : 'On'}</Text>
@@ -600,7 +600,7 @@ const ReelItem = React.memo(function ReelItem({
             <Ionicons 
               name={item.is_liked ? 'heart' : 'heart-outline'}
               size={32}
-              color={item.is_liked ? '#EF4444' : '#fff'}
+              color={item.is_liked ? '#EF4444' : GOLD}
               fill={item.is_liked ? '#EF4444' : 'none'}
             />
           </View>
@@ -609,13 +609,13 @@ const ReelItem = React.memo(function ReelItem({
 
         {/* Comment Button */}
         <TouchableOpacity style={styles.actionItem} onPress={() => setShowComments(true)}>
-          <Ionicons name="chatbubble-outline" size={30} color="#fff" />
+          <Ionicons name="chatbubble-outline" size={30} color={GOLD} />
           <Text style={styles.actionLabel}>{item.comment_count || 0}</Text>
         </TouchableOpacity>
 
         {/* Share Button */}
         <TouchableOpacity style={styles.actionItem} onPress={handleShareVideo}>
-          <Ionicons name="share-outline" size={28} color="#fff" />
+          <Ionicons name="share-outline" size={28} color={GOLD} />
           <Text style={styles.actionLabel}>{item.shares || 0}</Text>
         </TouchableOpacity>
 
@@ -624,7 +624,7 @@ const ReelItem = React.memo(function ReelItem({
           <Ionicons 
             name={item.is_saved ? 'bookmark' : 'bookmark-outline'}
             size={28}
-            color={item.is_saved ? LIGHT_GOLD : '#fff'}
+            color={item.is_saved ? LIGHT_GOLD : GOLD}
           />
         </TouchableOpacity>
 
@@ -1366,7 +1366,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.2 }],
   },
   actionLabel: { 
-    color: '#fff', 
+    color: GOLD, 
     fontSize: 12, 
     fontWeight: '600',
     marginTop: 2,
