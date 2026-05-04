@@ -28,12 +28,20 @@ const ITEM_SIZE = Math.floor((width - (GAP * (COLS - 1)) - 32) / COLS);
 export default function ProfileScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
   const { user: authUser, logout } = useAuth();
-  // authUser comes from /profile/me/ (UserProfileSerializer) so User ID is in authUser.user.id
-  const authUserId = authUser?.user?.id || authUser?.id;
-  const targetUserId = route?.params?.userId || authUserId;
-  const isOwnProfile = !route?.params?.userId || String(route?.params?.userId) === String(authUserId);
+  // authUser is from /profile/me/ (UserProfileSerializer):
+  //   authUser.id        = UserProfile.pk  (used by /profile/{pk}/ endpoint)
+  //   authUser.user.id   = User.pk         (used by /follows/ and /reels/ endpoints)
+  const authProfileId = authUser?.id;                           // UserProfile pk
+  const authUserId    = authUser?.user?.id || authUser?.id;     // User pk
+  const routeUserId   = route?.params?.userId;
+  const isOwnProfile  = !routeUserId || String(routeUserId) === String(authUserId);
+  // For profile endpoint (/profile/{pk}/) use UserProfile pk for own, routeParam for others
+  const targetProfileId = isOwnProfile ? authProfileId : routeUserId;
+  // For follows/reels (FK to User) always use User pk
+  const targetUserId    = isOwnProfile ? authUserId : routeUserId;
 
-  const [profile, setProfile] = useState(null);
+  // Seed own profile immediately from cached authUser so name/username appear at once
+  const [profile, setProfile] = useState(isOwnProfile ? authUser : null);
   const [posts, setPosts] = useState([]);
   const [reels, setReels] = useState([]);
   const [savedPosts, setSavedPosts] = useState([]);
@@ -73,7 +81,7 @@ export default function ProfileScreen({ navigation, route }) {
     { id: 'other', label: 'Other', emoji: '📋' },
   ];
 
-  useEffect(() => { loadProfile(); }, [targetUserId]);
+  useEffect(() => { loadProfile(); }, [targetProfileId]);
   useEffect(() => { 
     if (activeTab === 'reels') loadReels();
     else if (activeTab === 'saved') loadSavedPosts();
@@ -83,8 +91,11 @@ export default function ProfileScreen({ navigation, route }) {
   const loadProfile = async () => {
     try {
       setLoading(true);
+      // Own profile: use /profile/me/ so there is zero ID-mismatch risk.
+      // Other profile: use /profile/{pk}/ with the UserProfile pk from route.
+      const profileEndpoint = isOwnProfile ? '/profile/me/' : `/profile/${targetProfileId}/`;
       const [profileData, postsData, followersData, followingData] = await Promise.all([
-        api.request(`/profile/${targetUserId}/`),
+        api.request(profileEndpoint),
         api.request(`/reels/?user=${targetUserId}`),
         api.request(`/follows/?following=${targetUserId}`),
         api.request(`/follows/?follower=${targetUserId}`),
@@ -226,15 +237,17 @@ export default function ProfileScreen({ navigation, route }) {
     if (!isOwnProfile) return;
     try {
       setSavingProfile(true);
-      await api.request(`/profile/${targetUserId}/`, {
+      // Use the dedicated update_profile endpoint so bio is saved on the profile model
+      await api.request('/profile/update_profile/', {
         method: 'PATCH',
-        body: JSON.stringify({ bio: bioText })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bio: bioText }),
       });
       setProfile(prev => ({ ...prev, bio: bioText }));
       setEditingBio(false);
-      Alert.alert('Success', 'Bio updated successfully!');
+      Alert.alert('Success', 'Bio updated!');
     } catch (err) {
-      Alert.alert('Error', 'Failed to update bio');
+      Alert.alert('Error', 'Failed to update bio. Please try again.');
     } finally {
       setSavingProfile(false);
     }
@@ -242,17 +255,40 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleEditProfile = async () => {
     if (!isOwnProfile) return;
+    // Basic validation
+    if (!editForm.username.trim()) {
+      Alert.alert('Error', 'Username cannot be empty.');
+      return;
+    }
     try {
       setSavingProfile(true);
-      await api.request(`/profile/${targetUserId}/`, {
+      // /profile/update_profile/ correctly saves both User fields (username, email,
+      // first_name, last_name) AND the UserProfile bio field in one request.
+      const saved = await api.request('/profile/update_profile/', {
         method: 'PATCH',
-        body: JSON.stringify(editForm)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
       });
-      setProfile(prev => ({ ...prev, ...editForm }));
+      // saved = { id, username, email, first_name, last_name, bio, profile_photo }
+      // Merge into the nested structure that the display reads from
+      setProfile(prev => ({
+        ...prev,
+        bio: saved.bio ?? editForm.bio ?? prev.bio,
+        profile_photo: saved.profile_photo ?? prev.profile_photo,
+        username: saved.username ?? editForm.username ?? prev.username,
+        user: {
+          ...(prev.user || {}),
+          username:   saved.username   ?? editForm.username   ?? prev.user?.username,
+          email:      saved.email      ?? editForm.email      ?? prev.user?.email,
+          first_name: saved.first_name ?? editForm.first_name ?? prev.user?.first_name,
+          last_name:  saved.last_name  ?? editForm.last_name  ?? prev.user?.last_name,
+        },
+      }));
+      setBioText(saved.bio ?? editForm.bio ?? '');
       setShowEditProfile(false);
       Alert.alert('Success', 'Profile updated successfully!');
     } catch (err) {
-      Alert.alert('Error', 'Failed to update profile');
+      Alert.alert('Error', err?.message || 'Failed to update profile. Please try again.');
     } finally {
       setSavingProfile(false);
     }
