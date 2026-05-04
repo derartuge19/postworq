@@ -402,7 +402,7 @@ const api = {
   },
 
   getBlockedUsers: () => 
-    api.request('/blocks/').then(r => { invalidateCache('/follows'); return r; }),
+    api.request('/blocks/').then(r => { invalidateCache('/follows'); return r; }).catch(() => []),
 
   getFollowers: (userId) => api.request(`/follows/?following=${userId}`),
 
