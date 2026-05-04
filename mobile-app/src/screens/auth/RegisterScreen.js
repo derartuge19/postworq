@@ -4,7 +4,6 @@ import {
   ScrollView, ActivityIndicator, KeyboardAvoidingView,
   Platform, StatusBar, Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
@@ -168,12 +167,15 @@ export default function RegisterScreen({ navigation }) {
       <ScrollView style={s.container} contentContainerStyle={[s.scroll, { paddingTop: insets.top + 16 }]} showsVerticalScrollIndicator={false}>
 
         {/* Logos */}
-        <LinearGradient
-          colors={['#ffffff', '#888888', '#000000']}
-          start={[0, 0]}
-          end={[1, 0]}
-          style={s.logosRow}
-        >
+        <View style={s.logosRow}>
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            <View style={{ flex: 1, flexDirection: 'row' }}>
+              {Array.from({ length: 40 }, (_, i) => {
+                const v = Math.round(255 * (1 - i / 39));
+                return <View key={i} style={{ flex: 1, backgroundColor: `rgb(${v},${v},${v})` }} />;
+              })}
+            </View>
+          </View>
           <Image 
             source={require('../../../assets/images/ethio-logo.png')} 
             style={s.ethioLogo}
@@ -184,7 +186,7 @@ export default function RegisterScreen({ navigation }) {
             style={s.flipstarLogo}
             resizeMode="contain"
           />
-        </LinearGradient>
+        </View>
 
         {/* Step indicator */}
         <View style={s.stepRow}>
