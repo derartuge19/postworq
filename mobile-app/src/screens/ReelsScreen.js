@@ -536,45 +536,6 @@ const ReelItem = React.memo(function ReelItem({
       {/* Dark gradient overlay */}
       <View style={styles.gradient} pointerEvents="none" />
 
-      {/* Top Right Actions */}
-      <View style={styles.topRightActions}>
-        {/* Notifications */}
-        <TouchableOpacity style={styles.topActionBtn} onPress={() => onNavigate?.('Notifications')}>
-          <Ionicons name="notifications-outline" size={24} color={LIGHT_GOLD} />
-        </TouchableOpacity>
-        
-        {/* More Options Menu */}
-        <TouchableOpacity 
-          style={styles.topActionBtn} 
-          onPress={() => setShowMenu(!showMenu)}
-        >
-          <Ionicons name="ellipsis-horizontal" size={20} color={LIGHT_GOLD} />
-        </TouchableOpacity>
-
-        {/* Dropdown Menu */}
-        {showMenu && (
-          <View style={styles.dropdownMenu}>
-            <TouchableOpacity style={styles.menuItem} onPress={handleShareVideo}>
-              <Ionicons name="share-outline" size={18} color={LIGHT_GOLD} />
-              <Text style={styles.menuText}>Share</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={handleNotInterested}>
-              <Ionicons name="eye-off-outline" size={18} color="#78716C" />
-              <Text style={styles.menuText}>Not Interested</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { setShowMenu(false); setShowReportModal(true); }}>
-              <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
-              <Text style={[styles.menuText, { color: '#EF4444' }]}>Report</Text>
-            </TouchableOpacity>
-            {isOwnPost && (
-              <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                <Text style={[styles.menuText, { color: '#EF4444' }]}>Delete</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </View>
 
       {/* Right Side Actions */}
       <View style={styles.rightActions}>
@@ -1006,6 +967,8 @@ export default function ReelsScreen({ navigation, route }) {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [activeTab, setActiveTab] = useState('for_you');
+  const [screenMenuVisible, setScreenMenuVisible] = useState(false);
+  const [screenShowReport, setScreenShowReport] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const LIMIT = 10;
@@ -1169,6 +1132,48 @@ export default function ReelsScreen({ navigation, route }) {
     navigation.navigate(screen, params);
   }, [navigation]);
 
+  const currentReel = reels[activeIndex];
+  const isOwnCurrentReel = user?.id === currentReel?.user?.id;
+
+  const screenHandleShare = useCallback(async () => {
+    setScreenMenuVisible(false);
+    if (!currentReel) return;
+    try {
+      await Share.share({ message: `Check out this reel on FlipStar!` });
+    } catch {}
+  }, [currentReel]);
+
+  const screenHandleNotInterested = useCallback(async () => {
+    setScreenMenuVisible(false);
+    if (!currentReel) return;
+    try {
+      await api.request('/reels/not-interested/', {
+        method: 'POST',
+        body: JSON.stringify({ reel_id: currentReel.id }),
+      });
+    } catch {}
+    setReels(prev => prev.filter(v => v.id !== currentReel.id));
+  }, [currentReel]);
+
+  const screenHandleDelete = useCallback(() => {
+    setScreenMenuVisible(false);
+    if (!currentReel) return;
+    Alert.alert('Delete Reel', 'Are you sure you want to delete this reel?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: async () => {
+          try {
+            await api.request(`/reels/${currentReel.id}/`, { method: 'DELETE' });
+            setReels(prev => prev.filter(v => v.id !== currentReel.id));
+          } catch {
+            Alert.alert('Error', 'Failed to delete reel');
+          }
+        },
+      },
+    ]);
+  }, [currentReel]);
+
   const renderReel = useCallback(({ item, index }) => (
     <ReelItem
       item={item}
@@ -1228,6 +1233,47 @@ export default function ReelsScreen({ navigation, route }) {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Fixed top-right overlay — rendered outside FlatList so nothing blocks touches */}
+      <View style={[styles.topRightActions, { top: insets.top + 10 }]} pointerEvents="box-none">
+        <TouchableOpacity style={styles.topActionBtn} onPress={() => navigation.navigate('Notifications')}>
+          <Ionicons name="notifications-outline" size={24} color={LIGHT_GOLD} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.topActionBtn} onPress={() => setScreenMenuVisible(v => !v)}>
+          <Ionicons name="ellipsis-horizontal" size={20} color={LIGHT_GOLD} />
+        </TouchableOpacity>
+        {screenMenuVisible && (
+          <View style={styles.dropdownMenu}>
+            <TouchableOpacity style={styles.menuItem} onPress={screenHandleShare}>
+              <Ionicons name="share-outline" size={18} color={LIGHT_GOLD} />
+              <Text style={styles.menuText}>Share</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={screenHandleNotInterested}>
+              <Ionicons name="eye-off-outline" size={18} color="#78716C" />
+              <Text style={styles.menuText}>Not Interested</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setScreenMenuVisible(false); setScreenShowReport(true); }}>
+              <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
+              <Text style={[styles.menuText, { color: '#EF4444' }]}>Report</Text>
+            </TouchableOpacity>
+            {isOwnCurrentReel && (
+              <TouchableOpacity style={styles.menuItem} onPress={screenHandleDelete}>
+                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                <Text style={[styles.menuText, { color: '#EF4444' }]}>Delete</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </View>
+
+      {/* Screen-level Report Modal */}
+      {screenShowReport && currentReel && (
+        <Modal visible transparent animationType="slide" onRequestClose={() => setScreenShowReport(false)}>
+          <View style={styles.modalOverlay}>
+            <ReportModal reel={currentReel} onClose={() => setScreenShowReport(false)} />
+          </View>
+        </Modal>
+      )}
 
       {/* Video Feed - TikTok Style */}
       <FlatList
