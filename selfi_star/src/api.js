@@ -360,6 +360,8 @@ const api = {
 
   getLatestWinners: () => api.request('/winners/latest/'),
 
+  getCampaignWinners: (campaignId, type = 'overall') => api.request(`/campaigns/${campaignId}/winners/?type=${type}`),
+
   // Subscription upgrade
   upgradeToProPlan: () =>
     api.request('/subscription/upgrade/', {

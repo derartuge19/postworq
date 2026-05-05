@@ -3,6 +3,7 @@ import { Trophy, Calendar, Award, Users, Clock, Upload, Video, Check, X, Heart, 
 import api from '../api';
 import config from '../config.js';
 import { useTheme } from '../contexts/ThemeContext';
+import { CampaignWinnersSection } from '../components/CampaignWinnersSection';
 
 const mediaUrl = (url) => {
   if (!url) return null;
@@ -1566,6 +1567,9 @@ function SubmitEntryModal({ theme, campaign, campaignId, onClose, onSuccess }) {
           </button>
         </div>
       </div>
+
+      {/* Winners Section */}
+      <CampaignWinnersSection campaignId={campaignId} campaignType={campaign?.campaign_type} />
     </div>
   );
 }

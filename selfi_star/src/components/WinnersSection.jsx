@@ -98,8 +98,20 @@ export function WinnersSection() {
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
+                flexWrap: "wrap",
               }}>
-                <span>❤️ {winner.votes_received} votes</span>
+                <span>❤️ {winner.votes_received ?? 0} votes</span>
+                {winner.prize_value && (
+                  <span>🎁 {winner.prize_value}</span>
+                )}
+                {winner.prize_type && (
+                  <span style={{ textTransform: "capitalize" }}>{winner.prize_type}</span>
+                )}
+                {winner.cooldown_until && (
+                  <span style={{ fontSize: 10 }}>
+                    🚫 Cooldown until {new Date(winner.cooldown_until).toLocaleDateString()}
+                  </span>
+                )}
                 {winner.prize_claimed && <span>✅ Prize claimed</span>}
               </div>
             </div>

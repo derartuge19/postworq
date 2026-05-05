@@ -18,8 +18,32 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
   const [campaign, setCampaign] = useState(null);
   const [period, setPeriod] = useState('overall');
   const [leaderboard, setLeaderboard] = useState([]);
+  const [tab, setTab] = useState('rankings'); // 'rankings' | 'winners'
+  const [winners, setWinners] = useState([]);
 
   useEffect(() => { loadData(); }, [campaignId, period]);
+
+  useEffect(() => {
+    if (tab === 'winners' && campaignId) {
+      loadWinners();
+    }
+  }, [tab, campaignId]);
+
+  const loadWinners = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getCampaignWinners(campaignId, campaign?.campaign_type || 'overall');
+      const selections = Array.isArray(data) ? data : [];
+      // Flatten winners from all selections
+      const flat = selections.flatMap(s => s.winners || []);
+      setWinners(flat);
+    } catch (err) {
+      console.error('Error loading winners:', err);
+      setWinners([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -66,7 +90,7 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
             }}>
               <TrendingUp size={20} color="#fff" />
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: T.txt }}>Leaderboard</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                 <p style={{ margin: 0, fontSize: 13, color: T.sub }}>{campaign?.title}</p>
@@ -87,8 +111,33 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
                 )}
               </div>
             </div>
+            {/* Rankings/Winners tabs */}
+            <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+              {[
+                { id: 'rankings', label: 'Rankings' },
+                { id: 'winners', label: 'Winners' },
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  style={{
+                    padding: '6px 14px',
+                    background: tab === t.id ? T.pri : T.card,
+                    color: tab === t.id ? '#fff' : T.sub,
+                    border: `1.5px solid ${tab === t.id ? T.pri : T.border}`,
+                    borderRadius: 20,
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: 600,
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
-          {/* Period tabs */}
+          {/* Period tabs (only show on Rankings) */}
+          {tab === 'rankings' && (
           <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
             {PERIODS.map(p => (
               <button
@@ -107,14 +156,87 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
               </button>
             ))}
           </div>
+          )}
         </div>
       </div>
 
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 24px 60px' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: T.sub, fontSize: 15 }}>
-            Loading rankings...
+            {tab === 'winners' ? 'Loading winners...' : 'Loading rankings...'}
           </div>
+        ) : tab === 'winners' ? (
+          winners.length === 0 ? (
+            <div style={{
+              background: T.card, borderRadius: 14, padding: '48px 24px',
+              textAlign: 'center', border: `1px solid ${T.border}`,
+            }}>
+              <Trophy size={48} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
+              <div style={{ fontSize: 16, fontWeight: 700, color: T.txt, marginBottom: 8 }}>
+                No winners yet
+              </div>
+              <div style={{ fontSize: 13, color: T.sub }}>
+                Winners will appear here once the campaign is completed.
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {winners.map((winner) => (
+                <div
+                  key={`${winner.rank}-${winner.user.id}`}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '48px 1fr auto',
+                    gap: 12,
+                    alignItems: 'center',
+                    background: T.card,
+                    border: `1px solid ${T.border}`,
+                    borderRadius: 12,
+                    padding: 14,
+                  }}
+                >
+                  <div style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    background: winner.rank === 1 ? '#F59E0B' : winner.rank === 2 ? '#9CA3AF' : winner.rank === 3 ? '#B45309' : T.pri,
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 900,
+                    fontSize: 14,
+                  }}>
+                    #{winner.rank}
+                  </div>
+                  <div>
+                    <div style={{ color: T.txt, fontWeight: 800, fontSize: 15 }}>
+                      @{winner.user.username}
+                    </div>
+                    <div style={{ color: T.sub, fontSize: 12, marginTop: 2 }}>
+                      Score: {winner.final_score}
+                    </div>
+                    {winner.cooldown_until && (
+                      <div style={{ color: T.sub, fontSize: 11, marginTop: 2 }}>
+                        🚫 Cooldown until {new Date(winner.cooldown_until).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ color: T.green, fontWeight: 800, fontSize: 13 }}>
+                      {winner.prize_value || 'Prize'}
+                    </div>
+                    <div style={{ color: T.sub, fontSize: 11, textTransform: 'uppercase', marginTop: 3 }}>
+                      {winner.prize_type || 'other'}
+                    </div>
+                    {winner.prize_claimed && (
+                      <div style={{ color: T.green, fontSize: 10, marginTop: 3 }}>✅ Claimed</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         ) : leaderboard.length === 0 ? (
           <div style={{
             background: T.card, borderRadius: 14, padding: '48px 24px',
