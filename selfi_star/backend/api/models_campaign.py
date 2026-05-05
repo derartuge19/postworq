@@ -122,11 +122,24 @@ class CampaignVote(models.Model):
 
 class CampaignWinner(models.Model):
     """Winners of campaigns"""
+    PRIZE_TYPES = [
+        ('data', 'Mobile Data'),
+        ('telebirr', 'Telebirr Cash'),
+        ('points', 'Points'),
+        ('coins', 'Coins'),
+        ('other', 'Other'),
+    ]
+
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='winners')
     entry = models.ForeignKey(CampaignEntry, on_delete=models.CASCADE, related_name='winner_records')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='campaign_wins')
     
+    campaign_type = models.CharField(max_length=20, choices=Campaign.CAMPAIGN_TYPES, default='daily')
     rank = models.IntegerField(help_text='1st, 2nd, 3rd place, etc.')
+    final_score = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    prize_type = models.CharField(max_length=20, choices=PRIZE_TYPES, default='other')
+    prize_value = models.CharField(max_length=100, blank=True)
+    cooldown_until = models.DateTimeField(null=True, blank=True)
     prize_claimed = models.BooleanField(default=False)
     prize_claimed_at = models.DateTimeField(null=True, blank=True)
     
@@ -135,9 +148,61 @@ class CampaignWinner(models.Model):
     class Meta:
         ordering = ['rank']
         unique_together = ['campaign', 'rank']
+        indexes = [
+            models.Index(fields=['user', 'campaign_type', 'cooldown_until'], name='campaign_win_cooldown_idx'),
+        ]
     
     def __str__(self):
         return f"{self.user.username} - {self.campaign.title} (Rank {self.rank})"
+
+
+class CampaignPrizeConfig(models.Model):
+    """Default prize rules for each campaign type/rank."""
+    PRIZE_TYPES = CampaignWinner.PRIZE_TYPES
+    CAMPAIGN_TYPES = Campaign.CAMPAIGN_TYPES
+
+    campaign_type = models.CharField(max_length=20, choices=CAMPAIGN_TYPES)
+    rank = models.PositiveIntegerField(default=1)
+    winner_count = models.PositiveIntegerField(default=1)
+    prize_type = models.CharField(max_length=20, choices=PRIZE_TYPES)
+    prize_value = models.CharField(max_length=100)
+    cooldown_days = models.PositiveIntegerField(default=30)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['campaign_type', 'rank']
+        unique_together = ['campaign_type', 'rank']
+        indexes = [
+            models.Index(fields=['campaign_type', 'is_active']),
+        ]
+
+    def __str__(self):
+        return f"{self.campaign_type} #{self.rank} - {self.prize_value}"
+
+    @classmethod
+    def ensure_defaults(cls):
+        defaults = [
+            ('daily', 1, 200, 'data', '1GB Daily Data'),
+            ('weekly', 1, 10, 'telebirr', '1000 ETB'),
+            ('monthly', 1, 5, 'telebirr', '10000 ETB'),
+            ('grand', 1, 3, 'telebirr', '500000 ETB'),
+            ('grand', 2, 3, 'telebirr', '300000 ETB'),
+            ('grand', 3, 3, 'telebirr', '200000 ETB'),
+        ]
+        for campaign_type, rank, winner_count, prize_type, prize_value in defaults:
+            cls.objects.get_or_create(
+                campaign_type=campaign_type,
+                rank=rank,
+                defaults={
+                    'winner_count': winner_count,
+                    'prize_type': prize_type,
+                    'prize_value': prize_value,
+                    'cooldown_days': 30,
+                    'is_active': True,
+                },
+            )
 
 class CampaignNotification(models.Model):
     """Notifications related to campaigns"""

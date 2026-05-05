@@ -17,18 +17,18 @@ class CampaignScoringConfig(models.Model):
     # Engagement weights for daily
     daily_likes_weight = models.DecimalField(max_digits=5, decimal_places=2, default=1.0, help_text='Points per like (Daily)')
     daily_comments_weight = models.DecimalField(max_digits=5, decimal_places=2, default=2.0, help_text='Points per comment (Daily)')
-    daily_shares_weight = models.DecimalField(max_digits=5, decimal_places=2, default=3.0, help_text='Points per share (Daily)')
+    daily_shares_weight = models.DecimalField(max_digits=5, decimal_places=2, default=5.0, help_text='Points per share (Daily)')
     
     # Gamification weights for daily
     daily_spin_reward_weight = models.DecimalField(max_digits=5, decimal_places=2, default=5.0, help_text='Points for daily spin reward')
-    daily_coin_gift_weight = models.DecimalField(max_digits=5, decimal_places=2, default=2.0, help_text='Points per coin gift received')
+    daily_coin_gift_weight = models.DecimalField(max_digits=5, decimal_places=2, default=10.0, help_text='Points per gift/vote point received')
     daily_login_bonus_weight = models.DecimalField(max_digits=5, decimal_places=2, default=3.0, help_text='Points for daily login bonus')
     
     # Daily consistency
     daily_post_points = models.DecimalField(max_digits=5, decimal_places=2, default=10.0, help_text='Points for posting that day')
     
     # Daily win limit (days)
-    daily_win_cooldown_days = models.IntegerField(default=7, help_text='Days before user can win again (Daily)')
+    daily_win_cooldown_days = models.IntegerField(default=30, help_text='Days before user can win again (Daily)')
     
     # ============================================================================
     # WEEKLY CAMPAIGN SETTINGS
@@ -36,11 +36,11 @@ class CampaignScoringConfig(models.Model):
     # Engagement weights for weekly
     weekly_likes_weight = models.DecimalField(max_digits=5, decimal_places=2, default=1.0, help_text='Points per like (Weekly)')
     weekly_comments_weight = models.DecimalField(max_digits=5, decimal_places=2, default=2.0, help_text='Points per comment (Weekly)')
-    weekly_shares_weight = models.DecimalField(max_digits=5, decimal_places=2, default=3.0, help_text='Points per share (Weekly)')
+    weekly_shares_weight = models.DecimalField(max_digits=5, decimal_places=2, default=5.0, help_text='Points per share (Weekly)')
     
     # Gamification weights for weekly
     weekly_spin_reward_weight = models.DecimalField(max_digits=5, decimal_places=2, default=3.0, help_text='Points for spin reward (Weekly)')
-    weekly_coin_gift_weight = models.DecimalField(max_digits=5, decimal_places=2, default=1.5, help_text='Points per coin gift (Weekly)')
+    weekly_coin_gift_weight = models.DecimalField(max_digits=5, decimal_places=2, default=10.0, help_text='Points per gift/vote point (Weekly)')
     weekly_consistency_boost = models.DecimalField(max_digits=5, decimal_places=2, default=5.0, help_text='Points per day participated')
     
     # Streak bonuses for weekly
@@ -58,11 +58,11 @@ class CampaignScoringConfig(models.Model):
     # Engagement weights for monthly
     monthly_likes_weight = models.DecimalField(max_digits=5, decimal_places=2, default=1.0, help_text='Points per like (Monthly)')
     monthly_comments_weight = models.DecimalField(max_digits=5, decimal_places=2, default=2.0, help_text='Points per comment (Monthly)')
-    monthly_shares_weight = models.DecimalField(max_digits=5, decimal_places=2, default=3.0, help_text='Points per share (Monthly)')
+    monthly_shares_weight = models.DecimalField(max_digits=5, decimal_places=2, default=5.0, help_text='Points per share (Monthly)')
     
     # Gamification weights for monthly
     monthly_spin_reward_weight = models.DecimalField(max_digits=5, decimal_places=2, default=2.0, help_text='Points for spin reward (Monthly)')
-    monthly_coin_gift_weight = models.DecimalField(max_digits=5, decimal_places=2, default=1.0, help_text='Points per coin gift (Monthly)')
+    monthly_coin_gift_weight = models.DecimalField(max_digits=5, decimal_places=2, default=10.0, help_text='Points per gift/vote point (Monthly)')
     monthly_consistency_multiplier = models.DecimalField(max_digits=3, decimal_places=2, default=1.5, help_text='Multiplier for consistent posting')
     
     # Weekly winner bonus (for monthly campaigns)
@@ -83,7 +83,7 @@ class CampaignScoringConfig(models.Model):
     # Phase 1: Qualification (similar to monthly)
     grand_qualification_likes_weight = models.DecimalField(max_digits=5, decimal_places=2, default=1.0, help_text='Points per like (Qualification)')
     grand_qualification_comments_weight = models.DecimalField(max_digits=5, decimal_places=2, default=2.0, help_text='Points per comment (Qualification)')
-    grand_qualification_shares_weight = models.DecimalField(max_digits=5, decimal_places=2, default=3.0, help_text='Points per share (Qualification)')
+    grand_qualification_shares_weight = models.DecimalField(max_digits=5, decimal_places=2, default=5.0, help_text='Points per share (Qualification)')
     
     # Phase 2: Final Judging
     grand_judging_weight = models.DecimalField(max_digits=3, decimal_places=2, default=0.70, help_text='Weight for judge/admin scoring (0.0-1.0)')
@@ -278,13 +278,13 @@ class PostScore(models.Model):
     
     # Score components (out of 100 total)
     creativity_score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text='Max 30 points')
-    engagement_score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text='Max 25 points')
+    engagement_score = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text='Formula: likes*1 + comments*2 + shares*5 + gift/vote points*10')
     consistency_score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text='Max 20 points')
     quality_score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text='Max 15 points')
     theme_relevance_score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text='Max 10 points')
     
     # Total score
-    total_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    total_score = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
@@ -313,22 +313,25 @@ class PostScore(models.Model):
         return self.total_score
     
     def update_engagement_score(self):
-        """Calculate engagement score based on likes, comments, shares using configurable weights"""
+        """Calculate required V2 engagement formula: likes*1 + comments*2 + shares*5 + gift/vote points*10."""
         from .models import Vote, Comment
-        
-        # Get scoring config for this campaign
-        config, _ = CampaignScoringConfig.objects.get_or_create(campaign=self.campaign)
+        from .models_gift import GiftTransaction
         
         likes = Vote.objects.filter(reel=self.reel).count()
         comments = Comment.objects.filter(reel=self.reel).count()
-        # shares = 0  # TODO: Implement shares tracking
+        shares = getattr(self.reel, 'share_count', 0) or getattr(self.reel, 'shares_count', 0) or 0
+        gift_vote_points = (
+            GiftTransaction.objects
+            .filter(reel=self.reel)
+            .aggregate(total=models.Sum('total_coins'))['total'] or 0
+        )
         
-        # Use configurable weights
-        raw_engagement = (likes * float(config.likes_weight)) + (comments * float(config.comments_weight))
-        
-        # Normalize to max points configured by admin
-        max_points = float(config.max_engagement_points)
-        self.engagement_score = min(max_points, raw_engagement / 10)  # Scale down
+        self.engagement_score = (
+            likes * 1 +
+            comments * 2 +
+            shares * 5 +
+            gift_vote_points * 10
+        )
         self.save()
         self.calculate_total_score()
 

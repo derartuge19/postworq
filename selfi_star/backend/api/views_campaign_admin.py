@@ -8,13 +8,41 @@ from datetime import datetime, timedelta
 import random
 
 from .models import User, Reel
-from .models_campaign import Campaign
+from .models_campaign import Campaign, CampaignEntry, CampaignWinner, CampaignPrizeConfig
 from .models_campaign_extended import (
     CampaignTheme, PostScore, UserCampaignStats, Leaderboard, LeaderboardEntry,
     WinnerSelection, SelectedWinner, CampaignBadge
 )
 
 # ==================== THEME MANAGEMENT ====================
+
+def _get_prize_rule(campaign_type, rank):
+    CampaignPrizeConfig.ensure_defaults()
+    if campaign_type == 'grand':
+        return CampaignPrizeConfig.objects.filter(
+            campaign_type=campaign_type,
+            rank=rank,
+            is_active=True
+        ).first() or CampaignPrizeConfig.objects.filter(campaign_type=campaign_type, rank=1).first()
+    return CampaignPrizeConfig.objects.filter(
+        campaign_type=campaign_type,
+        rank=1,
+        is_active=True
+    ).first()
+
+
+def _default_winner_count(campaign_type):
+    CampaignPrizeConfig.ensure_defaults()
+    rule = CampaignPrizeConfig.objects.filter(campaign_type=campaign_type, is_active=True).order_by('rank').first()
+    return rule.winner_count if rule else 1
+
+
+def _is_in_same_tier_cooldown(user, campaign_type):
+    return CampaignWinner.objects.filter(
+        user=user,
+        campaign_type=campaign_type,
+        cooldown_until__gt=timezone.now(),
+    ).exists()
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAdminUser])
@@ -400,13 +428,13 @@ def get_leaderboard(request, campaign_id):
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def admin_select_winners(request, campaign_id):
-    """Select winners for a period"""
+    """Select winners using business rules: top scorers, configured prizes, 30-day same-tier cooldown."""
     try:
         campaign = Campaign.objects.get(id=campaign_id)
     except Campaign.DoesNotExist:
         return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
     
-    selection_type = request.data.get('selection_type', 'daily')
+    selection_type = request.data.get('selection_type') or campaign.campaign_type
     leaderboard_id = request.data.get('leaderboard_id')
     
     try:
@@ -421,87 +449,63 @@ def admin_select_winners(request, campaign_id):
         leaderboard=leaderboard
     )
     
-    # Get leaderboard entries
-    entries = LeaderboardEntry.objects.filter(leaderboard=leaderboard).order_by('rank')
-    
-    if campaign.campaign_type == 'daily':
-        # Daily: configurable % top scorers, % random
-        config, _ = CampaignScoringConfig.objects.get_or_create(campaign=campaign)
-        total_winners = request.data.get('total_winners', campaign.winner_count)
-        
-        # Calculate split
-        top_percentage = config.daily_top_scorer_percentage / 100.0
-        top_count = int(total_winners * top_percentage)
-        random_count = total_winners - top_count
-        
-        # Select top scorers
-        top_entries = entries[:top_count]
-        for idx, entry in enumerate(top_entries, start=1):
-            SelectedWinner.objects.create(
-                selection=selection,
-                user=entry.user,
+    winner_count = int(request.data.get('winner_count') or campaign.winner_count or _default_winner_count(selection_type))
+    if selection_type in ['daily', 'weekly', 'monthly', 'grand']:
+        winner_count = _default_winner_count(selection_type)
+
+    entries = LeaderboardEntry.objects.filter(leaderboard=leaderboard).select_related('user').order_by('rank')
+
+    selected = []
+    for entry in entries:
+        if len(selected) >= winner_count:
+            break
+        if _is_in_same_tier_cooldown(entry.user, selection_type):
+            continue
+        selected.append(entry)
+
+    for idx, entry in enumerate(selected, start=1):
+        rule = _get_prize_rule(selection_type, idx)
+        cooldown_days = rule.cooldown_days if rule else 30
+        cooldown_until = timezone.now() + timedelta(days=cooldown_days)
+        prize_type = rule.prize_type if rule else 'other'
+        prize_value = rule.prize_value if rule else ''
+
+        SelectedWinner.objects.create(
+            selection=selection,
+            user=entry.user,
+            rank=idx,
+            final_score=entry.score,
+            selection_method='top_scorer',
+            prize_type=prize_type,
+            prize_value=prize_value,
+            cooldown_until=cooldown_until,
+        )
+
+        campaign_entry = CampaignEntry.objects.filter(campaign=campaign, user=entry.user).first()
+        if campaign_entry:
+            campaign_entry.is_winner = True
+            campaign_entry.rank = idx
+            campaign_entry.save(update_fields=['is_winner', 'rank'])
+
+            CampaignWinner.objects.get_or_create(
+                campaign=campaign,
                 rank=idx,
-                final_score=entry.score,
-                selection_method='top_scorer'
+                defaults={
+                    'entry': campaign_entry,
+                    'user': entry.user,
+                    'campaign_type': selection_type,
+                    'final_score': entry.score,
+                    'prize_type': prize_type,
+                    'prize_value': prize_value,
+                    'cooldown_until': cooldown_until,
+                }
             )
-        
-        # Select random participants from the rest
-        remaining_entries = list(entries[top_count:])
-        if len(remaining_entries) > random_count:
-            random_entries = random.sample(remaining_entries, random_count)
-        else:
-            random_entries = remaining_entries
-        
-        for idx, entry in enumerate(random_entries, start=top_count + 1):
-            SelectedWinner.objects.create(
-                selection=selection,
-                user=entry.user,
-                rank=idx,
-                final_score=entry.score,
-                selection_method='random'
-            )
-            
-    elif campaign.campaign_type in ['weekly', 'monthly']:
-        # Weekly/Monthly: Top scorers only, check if won already
-        winner_count = request.data.get('winner_count', campaign.winner_count)
-        
-        # Filter out users who have already won in this cycle
-        eligible_entries = []
-        for entry in entries:
-            stat = UserCampaignStats.objects.filter(user=entry.user, campaign=campaign).first()
-            if not stat or not stat.has_won_current_cycle:
-                eligible_entries.append(entry)
-                
-        top_entries = eligible_entries[:winner_count]
-        
-        for idx, entry in enumerate(top_entries, start=1):
-            SelectedWinner.objects.create(
-                selection=selection,
-                user=entry.user,
-                rank=idx,
-                final_score=entry.score,
-                selection_method='top_scorer'
-            )
-            
-            # Mark user as having won this cycle
-            stat = UserCampaignStats.objects.get(user=entry.user, campaign=campaign)
+
+        stat = UserCampaignStats.objects.filter(user=entry.user, campaign=campaign).first()
+        if stat:
             stat.has_won_current_cycle = True
             stat.last_win_date = timezone.now()
-            stat.save()
-            
-    elif campaign.campaign_type == 'grand':
-        # Grand campaign logic (Voting + Scoring)
-        winner_count = request.data.get('winner_count', campaign.winner_count)
-        top_entries = entries[:winner_count]
-        
-        for idx, entry in enumerate(top_entries, start=1):
-            SelectedWinner.objects.create(
-                selection=selection,
-                user=entry.user,
-                rank=idx,
-                final_score=entry.score,
-                selection_method='top_scorer'
-            )
+            stat.save(update_fields=['has_won_current_cycle', 'last_win_date'])
     
     selection.is_finalized = True
     selection.finalized_at = timezone.now()
@@ -511,7 +515,21 @@ def admin_select_winners(request, campaign_id):
     return Response({
         'message': f'{selection_type.capitalize()} winners selected',
         'selection_id': selection.id,
-        'winners_count': selection.winners.count()
+        'winners_count': selection.winners.count(),
+        'requested_winner_count': winner_count,
+        'excluded_by_cooldown': entries.count() - len(selected) if entries.count() > len(selected) else 0,
+        'winners': [
+            {
+                'rank': w.rank,
+                'user_id': w.user_id,
+                'username': w.user.username,
+                'score': float(w.final_score),
+                'prize_type': w.prize_type,
+                'prize_value': w.prize_value,
+                'cooldown_until': w.cooldown_until.isoformat() if w.cooldown_until else None,
+            }
+            for w in selection.winners.select_related('user').order_by('rank')
+        ],
     })
 
 @api_view(['GET'])
@@ -546,6 +564,9 @@ def get_campaign_winners(request, campaign_id):
                 },
                 'final_score': float(winner.final_score),
                 'selection_method': winner.selection_method,
+                'prize_type': winner.prize_type,
+                'prize_value': winner.prize_value,
+                'cooldown_until': winner.cooldown_until,
                 'prize_claimed': winner.prize_claimed,
             } for winner in winners]
         })
