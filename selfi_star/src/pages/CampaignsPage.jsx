@@ -66,6 +66,18 @@ export function CampaignsPage({ onCampaignClick, onBack }) {
   const [filter, setFilter] = useState('all');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+  // Debug: catch any undefined variable errors
+  useEffect(() => {
+    const handleError = (e) => {
+      if (e.message && e.message.includes('t is not defined')) {
+        console.error('t is not defined error:', e);
+        console.error('Stack:', e.error?.stack);
+      }
+    };
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', onResize);
