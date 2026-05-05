@@ -21,6 +21,29 @@ export function CampaignDetailPage({ campaignId, onBack, onShowLeaderboard, onSh
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 768);
   const [openSections, setOpenSections] = useState({ desc: true, reqs: false, timeline: false, scoring: false });
 
+  // Debug: catch any undefined variable errors
+  useEffect(() => {
+    const handleError = (e) => {
+      if (e.message && e.message.includes('t is not defined')) {
+        alert(`t is not defined error: ${e.message}\nStack: ${e.error?.stack}`);
+        console.error('t is not defined error:', e);
+        console.error('Stack:', e.error?.stack);
+      }
+    };
+    const handleRejection = (e) => {
+      if (e.reason && e.reason.toString().includes('t is not defined')) {
+        alert(`t is not defined promise rejection: ${e.reason}`);
+        console.error('t is not defined promise rejection:', e);
+      }
+    };
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, []);
+
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', onResize);
