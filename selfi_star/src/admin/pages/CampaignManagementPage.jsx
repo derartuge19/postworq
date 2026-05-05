@@ -18,6 +18,8 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
   const [analyticsCampaign, setAnalyticsCampaign] = useState(null);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false });
   const [successModal, setSuccessModal] = useState({ isOpen: false, campaign: null });
+  const [winnerResult, setWinnerResult] = useState(null);
+  const [selectingWinners, setSelectingWinners] = useState(false);
 
   useEffect(() => {
     loadCampaigns();
@@ -112,17 +114,42 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
   };
 
   const handleAnnounceWinners = (campaign) => {
+    const type = campaign.campaign_type || 'daily';
+    const expectedCount = type === 'daily' ? 200 : type === 'weekly' ? 10 : type === 'monthly' ? 5 : type === 'grand' ? 3 : campaign.winner_count;
     setConfirmModal({
       isOpen: true,
-      title: 'Announce Winners',
-      message: `Announce winners for "${campaign.title}"? Top ${campaign.winner_count} entries will be selected.`,
+      title: 'Select Winners',
+      message: `Generate ${type} leaderboard and select ${expectedCount} winner(s) for "${campaign.title}" using score formula, prize rules, and 30-day same-tier cooldown?`,
       type: 'success',
       onConfirm: async () => {
         try {
-          await api.request(`/admin/campaigns/${campaign.id}/announce-winners/`, { method: 'POST' });
-          loadCampaigns();
+          setSelectingWinners(true);
+          setConfirmModal({ isOpen: false });
+          const leaderboard = await api.request(`/admin/campaigns/${campaign.id}/leaderboard/generate/`, {
+            method: 'POST',
+            body: JSON.stringify({ period_type: type === 'grand' ? 'overall' : type }),
+          });
+          const result = await api.request(`/admin/campaigns/${campaign.id}/winners/select/`, {
+            method: 'POST',
+            body: JSON.stringify({
+              selection_type: type,
+              leaderboard_id: leaderboard.leaderboard_id,
+            }),
+          });
+          setWinnerResult({ campaign, leaderboard, result });
+          await loadCampaigns();
         } catch (error) {
-          console.error('Failed to announce winners:', error);
+          console.error('Failed to select winners:', error);
+          setConfirmModal({
+            isOpen: true,
+            title: 'Winner Selection Failed',
+            message: error.message || 'Failed to generate leaderboard and select winners.',
+            type: 'error',
+            showCancel: false,
+            onConfirm: () => setConfirmModal({ isOpen: false }),
+          });
+        } finally {
+          setSelectingWinners(false);
         }
       }
     });
@@ -600,9 +627,10 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
                       <BarChart3 size={14} />
                       Analytics
                     </button>
-                    {campaign.status === 'voting' && !campaign.winners_announced && (
+                    {campaign.status !== 'draft' && (
                       <button
                         onClick={() => handleAnnounceWinners(campaign)}
+                        disabled={selectingWinners}
                         style={{
                           flex: 1,
                           padding: '8px',
@@ -612,7 +640,8 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
                           color: theme.green,
                           fontSize: 13,
                           fontWeight: 600,
-                          cursor: 'pointer',
+                          cursor: selectingWinners ? 'not-allowed' : 'pointer',
+                          opacity: selectingWinners ? 0.6 : 1,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -620,7 +649,7 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
                         }}
                       >
                         <Award size={14} />
-                        Winners
+                        {selectingWinners ? 'Selecting...' : 'Winners'}
                       </button>
                     )}
                   </div>
@@ -775,12 +804,188 @@ export function CampaignManagementPage({ theme, onManageCampaign }) {
         />
       )}
 
+      {winnerResult && (
+        <WinnerResultModal
+          theme={theme}
+          data={winnerResult}
+          onClose={() => setWinnerResult(null)}
+        />
+      )}
+
       {/* Confirm Modal */}
       <ConfirmModal
         theme={theme}
         {...confirmModal}
         onClose={() => setConfirmModal({ isOpen: false })}
       />
+    </div>
+  );
+}
+
+function WinnerResultModal({ theme, data, onClose }) {
+  const winners = data?.result?.winners || [];
+  const campaign = data?.campaign || {};
+  const result = data?.result || {};
+  const leaderboard = data?.leaderboard || {};
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.65)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000,
+        padding: 20,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 820,
+          maxHeight: '85vh',
+          overflowY: 'auto',
+          background: theme.card,
+          border: `1px solid ${theme.border}`,
+          borderRadius: 16,
+          padding: 24,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 20 }}>
+          <div>
+            <h2 style={{ margin: 0, color: theme.txt, fontSize: 24, fontWeight: 800 }}>
+              🏆 Winners Selected
+            </h2>
+            <p style={{ margin: '6px 0 0', color: theme.sub, fontSize: 14 }}>
+              {campaign.title} • {campaign.campaign_type} campaign
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              border: 'none',
+              background: theme.bg,
+              color: theme.txt,
+              borderRadius: 10,
+              width: 36,
+              height: 36,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 18 }}>
+          {[
+            ['Leaderboard ID', leaderboard.leaderboard_id || '-'],
+            ['Entries Ranked', leaderboard.entries_count ?? '-'],
+            ['Requested Winners', result.requested_winner_count ?? '-'],
+            ['Selected Winners', result.winners_count ?? winners.length],
+            ['Skipped Cooldown', result.excluded_by_cooldown ?? 0],
+          ].map(([label, value]) => (
+            <div key={label} style={{ background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 12, padding: 12 }}>
+              <div style={{ color: theme.sub, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
+              <div style={{ color: theme.txt, fontSize: 18, fontWeight: 800 }}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{
+          background: `${theme.pri}12`,
+          border: `1px solid ${theme.pri}55`,
+          borderRadius: 12,
+          padding: 12,
+          marginBottom: 16,
+          color: theme.txt,
+          fontSize: 13,
+          lineHeight: 1.5,
+        }}>
+          Backend rules applied: <strong>top-score ranking</strong>, required prize config, exact winner count, and <strong>30-day same-tier cooldown</strong>. Winners can still compete in other tiers.
+        </div>
+
+        {winners.length === 0 ? (
+          <div style={{ padding: 36, textAlign: 'center', color: theme.sub, background: theme.bg, borderRadius: 12 }}>
+            No winners selected. Check that the leaderboard has eligible entries and users are not all in cooldown.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {winners.map((winner) => (
+              <div
+                key={`${winner.rank}-${winner.user_id}`}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '56px 1fr auto',
+                  gap: 12,
+                  alignItems: 'center',
+                  background: theme.bg,
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: 12,
+                  padding: 12,
+                }}
+              >
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  background: winner.rank === 1 ? '#F59E0B' : winner.rank === 2 ? '#9CA3AF' : winner.rank === 3 ? '#B45309' : theme.pri,
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 900,
+                }}>
+                  #{winner.rank}
+                </div>
+                <div>
+                  <div style={{ color: theme.txt, fontWeight: 800, fontSize: 15 }}>
+                    @{winner.username}
+                  </div>
+                  <div style={{ color: theme.sub, fontSize: 12, marginTop: 2 }}>
+                    Score: {winner.score} • User ID: {winner.user_id}
+                  </div>
+                  <div style={{ color: theme.sub, fontSize: 12, marginTop: 2 }}>
+                    Cooldown until: {winner.cooldown_until ? new Date(winner.cooldown_until).toLocaleString() : 'None'}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ color: theme.green, fontWeight: 800, fontSize: 13 }}>
+                    {winner.prize_value || 'Prize'}
+                  </div>
+                  <div style={{ color: theme.sub, fontSize: 11, textTransform: 'uppercase', marginTop: 3 }}>
+                    {winner.prize_type || 'other'}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={onClose}
+          style={{
+            marginTop: 20,
+            width: '100%',
+            padding: '12px 18px',
+            borderRadius: 10,
+            border: 'none',
+            background: theme.pri,
+            color: '#fff',
+            fontWeight: 800,
+            cursor: 'pointer',
+          }}
+        >
+          Done
+        </button>
+      </div>
     </div>
   );
 }
