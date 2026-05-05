@@ -116,22 +116,22 @@ const CampaignLeaderboard = ({ campaignId, onBack }) => {
               {[
                 { id: 'rankings', label: 'Rankings' },
                 { id: 'winners', label: 'Winners' },
-              ].map(t => (
+              ].map(tabOption => (
                 <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
+                  key={tabOption.id}
+                  onClick={() => setTab(tabOption.id)}
                   style={{
                     padding: '6px 14px',
-                    background: tab === t.id ? T.pri : T.card,
-                    color: tab === t.id ? '#fff' : T.sub,
-                    border: `1.5px solid ${tab === t.id ? T.pri : T.border}`,
+                    background: tab === tabOption.id ? T.pri : T.card,
+                    color: tab === tabOption.id ? '#fff' : T.sub,
+                    border: `1.5px solid ${tab === tabOption.id ? T.pri : T.border}`,
                     borderRadius: 20,
                     cursor: 'pointer',
                     fontSize: 13,
                     fontWeight: 600,
                   }}
                 >
-                  {t.label}
+                  {tabOption.label}
                 </button>
               ))}
             </div>
