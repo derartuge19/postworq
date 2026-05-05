@@ -335,7 +335,7 @@ export function CampaignScoringConfigPage({ campaignId, campaignType, onBack, th
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
-        <button onClick={onBack} style={{ padding: '8px 16px', borderRadius: 6, border: `1px solid ${theme.border}`, background: 'white', color: theme.txt, cursor: 'pointer', marginBottom: 16 }}>
+        <button onClick={onBack} style={{ padding: '8px 16px', borderRadius: 6, border: `1px solid ${theme.border}`, background: theme.card || theme.bg, color: theme.txt, cursor: 'pointer', marginBottom: 16 }}>
           ← Back to Campaign
         </button>
         <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: theme.txt }}>
@@ -371,7 +371,7 @@ export function CampaignScoringConfigPage({ campaignId, campaignType, onBack, th
       )}
 
       <div style={{ display: 'flex', gap: 12, marginTop: 32, justifyContent: 'flex-end' }}>
-        <button onClick={loadConfig} style={{ padding: '12px 24px', borderRadius: 8, border: `1px solid ${theme.border}`, background: 'white', color: theme.txt, cursor: 'pointer' }}>
+        <button onClick={loadConfig} style={{ padding: '12px 24px', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || theme.bg, color: theme.txt, cursor: 'pointer' }}>
           Reset
         </button>
         <button onClick={handleSave} disabled={saving} style={{ padding: '12px 24px', borderRadius: 8, border: 'none', background: theme.pri, color: 'white', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>

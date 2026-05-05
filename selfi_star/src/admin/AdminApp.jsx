@@ -215,7 +215,7 @@ export function AdminApp() {
   };
 
   return (
-    <div style={{
+    <div className="admin-root" style={{
       display: 'flex',
       width: '100vw',
       height: '100vh',
@@ -223,6 +223,56 @@ export function AdminApp() {
       overflow: 'hidden',
       fontFamily: adminFont,
     }}>
+      <style>{`
+        .admin-root, .admin-root * {
+          box-sizing: border-box;
+        }
+        .admin-root {
+          color: ${T.txt};
+          background: ${T.bg};
+        }
+        .admin-root input,
+        .admin-root textarea,
+        .admin-root select {
+          color: ${T.txt} !important;
+          background: ${T.cardBg || T.card || T.bg} !important;
+          border-color: ${T.border} !important;
+          caret-color: ${T.txt};
+        }
+        .admin-root input::placeholder,
+        .admin-root textarea::placeholder {
+          color: ${T.sub} !important;
+          opacity: 1;
+        }
+        .admin-root option,
+        .admin-root optgroup {
+          color: ${T.txt} !important;
+          background: ${T.cardBg || T.card || T.bg} !important;
+        }
+        .admin-root [style*="background: white"],
+        .admin-root [style*="background:white"],
+        .admin-root [style*="background: #fff"],
+        .admin-root [style*="background:#fff"],
+        .admin-root [style*="background: #ffffff"],
+        .admin-root [style*="background:#ffffff"],
+        .admin-root [style*="background: rgb(255, 255, 255)"],
+        .admin-root [style*="background-color: white"],
+        .admin-root [style*="background-color:white"],
+        .admin-root [style*="background-color: #fff"],
+        .admin-root [style*="background-color:#fff"],
+        .admin-root [style*="background-color: rgb(255, 255, 255)"] {
+          color: #111827;
+        }
+        .admin-root table,
+        .admin-root th,
+        .admin-root td,
+        .admin-root label,
+        .admin-root p,
+        .admin-root span,
+        .admin-root div {
+          color: inherit;
+        }
+      `}</style>
       <AdminSidebar
         theme={T}
         currentPage={currentPage}
