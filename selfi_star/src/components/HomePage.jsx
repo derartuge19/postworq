@@ -1697,6 +1697,29 @@ export function HomePage({ user, onShowProfile, onShowPostPage, onRequireAuth, o
   const { colors: T } = useTheme();
   const [activeTab, setActiveTab] = useState('For You');
   // Seed from cache + merge persisted like/save state so the heart stays
+
+  // Debug: catch any undefined variable errors
+  useEffect(() => {
+    const handleError = (e) => {
+      if (e.message && e.message.includes('T is not defined')) {
+        alert(`T is not defined error: ${e.message}\nStack: ${e.error?.stack}`);
+        console.error('T is not defined error:', e);
+        console.error('Stack:', e.error?.stack);
+      }
+    };
+    const handleRejection = (e) => {
+      if (e.reason && e.reason.toString().includes('T is not defined')) {
+        alert(`T is not defined promise rejection: ${e.reason}`);
+        console.error('T is not defined promise rejection:', e);
+      }
+    };
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, []);
   // filled on the very first paint.
   const [posts, setPosts] = useState(() => mergeLocalEngagement(readHomeCache() || []));
   const [loading, setLoading] = useState(() => !readHomeCache());
